@@ -1,0 +1,33 @@
+*_dict*
+*~
+*.o
+*.d
+*.so
+*.pcm
+*.cxx
+CORE
+Software
+Tools
+ZMET2015/output
+ZMET2015/vtxreweighting/ht_ratio_data_novtx*.root
+ZMET2015/interpretations/datacards/datacard*.txt
+
+dilepbabymaker/batchsubmit/log_merge_*
+dilepbabymaker/batchsubmit/merge_log*
+dilepbabymaker/batchsubmit/submit_logs
+dilepbabymaker/batchsubmit/job_logs
+dilepbabymaker/batchsubmit/configs*
+dilepbabymaker/*.root
+dilepbabymaker/golden*
+
+# Added by Bobak, untracked as of intial pull
+dilepbabymaker/batchsubmit/job_input/
+dilepbabymaker/processBaby
+plots_baby/
+sync
+
+#Exceptions for the files in job_input
+!dilepbabymaker/batchsubmit/job_input/.keepme
+!dilepbabymaker/batchsubmit/job_input/libMiniFWLite.so
+!dilepbabymaker/batchsubmit/job_input/processBaby.C
+
