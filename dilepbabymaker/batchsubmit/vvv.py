@@ -1,6 +1,7 @@
 import os
 import sys
 
+os.system("pwd") #Should remake the tarball and ensure running ducks always takes the newest code.
 os.system("source make_job_inputs.sh") #Should remake the tarball and ensure running ducks always takes the newest code.
 
 d_ds2name = {
