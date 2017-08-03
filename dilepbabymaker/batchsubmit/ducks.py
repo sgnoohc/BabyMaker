@@ -13,7 +13,8 @@ instructions = []
 ##
 ## make instructions by class of sample
 ##
-samples_types = ["backgrounds", "data"]
+#samples_types = ["backgrounds", "data"]
+samples_types = ["backgrounds"]
 #samples_types = ["data"]
 for stype in samples_types:
     for ds in vvv.d_ds2name[stype].keys():
