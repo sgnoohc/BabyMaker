@@ -9,6 +9,7 @@ git checkout <RELEVANT TAG>
 Then pull in CORE, Software, and NTuple tools in the top level directory:
 
 ```bash
+cd VVVBabyMaker
 git clone git@github.com:cmstas/CORE.git
 git clone git@github.com:cmstas/NtupleTools.git
 git clone git@github.com:cmstas/Software.git
@@ -19,39 +20,41 @@ cd ..
 
 Now the directory structure should have VVVBabyMaker at the top level and CORE, Software, NTupleTools, dilepbabymaker, and json as subdirectories.
 
-Make sure you have ROOT setup, then you can test the code works by going into dilepbabymaker and running dotest.sh:
+Make sure you have ROOT setup. On the grid, the babymaker runs with ``CMSSW_8_0_5``, so it's best to compile all the code with that version:
+
+```bash
+CMSSW_VERSION=CMSSW_8_0_5
+export SCRAM_ARCH=slc6_amd64_gcc530
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
+eval `scramv1 runtime -sh`
+cd -
+```
+
+Then, you can compile and test the code works by going into dilepbabymaker and running dotest.sh (you'll need to symlink CORE into this directory as well):
 
 ```bash
 cd dilepbabymaker/
+ln -s ../CORE 
 make -j15
 ./dotest.sh
 ```
 
-This will test that the looper compiles and there are no seg faults or other book-keeping issues with ScanChain. Submission to the batch system via the AutoTwopler is covered below.
+This will test that the looper compiles and there are no seg faults or other book-keeping issues with ScanChain. Submission to the batch system via the AutoTwopler is covered below. 
 
 ### Submission to the grid
 
 To submit babymaking jobs to the grid, a few files will need to be edited. We assume that you have tested your code as above and that `dotest.sh` did not return any errors.
 
-NOTE: At the current moment, we need to manually update AutoTwopler to work with the new `gfal-copy` syntax. Go into `NtupleTools/AutoTwopler/` and update the following line in `Samples.py`
-
-```python
-copy_cmd = "gfal-copy -p -f -t 4200 file://`pwd`/%s srm://bsrm-3.t2.ucsd.edu:8443/srm/v2/server?SFN=%s/%s/%s_${IMERGED}.root --checksum ADLER32" \
-```
-
-with 
-
-```python
-copy_cmd = "gfal-copy -p -f -t 4200 file://`pwd`/%s gsiftp://gftp.t2.ucsd.edu/%s/%s/%s_${IMERGED}.root --checksum ADLER32" \
-```
-
-Then you need to run the setup script for the AutoTwopler:
+At this point, you need to run the setup script for the AutoTwopler:
 
 ```bash
 cd NtupleTools/AutoTwopler/
 . setup.sh
 cd ..
 ```
+
+Note: all the steps up to this point can be completed by sourcing setup.sh from VVVBabyMaker/
 
 If you have made changes to the looper, then you will want to change the tag for the code in AutoTwopler. Go into dilepbabymaker/batchsubmit/ and edit the vvv.tag string in ducks.py to have a descriptive tag name.
 
