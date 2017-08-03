@@ -69,7 +69,6 @@ To add a new sample, simply add an entry to the `data` or `background` dictionar
 
 #### Launching the jobs
 
-Once you have set up your samples, go into `dilepbabymaker/batchsubmit/ducks.py` and either edit or comment out the rsync line which will automatically move the completed merged babies onto nfs-7.
 You will almost certainly want to setup a screen instance before you continue since AutoTwopler monitors your jobs but is not daemonized.
 
 Once the screen is setup, from inside `dilepbabymaker/batchsubmit/`, run 
