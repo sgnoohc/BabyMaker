@@ -55,4 +55,6 @@ run.main(instructions=instructions, params=p)
 # p.merge_babies_on_condor = True
 # run.main(instructions=instructions, params=p, do_one_iteration=True)
 
-os.system("rsync -avz /hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/%s/ /nfs-7/userdata/bhashemi/WWW_babies/%s" % (vvv.tag, vvv.tag) ) #Should remake the tarball and ensure running ducks always takes the newest code.
+if (not os.path.isdir("/nfs-7/userdata/%s/WWW_babies/" % os.getenv("USER") ) ):
+  os.system("mkdir -p /nfs-7/userdata/%s/WWW_babies/" % os.getenv("USER"))
+os.system("rsync -avz /hadoop/cms/store/user/%s/AutoTwopler_babies/merged/VVV/%s/ /nfs-7/userdata/%s/WWW_babies/%s" % (os.getenv("USER"), vvv.tag, os.getenv("USER"), vvv.tag) ) #Should remake the tarball and ensure running ducks always takes the newest code.
