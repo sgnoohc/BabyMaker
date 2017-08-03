@@ -30,7 +30,7 @@ make -j15
 echo "Testing the babymaker..."
 ./dotest.sh
 
-cd ../../NtupleTools/AutoTwopler/
+cd ../NtupleTools/AutoTwopler/
 . setup.sh
 cd ../../dilepbabymaker/batchsubmit/
 
