@@ -320,6 +320,7 @@ private:
   std::vector <Float_t> lep_ip3d         ;   //[nlep]
   std::vector <Float_t> lep_ip3derr      ;   //[nlep]
   std::vector <Float_t> lep_etaSC        ;   //[nlep]
+  std::vector <Float_t> lep_r9           ;   //[nlep]
   std::vector <Float_t> lep_dz           ;   //[nlep]
   std::vector <Int_t  > lep_tightId      ;   //[nlep]
   std::vector <Int_t  > lep_mcMatchId    ;   //[nlep]

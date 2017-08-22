@@ -951,6 +951,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector<float>vec_lep_etaSC;
       vector<float>vec_lep_validfraction;
       vector<float>vec_lep_ptErr;
+      vector<float>vec_lep_r9;
 
       //cout<<__LINE__<<endl;
 
@@ -1105,6 +1106,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_dz           .push_back( cms3.els_dzPV().at(iEl)         );
     		  vec_lep_tightId      .push_back( eleTightID(iEl, ZMET)           );
     		  vec_lep_etaSC        .push_back( els_etaSC().at(iEl)             );
+    		  vec_lep_r9           .push_back( els_r9().at(iEl)                );
     		  vec_lep_MVA          .push_back( getMVAoutput(iEl)               );
     		  vec_lep_validfraction.push_back( -1                              );
     		  vec_lep_ptErr        .push_back( cms3.els_ptErr() .at(iEl)       );
@@ -1275,6 +1277,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_dz           .push_back ( cms3.mus_dzPV()   .at(iMu)       );
     		  vec_lep_tightId      .push_back ( isTightMuonPOG(iMu)              );
     		  vec_lep_etaSC        .push_back ( cms3.mus_p4().at(iMu).eta()      );
+    		  vec_lep_r9           .push_back ( -99                              );
     		  vec_lep_MVA          .push_back ( -99                              );
     		  vec_lep_validfraction.push_back ( validFraction                    );
     		  vec_lep_ptErr        .push_back ( cms3.mus_ptErr() .at(iMu)        );
@@ -1335,6 +1338,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         lep_ip3d                .push_back( vec_lep_ip3d                .at(it->first));
         lep_ip3derr             .push_back( vec_lep_ip3derr             .at(it->first));
     		lep_etaSC               .push_back( vec_lep_etaSC               .at(it->first));
+    		lep_r9                  .push_back( vec_lep_r9                  .at(it->first));
     		lep_tightId             .push_back( vec_lep_tightId             .at(it->first));
         lep_closest_jet_p4      .push_back( vec_lep_closest_jet_p4      .at(it->first));
     		
@@ -2855,6 +2859,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_ip3d"         , "std::vector< Float_t >"       , &lep_ip3d       );
   BabyTree_->Branch("lep_ip3derr"      , "std::vector< Float_t >"       , &lep_ip3derr    );
   BabyTree_->Branch("lep_etaSC"        , "std::vector< Float_t >"       , &lep_etaSC      );
+  BabyTree_->Branch("lep_r9"           , "std::vector< Float_t >"       , &lep_r9         );
   BabyTree_->Branch("lep_dz"           , "std::vector< Float_t >"       , &lep_dz         );
   BabyTree_->Branch("lep_tightId"      , "std::vector< Int_t >"         , &lep_tightId    );
   BabyTree_->Branch("lep_mcMatchId"    , "std::vector< Int_t >"         , &lep_mcMatchId  );
@@ -3365,6 +3370,7 @@ void babyMaker::InitBabyNtuple () {
   lep_ip3d          .clear();
   lep_ip3derr       .clear();
   lep_etaSC         .clear();
+  lep_r9            .clear();
   lep_dz            .clear();
   lep_tightId       .clear();
   lep_mcMatchId     .clear();
