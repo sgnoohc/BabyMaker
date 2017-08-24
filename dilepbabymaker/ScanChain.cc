@@ -540,12 +540,14 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       nVert = 0;
       for(unsigned int ivtx=0; ivtx < cms3.evt_nvtxs(); ivtx++){
 
-        if(     cms3.vtxs_isFake()   .at(ivtx)             ) continue;
-        if(     cms3.vtxs_ndof()     .at(ivtx)       <= 4  ) continue;
-        if(fabs(cms3.vtxs_position() .at(ivtx).z())  >  24 ) continue;
-        if(     cms3.vtxs_position() .at(ivtx).Rho() >  2  ) continue;
+        //if(     cms3.vtxs_isFake()   .at(ivtx)             ) continue;
+        //if(     cms3.vtxs_ndof()     .at(ivtx)       <= 4  ) continue;
+        //if(fabs(cms3.vtxs_position() .at(ivtx).z())  >  24 ) continue;
+        //if(     cms3.vtxs_position() .at(ivtx).Rho() >  2  ) continue;
+	if(!isGoodVertex(ivtx)) continue;
         nVert++;  
       }
+      firstgoodvertex = firstGoodVertex();
       
       met_pt       = cms3.evt_pfmet();
       met_phi      = cms3.evt_pfmetPhi();
@@ -2649,6 +2651,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("evt_dataset", "std::vector <TString>", &evt_dataset);
   BabyTree_->Branch("puWeight", &puWeight );
   BabyTree_->Branch("nVert", &nVert );
+  BabyTree_->Branch("firstgoodvertex", &firstgoodvertex );
   BabyTree_->Branch("nTrueInt", &nTrueInt );
   BabyTree_->Branch("rho", &rho );
   BabyTree_->Branch("rho25", &rho25 );
@@ -3158,6 +3161,7 @@ void babyMaker::InitBabyNtuple () {
   evt_dataset.clear();
   puWeight = -999.0;
   nVert = -999;
+  firstgoodvertex = -999;
   nTrueInt = -999;
   rho = -999.0;
   rho25 = -999.0;

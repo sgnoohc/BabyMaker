@@ -105,6 +105,7 @@ private:
   std::vector<TString>   evt_dataset; // needs to be vector<TString> due to root technicality
   Float_t         puWeight;
   Int_t           nVert;
+  Int_t           firstgoodvertex;
   Int_t           nTrueInt;
   Float_t         rho;
   Float_t         rho25;
