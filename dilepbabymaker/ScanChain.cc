@@ -58,7 +58,7 @@ bool isSMSScan = false;
 // always on
 bool applyBtagSFs = true;
 // for testing purposes, running on unmerged files (default false)
-const bool removePostProcVars = false;
+bool removePostProcVars = false;
 
 const double JET_PT_MIN = 20;
 const double JET_ETA_MAX = 5;
@@ -436,6 +436,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       lumi   = cms3.evt_lumiBlock();
       evt    = cms3.evt_event();
       isData = cms3.evt_isRealData();
+      if (isData) removePostProcVars = true;
       if (cms3.evt_dataset().size() > 0) evt_dataset.push_back(cms3.evt_dataset().at(0));
 
       //cout<<__LINE__<<endl;

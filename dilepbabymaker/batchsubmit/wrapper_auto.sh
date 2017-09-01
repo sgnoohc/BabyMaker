@@ -20,7 +20,10 @@ then
     echo -n "Replacing File: $FILE"
     FILE=`grep $FILE batchsubmit/hadoopmap.txt | awk '{print $2}'`
     echo " with $FILE"
+else 
+    echo "File does not need to be replaced"
 fi
+
 
 echo "[wrapper] FILEID    = " ${FILEID}
 echo "[wrapper] FILE      = " ${FILE}
