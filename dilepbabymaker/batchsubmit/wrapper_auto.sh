@@ -8,6 +8,13 @@ FILEID=${OUTPUT_NAMES}
 FILE=${FILENAME}
 COPYDIR=${OUTPUT_NAMES}
 
+if [[ $FILE == *"kludge"* ]]
+then
+    echo -n "Replacing File: $FILE"
+    FILE=`grep $FILE hadoopmap.txt | awk '{print $2}'`
+    echo " with $FILE"
+fi
+
 echo "[wrapper] FILEID    = " ${FILEID}
 echo "[wrapper] FILE      = " ${FILE}
 echo "[wrapper] COPYDIR   = " ${COPYDIR}
