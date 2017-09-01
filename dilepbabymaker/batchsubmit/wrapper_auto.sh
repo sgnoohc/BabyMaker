@@ -8,10 +8,17 @@ FILEID=${OUTPUT_NAMES}
 FILE=${FILENAME}
 COPYDIR=${OUTPUT_NAMES}
 
+#
+# untar input sandbox
+#
+
+echo "[wrapper] extracting input sandbox"
+tar -zxf package.tar.gz
+
 if [[ $FILE == *"kludge"* ]]
 then
     echo -n "Replacing File: $FILE"
-    FILE=`grep $FILE hadoopmap.txt | awk '{print $2}'`
+    FILE=`grep $FILE batchsubmit/hadoopmap.txt | awk '{print $2}'`
     echo " with $FILE"
 fi
 
@@ -69,13 +76,6 @@ if [ $? -ne 0 ]; then
 	FILE="root://xrootd.t2.ucsd.edu/"${FILESHORT}
     fi
 fi
-
-#
-# untar input sandbox
-#
-
-echo "[wrapper] extracting input sandbox"
-tar -zxf package.tar.gz
 
 #source job_input/setupenv.sh
 #printenv
