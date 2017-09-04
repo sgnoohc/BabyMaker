@@ -188,14 +188,14 @@ d_ds2name = {
 #        "/MuonEG/Run2016H-03Feb2017_ver2-v1/MINIAOD"         : "data_Run2016H_03feb2017rereco_em_v2",
 #        "/MuonEG/Run2016H-03Feb2017_ver3-v1/MINIAOD"         : "data_Run2016H_03feb2017rereco_em_v3",
 
-        "/MuonEG/Run2016B-03Feb2017_ver2-v2/CMS3"            : "data_Run2016B_03feb2017_v2_CMS3",
-        "/MuonEG/Run2016C-03Feb2017-v1/CMS3"                 : "data_Run2016C_03feb2017_v1_CMS3",
-        "/MuonEG/Run2016D-03Feb2017-v1/CMS3"                 : "data_Run2016D_03feb2017_v1_CMS3",
-        "/MuonEG/Run2016E-03Feb2017-v1/CMS3"                 : "data_Run2016E_03feb2017_v1_CMS3",
-        "/MuonEG/Run2016F-03Feb2017-v1/CMS3"                 : "data_Run2016F_03feb2017_v1_CMS3",
-        "/MuonEG/Run2016G-03Feb2017-v1/CMS3"                 : "data_Run2016G_03feb2017_v1_CMS3",
-        "/MuonEG/Run2016H-03Feb2017_ver2-v1/CMS3"            : "data_Run2016H_03feb2017_v2_CMS3",
-        "/MuonEG/Run2016H-03Feb2017_ver3-v1/CMS3"            : "data_Run2016H_03feb2017_v3_CMS3"
+        "/MuonEG/Run2016B-03Feb2017_ver2-v2/CMS3"            : "data_Run2016B_03feb2017rereco_em_v2_CMS3",
+        "/MuonEG/Run2016C-03Feb2017-v1/CMS3"                 : "data_Run2016C_03feb2017rereco_em_v1_CMS3",
+        "/MuonEG/Run2016D-03Feb2017-v1/CMS3"                 : "data_Run2016D_03feb2017rereco_em_v1_CMS3",
+        "/MuonEG/Run2016E-03Feb2017-v1/CMS3"                 : "data_Run2016E_03feb2017rereco_em_v1_CMS3",
+        "/MuonEG/Run2016F-03Feb2017-v1/CMS3"                 : "data_Run2016F_03feb2017rereco_em_v1_CMS3",
+        "/MuonEG/Run2016G-03Feb2017-v1/CMS3"                 : "data_Run2016G_03feb2017rereco_em_v1_CMS3",
+        "/MuonEG/Run2016H-03Feb2017_ver2-v1/CMS3"            : "data_Run2016H_03feb2017rereco_em_v2_CMS3",
+        "/MuonEG/Run2016H-03Feb2017_ver3-v1/CMS3"            : "data_Run2016H_03feb2017rereco_em_v3_CMS3"
 
 
 
