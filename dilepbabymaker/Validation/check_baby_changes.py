@@ -62,9 +62,12 @@ def makePlotsFromTrees(plotdir,t1,t2,name1,name2):
 
         h1.SetTitle(h1.GetTitle() + (" #color[2]{[%s]} #color[4]{[%s]} -- p_{#chi} = %.2f" % (name1,name2,pchi)))
 
-
-        h1.Draw("hist")
-        h2.Draw("samepe")
+        if (h1.GetMaximum() > h2.GetMaximum()):
+          h1.Draw("hist")
+          h2.Draw("samepe")
+        else:
+          h2.Draw("pe")
+          h1.Draw("hist same")
 
         c1.SaveAs("{0}/both/h_{1}_{2}.png".format(plotdir,pchistr,alias))
     except:
@@ -127,6 +130,7 @@ def compareForFiles(f1, f2):
   treename = "t"
   plotdir = "~/public_html/WWWComparison/dump/"
 
+  os.system("rm -rf {0}".format(plotdir))
   os.system("mkdir -p {0}".format(plotdir))
   os.system("cp ~/public_html/index.php ~/public_html/WWWComparison/dump/index.php")
 

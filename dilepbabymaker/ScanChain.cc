@@ -1424,7 +1424,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       }
 
          
-      cout<<__LINE__<<endl;  
+      //cout<<__LINE__<<endl;  
        
   	  if (verbose) cout << "before photons" << endl;
 
