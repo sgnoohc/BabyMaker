@@ -322,7 +322,7 @@ private:
   Int_t  nlep_VVV_baseline                            ;
 
   std::vector <Int_t  > lep_pdgId        ;   //[nlep]
-  std::vector <Int_t  > lep_mc_Id        ;
+  std::vector <Int_t  > lep_mc_Id        ;   //[nlep]
   std::vector <Float_t> lep_dxy          ;   //[nlep]
   std::vector <Float_t> lep_ip3d         ;   //[nlep]
   std::vector <Float_t> lep_ip3derr      ;   //[nlep]

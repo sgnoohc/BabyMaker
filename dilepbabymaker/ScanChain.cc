@@ -125,18 +125,18 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   if (applyBtagSFs) {
 	// setup btag calibration readers
 	calib           = new BTagCalibration("csvv2", "btagsf/CSVv2_Moriond17_B_H.csv"); // Moriond17 version of SFs
-	reader_heavy    = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "comb", "central"); // central
-	reader_heavy_UP = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "comb", "up"     ); // sys up
-	reader_heavy_DN = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "comb", "down"   ); // sys down
-	reader_light    = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "incl", "central"); // central
-	reader_light_UP = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "incl", "up"     ); // sys up
-	reader_light_DN = new BTagCalibrationReader(calib, BTagEntry::OP_MEDIUM, "incl", "down"   ); // sys down
+	reader_heavy    = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "central"); // central
+	reader_heavy_UP = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "up"     ); // sys up
+	reader_heavy_DN = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "down"   ); // sys down
+	reader_light    = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "central"); // central
+	reader_light_UP = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "up"     ); // sys up
+	reader_light_DN = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "down"   ); // sys down
 
 	// get btag efficiencies
 	TFile * f_btag_eff           = new TFile("btagsf/btageff__ttbar_powheg_pythia8_25ns_Moriond17.root");
-	TH2D  * h_btag_eff_b_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_med_Eff_b");
-	TH2D  * h_btag_eff_c_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_med_Eff_c");
-	TH2D  * h_btag_eff_udsg_temp = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_med_Eff_udsg");
+	TH2D  * h_btag_eff_b_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_b");
+	TH2D  * h_btag_eff_c_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_c");
+	TH2D  * h_btag_eff_udsg_temp = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_udsg");
 	BabyFile_->cd();
 	h_btag_eff_b    = (TH2D*) h_btag_eff_b_temp    -> Clone("h_btag_eff_b"   );
 	h_btag_eff_c    = (TH2D*) h_btag_eff_c_temp    -> Clone("h_btag_eff_c"   );
@@ -149,15 +149,15 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 	if (isSMSScan) {
 	  // setup btag calibration readers
 	  calib_fastsim     = new BTagCalibration("CSV", "btagsf/fastsim_csvv2_ttbar_26_1_2017.csv"); // Moriond 17 25ns fastsim version of SFs
-	  reader_fastsim    = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_MEDIUM, "fastsim", "central"); // central
-	  reader_fastsim_UP = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_MEDIUM, "fastsim", "up"     ); // sys up
-	  reader_fastsim_DN = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_MEDIUM, "fastsim", "down"   ); // sys down
+	  reader_fastsim    = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_LOOSE, "fastsim", "central"); // central
+	  reader_fastsim_UP = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_LOOSE, "fastsim", "up"     ); // sys up
+	  reader_fastsim_DN = new BTagCalibrationReader(calib_fastsim, BTagEntry::OP_LOOSE, "fastsim", "down"   ); // sys down
 
 	  // get btag efficiencies
 	  TFile * f_btag_eff_fastsim           = new TFile("btagsf/btageff__SMS-T1bbbb-T1qqqq_25ns_Moriond17.root");
-	  TH2D  * h_btag_eff_b_fastsim_temp    = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_med_Eff_b"  );
-	  TH2D  * h_btag_eff_c_fastsim_temp    = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_med_Eff_c"  );
-	  TH2D  * h_btag_eff_udsg_fastsim_temp = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_med_Eff_udsg");
+	  TH2D  * h_btag_eff_b_fastsim_temp    = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_loose_Eff_b"  );
+	  TH2D  * h_btag_eff_c_fastsim_temp    = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_loose_Eff_c"  );
+	  TH2D  * h_btag_eff_udsg_fastsim_temp = (TH2D*) f_btag_eff_fastsim->Get("h2_BTaggingEff_csv_loose_Eff_udsg");
 	  BabyFile_->cd();
 	  h_btag_eff_b_fastsim    = (TH2D*) h_btag_eff_b_fastsim_temp    -> Clone("h_btag_eff_b_fastsim"   );
 	  h_btag_eff_c_fastsim    = (TH2D*) h_btag_eff_c_fastsim_temp    -> Clone("h_btag_eff_c_fastsim"   );
@@ -540,12 +540,11 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       //VERTICES
       nVert = 0;
       for(unsigned int ivtx=0; ivtx < cms3.evt_nvtxs(); ivtx++){
-
         //if(     cms3.vtxs_isFake()   .at(ivtx)             ) continue;
         //if(     cms3.vtxs_ndof()     .at(ivtx)       <= 4  ) continue;
         //if(fabs(cms3.vtxs_position() .at(ivtx).z())  >  24 ) continue;
         //if(     cms3.vtxs_position() .at(ivtx).Rho() >  2  ) continue;
-	if(!isGoodVertex(ivtx)) continue;
+        if(!isGoodVertex(ivtx)) continue;
         nVert++;  
       }
       firstgoodvertex = firstGoodVertex();
@@ -636,81 +635,82 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		}
   	  }
   	  
-  	  //TRIGGER
+      //==========================================================================================
+  	  //TRIGGERS
+      //==========================================================================================
   	  // for ATLAS cross checks
-  	  HLT_singleEl =  (passHLTTriggerPattern("HLT_Ele32_eta2p1_WPTight_Gsf_v" ) ||
-  			   passHLTTriggerPattern("HLT_Ele27_WPTight_Gsf_v"        ) );
+  	  HLT_singleEl       = (passHLTTriggerPattern("HLT_Ele32_eta2p1_WPTight_Gsf_v" ) ||
+  			                    passHLTTriggerPattern("HLT_Ele27_WPTight_Gsf_v"        ) );
 
-  	  HLT_singleMu = (passHLTTriggerPattern("HLT_IsoMu22_v"           ) ||
-  			  passHLTTriggerPattern("HLT_IsoTkMu22_v"         ) ||
-  			  passHLTTriggerPattern("HLT_IsoMu24_v"           ) ||
-  			  passHLTTriggerPattern("HLT_IsoTkMu24_v"         ) );
+  	  HLT_singleMu       = (passHLTTriggerPattern("HLT_IsoMu22_v"           ) ||
+  			                    passHLTTriggerPattern("HLT_IsoTkMu22_v"         ) ||
+  			                    passHLTTriggerPattern("HLT_IsoMu24_v"           ) ||
+  			                    passHLTTriggerPattern("HLT_IsoTkMu24_v"         ) );
 
   	  HLT_singleMu_noiso = (passHLTTriggerPattern("HLT_Mu50_v"        ) ||
-  				passHLTTriggerPattern("HLT_TkMu50_v"      ) ||
-  				passHLTTriggerPattern("HLT_Mu55_v"        ) );
+  				                  passHLTTriggerPattern("HLT_TkMu50_v"      ) ||
+  				                  passHLTTriggerPattern("HLT_Mu55_v"        ) );
 
   	  // Double electron
-  	  HLT_DoubleEl_noiso = ( passHLTTriggerPattern( "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v"    ) ||
-  	                         passHLTTriggerPattern( "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v" ) );
-  	  HLT_DoubleEl       = ( passHLTTriggerPattern( "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_v"   ) ||
-				 passHLTTriggerPattern( "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v")); // prescaled - turned off
-  	  HLT_DoubleEl_DZ    = passHLTTriggerPattern( "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"); // prescaled
-  	  HLT_DoubleEl_DZ_2  = passHLTTriggerPattern( "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"); // new
+  	  HLT_DoubleEl_noiso = (passHLTTriggerPattern( "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v"    ) ||
+  	                        passHLTTriggerPattern( "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v" ) );
+  	  
+      HLT_DoubleEl       = (passHLTTriggerPattern( "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_v"   ) ||
+				                    passHLTTriggerPattern( "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v")); // prescaled - turned off
+  	  
+      HLT_DoubleEl_DZ    =  passHLTTriggerPattern( "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"); // prescaled
+  	  HLT_DoubleEl_DZ_2  =  passHLTTriggerPattern( "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"); // new
      
   	  // electron-muon
   	  HLT_MuEG           = (passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" )    ||
-  				passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"  )    ||
-  				passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  )    ||
-  				passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v_DZ_v"  ) ||
-                                passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" )    ||
-                                passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  )  ||
-                                passHLTTriggerPattern("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v" )||
-                                passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v"  )||
-                                 passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v" ));
+  				                  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"  )    ||
+  				                  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  )    ||
+  				                  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v_DZ_v"  ) ||
+                            passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" )    ||
+                            passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  )  ||
+                            passHLTTriggerPattern("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v" )||
+                            passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v"  )||
+                            passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v" ));
 
 
   	  HLT_MuEG_noiso     = (passHLTTriggerPattern("HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v"                 ) ||
-                                passHLTTriggerPattern("HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v"                 ));
+                            passHLTTriggerPattern("HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v"                 ));
 
   	  HLT_MuEG_2         = (passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" ) ||
-  				passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  ) ||
-  				passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  ) );
+  				                  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  ) ||
+  				                  passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  ) );
 
   	  HLT_MuEG_noiso_2   =  passHLTTriggerPattern("HLT_Mu33_Ele33_CaloIdL_GsfTrkIdVL_v"                 );
   		
   	  //separate emu trigs
-  	  HLT_Mu8_EG17      = passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"  );
-  	  HLT_Mu8_EG23      = passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  );
-  	  HLT_Mu8_EG23_DZ   = passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v"  );
-
-  	  HLT_Mu12_EG23_DZ  = passHLTTriggerPattern("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v" );
-
-  	  HLT_Mu17_EG12     = passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" );
-
-  	  HLT_Mu23_EG8      = passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  );
-  	  HLT_Mu23_EG8_DZ   = passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v"  );
-  	  HLT_Mu23_EG12     = passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" );
-  	  HLT_Mu23_EG12_DZ  = passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v" );
-  		
+  	  HLT_Mu8_EG17       =  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"  );
+  	  HLT_Mu8_EG23       =  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v"  );
+  	  HLT_Mu8_EG23_DZ    =  passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v"  );
+  	  HLT_Mu12_EG23_DZ   =  passHLTTriggerPattern("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v" );
+  	  HLT_Mu17_EG12      =  passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" );
+  	  HLT_Mu23_EG8       =  passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v"  );
+  	  HLT_Mu23_EG8_DZ    =  passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v"  );
+  	  HLT_Mu23_EG12      =  passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v" );
+  	  HLT_Mu23_EG12_DZ   =  passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v" );
+  		                      
   	  // Double muon
-  	  HLT_DoubleMu_noiso    = (passHLTTriggerPattern( "HLT_Mu27_TkMu8_v"                          ) ||
-  				   passHLTTriggerPattern( "HLT_Mu30_TkMu11_v"                         ) ||
-  				   passHLTTriggerPattern( "HLT_Mu40_TkMu11_v"                         ) );
+  	  HLT_DoubleMu_noiso = (passHLTTriggerPattern( "HLT_Mu27_TkMu8_v"                          ) ||
+  				                  passHLTTriggerPattern( "HLT_Mu30_TkMu11_v"                         ) ||
+  				                  passHLTTriggerPattern( "HLT_Mu40_TkMu11_v"                         ) );
+                            
+  	  HLT_DoubleMu       = (passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v"     )||
+                            passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"   )||
+                            passHLTTriggerPattern( "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v" )||
+  					                passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v"        )||
+                            passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v"      ) );
 
-  	  HLT_DoubleMu          =  (passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v"     )||
-                                        passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"   )||
-                                        passHLTTriggerPattern( "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v" )||
-  					passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v"        )||
-              				passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v"      ) );
-
-  	  HLT_DoubleMu_noiso_27_8  = passHLTTriggerPattern( "HLT_Mu27_TkMu8_v"                         );
-  	  HLT_DoubleMu_noiso_30_11 = passHLTTriggerPattern( "HLT_Mu30_TkMu11_v"                        );
-  	  HLT_DoubleMu_noiso_40_11 = passHLTTriggerPattern( "HLT_Mu40_TkMu11_v"                        );
-  	  HLT_DoubleMu_tk       =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"   );
-  	  HLT_DoubleMu_dbltk    =  passHLTTriggerPattern( "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v" );
-  	  HLT_DoubleMu_nonDZ    =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v"        );
-  	  HLT_DoubleMu_tk_nonDZ =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v"      ); // new unprescaled : use these
+  	  HLT_DoubleMu_noiso_27_8  =  passHLTTriggerPattern( "HLT_Mu27_TkMu8_v"                         );
+  	  HLT_DoubleMu_noiso_30_11 =  passHLTTriggerPattern( "HLT_Mu30_TkMu11_v"                        );
+  	  HLT_DoubleMu_noiso_40_11 =  passHLTTriggerPattern( "HLT_Mu40_TkMu11_v"                        );
+  	  HLT_DoubleMu_tk          =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"   );
+  	  HLT_DoubleMu_dbltk       =  passHLTTriggerPattern( "HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v" );
+  	  HLT_DoubleMu_nonDZ       =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v"        );
+  	  HLT_DoubleMu_tk_nonDZ    =  passHLTTriggerPattern( "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v"      ); // new unprescaled : use these
 
   	  // Single photon
   	  HLT_Photon22_R9Id90_HE10_IsoM  = returnBrokenTrigger("HLT_Photon22_R9Id90_HE10_IsoM_v" );
@@ -2020,8 +2020,10 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		
     		  if( (current_csv_val >= BJET_CSV_TIGHT) && (fabs(p4sCorrJets.at(iJet).eta()) < BJET_ETA_MAX) && (p4sCorrJets.at(iJet).pt() > BJET_PT_MIN) ){ nBJetTight++; }
 
-    		  if(current_csv_val >= BJET_CSV_MED && (fabs(p4sCorrJets.at(iJet).eta()) < BJET_ETA_MAX) && (p4sCorrJets.at(iJet).pt() > BJET_PT_MIN)) {
-      			nBJetMedium++;
+          if(current_csv_val >= BJET_CSV_MED && (fabs(p4sCorrJets.at(iJet).eta()) < BJET_ETA_MAX) && (p4sCorrJets.at(iJet).pt() > BJET_PT_MIN)) { nBJetMedium++; }
+
+    		  if(current_csv_val >= BJET_CSV_LOOSE && (fabs(p4sCorrJets.at(iJet).eta()) < BJET_ETA_MAX) && (p4sCorrJets.at(iJet).pt() > BJET_PT_MIN)) {
+      			nBJetLoose++;
 
       			// for applying btagging SFs
       			if (!isData && applyBtagSFs) {
@@ -2106,8 +2108,6 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
               }
       			}
     		  }
-    		
-    		  if(current_csv_val >= BJET_CSV_LOOSE && (fabs(p4sCorrJets.at(iJet).eta()) < BJET_ETA_MAX) && (p4sCorrJets.at(iJet).pt() > BJET_PT_MIN)) { nBJetLoose++; }
 
     		  //require pT > JET_PT_MIN for jet counting
     		  if( p4sCorrJets.at(iJet).pt() > JET_PT_MIN ){ njets++; }
