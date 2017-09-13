@@ -292,28 +292,34 @@ private:
 
 
   //Lepton IDs:
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto             ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso       ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso_noip  ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_fo               ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_fo_noiso         ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_tight_noiso      ;
-  std::vector <Bool_t >  lep_pass_VVV_cutbased_tight            ;
-  std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight_noiso      ;
-  std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight            ;
-  std::vector <Bool_t >  lep_pass_VVV_baseline                  ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto                  ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso            ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso_noip       ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_bak1             ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso_bak1       ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_veto_noiso_noip_bak1  ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_fo                    ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_fo_noiso              ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_tight_noiso           ;
+  std::vector <Bool_t >  lep_pass_VVV_cutbased_tight                 ;
+  std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight_noiso           ;
+  std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight                 ;
+  std::vector <Bool_t >  lep_pass_VVV_baseline                       ;
 
   //Lepton ID Counters:
-  Int_t  nlep_VVV_cutbased_veto                  ;
-  Int_t  nlep_VVV_cutbased_veto_noiso            ;
-  Int_t  nlep_VVV_cutbased_veto_noiso_noip       ;
-  Int_t  nlep_VVV_cutbased_fo                    ;
-  Int_t  nlep_VVV_cutbased_fo_noiso              ;
-  Int_t  nlep_VVV_cutbased_tight_noiso           ;
-  Int_t  nlep_VVV_cutbased_tight                 ;
-  Int_t  nlep_VVV_MVAbased_tight_noiso           ;
-  Int_t  nlep_VVV_MVAbased_tight                 ;
-  Int_t  nlep_VVV_baseline                       ;
+  Int_t  nlep_VVV_cutbased_veto                       ;
+  Int_t  nlep_VVV_cutbased_veto_noiso                 ;
+  Int_t  nlep_VVV_cutbased_veto_noiso_noip            ;
+  Int_t  nlep_VVV_cutbased_veto_bak1                  ;
+  Int_t  nlep_VVV_cutbased_veto_noiso_bak1            ;
+  Int_t  nlep_VVV_cutbased_veto_noiso_noip_bak1       ;
+  Int_t  nlep_VVV_cutbased_fo                         ;
+  Int_t  nlep_VVV_cutbased_fo_noiso                   ;
+  Int_t  nlep_VVV_cutbased_tight_noiso                ;
+  Int_t  nlep_VVV_cutbased_tight                      ;
+  Int_t  nlep_VVV_MVAbased_tight_noiso                ;
+  Int_t  nlep_VVV_MVAbased_tight                      ;
+  Int_t  nlep_VVV_baseline                            ;
 
   std::vector <Int_t  > lep_pdgId        ;   //[nlep]
   std::vector <Int_t  > lep_mc_Id        ;
@@ -343,16 +349,19 @@ private:
   Int_t nisoTrack_stop;
   Int_t nisoTrack_mt2 ;
   
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto            ;     
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso      ;           
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso_noip ;                
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_fo              ;   
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_fo_noiso        ;         
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_tight_noiso     ;            
-  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_tight           ;      
-  Int_t nisoTrack_mt2_cleaned_VVV_MVAbased_tight_noiso     ;            
-  Int_t nisoTrack_mt2_cleaned_VVV_MVAbased_tight           ;      
-  Int_t nisoTrack_mt2_cleaned_VVV_baseline                 ;
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto                 ;     
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso           ;           
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso_noip      ;
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_bak1            ;     
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso_bak1      ;           
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_veto_noiso_noip_bak1 ;                
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_fo                   ;   
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_fo_noiso             ;           
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_tight_noiso          ;              
+  Int_t nisoTrack_mt2_cleaned_VVV_cutbased_tight                ;        
+  Int_t nisoTrack_mt2_cleaned_VVV_MVAbased_tight_noiso          ;            
+  Int_t nisoTrack_mt2_cleaned_VVV_MVAbased_tight                ;      
+  Int_t nisoTrack_mt2_cleaned_VVV_baseline                      ;
 
   Int_t nisoTrack_PFLep5_woverlaps ;
   Int_t nisoTrack_PFHad10_woverlaps ;
