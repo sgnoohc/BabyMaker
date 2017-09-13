@@ -107,7 +107,7 @@ d_ds2name = {
 ## Private from Mia        
         "/TEST-www/www-Private80X-v1/USER"                                                                                                       : "www_2l_mia",
         "/TEST-www/wwwext-Private80X-v1/USER"                                                                                                    : "www_2l_ext1_mia",
-        "/TEST-tth/tth-Private80X-v1/USER"                                                                                                       : "tth_mia"
+        "/TEST-tth/tth-Private80X-v1/USER"                                                                                                       : "tth_mia",
 ## QCD pt-binned EM-enriched (to be added)
         "/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"       : "qcdpt20_emenriched_nonext",
         "/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"       : "qcdpt30_emenriched_nonext",
