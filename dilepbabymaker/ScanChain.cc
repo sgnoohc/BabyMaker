@@ -902,7 +902,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector<float>vec_lep_charge;
       
       //for WWW
-      vector< bool >   vec_lep_3ch_agree;
+      vector< bool >    vec_lep_3ch_agree;
       vector< bool >    vec_lep_isFromW;
       vector< bool >    vec_lep_isFromZ;
       vector< bool >    vec_lep_isFromB;
@@ -925,6 +925,11 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector< double > vec_lep_miniRelIsoCMS3_EA;
       vector< double > vec_lep_miniRelIsoCMS3_EAv2;
       vector< double > vec_lep_miniRelIsoCMS3_DB;
+
+      vector< bool >   vec_lep_isTriggerSafenoIso_v1;
+      vector< bool >   vec_lep_isTriggerSafenoIso_v2;
+      vector< bool >   vec_lep_isTriggerSafe_v1;
+      vector< bool >   vec_lep_isTriggerSafe_v2;
 
 
       vector<int>  vec_lep_pdgId;
@@ -1061,6 +1066,11 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_miniRelIsoCMS3_EA    .push_back(elMiniRelIsoCMS3_EA(iEl, /*eaversion=*/1));
           vec_lep_miniRelIsoCMS3_EAv2  .push_back(elMiniRelIsoCMS3_EA(iEl, /*eaversion=*/2));
           vec_lep_miniRelIsoCMS3_DB    .push_back(elMiniRelIsoCMS3_DB(iEl));
+          
+          vec_lep_isTriggerSafenoIso_v1.push_back(isTriggerSafenoIso_v1(iEl));
+          vec_lep_isTriggerSafenoIso_v2.push_back(isTriggerSafenoIso_v2(iEl));
+          vec_lep_isTriggerSafe_v1     .push_back(isTriggerSafe_v1(iEl)     );
+          vec_lep_isTriggerSafe_v2     .push_back(isTriggerSafe_v2(iEl)     );
 
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto             ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso       ) );
@@ -1219,7 +1229,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_charge       .push_back ( cms3.mus_charge() .at(iMu)       );
           
           //WWW Selection Vars
-          vec_lep_3ch_agree            .push_back( true );
+          vec_lep_3ch_agree            .push_back( true ); //Muons always pass
           const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4().at(iMu), 0.4, 3.0, /*whichCorr = */2);
           float closeJetPt            = temp_jet_p4.pt();
           vec_lep_closest_jet_p4       .push_back(temp_jet_p4);
@@ -1236,6 +1246,11 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_miniRelIsoCMS3_EA    .push_back(muMiniRelIsoCMS3_EA(iMu, /*eaversion=*/1));
           vec_lep_miniRelIsoCMS3_EAv2  .push_back(muMiniRelIsoCMS3_EA(iMu, /*eaversion=*/2));
           vec_lep_miniRelIsoCMS3_DB    .push_back(muMiniRelIsoCMS3_DB(iMu));
+
+          vec_lep_isTriggerSafenoIso_v1.push_back(true); //Muons always pass
+          vec_lep_isTriggerSafenoIso_v2.push_back(true); //Muons always pass
+          vec_lep_isTriggerSafe_v1     .push_back(true); //Muons always pass
+          vec_lep_isTriggerSafe_v2     .push_back(true); //Muons always pass
 
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto              ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso        ) );
@@ -1386,6 +1401,11 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         lep_miniRelIsoCMS3_EA   .push_back( vec_lep_miniRelIsoCMS3_EA   .at(it->first));
         lep_miniRelIsoCMS3_EAv2 .push_back( vec_lep_miniRelIsoCMS3_EAv2 .at(it->first));
         lep_miniRelIsoCMS3_DB   .push_back( vec_lep_miniRelIsoCMS3_DB   .at(it->first));
+
+        lep_isTriggerSafenoIso_v1 .push_back( vec_lep_isTriggerSafenoIso_v1  .at(it->first));
+        lep_isTriggerSafenoIso_v2 .push_back( vec_lep_isTriggerSafenoIso_v2  .at(it->first));
+        lep_isTriggerSafe_v1      .push_back( vec_lep_isTriggerSafe_v1       .at(it->first));
+        lep_isTriggerSafe_v2      .push_back( vec_lep_isTriggerSafe_v2       .at(it->first));
 
         lep_pass_VVV_cutbased_veto                  .push_back( vec_lep_pass_VVV_cutbased_veto                   .at(it->first));
         lep_pass_VVV_cutbased_veto_noiso            .push_back( vec_lep_pass_VVV_cutbased_veto_noiso             .at(it->first));
@@ -2875,6 +2895,11 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_miniRelIsoCMS3_EAv2"  , "std::vector< Double_t >" , &lep_miniRelIsoCMS3_EAv2   );
   BabyTree_->Branch("lep_miniRelIsoCMS3_DB"    , "std::vector< Double_t >" , &lep_miniRelIsoCMS3_DB     );
 
+  BabyTree_->Branch("lep_isTriggerSafenoIso_v1"       , "std::vector< Bool_t  > " , &lep_isTriggerSafenoIso_v1        );
+  BabyTree_->Branch("lep_isTriggerSafenoIso_v2"       , "std::vector< Bool_t  > " , &lep_isTriggerSafenoIso_v2        );
+  BabyTree_->Branch("lep_isTriggerSafe_v1"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v1             );
+  BabyTree_->Branch("lep_isTriggerSafe_v2"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v2             );
+
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto"                   , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto                  );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso"             , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso            );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso_noip"        , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso_noip       );
@@ -3394,6 +3419,11 @@ void babyMaker::InitBabyNtuple () {
   lep_miniRelIsoCMS3_EA   .clear();
   lep_miniRelIsoCMS3_EAv2 .clear();
   lep_miniRelIsoCMS3_DB   .clear();
+  
+  lep_isTriggerSafenoIso_v1 .clear();
+  lep_isTriggerSafenoIso_v2 .clear();
+  lep_isTriggerSafe_v1      .clear();
+  lep_isTriggerSafe_v2      .clear();
 
   lep_pass_VVV_cutbased_veto                  .clear();
   lep_pass_VVV_cutbased_veto_noiso            .clear();

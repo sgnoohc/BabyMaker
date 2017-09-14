@@ -289,6 +289,10 @@ private:
   std::vector <LorentzVector> lep_closest_jet_p4   ;
   std::vector <Int_t>    lep_motherIdSS            ;
   std::vector <Int_t>    lep_genPart_index         ;
+  std::vector <Bool_t >  lep_isTriggerSafenoIso_v1 ;
+  std::vector <Bool_t >  lep_isTriggerSafenoIso_v2 ;
+  std::vector <Bool_t >  lep_isTriggerSafe_v1      ;
+  std::vector <Bool_t >  lep_isTriggerSafe_v2      ;
 
 
   //Lepton IDs:

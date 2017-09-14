@@ -14,7 +14,12 @@ cp ../json/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt .
 #======================================
 # Process Baby Commands, tests looper
 #======================================
-dotest_nEvts=1000
+if [[ $2 == "long" ]]
+then
+  dotest_nEvts=-1
+else 
+  dotest_nEvts=1000
+fi
 
 #dotest_babyID=test_80_data 
 #dotest_babyPath=/hadoop/cms/store/group/snt/run2_data/Run2016B_DoubleEG_MINIAOD_PromptReco-v2/merged/V08-00-06/merged_ntuple_32.root
@@ -81,10 +86,13 @@ dotest_babyPath=/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_www-Private8
 
 ./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
 
-dotest_babyID=test_data
-dotest_babyPath=/hadoop/cms/store/group/snt/run2_data/Run2016D_SingleMuon_MINIAOD_03Feb2017-v1/merged/V08-00-18/merged_ntuple_331.root
+if [[ $2 != "long" ]]
+then
+  dotest_babyID=test_data
+  dotest_babyPath=/hadoop/cms/store/group/snt/run2_data/Run2016D_SingleMuon_MINIAOD_03Feb2017-v1/merged/V08-00-18/merged_ntuple_331.root
 
-./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
+  ./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
+fi
 
 #======================================
 # Tests Skimmer
