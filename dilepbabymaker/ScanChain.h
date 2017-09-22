@@ -60,7 +60,27 @@ private:
   TH2D * h_muoweightsiso;
   TH1F * h_muoweights_HIP_hist;
 
-  TH1I * h_neventsinfile;
+
+  //====================================
+  // Twiki for Weight Variation Codes: https://twiki.cern.ch/twiki/bin/viewauth/CMS/LHEReaderCMSSW
+  // 
+  // Entry      Weight ID:     Meaning
+  // 0            ----         Total Number of Events
+  // 1            1001         Renorm Scale == 1   ; Factorization Scale == 1
+  // 2            1002         Renorm Scale == 1   ; Factorization Scale == 2
+  // 3            1003         Renorm Scale == 1   ; Factorization Scale == 0.5
+  // 4            1004         Renorm Scale == 2   ; Factorization Scale == 1
+  // 5            1005         Renorm Scale == 2   ; Factorization Scale == 2
+  // 6            1006         Renorm Scale == 2   ; Factorization Scale == 0.5
+  // 7            1007         Renorm Scale == 0.5 ; Factorization Scale == 1
+  // 8            1008         Renorm Scale == 0.5 ; Factorization Scale == 2
+  // 9            1009         Renorm Scale == 0.5 ; Factorization Scale == 0.5
+  // 10           ----         PDF Weight Up Variation    
+  // 11           ----         PDF Weight Down Variation  
+  // 12           2101         PDF set == 265000 something to do with alpha_s variation (found here: https://github.com/piedraj/AnalysisCMS/blob/master/systematics/getPdfQcd.C, and slides: https://indico.cern.ch/event/459797/contributions/1961581/attachments/1181555/1800214/mcaod-Feb15-2016.pdf)
+  // 13           2102         PDF set == 266000 something to do with alpha_s variation
+  //====================================
+  TH1D * h_neventsinfile;
 
   float getBtagEffFromFile(float pt, float eta, int mcFlavour, bool isFastsim);
   float get_sum_mlb();
@@ -629,6 +649,21 @@ private:
   std::vector <Float_t> weightsf_lepid_FS;
   std::vector <Float_t> weightsf_lepiso_FS;
   std::vector <Float_t> weightsf_lepip_FS;
+
+  //Stuff for Factorization and Renormalization Scale, PDF Uncertainties, Event Counting
+  Double_t weight_rn_r1_n1;
+  Double_t weight_rn_r1_n2;
+  Double_t weight_rn_r1_np05;
+  Double_t weight_rn_r2_n1;
+  Double_t weight_rn_r2_n2;
+  Double_t weight_rn_r2_n0p5;
+  Double_t weight_rn_r0p5_n1;
+  Double_t weight_rn_r0p5_n2;
+  Double_t weight_rn_r0p5_n0p5;
+  Double_t weight_pdf_up;
+  Double_t weight_pdf_down;
+  Double_t weight_alphas_down;
+  Double_t weight_alphas_up;
   
 };
 

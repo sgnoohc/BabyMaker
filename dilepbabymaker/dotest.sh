@@ -14,7 +14,7 @@ cp ../json/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt .
 #======================================
 # Process Baby Commands, tests looper
 #======================================
-if [[ $2 == "long" ]]
+if [[ $1 == "long" ]]
 then
   dotest_nEvts=-1
 else 
@@ -86,7 +86,7 @@ dotest_babyPath=/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_www-Private8
 
 ./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
 
-if [[ $2 != "long" ]]
+if [[ $1 != "long" ]]
 then
   dotest_babyID=test_data
   dotest_babyPath=/hadoop/cms/store/group/snt/run2_data/Run2016D_SingleMuon_MINIAOD_03Feb2017-v1/merged/V08-00-18/merged_ntuple_331.root

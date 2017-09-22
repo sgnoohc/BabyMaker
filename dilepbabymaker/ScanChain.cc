@@ -170,7 +170,27 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   
   TDirectory *rootdir = gDirectory->GetDirectory("Rint:");
 
-  h_neventsinfile = new TH1I( "h_neventsinfile", "", 1, 0, 1 );
+
+  //====================================
+  // Twiki for Weight Variation Codes: https://twiki.cern.ch/twiki/bin/viewauth/CMS/LHEReaderCMSSW
+  // 
+  // Entry      Weight ID:     Meaning
+  // 0            ----         Total Number of Events
+  // 1            1001         Renorm Scale == 1   ; Factorization Scale == 1
+  // 2            1002         Renorm Scale == 1   ; Factorization Scale == 2
+  // 3            1003         Renorm Scale == 1   ; Factorization Scale == 0.5
+  // 4            1004         Renorm Scale == 2   ; Factorization Scale == 1
+  // 5            1005         Renorm Scale == 2   ; Factorization Scale == 2
+  // 6            1006         Renorm Scale == 2   ; Factorization Scale == 0.5
+  // 7            1007         Renorm Scale == 0.5 ; Factorization Scale == 1
+  // 8            1008         Renorm Scale == 0.5 ; Factorization Scale == 2
+  // 9            1009         Renorm Scale == 0.5 ; Factorization Scale == 0.5
+  // 10           ----         PDF Weight Up Variation    
+  // 11           ----         PDF Weight Down Variation  
+  // 12           2101         PDF set == 265000 something to do with alpha_s variation (found here: https://github.com/piedraj/AnalysisCMS/blob/master/systematics/getPdfQcd.C, and slides: https://indico.cern.ch/event/459797/contributions/1961581/attachments/1181555/1800214/mcaod-Feb15-2016.pdf)
+  // 13           2102         PDF set == 266000 something to do with alpha_s variation
+  //====================================
+  h_neventsinfile = new TH1D( "h_neventsinfile", "", 15, 0, 15 );
   
   //add 2016 data vtx weights for PU, Moriond 2017 version
   TH1F * h_vtxweight = NULL;
@@ -232,7 +252,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   TIter fileIter(listOfFiles);
   TFile *currentFile = 0;
 
-  h_neventsinfile->SetBinContent(0, nEvents);
+  h_neventsinfile->SetBinContent(1, nEvents);
 	
   while ( (currentFile = (TFile*)fileIter.Next()) ) {
     cout << "running on file: " << currentFile->GetTitle() << endl;
@@ -426,11 +446,59 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       tree->LoadTree(event);
       cms3.GetEntry(event);
       ++nEventsTotal;
-    
+
       // Progress
       CMS3::progress( nEventsTotal, nEventsChain );
 
       InitBabyNtuple();
+
+      //===============================
+      // Total Counts for Factorization and Renormalization Scale, PDF Uncertainties
+      //===============================
+      //counterhist->Fill(22,1.); don't think I need this
+      double sum_of_pdf_weights= 0;
+      double average_of_pdf_weights= 0;
+      
+      if(!evt_isRealData()){
+        //error on pdf replicas
+        
+        if(cms3.genweights().size()>110){ 
+          
+          for(int ipdf=9;ipdf<109;ipdf++){ average_of_pdf_weights += cms3.genweights().at(ipdf); }// average of weights
+          average_of_pdf_weights =  average_of_pdf_weights/100;
+
+          for(int ipdf=9;ipdf<109;ipdf++){ sum_of_pdf_weights += (cms3.genweights().at(ipdf)- average_of_pdf_weights)*(cms3.genweights().at(ipdf)-average_of_pdf_weights); }//std of weights.     
+
+          weight_rn_r1_n1      =   cms3.genweights()[0];
+          weight_rn_r1_n2      =   cms3.genweights()[1];
+          weight_rn_r1_np05    =   cms3.genweights()[2];
+          weight_rn_r2_n1      =   cms3.genweights()[3];
+          weight_rn_r2_n2      =   cms3.genweights()[4];
+          weight_rn_r2_n0p5    =   cms3.genweights()[5];
+          weight_rn_r0p5_n1    =   cms3.genweights()[6];
+          weight_rn_r0p5_n2    =   cms3.genweights()[7];
+          weight_rn_r0p5_n0p5  =   cms3.genweights()[8];
+          weight_pdf_up        =   (average_of_pdf_weights+sqrt(sum_of_pdf_weights/99)); 
+          weight_pdf_down      =   (average_of_pdf_weights-sqrt(sum_of_pdf_weights/99)); 
+          weight_alphas_down   =   cms3.genweights()[109];
+          weight_alphas_up     =   cms3.genweights()[110];
+
+          h_neventsinfile->Fill(1 , weight_rn_r1_n1     );
+          h_neventsinfile->Fill(2 , weight_rn_r1_n2     );
+          h_neventsinfile->Fill(3 , weight_rn_r1_np05   );
+          h_neventsinfile->Fill(4 , weight_rn_r2_n1     );
+          h_neventsinfile->Fill(5 , weight_rn_r2_n2     );
+          h_neventsinfile->Fill(6 , weight_rn_r2_n0p5   );
+          h_neventsinfile->Fill(7 , weight_rn_r0p5_n1   );
+          h_neventsinfile->Fill(8 , weight_rn_r0p5_n2   );
+          h_neventsinfile->Fill(9 , weight_rn_r0p5_n0p5 );
+          h_neventsinfile->Fill(10, weight_pdf_up       );  
+          h_neventsinfile->Fill(11, weight_pdf_down     );  
+          h_neventsinfile->Fill(12, weight_alphas_down  ); 
+          h_neventsinfile->Fill(13, weight_alphas_up    ); 
+        }
+      }
+
 
       run    = cms3.evt_run();
       lumi   = cms3.evt_lumiBlock();
@@ -3217,6 +3285,20 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("weightsf_lepiso_FS", &weightsf_lepiso_FS );
   BabyTree_->Branch("weightsf_lepip_FS" , &weightsf_lepip_FS  );
 
+  BabyTree_->Branch("weight_rn_r1_n1"     , &weight_rn_r1_n1     );        
+  BabyTree_->Branch("weight_rn_r1_n2"     , &weight_rn_r1_n2     );        
+  BabyTree_->Branch("weight_rn_r1_np05"   , &weight_rn_r1_np05   );        
+  BabyTree_->Branch("weight_rn_r2_n1"     , &weight_rn_r2_n1     );        
+  BabyTree_->Branch("weight_rn_r2_n2"     , &weight_rn_r2_n2     );        
+  BabyTree_->Branch("weight_rn_r2_n0p5"   , &weight_rn_r2_n0p5   );        
+  BabyTree_->Branch("weight_rn_r0p5_n1"   , &weight_rn_r0p5_n1   );        
+  BabyTree_->Branch("weight_rn_r0p5_n2"   , &weight_rn_r0p5_n2   );        
+  BabyTree_->Branch("weight_rn_r0p5_n0p5" , &weight_rn_r0p5_n0p5 );        
+  BabyTree_->Branch("weight_pdf_up"       , &weight_pdf_up       );        
+  BabyTree_->Branch("weight_pdf_down"     , &weight_pdf_down     );        
+  BabyTree_->Branch("weight_alphas_down"  , &weight_alphas_down  );        
+  BabyTree_->Branch("weight_alphas_up"    , &weight_alphas_up    );        
+
   return;
 }
 
@@ -3743,6 +3825,20 @@ void babyMaker::InitBabyNtuple () {
   weightsf_lepid_FS  . clear();
   weightsf_lepiso_FS . clear();
   weightsf_lepip_FS  . clear();
+
+  weight_rn_r1_n1     = 0;
+  weight_rn_r1_n2     = 0;
+  weight_rn_r1_np05   = 0;
+  weight_rn_r2_n1     = 0;
+  weight_rn_r2_n2     = 0;
+  weight_rn_r2_n0p5   = 0;
+  weight_rn_r0p5_n1   = 0;
+  weight_rn_r0p5_n2   = 0;
+  weight_rn_r0p5_n0p5 = 0;
+  weight_pdf_up       = 0;
+  weight_pdf_down     = 0;
+  weight_alphas_down  = 0;
+  weight_alphas_up    = 0;
 
   return;
 }
