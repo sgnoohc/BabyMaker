@@ -3287,7 +3287,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
 
   BabyTree_->Branch("weight_fr_r1_f1"     , &weight_fr_r1_f1     );        
   BabyTree_->Branch("weight_fr_r1_f2"     , &weight_fr_r1_f2     );        
-  BabyTree_->Branch("weight_fr_r1_f0p5"   , &weight_fr_r1_fp05   );        
+  BabyTree_->Branch("weight_fr_r1_f0p5"   , &weight_fr_r1_f0p5   );        
   BabyTree_->Branch("weight_fr_r2_f1"     , &weight_fr_r2_f1     );        
   BabyTree_->Branch("weight_fr_r2_f2"     , &weight_fr_r2_f2     );        
   BabyTree_->Branch("weight_fr_r2_f0p5"   , &weight_fr_r2_f0p5   );        
