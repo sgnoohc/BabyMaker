@@ -651,15 +651,15 @@ private:
   std::vector <Float_t> weightsf_lepip_FS;
 
   //Stuff for Factorization and Renormalization Scale, PDF Uncertainties, Event Counting
-  Double_t weight_rn_r1_n1;
-  Double_t weight_rn_r1_n2;
-  Double_t weight_rn_r1_np05;
-  Double_t weight_rn_r2_n1;
-  Double_t weight_rn_r2_n2;
-  Double_t weight_rn_r2_n0p5;
-  Double_t weight_rn_r0p5_n1;
-  Double_t weight_rn_r0p5_n2;
-  Double_t weight_rn_r0p5_n0p5;
+  Double_t weight_fr_r1_f1;
+  Double_t weight_fr_r1_f2;
+  Double_t weight_fr_r1_f0p5;
+  Double_t weight_fr_r2_f1;
+  Double_t weight_fr_r2_f2;
+  Double_t weight_fr_r2_f0p5;
+  Double_t weight_fr_r0p5_f1;
+  Double_t weight_fr_r0p5_f2;
+  Double_t weight_fr_r0p5_f0p5;
   Double_t weight_pdf_up;
   Double_t weight_pdf_down;
   Double_t weight_alphas_down;

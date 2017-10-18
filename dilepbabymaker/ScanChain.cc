@@ -469,29 +469,29 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 
           for(int ipdf=9;ipdf<109;ipdf++){ sum_of_pdf_weights += (cms3.genweights().at(ipdf)- average_of_pdf_weights)*(cms3.genweights().at(ipdf)-average_of_pdf_weights); }//std of weights.     
 
-          weight_rn_r1_n1      =   cms3.genweights()[0];
-          weight_rn_r1_n2      =   cms3.genweights()[1];
-          weight_rn_r1_np05    =   cms3.genweights()[2];
-          weight_rn_r2_n1      =   cms3.genweights()[3];
-          weight_rn_r2_n2      =   cms3.genweights()[4];
-          weight_rn_r2_n0p5    =   cms3.genweights()[5];
-          weight_rn_r0p5_n1    =   cms3.genweights()[6];
-          weight_rn_r0p5_n2    =   cms3.genweights()[7];
-          weight_rn_r0p5_n0p5  =   cms3.genweights()[8];
+          weight_fr_r1_f1      =   cms3.genweights()[0];
+          weight_fr_r1_f2      =   cms3.genweights()[1];
+          weight_fr_r1_f0p5    =   cms3.genweights()[2];
+          weight_fr_r2_f1      =   cms3.genweights()[3];
+          weight_fr_r2_f2      =   cms3.genweights()[4];
+          weight_fr_r2_f0p5    =   cms3.genweights()[5];
+          weight_fr_r0p5_f1    =   cms3.genweights()[6];
+          weight_fr_r0p5_f2    =   cms3.genweights()[7];
+          weight_fr_r0p5_f0p5  =   cms3.genweights()[8];
           weight_pdf_up        =   (average_of_pdf_weights+sqrt(sum_of_pdf_weights/99)); 
           weight_pdf_down      =   (average_of_pdf_weights-sqrt(sum_of_pdf_weights/99)); 
           weight_alphas_down   =   cms3.genweights()[109];
           weight_alphas_up     =   cms3.genweights()[110];
 
-          h_neventsinfile->Fill(1 , weight_rn_r1_n1     );
-          h_neventsinfile->Fill(2 , weight_rn_r1_n2     );
-          h_neventsinfile->Fill(3 , weight_rn_r1_np05   );
-          h_neventsinfile->Fill(4 , weight_rn_r2_n1     );
-          h_neventsinfile->Fill(5 , weight_rn_r2_n2     );
-          h_neventsinfile->Fill(6 , weight_rn_r2_n0p5   );
-          h_neventsinfile->Fill(7 , weight_rn_r0p5_n1   );
-          h_neventsinfile->Fill(8 , weight_rn_r0p5_n2   );
-          h_neventsinfile->Fill(9 , weight_rn_r0p5_n0p5 );
+          h_neventsinfile->Fill(1 , weight_fr_r1_f1     );
+          h_neventsinfile->Fill(2 , weight_fr_r1_f2     );
+          h_neventsinfile->Fill(3 , weight_fr_r1_f0p5   );
+          h_neventsinfile->Fill(4 , weight_fr_r2_f1     );
+          h_neventsinfile->Fill(5 , weight_fr_r2_f2     );
+          h_neventsinfile->Fill(6 , weight_fr_r2_f0p5   );
+          h_neventsinfile->Fill(7 , weight_fr_r0p5_f1   );
+          h_neventsinfile->Fill(8 , weight_fr_r0p5_f2   );
+          h_neventsinfile->Fill(9 , weight_fr_r0p5_f0p5 );
           h_neventsinfile->Fill(10, weight_pdf_up       );  
           h_neventsinfile->Fill(11, weight_pdf_down     );  
           h_neventsinfile->Fill(12, weight_alphas_down  ); 
@@ -3285,15 +3285,15 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("weightsf_lepiso_FS", &weightsf_lepiso_FS );
   BabyTree_->Branch("weightsf_lepip_FS" , &weightsf_lepip_FS  );
 
-  BabyTree_->Branch("weight_rn_r1_n1"     , &weight_rn_r1_n1     );        
-  BabyTree_->Branch("weight_rn_r1_n2"     , &weight_rn_r1_n2     );        
-  BabyTree_->Branch("weight_rn_r1_np05"   , &weight_rn_r1_np05   );        
-  BabyTree_->Branch("weight_rn_r2_n1"     , &weight_rn_r2_n1     );        
-  BabyTree_->Branch("weight_rn_r2_n2"     , &weight_rn_r2_n2     );        
-  BabyTree_->Branch("weight_rn_r2_n0p5"   , &weight_rn_r2_n0p5   );        
-  BabyTree_->Branch("weight_rn_r0p5_n1"   , &weight_rn_r0p5_n1   );        
-  BabyTree_->Branch("weight_rn_r0p5_n2"   , &weight_rn_r0p5_n2   );        
-  BabyTree_->Branch("weight_rn_r0p5_n0p5" , &weight_rn_r0p5_n0p5 );        
+  BabyTree_->Branch("weight_fr_r1_f1"     , &weight_fr_r1_f1     );        
+  BabyTree_->Branch("weight_fr_r1_f2"     , &weight_fr_r1_f2     );        
+  BabyTree_->Branch("weight_fr_r1_f0p5"   , &weight_fr_r1_fp05   );        
+  BabyTree_->Branch("weight_fr_r2_f1"     , &weight_fr_r2_f1     );        
+  BabyTree_->Branch("weight_fr_r2_f2"     , &weight_fr_r2_f2     );        
+  BabyTree_->Branch("weight_fr_r2_f0p5"   , &weight_fr_r2_f0p5   );        
+  BabyTree_->Branch("weight_fr_r0p5_f1"   , &weight_fr_r0p5_f1   );        
+  BabyTree_->Branch("weight_fr_r0p5_f2"   , &weight_fr_r0p5_f2   );        
+  BabyTree_->Branch("weight_fr_r0p5_f0p5" , &weight_fr_r0p5_f0p5 );        
   BabyTree_->Branch("weight_pdf_up"       , &weight_pdf_up       );        
   BabyTree_->Branch("weight_pdf_down"     , &weight_pdf_down     );        
   BabyTree_->Branch("weight_alphas_down"  , &weight_alphas_down  );        
@@ -3826,15 +3826,15 @@ void babyMaker::InitBabyNtuple () {
   weightsf_lepiso_FS . clear();
   weightsf_lepip_FS  . clear();
 
-  weight_rn_r1_n1     = 0;
-  weight_rn_r1_n2     = 0;
-  weight_rn_r1_np05   = 0;
-  weight_rn_r2_n1     = 0;
-  weight_rn_r2_n2     = 0;
-  weight_rn_r2_n0p5   = 0;
-  weight_rn_r0p5_n1   = 0;
-  weight_rn_r0p5_n2   = 0;
-  weight_rn_r0p5_n0p5 = 0;
+  weight_fr_r1_f1     = 0;
+  weight_fr_r1_f2     = 0;
+  weight_fr_r1_f0p5   = 0;
+  weight_fr_r2_f1     = 0;
+  weight_fr_r2_f2     = 0;
+  weight_fr_r2_f0p5   = 0;
+  weight_fr_r0p5_f1   = 0;
+  weight_fr_r0p5_f2   = 0;
+  weight_fr_r0p5_f0p5 = 0;
   weight_pdf_up       = 0;
   weight_pdf_down     = 0;
   weight_alphas_down  = 0;
