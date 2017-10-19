@@ -78,26 +78,27 @@ fi
 #dotest_babyID=test_moriondmc_ttbar_1k 
 #dotest_babyPath=/hadoop/cms/store/group/snt/run2_moriond17/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/merged_ntuple_2.root
 
-dotest_babyID=test_mia_WWW
-dotest_babyPath=/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_www-Private80X-v1/V08-00-16/merged_ntuple_1.root
-
 #dotest_babyID=test_moriondmc_sync_ttbar_dilep_nopostproc
 #dotest_babyPath=/nfs-7/userdata/ZMEToutput/output/sync_Jan2017/sync_ttbar_dilep_Summer16_1file_nopostproc.root 
-
-./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
 
 if [[ $1 != "long" ]]
 then
   dotest_babyID=test_data
-  dotest_babyPath=/hadoop/cms/store/group/snt/run2_data/Run2016D_SingleMuon_MINIAOD_03Feb2017-v1/merged/V08-00-18/merged_ntuple_331.root
+  dotest_babyPath=/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016D_SingleMuon_MINIAOD_03Feb2017-v1/V08-00-18/SingleMuon_MINIAOD_03Feb2017-v1_110000_70D05BDE-3DEB-E611-BB46-BC305B390A0B.root
 
   ./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
 fi
+
+dotest_babyID=test_mia_WWW
+dotest_babyPath=/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_www-Private80X-v1/V08-00-16/merged_ntuple_1.root
+
+./processBaby $dotest_babyID $dotest_babyPath $dotest_nEvts
+
 
 #======================================
 # Tests Skimmer
 #======================================
 
-dotest_outfile=`ls | grep ${dotest_babyID}`
+dotest_outfile=`ls | grep ${dotest_babyID}.root`
 cp ${dotest_outfile} output.root
 root -b -q skim_macro.C

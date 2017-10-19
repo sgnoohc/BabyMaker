@@ -93,9 +93,9 @@ void merge_macro(std::string indir, std::string list_filename, std::string outfi
         if (strncmp(ourHists[i]->GetTitle(), hist->GetTitle(), 1000) == 0){ ourHists[i]->Add(hist); foundIt = true; }
       }
       if (!foundIt) {
-	file->cd();
-	TH1D* hist_clone = (TH1D*) hist->Clone(hist->GetName()); 
-	ourHists.push_back(hist_clone);
+      	file->cd();
+      	TH1D* hist_clone = (TH1D*) hist->Clone(hist->GetName()); 
+      	ourHists.push_back(hist_clone);
       }
     }
     currentfile->Close();

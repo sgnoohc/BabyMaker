@@ -66,6 +66,44 @@ void skim_macro(string inpath = "./", string outpath = "./", string intag = "out
   cout << "Output tree has entries: " << output_entries << endl
        << "Reduction factor of: " << double(input_entries)/double(output_entries) << endl;
   outtree->Write();
-  outfile->Close();
 
+  //-------------------
+  // Copy TH1Ds
+  //-------------------
+  TObjArray *listOfFiles = chain->GetListOfFiles();
+  TIter fileIter(listOfFiles);
+  std::vector <TH1D*> ourHists; 
+  TFile *currentFile = 0;
+  fileIter.Reset(); 
+  //file loop
+  while ( (currentFile = (TFile*)fileIter.Next()) ){
+    TFile *currentfile = TFile::Open(currentFile->GetTitle());
+    //Hist loop
+    for (auto&& keyAsObj : *currentfile->GetListOfKeys()){
+      auto key = (TKey*)keyAsObj;
+      if (strncmp(key->GetClassName(), "TH1D", 1000) != 0) continue; 
+      TH1D *hist = (TH1D*)key->ReadObj(); 
+      //OurHist loop
+      bool foundIt = false;
+      for (unsigned int i = 0; i < ourHists.size(); i++){
+        if (strncmp(ourHists[i]->GetTitle(), hist->GetTitle(), 1000) == 0){ ourHists[i]->Add(hist); foundIt = true; }
+      }
+      if (!foundIt) {
+        outfile->cd();
+        TH1D* hist_clone = (TH1D*) hist->Clone(hist->GetName()); 
+        ourHists.push_back(hist_clone);
+      }
+    }
+    currentfile->Close();
+  }
+  cout << "Histograms merged: " <<ourHists.size() << endl;
+  if (ourHists.size()) cout << ourHists[0]->GetBinContent(0) << endl; 
+
+  outfile->cd();
+  for (unsigned int i = 0; i < ourHists.size(); i++) ourHists[i]->Write();
+  
+  //-------------------
+  // Cleanup
+  //-------------------
+  outfile->Close();
 }
