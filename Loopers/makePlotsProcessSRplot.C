@@ -17,13 +17,13 @@ void makePlotsProcessSRplot(){
     vector<string> samplesleg;
     vector<int> onlySSSFOS;
 
-    TFile *f = TFile::Open("rootfiles/newLooper.root");
-    histonames.push_back("SignalRegion");                  caption.push_back("signal region");                                         onlySSSFOS.push_back(0);
-    histonames.push_back("ApplicationRegion");             caption.push_back("application region");                                    onlySSSFOS.push_back(0);
-    histonames.push_back("WZControlRegion");               caption.push_back("lost lepton / 3l-with-Z control region");                onlySSSFOS.push_back(0);
-    histonames.push_back("SignalRegionPresel");            caption.push_back("signal region - preselection");                          onlySSSFOS.push_back(0);
-    histonames.push_back("ApplicationRegionPresel");       caption.push_back("application region - preselection");                     onlySSSFOS.push_back(0);
-    histonames.push_back("WZControlRegionPresel");         caption.push_back("lost lepton / 3l-with-Z control region - preselection"); onlySSSFOS.push_back(0);
+    TFile *f = TFile::Open("rootfiles/SRLooper.root");
+    histonames.push_back("SignalRegion");                  axisnames.push_back("signal region");                                         onlySSSFOS.push_back(0);
+    histonames.push_back("ApplicationRegion");             axisnames.push_back("application region");                                    onlySSSFOS.push_back(0);
+    histonames.push_back("WZControlRegion");               axisnames.push_back("lost lepton / 3l-with-Z control region");                onlySSSFOS.push_back(0);
+    histonames.push_back("SignalRegionPresel");            axisnames.push_back("signal region - preselection");                          onlySSSFOS.push_back(0);
+    histonames.push_back("ApplicationRegionPresel");       axisnames.push_back("application region - preselection");                     onlySSSFOS.push_back(0);
+    histonames.push_back("WZControlRegionPresel");         axisnames.push_back("lost lepton / 3l-with-Z control region - preselection"); onlySSSFOS.push_back(0);
 
 
     TColor *lightblue  = new TColor(2001,91/255.,187/255.,241/255.);

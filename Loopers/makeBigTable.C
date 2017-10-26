@@ -21,7 +21,7 @@ void makeBigTable(){
     vector<string> caption;
     vector<string> samples;
     vector<string> samples2;
-    TFile *f = TFile::Open("rootfiles/newLooper.root");
+    TFile *f = TFile::Open("rootfiles/SRLooper.root");
     histonames.push_back("SignalRegion");                  caption.push_back("signal region");
     histonames.push_back("ApplicationRegion");             caption.push_back("application region");
     histonames.push_back("WZControlRegion");               caption.push_back("lost lepton / 3l-with-Z control region");

@@ -19,10 +19,11 @@ void makePlotsProcess(){
     vector<int> onlySSSFOS;
     
     
-    TFile *f = TFile::Open("Nminus1Histos.root");
-    histonames.push_back("MTmax_SRlike_SSem");           axisnames.push_back("M_{T}^{max} [GeV]");               onlySSSFOS.push_back(1);
-    
-    histonames.push_back("MET_SRlike_allSFOS");          axisnames.push_back("E_{T}^{miss} [GeV]");              onlySSSFOS.push_back(2);
+    TFile *f = TFile::Open("rootfiles/NminusOnePlots.root");
+    histonames.push_back("Mjj_SRSS_presel");        axisnames.push_back("M_{jj} [GeV] | preselection");               onlySSSFOS.push_back(1);
+    histonames.push_back("Mjj_SRSS_NmO");           axisnames.push_back("M_{jj} [GeV] | full selection");             onlySSSFOS.push_back(1);
+    histonames.push_back("PTlll_SR3l_presel");      axisnames.push_back("p_{T}(lll) [GeV] | preselection");           onlySSSFOS.push_back(2);
+    histonames.push_back("PTlll_SR3l_NmO");         axisnames.push_back("p_{T}(lll) [GeV] | full selection");         onlySSSFOS.push_back(2);
     TColor *lightblue  = new TColor(2001,91/255.,187/255.,241/255.);
     TColor *blue       = new TColor(2002,60/255.,144/255.,196/255.);
     TColor *orange     = new TColor(2003,230/255.,159/255.,0/255.);

@@ -12,7 +12,7 @@ outdir = "plots/"
 
 ROOT.gStyle.SetOptStat(0);
 
-f = ROOT.TFile("SRLooper.root","open")
+f = ROOT.TFile("rootfiles/SRLooper.root","open")
 
 histonames = ["SignalRegion",  "WZControlRegion",                      "ApplicationRegion"]
 axisnames  = ["signal regions","lost-lepton/3l-with-Z control regions","application regions"]
@@ -45,7 +45,7 @@ for h,a in zip(histonames,axisnames) :
         histos[h+"_"+s] = f.Get(h+"_"+s)
         if s == "WWW" and addsig :
             histos[h+"_WHtoWWW"] = f.Get(h+"_WHtoWWW")
-            histos[h+"_"+s].Add(histos[h+"_WHtoWWW",1.])
+            histos[h+"_"+s].Add(histos[h+"_WHtoWWW"],1.)
         histos[h+"_"+s].GetXaxis().SetTitle(a)
         histos[h+"_"+s].GetYaxis().SetTitle("Events")
         histos[h+"_"+s].GetXaxis().SetTitleSize(0.)
@@ -55,8 +55,8 @@ for h,a in zip(histonames,axisnames) :
                 histos[h+"_"+s].SetBinError(b,0)
         if s != "WWW" and s != "WHtoWWW" :
             #print h+"_"+s,c
-            histos[h+"_"+s].SetLineColor(c)
-            histos[h+"_"+s].SetFillColor(1)
+            histos[h+"_"+s].SetLineColor(1)
+            histos[h+"_"+s].SetFillColor(c)
             stacks[h].Add(histos[h+"_"+s])
             if h+"_bg" not in histos :
                 histos[h+"_bg"] = histos[h+"_"+s].Clone(h+"_bg")
