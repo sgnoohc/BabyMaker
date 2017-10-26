@@ -30,11 +30,11 @@ cd dilepbabymaker/
 ln -s ../CORE 
 make -j15
 
-#echo "Testing the babymaker..."
-#./dotest.sh
+echo "Testing the babymaker..."
+./dotest.sh
 
-#cd ../NtupleTools/AutoTwopler/
-#. setup.sh
-#cd ../../dilepbabymaker/batchsubmit/
-#
-#echo "You are ready to choose samples and run ducks.py"
+cd ../NtupleTools/AutoTwopler/
+. setup.sh
+cd ../../dilepbabymaker/batchsubmit/
+
+echo "You are ready to choose samples and run ducks.py"
