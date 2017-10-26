@@ -4,9 +4,9 @@
   //gROOT->ProcessLine(".L Nminus1Looper.C+");
   //gROOT->ProcessLine(".L ValidationLooper.C+");
   //gROOT->ProcessLine(".L Skimmer.C+");
-  //gROOT->ProcessLine(".L SRLooper.C+");
+  gROOT->ProcessLine(".L SRLooper.C+");
   //gROOT->ProcessLine(".L FakeRateMethod.C+");
-  gROOT->ProcessLine(".L WWTTWSplitter.C+");
+  //gROOT->ProcessLine(".L WWTTWSplitter.C+");
   //gROOT->ProcessLine(".L Check3lWZCR.C+");
   const unsigned int chainsize = 18;
   TChain *ch[chainsize];

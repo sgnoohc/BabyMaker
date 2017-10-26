@@ -237,10 +237,10 @@ float coneCorrPt(int lepi){
   float coneptcorr = 0;
   float relIso = lep_relIso03EAv2().at(lepi);
   if(   abs(lep_pdgId().at(lepi)) == 11) {
-    if(fabs(lep_eta().at(lepi)) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
-    else                                  coneptcorr = std::max( 0., relIso - 0.0571 );
+    if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
+    else                                       coneptcorr = std::max( 0., relIso - 0.0571 );
   }
-  if(   abs(lep_pdgId().at(lepi)) == 13)  coneptcorr = std::max( 0., relIso - 0.06   );
+  if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
 
   return coneptcorr;
 }
