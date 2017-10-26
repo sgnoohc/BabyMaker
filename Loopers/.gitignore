@@ -1,0 +1,9 @@
+*~
+*.o
+*.d
+*.so
+*.pcm
+*.cxx
+data
+rootfiles
+plots

@@ -7,6 +7,9 @@
 echo "Grabbing Dependancies..."
 
 git clone git@github.com:cmstas/CORE.git
+cd CORE/
+git checkout CMS3_archive
+cd ..
 git clone git@github.com:cmstas/NtupleTools.git
 git clone git@github.com:cmstas/Software.git
 cd Software/
@@ -27,11 +30,11 @@ cd dilepbabymaker/
 ln -s ../CORE 
 make -j15
 
-echo "Testing the babymaker..."
-./dotest.sh
+#echo "Testing the babymaker..."
+#./dotest.sh
 
-cd ../NtupleTools/AutoTwopler/
-. setup.sh
-cd ../../dilepbabymaker/batchsubmit/
-
-echo "You are ready to choose samples and run ducks.py"
+#cd ../NtupleTools/AutoTwopler/
+#. setup.sh
+#cd ../../dilepbabymaker/batchsubmit/
+#
+#echo "You are ready to choose samples and run ducks.py"
