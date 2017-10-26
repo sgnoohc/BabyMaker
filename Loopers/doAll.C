@@ -4,9 +4,9 @@
   //gROOT->ProcessLine(".L Nminus1Looper.C+");
   //gROOT->ProcessLine(".L ValidationLooper.C+");
   //gROOT->ProcessLine(".L Skimmer.C+");
-  gROOT->ProcessLine(".L SRLooper.C+");
+  //gROOT->ProcessLine(".L SRLooper.C+");
   //gROOT->ProcessLine(".L FakeRateMethod.C+");
-  //gROOT->ProcessLine(".L WWTTWSplitter.C+");
+  gROOT->ProcessLine(".L WWTTWSplitter.C+");
   //gROOT->ProcessLine(".L Check3lWZCR.C+");
   const unsigned int chainsize = 18;
   TChain *ch[chainsize];
@@ -17,7 +17,7 @@
   
   //fully skimmed babies
   //string babylocation = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";
-  string babylocation = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_2/WWW_v0_1_16_v16_skim_v2_2/";
+  string babylocation = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_3/WWW_v0_1_16_v16_skim_v2_3/";
   string myhelper;
   
   dataset[0] = "WWWv2";
