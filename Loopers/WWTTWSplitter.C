@@ -38,13 +38,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
   bool blindSR = true;
   bool btagreweighting = true;
-  bool applylepSF = true;
-  float muptmin = 20.1;                           float muptmax = 199.9; float muetamin =  0.01; float muetamax = 2.49;
-  float elptmin = 10.1; float elptminReco = 25.1; float elptmax = 499.9; float eletamin = -2.49; float eletamax = 2.49;
-  TFile *fSF;
-  TH2F *hMu, *hX, *hElReco, *hElID;
-  int SFloaded = -1;
-  if(applylepSF) SFloaded = loadlepSFfile(fSF,hMu,hX,hElReco,hElID,"rootfiles/SF_TnP.root","muSF","","elSF_reco","elSF_ID");
+  bool applylepSF      = true;
+  bool applytrigSF     = true;
 
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -133,12 +128,20 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
       getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
-      float lepSFSS(1.), lepSFerrSS(1.), lepSF3l(0.), lepSFerr3l(0.);
-      if(applylepSF){
-	lepSFSS = getlepSFWeightandError(lepSFerrSS,iSS,iaSS,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
-	lepSF3l = getlepSFWeightandError(lepSFerr3l,i3l,ia3l,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
+      float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
+      if(applylepSF&&!isData()){
+	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
+	weight *= lepSF;
       }
-      
+      float trigSF(1.), trigSF_up(1.), trigSF_dn(1.);
+      if(applytrigSF&&!isData()){
+	trigSF    = getTriggerWeight(0, i3l,ia3l);
+	trigSF_up = getTriggerWeight(1, i3l,ia3l);
+	trigSF_dn = getTriggerWeight(-1, i3l,ia3l);
+	weight *= trigSF;
+	weight_lepSF_up *= trigSF;
+	weight_lepSF_dn *= trigSF;
+      }     
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
       int nSS = iSS.size();
@@ -233,7 +236,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
 
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",       sn, sn2, SRSS[0], SR3l[0], weight*lepSFSS, weight*lepSF3l);
+	fillSRhisto(histos, "SRyield",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
       }
       
     }//event loop

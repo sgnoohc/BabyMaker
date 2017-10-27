@@ -44,6 +44,7 @@ float dPhi(LorentzVector vec1,LorentzVector vec2 );
 float deltaPhi(float phi1,float phi2 );
 float mT(LorentzVector p4, LorentzVector met);
 bool sortMSFOS(float M1, float M2);
+bool sortPt(int i1, int i2);
 int numJ(float jetpt=20., float jeteta=2.4, float csv=-1, int jec=0);//loose: 0.5426, medium: 0.8484, if csv < 0 - count Njets, else Nbjets
 bool getalljetnumbers(int &nj, int &nj30, int &nb, int jec=0);
 bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l);
@@ -75,13 +76,17 @@ bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sn, string 
 bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow=true, bool addoverflow=true);
 
 bool fileexists(string filename);
-int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F *&hEltrigger, string filename="rootfiles/SF_TnP.root", string muIDname="muSF", string mutrigname="", string elIDname="elSFreco", string eltrigname="elSF_ID");
+//int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F *&hEltrigger, string filename="rootfiles/SF_TnP.root", string muIDname="muSF", string mutrigname="", string elIDname="elSFreco", string eltrigname="elSF_ID");
 bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename="rootfiles/fakerate_pt_v_eta.root", string muname="muon_fakerate_conecorrpt_v_eta", string elname="elec_fakerate_conecorrpt_v_eta");
 bool deleteFiles(bool SF, TFile *&fSF);
 
-float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);
-float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);//need to feed looselep here :/
-float getlepSFWeightandError(float &error, vector<float> efftight, vector<float> errtight, vector<float> effloose={}, vector<float> errloose={});
+//float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);
+//float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);//need to feed looselep here :/
+//float getlepSFWeightandError(float &error, vector<float> efftight, vector<float> errtight, vector<float> effloose={}, vector<float> errloose={});
+float getlepSFandError(float &error, int index);//so far assumes tight ID as only those SF are implemented.
+float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
+float getTriggerWeight(int isyst, vector<int> tightlep, vector<int> looselep={});
+
 bool addeventtocheck(vector<myevt> &eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber);
 bool checkthisevent(vector<myevt> eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber);
 void addeventtolist(std::ostringstream *&stream);

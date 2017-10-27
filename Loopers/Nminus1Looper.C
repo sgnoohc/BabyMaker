@@ -34,14 +34,9 @@ using namespace tas;
 int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
 
   bool btagreweighting = true;
-  bool applylepSF = true;
-  float muptmin = 20.1;                           float muptmax = 199.9; float muetamin =  0.01; float muetamax = 2.49;
-  float elptmin = 10.1; float elptminReco = 25.1; float elptmax = 499.9; float eletamin = -2.49; float eletamax = 2.49;
-  TFile *fSF;
-  TH2F *hMu, *hX, *hElReco, *hElID;
-  int SFloaded = -1;
-  if(applylepSF) SFloaded = loadlepSFfile(fSF,hMu,hX,hElReco,hElID,"rootfiles/SF_TnP.root","muSF","","elSF_reco","elSF_ID");
-  
+  bool applylepSF      = true;
+  bool applytrigSF     = true;
+
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
 
@@ -153,12 +148,20 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
       getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
-      float lepSFSS(1.), lepSFerrSS(0.), lepSF3l(1.), lepSFerr3l(0.);
-      if(applylepSF){
-	lepSFSS = getlepSFWeightandError(lepSFerrSS,iSS,iaSS,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
-	lepSF3l = getlepSFWeightandError(lepSFerr3l,i3l,ia3l,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
+      float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
+      if(applylepSF&&!isData()){
+	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
+	weight *= lepSF;
       }
-      
+      float trigSF(1.), trigSF_up(1.), trigSF_dn(1.);
+      if(applytrigSF&&!isData()){
+	trigSF    = getTriggerWeight(0, i3l,ia3l);
+	trigSF_up = getTriggerWeight(1, i3l,ia3l);
+	trigSF_dn = getTriggerWeight(-1, i3l,ia3l);
+	weight *= trigSF;
+	weight_lepSF_up *= trigSF;
+	weight_lepSF_dn *= trigSF;
+      } 
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
       int nSS = iSS.size();
@@ -217,14 +220,14 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(SRSSpresel>=0){
 	float Mll  = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
 	float pTll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).Pt();
-	histos["Mjj_SRSS_presel_"+     sn]->Fill(Mjj,      weight*lepSFSS);
-	histos["Mll_SRSS_presel_"+     sn]->Fill(Mll,      weight*lepSFSS);
-	histos["pTll_SRSS_presel_"+    sn]->Fill(pTll,     weight*lepSFSS);
-	histos["MET_SRSS_presel_"+     sn]->Fill(met_pt(), weight*lepSFSS);
-	histos["MjjL_SRSS_presel_"+    sn]->Fill(MjjL,     weight*lepSFSS);
-	histos["DetajjL_SRSS_presel_"+ sn]->Fill(Detajj,   weight*lepSFSS);
+	histos["Mjj_SRSS_presel_"+     sn]->Fill(Mjj,      weight);
+	histos["Mll_SRSS_presel_"+     sn]->Fill(Mll,      weight);
+	histos["pTll_SRSS_presel_"+    sn]->Fill(pTll,     weight);
+	histos["MET_SRSS_presel_"+     sn]->Fill(met_pt(), weight);
+	histos["MjjL_SRSS_presel_"+    sn]->Fill(MjjL,     weight);
+	histos["DetajjL_SRSS_presel_"+ sn]->Fill(Detajj,   weight);
 	if(SRSSpresel==1){
-	  histos["MTmax_SRSS_presel_"+ sn]->Fill(MTmax,    weight*lepSFSS);
+	  histos["MTmax_SRSS_presel_"+ sn]->Fill(MTmax,    weight);
 	}
 	bool passMjj  = fabs(Mjj-80.)<20.;
 	bool passMjjL = MjjL<400.;
@@ -232,14 +235,14 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	bool passMll  = ((SRSSpresel==1) ? ((lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()>30.) : ((lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()>40.));
 	bool passMET  = ((SRSSpresel==2) ? (true) : (met_pt()>40.));
 	bool passMT   = ((SRSSpresel==1) ? (MTmax>90.) : (true));
-	if(         passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["Mjj_SRSS_NmO_"+     sn]->Fill(Mjj,      weight*lepSFSS);
-	if(passMjj&&passMjjL&&passDeta         &&passMET&&passMT) histos["Mll_SRSS_NmO_"+     sn]->Fill(Mll,      weight*lepSFSS);
-	if(passMjj&&passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["pTll_SRSS_NmO_"+    sn]->Fill(pTll,     weight*lepSFSS);
-	if(passMjj&&passMjjL&&passDeta&&passMll         &&passMT) histos["MET_SRSS_NmO_"+     sn]->Fill(met_pt(), weight*lepSFSS);
-	if(passMjj          &&passDeta&&passMll&&passMET&&passMT) histos["MjjL_SRSS_NmO_"+    sn]->Fill(MjjL,     weight*lepSFSS);
-	if(passMjj&&passMjjL          &&passMll&&passMET&&passMT) histos["DetajjL_SRSS_NmO_"+ sn]->Fill(Detajj,   weight*lepSFSS);
+	if(         passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["Mjj_SRSS_NmO_"+     sn]->Fill(Mjj,      weight);
+	if(passMjj&&passMjjL&&passDeta         &&passMET&&passMT) histos["Mll_SRSS_NmO_"+     sn]->Fill(Mll,      weight);
+	if(passMjj&&passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["pTll_SRSS_NmO_"+    sn]->Fill(pTll,     weight);
+	if(passMjj&&passMjjL&&passDeta&&passMll         &&passMT) histos["MET_SRSS_NmO_"+     sn]->Fill(met_pt(), weight);
+	if(passMjj          &&passDeta&&passMll&&passMET&&passMT) histos["MjjL_SRSS_NmO_"+    sn]->Fill(MjjL,     weight);
+	if(passMjj&&passMjjL          &&passMll&&passMET&&passMT) histos["DetajjL_SRSS_NmO_"+ sn]->Fill(Detajj,   weight);
 	if(SRSSpresel==1){
-	  if(passMjj&&passMjjL&&passDeta&&passMll&&passMET      ) histos["MTmax_SRSS_NmO_"+   sn]->Fill(MTmax,      weight*lepSFSS);
+	  if(passMjj&&passMjjL&&passDeta&&passMll&&passMET      ) histos["MTmax_SRSS_NmO_"+   sn]->Fill(MTmax,      weight);
 	}
       }
       if(SR3lpresel>=0){
@@ -259,19 +262,19 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  float DPhilllMET = dPhi(lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ],MET);
 	  float pTlll      = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
 	  float Mlll       = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M();
-	  histos["DPhilllMET_SR3l_presel_"+   sn2]->Fill(DPhilllMET, weight*lepSF3l);
-	  histos["PTlll_SR3l_presel_"+        sn2]->Fill(pTlll,      weight*lepSF3l);
-	  histos["Mlll_SR3l_presel_"+         sn2]->Fill(Mlll,       weight*lepSF3l);
-	  histos["MET_SR3l_presel_"+          sn2]->Fill(met_pt(),   weight*lepSF3l);
+	  histos["DPhilllMET_SR3l_presel_"+   sn2]->Fill(DPhilllMET, weight);
+	  histos["PTlll_SR3l_presel_"+        sn2]->Fill(pTlll,      weight);
+	  histos["Mlll_SR3l_presel_"+         sn2]->Fill(Mlll,       weight);
+	  histos["MET_SR3l_presel_"+          sn2]->Fill(met_pt(),   weight);
 	   
 	  bool passMET   = true; if(SR3lpresel==1) passMET = (met_pt()>45.); if(SR3lpresel==2) passMET = (met_pt()>55.);
 	  bool passDPhi  = ((SR3lpresel==0) ? (DPhilllMET>2.7) : (DPhilllMET>2.5));
 	  bool passpTlll = (pTlll>60.);
 	  bool passMlll  = ((SR3lpresel>=1) ? (fabs(Mlll-MZ)>10.) : (true));
-	  if(passMET          &&passpTlll&&passMlll) histos["DPhilllMET_SR3l_NmO_"+   sn2]->Fill(DPhilllMET, weight*lepSF3l);
-	  if(passMET&&passDPhi           &&passMlll) histos["PTlll_SR3l_NmO_"+        sn2]->Fill(pTlll,      weight*lepSF3l);
-	  if(passMET&&passDPhi&&passpTlll          ) histos["Mlll_SR3l_NmO_"+         sn2]->Fill(Mlll,       weight*lepSF3l);
-	  if(         passDPhi&&passpTlll&&passMlll) histos["MET_SR3l_NmO_"+          sn2]->Fill(met_pt(),   weight*lepSF3l);
+	  if(passMET          &&passpTlll&&passMlll) histos["DPhilllMET_SR3l_NmO_"+   sn2]->Fill(DPhilllMET, weight);
+	  if(passMET&&passDPhi           &&passMlll) histos["PTlll_SR3l_NmO_"+        sn2]->Fill(pTlll,      weight);
+	  if(passMET&&passDPhi&&passpTlll          ) histos["Mlll_SR3l_NmO_"+         sn2]->Fill(Mlll,       weight);
+	  if(         passDPhi&&passpTlll&&passMlll) histos["MET_SR3l_NmO_"+          sn2]->Fill(met_pt(),   weight);
 	}
       }
       if(SR3lpresel>=1||CR3lpresel>=1){
@@ -284,8 +287,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	bool passDPhi  = ((SR3lpresel==0) ? (DPhilllMET>2.7) : (DPhilllMET>2.5));
 	bool passpTlll = (pTlll>60.);
 	bool passMlll  = ((SR3lpresel>=1) ? (fabs(Mlll-MZ)>10.) : (true));
-	histos["MSFOSZlike_SR3l_presel_"+ sn2]->Fill(MSFOSZ,     weight*lepSF3l);
-	if(passMET&&passDPhi&&passpTlll&&passMlll) histos["MSFOSZlike_SR3l_NmO_"+ sn2]->Fill(MSFOSZ,     weight*lepSF3l);
+	histos["MSFOSZlike_SR3l_presel_"+ sn2]->Fill(MSFOSZ,     weight);
+	if(passMET&&passDPhi&&passpTlll&&passMlll) histos["MSFOSZlike_SR3l_NmO_"+ sn2]->Fill(MSFOSZ,     weight);
       }
 
  

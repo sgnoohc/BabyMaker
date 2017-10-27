@@ -34,13 +34,8 @@ using namespace tas;
 int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
 
   bool btagreweighting = true;
-  bool applylepSF = true;
-  float muptmin = 20.1;                           float muptmax = 199.9; float muetamin =  0.01; float muetamax = 2.49;
-  float elptmin = 10.1; float elptminReco = 25.1; float elptmax = 499.9; float eletamin = -2.49; float eletamax = 2.49;
-  TFile *fSF;
-  TH2F *hMu, *hX, *hElReco, *hElID;
-  int SFloaded = -1;
-  if(applylepSF) SFloaded = loadlepSFfile(fSF,hMu,hX,hElReco,hElID,"rootfiles/SF_TnP.root","muSF","","elSF_reco","elSF_ID");
+  bool applylepSF      = true;
+  bool applytrigSF     = true;
 
   // Benchmark
   TBenchmark *bmark = new TBenchmark();
@@ -152,11 +147,20 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
       getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
       float lepSFSS(1.), lepSFerrSS(0.), lepSF3l(1.), lepSFerr3l(0.);
-      if(applylepSF){
-	lepSFSS = getlepSFWeightandError(lepSFerrSS,iSS,iaSS,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
-	lepSF3l = getlepSFWeightandError(lepSFerr3l,i3l,ia3l,hMu,hX,hElReco,hElID, muptmin,muptmax,muetamin,muetamax, muptmin,muptmax,muetamin,muetamax, elptminReco,elptmax,eletamin,eletamax, elptmin,elptmax,eletamin,eletamax);
+      float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
+      if(applylepSF&&!isData()){
+	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
+	weight *= lepSF;
       }
-      
+      float trigSF(1.), trigSF_up(1.), trigSF_dn(1.);
+      if(applytrigSF&&!isData()){
+	trigSF    = getTriggerWeight(0, i3l,ia3l);
+	trigSF_up = getTriggerWeight(1, i3l,ia3l);
+	trigSF_dn = getTriggerWeight(-1, i3l,ia3l);
+	weight *= trigSF;
+	weight_lepSF_up *= trigSF;
+	weight_lepSF_dn *= trigSF;
+      }    
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
       int nSS = iSS.size();
@@ -291,76 +295,76 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       //cout << __LINE__ << " " << sn << " " << sn2 << " " << passextra1 << " " << passextra2 << " " << extrasn1 << " " << extrasn2 << endl;
       if(VR[0]>=1){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn1]->Fill(nb,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn2]->Fill(nb,weight*lepSF3l);
-	else                                histos["NB_VR3l_Z_ge2j_ge1b_"+     sn2]->Fill(nb,weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VR3l_Z_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
       }
       if(VR[1]>=0){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn1]->Fill(nb,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn2]->Fill(nb,weight*lepSF3l);
-	else                                histos["NB_VR3l_noZ_ge2j_ge1b_"+     sn2]->Fill(nb,weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VR3l_noZ_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
       }
       if(VR[2]>=1){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight*lepSF3l);
-	else                                histos["NB_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight);
 	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(     sn=="ttV"&&passextra1)      histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight*lepSF3l);
-	else                                histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight*lepSF3l);
-	if(     sn=="ttV"&&passextra1)      histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight*lepSF3l);
-	else                                histos["MET_VR3l_Z_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight);
+	else if(sn=="ttV"&&passextra2)      histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight);
+	else                                histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight);
+	if(     sn=="ttV"&&passextra1)      histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight);
+	else if(sn=="ttV"&&passextra2)      histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight);
+	else                                histos["MET_VR3l_Z_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight);
 	for(unsigned int i1 = 0; i1<3;++i1){
 	  for(unsigned int i2 = i1+1; i2<3;++i2){
 	    if((lep_pdgId()[i3l[i1] ])!=(-lep_pdgId()[i3l[i2] ])) continue;
 	    if(fabs((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).M()-MZ)>15.) continue;
-	    if(     sn=="ttV"&&passextra1)      histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight*lepSF3l);
-	    else if(sn=="ttV"&&passextra2)      histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight*lepSF3l);
-	    else                                histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight*lepSF3l);
+	    if(     sn=="ttV"&&passextra1)      histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
+	    else if(sn=="ttV"&&passextra2)      histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
+	    else                                histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
 	  }
 	}
       }
       if(VR[3]>=0){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight*lepSF3l);
-	else                                histos["NB_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight);
 	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(     sn=="ttV"&&passextra1)      histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight*lepSF3l);
-	else                                histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight*lepSF3l);
-	if(     sn=="ttV"&&passextra1)      histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight*lepSF3l);
-	else if(sn=="ttV"&&passextra2)      histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight*lepSF3l);
-	else                                histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight*lepSF3l);
+	if(     sn=="ttV"&&passextra1)      histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight);
+	else if(sn=="ttV"&&passextra2)      histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight);
+	else                                histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight);
+	if(     sn=="ttV"&&passextra1)      histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight);
+	else if(sn=="ttV"&&passextra2)      histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight);
+	else                                histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight);
       }
       if(VR[4]>=0){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn1]->Fill(nb,weight*lepSFSS);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn2]->Fill(nb,weight*lepSFSS);
-	else                                histos["NB_VRSS_MjjW_ge4j_ge1b_"+      sn]->Fill(nb,weight*lepSFSS);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VRSS_MjjW_ge4j_ge1b_"+      sn]->Fill(nb,weight);
       }
       if(VR[5]>=0){
-	if(     sn=="ttV"&&passextra1)      histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(nb,weight*lepSFSS);
-	else if(sn=="ttV"&&passextra2)      histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(nb,weight*lepSFSS);
-	else                                histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(nb,weight*lepSFSS);
+	if(     sn=="ttV"&&passextra1)      histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(nb,weight);
+	else if(sn=="ttV"&&passextra2)      histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(nb,weight);
+	else                                histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(nb,weight);
 	float ptll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).Pt();
-	if(     sn=="ttV"&&passextra1)      histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(ptll,weight*lepSFSS);
-	else if(sn=="ttV"&&passextra2)      histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(ptll,weight*lepSFSS);
-	else                                histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(ptll,weight*lepSFSS);
-	if(     sn=="ttV"&&passextra1)      histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn1]->Fill(met_pt(),weight*lepSFSS);
-	else if(sn=="ttV"&&passextra2)      histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn2]->Fill(met_pt(),weight*lepSFSS);
-	else                                histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +      sn]->Fill(met_pt(),weight*lepSFSS);
+	if(     sn=="ttV"&&passextra1)      histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(ptll,weight);
+	else if(sn=="ttV"&&passextra2)      histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(ptll,weight);
+	else                                histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(ptll,weight);
+	if(     sn=="ttV"&&passextra1)      histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn1]->Fill(met_pt(),weight);
+	else if(sn=="ttV"&&passextra2)      histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn2]->Fill(met_pt(),weight);
+	else                                histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +      sn]->Fill(met_pt(),weight);
       }
       if(VR[6]>=0){
-	if(sn=="WW"&&passextra1) histos["Detajj_VRSS_MjjL400_"+extrasn1]->Fill(Detajj,weight*lepSFSS);
-	else                     histos["Detajj_VRSS_MjjL400_"+      sn]->Fill(Detajj,weight*lepSFSS);
+	if(sn=="WW"&&passextra1) histos["Detajj_VRSS_MjjL400_"+extrasn1]->Fill(Detajj,weight);
+	else                     histos["Detajj_VRSS_MjjL400_"+      sn]->Fill(Detajj,weight);
       }
       if(VR[7]>=0){
-	if(sn=="WW"&&passextra1) histos["MjjL_VRSS_Detajj1p5_"+extrasn1]->Fill(MjjL,weight*lepSFSS);
-	else                     histos["MjjL_VRSS_Detajj1p5_"+      sn]->Fill(MjjL,weight*lepSFSS);
+	if(sn=="WW"&&passextra1) histos["MjjL_VRSS_Detajj1p5_"+extrasn1]->Fill(MjjL,weight);
+	else                     histos["MjjL_VRSS_Detajj1p5_"+      sn]->Fill(MjjL,weight);
       }
       if(VR[8]>=0){
-	histos["pTlll_VR3l_noZ_METleq50_"+sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt(),weight*lepSF3l);
-	histos["Mlll_VR3l_noZ_METleq50_" +sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M() ,weight*lepSF3l);
+	histos["pTlll_VR3l_noZ_METleq50_"+sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt(),weight);
+	histos["Mlll_VR3l_noZ_METleq50_" +sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M() ,weight);
       }
 
  

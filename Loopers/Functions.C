@@ -1,4 +1,5 @@
 #include "Functions.h"
+#include "LeptonAndTriggerSF.h"
 
 using namespace std;
 using namespace tas;
@@ -118,6 +119,9 @@ float mT(LorentzVector p4, LorentzVector met){
 }
 bool sortMSFOS(float M1, float M2){
   return fabs(M1-MZ)<fabs(M2-MZ);
+}
+bool sortPt(int i1, int i2){
+  return lep_p4()[i1].Pt()>=lep_p4()[i2].Pt();
 }
 
 int numJ(float jetpt, float jeteta, float csv, int jec){
@@ -1142,6 +1146,7 @@ bool fileexists(string filename){
   return f.good();
 }
 
+/*
 int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F *&hEltrigger, string filename, string muIDname, string mutrigname, string elIDname, string eltrigname){
 
   if(filename=="") return -1;
@@ -1159,6 +1164,7 @@ int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F
   return id;
 
 }
+*/
 bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename, string muname, string elname){
 
   if(filename=="") {
@@ -1189,7 +1195,7 @@ bool deleteFiles(bool SF, TFile *&fSF){
   if(SF) { fSF->Close(); delete fSF; }
   return true;
 }
-
+/*
 float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin,float muIDptmax, float muIDetamin, float muIDetamax, float muTrptmin,float muTrptmax, float muTretamin, float muTretamax, float elIDptmin,float elIDptmax, float elIDetamin, float elIDetamax, float elTrptmin,float elTrptmax, float elTretamin, float elTretamax){
   float SF1 = 1.;
   float SF1err2 = 0;
@@ -1270,6 +1276,72 @@ float getlepSFWeightandError(float &error, vector<float> efftight, vector<float>
   error = sqrt(errsum2);
   return SFsum;
 
+}
+*/
+
+//only used for tight right now - loose region is completely data driven
+float getlepSFandError(float &error, int index){
+  error = 0.;
+  if(index<0)                        return 0;
+  if(index>=(int)lep_pdgId().size()) return 0;
+  if(abs(lep_pdgId()[index])==11){
+    float effreco  = lepsf_EGammaReco(                  lep_p4()[index].Pt(),lep_etaSC()[index]);
+    float efftight = lepsf_EGammaTightID(               lep_p4()[index].Pt(),lep_etaSC()[index]);
+    float effWWW   = lepsf_EGammaTightPOG_EGammaVVV(    lep_p4()[index].Pt(),lep_etaSC()[index]);
+    float errreco  = lepsf_EGammaReco_unc(              lep_p4()[index].Pt(),lep_etaSC()[index]);
+    float errtight = lepsf_EGammaTightID_unc(           lep_p4()[index].Pt(),lep_etaSC()[index]);
+    float errWWW   = 0.01*fabs(1.-effWWW);//add 1% of difference to 1.
+    error = sqrt(pow(errreco*efftight*effWWW,2)+pow(errtight*effreco*effWWW,2)+pow(errWWW*effreco*efftight,2));
+    return effreco*efftight*effWWW;
+  }
+  else {//muon
+    float effreco   = lepsf_MuReco(                lep_p4()[index].Pt(),lep_p4()[index].Eta());
+    float efftight1 = lepsf_MuMediumID_BtoF(       lep_p4()[index].Pt(),lep_p4()[index].Eta());
+    float efftight2 = lepsf_MuMediumID_GH(         lep_p4()[index].Pt(),lep_p4()[index].Eta());
+    float efftight  = efftight1*0.549833+efftight2*0.450167;//luminosity weights B-F vs. G+H
+    float effWWW    = lepsf_MuMediumPOG_MuTightVVV(lep_p4()[index].Pt(),lep_p4()[index].Eta());
+    float errreco   = lepsf_MuReco_unc(            lep_p4()[index].Pt(),lep_p4()[index].Eta());
+    //recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults and linked twiki
+    float errtight1 = sqrt(pow(lepsf_MuMediumID_BtoF_unc(   lep_p4()[index].Pt(),lep_p4()[index].Eta()),2)+pow(0.01*fabs(1.-efftight1),2));
+    float errtight2 = sqrt(pow(lepsf_MuMediumID_GH_unc(     lep_p4()[index].Pt(),lep_p4()[index].Eta()),2)+pow(0.01*fabs(1.-efftight2),2));
+    float errtight  = sqrt(pow(errtight1*0.549833,2)+pow(errtight2*0.450167,2));
+    float errWWW    = 0.01*fabs(1.-effWWW);//add 1% of difference to 1.
+    error = sqrt(pow(errreco*efftight*effWWW,2)+pow(errtight*effreco*effWWW,2)+pow(errWWW*effreco*efftight,2));
+    return effreco*efftight*effWWW;
+  }
+}
+
+float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep){//loose not implemented yet
+  //currently I use only tightlep SF, I don't use looselep at all!
+  error = 0;
+  if(tightlep.size()==0) return 1;
+  vector<float> myeff, myerr;
+  float tempeff(0),temperr(0);
+  float SF = 1.;
+  for(unsigned int i = 0; i<tightlep.size();++i){
+    tempeff = getlepSFandError(temperr,tightlep[i]);
+    myeff.push_back(tempeff);
+    myerr.push_back(temperr);
+    SF *= tempeff;
+  }
+  if(SF==0) return 0;//don't compute error
+  for(unsigned int i = 0; i<tightlep.size();++i) error += pow(SF/myeff[i]*myerr[i],2);
+  error = sqrt(error);
+  return SF;
+}
+
+
+float getTriggerWeight(int isyst, vector<int> tightlep, vector<int> looselep){
+  if(tightlep.size()+looselep.size()<2) return 0.;
+  vector<int> lep = tightlep;
+  lep.insert(    lep.end(),    looselep.begin(), looselep.end() );
+  sort(lep.begin(),lep.end(),sortPt);
+  float eff1(0.), eff2(0.);
+  if(abs(lep_pdgId()[lep[0] ])==11) eff1 = lepsf_EGammaVVV_EGammaVVVEleLead(lep_p4()[lep[0] ].Pt(), lep_etaSC()[lep[0] ],       isyst);
+  else                              eff1 = lepsf_MuTightVVV_MuTightVVVMu17( lep_p4()[lep[0] ].Pt(), lep_p4()[   lep[0] ].Eta(), isyst);
+  if(abs(lep_pdgId()[lep[1] ])==11) eff2 = lepsf_EGammaVVV_EGammaVVVEle12(  lep_p4()[lep[1] ].Pt(), lep_etaSC()[lep[1] ],       isyst);
+  else                              eff2 = lepsf_MuTightVVV_MuTightVVVMu8(  lep_p4()[lep[1] ].Pt(), lep_p4()[   lep[1] ].Eta(), isyst);
+  return eff1*eff2;
 }
 
 bool addeventtocheck(vector<myevt> &eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber){
