@@ -133,15 +133,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
 	weight *= lepSF;
       }
-      float trigSF(1.), trigSF_up(1.), trigSF_dn(1.);
+      float trigSF(1.), trigSFerr(1.);
       if(applytrigSF&&!isData()){
-	trigSF    = getTriggerWeight(0, i3l,ia3l);
-	trigSF_up = getTriggerWeight(1, i3l,ia3l);
-	trigSF_dn = getTriggerWeight(-1, i3l,ia3l);
+	trigSF    = getTriggerWeightandError(trigSFerr, i3l,ia3l);
 	weight *= trigSF;
-	weight_lepSF_up *= trigSF;
-	weight_lepSF_dn *= trigSF;
-      }     
+      }
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
       int nSS = iSS.size();

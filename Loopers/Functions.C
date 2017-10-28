@@ -248,6 +248,7 @@ float coneCorrPt(int lepi){
 
   return coneptcorr;
 }
+/*
 float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin, float muFRptmax, float muFRetamin, float muFRetamax, float elFRptmin, float elFRptmax, float elFRetamin, float elFRetamax, bool conecorrected){
   float FR = 0.;
   float FRerr = 0;
@@ -281,7 +282,7 @@ float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin
  
   return FR;
 }
-
+*/
 float calcMjj(bool closestDR, int jec){
   float minDR=999.;
   int jDR1(-1), jDR2(-1);
@@ -1165,6 +1166,7 @@ int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F
 
 }
 */
+/*
 bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename, string muname, string elname){
 
   if(filename=="") {
@@ -1191,10 +1193,13 @@ bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename, strin
   return true;
 
 }
+*/
+/*
 bool deleteFiles(bool SF, TFile *&fSF){
   if(SF) { fSF->Close(); delete fSF; }
   return true;
 }
+*/
 /*
 float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin,float muIDptmax, float muIDetamin, float muIDetamax, float muTrptmin,float muTrptmax, float muTretamin, float muTretamax, float elIDptmin,float elIDptmax, float elIDetamin, float elIDetamax, float elTrptmin,float elTrptmax, float elTretamin, float elTretamax){
   float SF1 = 1.;
@@ -1330,18 +1335,81 @@ float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> loo
   return SF;
 }
 
-
-float getTriggerWeight(int isyst, vector<int> tightlep, vector<int> looselep){
+float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep){
+  error = 0;
   if(tightlep.size()+looselep.size()<2) return 0.;
   vector<int> lep = tightlep;
   lep.insert(    lep.end(),    looselep.begin(), looselep.end() );
   sort(lep.begin(),lep.end(),sortPt);
   float eff1(0.), eff2(0.);
-  if(abs(lep_pdgId()[lep[0] ])==11) eff1 = lepsf_EGammaVVV_EGammaVVVEleLead(lep_p4()[lep[0] ].Pt(), lep_etaSC()[lep[0] ],       isyst);
-  else                              eff1 = lepsf_MuTightVVV_MuTightVVVMu17( lep_p4()[lep[0] ].Pt(), lep_p4()[   lep[0] ].Eta(), isyst);
-  if(abs(lep_pdgId()[lep[1] ])==11) eff2 = lepsf_EGammaVVV_EGammaVVVEle12(  lep_p4()[lep[1] ].Pt(), lep_etaSC()[lep[1] ],       isyst);
-  else                              eff2 = lepsf_MuTightVVV_MuTightVVVMu8(  lep_p4()[lep[1] ].Pt(), lep_p4()[   lep[1] ].Eta(), isyst);
+  float err1(0.), err2(0.);
+  if(abs(lep_pdgId()[lep[0] ])==11) eff1 = lepsf_EGammaVVV_EGammaVVVEleLead(lep_p4()[lep[0] ].Pt(), lep_etaSC()[lep[0] ]);
+  else                              eff1 = lepsf_MuTightVVV_MuTightVVVMu17( lep_p4()[lep[0] ].Pt(), lep_p4()[   lep[0] ].Eta());
+  if(abs(lep_pdgId()[lep[1] ])==11) eff2 = lepsf_EGammaVVV_EGammaVVVEle12(  lep_p4()[lep[1] ].Pt(), lep_etaSC()[lep[1] ]);
+  else                              eff2 = lepsf_MuTightVVV_MuTightVVVMu8(  lep_p4()[lep[1] ].Pt(), lep_p4()[   lep[1] ].Eta());
+  if(abs(lep_pdgId()[lep[0] ])==11) err1 = lepsf_EGammaVVV_EGammaVVVEleLead_unc(lep_p4()[lep[0] ].Pt(), lep_etaSC()[lep[0] ]);
+  else                              err1 = lepsf_MuTightVVV_MuTightVVVMu17_unc( lep_p4()[lep[0] ].Pt(), lep_p4()[   lep[0] ].Eta());
+  if(abs(lep_pdgId()[lep[1] ])==11) err2 = lepsf_EGammaVVV_EGammaVVVEle12_unc(  lep_p4()[lep[1] ].Pt(), lep_etaSC()[lep[1] ]);
+  else                              err2 = lepsf_MuTightVVV_MuTightVVVMu8_unc(  lep_p4()[lep[1] ].Pt(), lep_p4()[   lep[1] ].Eta());
+  error = sqrt(pow(err1*eff2,2)+pow(eff1*err2,2));
   return eff1*eff2;
+}
+
+float getlepFakeRateandError(float &error, int index, bool data, bool conecorr){
+  error = 0;
+  if(index<0) return 0;
+  if(index>=(int)lep_pdgId().size()) return 0;
+  float correction = 1.;
+  if(conecorr) correction = 1.+coneCorrPt(index);
+  float conept = correction*lep_p4()[index].Pt();
+  if(data){
+    if(abs(lep_pdgId()[index])==11) {
+      error = fakerate_el_data_unc(lep_p4()[index].Eta(),conept);
+      return  fakerate_el_data(    lep_p4()[index].Eta(),conept);
+    }
+    else {
+      error = fakerate_mu_data_unc(lep_p4()[index].Eta(),conept);
+      return  fakerate_mu_data(    lep_p4()[index].Eta(),conept);
+    }
+  }
+  else {
+    if(abs(lep_pdgId()[index])==11) {
+      error = fakerate_el_qcd_unc(lep_p4()[index].Eta(),conept);
+      return  fakerate_el_qcd(    lep_p4()[index].Eta(),conept);
+    }
+    else {
+      error = fakerate_mu_qcd_unc(lep_p4()[index].Eta(),conept);
+      return  fakerate_mu_qcd(    lep_p4()[index].Eta(),conept);
+    }
+  }
+}
+
+float getlepFRWeightandError(float &error, int index, bool data, bool conecorr, bool addclosureunc){
+  error = 0;
+  if(index<0) return 0;
+  if(index>=(int)lep_pdgId().size()) return 0;
+  float err = 0;
+  float FR = getlepFakeRateandError(err, index, data, conecorr);
+  if(FR>=1.){
+    error = 0;
+    return 0;
+  }
+  error = err/pow(1.-FR,2);
+  if(addclosureunc){
+    if(abs(lep_pdgId()[index])==11) error = sqrt(pow(error,2)+pow(0.17*FR/(1.-FR),2));
+    else                            error = sqrt(pow(error,2)+pow(0.31*FR/(1.-FR),2));
+  }
+
+  return FR/(1.-FR);
+}
+
+float getlepFRClosureError(int index, bool data, bool conecorr){
+  if(index<0) return 0;
+  if(index>=(int)lep_pdgId().size()) return 0;
+  float err = 0;
+  float FR = getlepFakeRateandError(err, index, data, conecorr);
+  if(abs(lep_pdgId()[index])==11) return 0.17*FR/(1.-FR);
+  else                            return 0.31*FR/(1.-FR);
 }
 
 bool addeventtocheck(vector<myevt> &eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber){

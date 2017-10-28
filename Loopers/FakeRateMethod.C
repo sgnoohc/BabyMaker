@@ -38,14 +38,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
-
-  float muFRptmin = 10.1; float muFRptmax = 119.9; float muFRetamin = 0.01; float muFRetamax = 2.39;
-  float elFRptmin = 10.1; float elFRptmax = 119.9; float elFRetamin = 0.01; float elFRetamax = 2.49;
-  TFile *fFR;
-  TH2D *hMuFR, *hElFR;
-  bool loadedFR = loadFakeRates(fFR, hMuFR, hElFR, "rootfiles/fakerate_pt_v_eta.root", "muon_fakerate_conecorrpt_v_eta","elec_fakerate_conecorrpt_v_eta");
-  if(!loadedFR) { cout << "Couldn't load fake rate - exit" << endl; return -1; }
-  
+  bool closuretest     = false;//if true use QCD fake rate
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
 
@@ -182,14 +175,10 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
 	weight *= lepSF;
       }
-      float trigSF(1.), trigSF_up(1.), trigSF_dn(1.);
+      float trigSF(1.), trigSFerr(1.);
       if(applytrigSF&&!isData()){
-	trigSF    = getTriggerWeight(0, i3l,ia3l);
-	trigSF_up = getTriggerWeight(1, i3l,ia3l);
-	trigSF_dn = getTriggerWeight(-1, i3l,ia3l);
+	trigSF    = getTriggerWeightandError(trigSFerr, i3l,ia3l);
 	weight *= trigSF;
-	weight_lepSF_up *= trigSF;
-	weight_lepSF_dn *= trigSF;
       }
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
@@ -267,25 +256,15 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
       
-      float FRSS(0.), FRSSerr(0.),  FR3l(0.),  FR3lerr(0.);
-      float noconeFRSS(0.), noconeFRSSerr(0.),  noconeFR3l(0.),  noconeFR3lerr(0.);
       float SFSS(0.), SFSSerr(0.), SF3l(0.), SF3lerr(0.);
       float noconeSFSS(0.), noconeSFSSerr(0.), noconeSF3l(0.), noconeSF3lerr(0.);
       if(SRSS[3]>=0){
-	FRSS = loadFR(FRSSerr,iaSS[0],hMuFR,hElFR, muFRptmin,muFRptmax,muFRetamin,muFRetamax, elFRptmin,elFRptmax,elFRetamin,elFRetamax,true);
-	noconeFRSS = loadFR(noconeFRSSerr,iaSS[0],hMuFR,hElFR, muFRptmin,muFRptmax,muFRetamin,muFRetamax, elFRptmin,elFRptmax,elFRetamin,elFRetamax,false);
-	SFSS    = FRSS/(1.-FRSS);
-	SFSSerr = FRSSerr/pow(1.-FRSS,2);
-	noconeSFSS    = noconeFRSS/(1.-noconeFRSS);
-	noconeSFSSerr = noconeFRSSerr/pow(1.-noconeFRSS,2);
+	SFSS       = getlepFRWeightandError(SFSSerr,      iaSS[0],!closuretest);
+	noconeSFSS = getlepFRWeightandError(noconeSFSSerr,iaSS[0],!closuretest,false);
       }
       if(SR3l[3]>=0){
-	FR3l = loadFR(FR3lerr,ia3l[0],hMuFR,hElFR, muFRptmin,muFRptmax,muFRetamin,muFRetamax, elFRptmin,elFRptmax,elFRetamin,elFRetamax,true);
-	noconeFR3l = loadFR(noconeFR3lerr,ia3l[0],hMuFR,hElFR, muFRptmin,muFRptmax,muFRetamin,muFRetamax, elFRptmin,elFRptmax,elFRetamin,elFRetamax,false);
-	SF3l    = FR3l/(1.-FR3l);
-	SF3lerr = FR3lerr/pow(1.-FR3l,2);
-	noconeSF3l    = noconeFR3l/(1.-noconeFR3l);
-	noconeSF3lerr = noconeFR3lerr/pow(1.-noconeFR3l,2);
+	SF3l       = getlepFRWeightandError(SF3lerr,      ia3l[0],!closuretest);
+	noconeSF3l = getlepFRWeightandError(noconeSF3lerr,ia3l[0],!closuretest,false);
       }
 
       if(iaSS.size()>=1&&abs(lep_pdgId()[iaSS[0] ])==11){
@@ -407,9 +386,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   SaveHistosToFile("rootfiles/FakeRateHistograms.root",histos,true,true);
 
   // return
-  //cout << __LINE__ << endl;
-  deleteFiles(loadedFR,fFR);
-  //cout << __LINE__ << endl;
   bmark->Stop("benchmark");
   cout << endl;
   cout << nEventsTotal << " Events Processed" << endl;
