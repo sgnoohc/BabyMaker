@@ -10,10 +10,10 @@ mkdir plots
 echo "mkdir rootfiles"
 mkdir rootfiles
 
-echo "Copy rootfiles for scale factors and fake rates (partially still to be updated)"
-echo "cp /nfs-7/userdata/haweber/VVVhelperfiles/*.root rootfiles/."
-cp /nfs-7/userdata/haweber/VVVhelperfiles/*.root rootfiles/.
-echo "/nfs-7/userdata/haweber/VVVhelperfiles/*JSON.txt data/."
+#echo "Copy rootfiles for scale factors and fake rates (partially still to be updated)"
+#echo "cp /nfs-7/userdata/haweber/VVVhelperfiles/*.root rootfiles/."
+#cp /nfs-7/userdata/haweber/VVVhelperfiles/*.root rootfiles/.
+echo "cp /nfs-7/userdata/haweber/VVVhelperfiles/*JSON.txt data/."
 cp /nfs-7/userdata/haweber/VVVhelperfiles/*JSON.txt data/.
 
 echo " "
