@@ -495,7 +495,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(SR3l[ 3]==2&&MET.Pt()<55.) passMET = false;
 	bool passPTlll = (pTlll>=60.);
 	bool passDPhilllMET = (DPhilllMET>=2.7);
-	if((SR3l[ 1]==1||SR3l[ 3]==1)&&(DPhilllMET>=2.5)) passDPhilllMET = true;
+	if((SR3l[ 1]>=1||SR3l[ 3]>=1)&&(DPhilllMET>=2.5)) passDPhilllMET = true;
 	bool passneither  = !passMET&&!passPTlll&&!passDPhilllMET;
 	bool passnotall   = !(passMET&&passPTlll&&passDPhilllMET);
 	

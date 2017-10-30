@@ -75,7 +75,7 @@ void makeBigTable(){
             }
             for(int b = 0; b<h[mapname]->GetNbinsX();++b){ if(h[mapname]->GetBinContent(b)<0){h[mapname]->SetBinContent(b,0); h[mapname]->SetBinError(b,0); } }
             if(s==nsig)  h[bgname] = (TH1D*)h[mapname]->Clone(bgname.c_str());
-            else if(s>2) h[bgname]->Add(h[mapname],1.);
+            else if(s>0) h[bgname]->Add(h[mapname],1.);
         }
         for(unsigned int s = 0; s<samples2.size(); ++s){
 	  if(!showprocess) break;
@@ -85,7 +85,7 @@ void makeBigTable(){
 	    if(!showsamples){
 	      string bgname = histonames[n] + "_bg";
 	      if(s==nsig)  h[bgname] = (TH1D*)h[mapname]->Clone(bgname.c_str());
-	      else if(s>2) h[bgname]->Add(h[mapname],1.);
+	      else if(s>0) h[bgname]->Add(h[mapname],1.);
 	    }
         }
     }
