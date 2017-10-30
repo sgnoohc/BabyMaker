@@ -1,6 +1,7 @@
 {
 
   gROOT->ProcessLine(".L Functions.C+"); 
+
   //gROOT->ProcessLine(".L Nminus1Looper.C+");
   //gROOT->ProcessLine(".L ValidationLooper.C+");
   //gROOT->ProcessLine(".L Skimmer.C+");
@@ -17,7 +18,7 @@
   
   //fully skimmed babies
   //string babylocation = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";
-  string babylocation = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_3/WWW_v0_1_16_v16_skim_v2_3/";
+  string babylocation = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/";
   string myhelper;
   
   dataset[0] = "WWWv2";
@@ -154,6 +155,7 @@
   //myhelper = babylocation + "data_*ph*.root";          ch[17]->Add(myhelper.c_str());
   
   for(int i = 0; i<chainsize; ++i){
+    //if(i!=7) continue;
     //if(i>=3&&i<=15) continue;//don't run over individual samples (but for signal) - run over combined background instead
     //if activating above flag, run over ttV and WW too for validation looper and WWTTW splitter 
     TChain *mych = ch[i];

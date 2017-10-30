@@ -36,10 +36,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   vector<myevt> e;
   //addeventtocheck(e,276361,248, 475159525);
 
+  bool blindSR = true;
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
-
+  bool applyPUrewgt    = true;
+  
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
 
@@ -173,6 +175,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(isData()) weight = 1.;
       double rawweight = weight;
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
+      float PUweight(1.), PUweightup(1.), PUweightdn(1.);
+      if(applyPUrewgt&&!isData()){
+	PUweight = getPUWeightAndError(PUweightdn,PUweightup);
+	weight *= PUweight;
+      }
       
       bool checkevent = false;
       for(unsigned int i = 0; i<e.size();++i){
@@ -297,7 +304,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //3: AR preselect
       SR3l[3] = isAR3l(i3l,ia3l,true ,nj,nb);
 
-      if(!isData()){//SR is blinded
+      if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "SignalRegionPrecleaning",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
 	fillSRhisto(histos, "SignalRegionPreselPrecleaning", sn, sn2, SRSS[1], SR3l[1], weight, weight);
       }
@@ -319,7 +326,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(checkevent) cout << "photonpassed SRSS " << SRSS[0] << " SR3l " << SR3l[0] << " ARSS " << SRSS[2] << " AR3l " << SR3l[2] << " CRSS " << SRSS[4] << " CR3l " << SR3l[4] << endl;
 
 
-      if(!isData()){//SR is blinded
+      if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "SignalRegion",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
 	fillSRhisto(histos, "SignalRegionPresel", sn, sn2, SRSS[1], SR3l[1], weight, weight);
       }
@@ -328,7 +335,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(histos, "WZControlRegion",         sn2,sn2, SRSS[4], SR3l[4], weight, weight);
       fillSRhisto(histos, "WZControlRegionPresel",   sn2,sn2, SRSS[5], SR3l[5], weight, weight);
 
-      if(!isData()){//SR is blinded
+      if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "RawSignalRegion",       sn, sn2, SRSS[0], SR3l[0], 1., 1.);
 	fillSRhisto(histos, "RawSignalRegionPresel", sn, sn2, SRSS[1], SR3l[1], 1., 1.);
       }

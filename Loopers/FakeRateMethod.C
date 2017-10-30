@@ -38,6 +38,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
+  bool applyPUrewgt    = true;
   bool closuretest     = false;//if true use QCD fake rate
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -71,16 +72,22 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("FakeEstimation");                               hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationFRup");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationFRdn");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("FakeEstimationClosureup");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("FakeEstimationClosuredn");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   //do not use cone corrections to extract fake rate
   histonames.push_back("NoConeCorrARyield");                            hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("NoConeCorrFakeEstimation");                     hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("NoConeCorrFakeEstimationFRup");                 hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("NoConeCorrFakeEstimationFRdn");                 hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("NoConeCorrFakeEstimationClosureup");            hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("NoConeCorrFakeEstimationClosuredn");            hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   //use cone correction only to extract fake rate - preselection
   histonames.push_back("PreselARyield");                                hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("PreselFakeEstimation");                         hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("PreselFakeEstimationFRup");                     hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("PreselFakeEstimationFRdn");                     hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("PreselFakeEstimationClosureup");                hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("PreselFakeEstimationClosuredn");                hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
 
   histonames.push_back("SRyield_Mjjsideband");                          hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("PreselSRyield_Mjjsideband");                    hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
@@ -159,7 +166,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(weight>100) cout << weight << " " << currentFile->GetTitle() << endl;
       if(isData()) weight = 1.;
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
-
+      float PUweight(1.), PUweightup(1.), PUweightdn(1.);
+      if(applyPUrewgt&&!isData()){
+	PUweight = getPUWeightAndError(PUweightdn,PUweightup);
+	weight *= PUweight;
+      }
+      
       LorentzVector MET; MET.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
       int nj(0), nb(0), nj30(0);
       getalljetnumbers(nj,nj30,nb);
@@ -255,6 +267,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         else if(vetophotonprocess(fname,isphoton3l)){ SRSS[i] = -1; }
         if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
+
+      float closureSSerr = 0.;
+      float closure3lerr = 0.;
+      if(iaSS.size()>0) closureSSerr = getlepFRClosureError(iaSS[0],!closuretest,true);
+      if(ia3l.size()>0) closure3lerr = getlepFRClosureError(ia3l[0],!closuretest,true);
       
       float SFSS(0.), SFSSerr(0.), SF3l(0.), SF3lerr(0.);
       float noconeSFSS(0.), noconeSFSSerr(0.), noconeSF3l(0.), noconeSF3lerr(0.);
@@ -309,18 +326,24 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	fillSRhisto(histos, "SRyield",           sn, sn2, SRSS[ 0], SR3l[ 0], weight, weight);
 	fillSRhisto(histos, "PreselSRyield",     sn, sn2, SRSS[ 1], SR3l[ 1], weight, weight);
       }
-      fillSRhisto(histos, "ARyield",           sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "FakeEstimation",    sn, sn2, SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
-      fillSRhisto(histos, "FakeEstimationFRup",sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
-      fillSRhisto(histos, "NoConeCorrARyield",           sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "NoConeCorrFakeEstimation",    sn, sn2, SRSS[ 2], SR3l[ 2], weight*noconeSFSS, weight*noconeSF3l);
-      fillSRhisto(histos, "NoConeCorrFakeEstimationFRup",sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+noconeSFSSerr), weight*(noconeSF3l+noconeSF3lerr));
-      fillSRhisto(histos, "NoConeCorrFakeEstimationFRdn",sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-noconeSFSSerr), weight*(noconeSF3l-noconeSF3lerr));
-      fillSRhisto(histos, "PreselARyield",           sn, sn2, SRSS[ 3], SR3l[ 3], weight, weight);
-      fillSRhisto(histos, "PreselFakeEstimation",    sn, sn2, SRSS[ 3], SR3l[ 3], weight*SFSS, weight*SF3l);
-      fillSRhisto(histos, "PreselFakeEstimationFRup",sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "PreselFakeEstimationFRdn",sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "ARyield",                           sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
+      fillSRhisto(histos, "FakeEstimation",                    sn, sn2, SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
+      fillSRhisto(histos, "FakeEstimationFRup",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+      fillSRhisto(histos, "FakeEstimationFRdn",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "FakeEstimationClosureup",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
+      fillSRhisto(histos, "FakeEstimationClosuredn",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
+      fillSRhisto(histos, "NoConeCorrARyield",                 sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
+      fillSRhisto(histos, "NoConeCorrFakeEstimation",          sn, sn2, SRSS[ 2], SR3l[ 2], weight*noconeSFSS, weight*noconeSF3l);
+      fillSRhisto(histos, "NoConeCorrFakeEstimationFRup",      sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+noconeSFSSerr), weight*(noconeSF3l+noconeSF3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationFRdn",      sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-noconeSFSSerr), weight*(noconeSF3l-noconeSF3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationClosureup", sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+closureSSerr), weight*(noconeSF3l+closure3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationClosuredn", sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-closureSSerr), weight*(noconeSF3l-closure3lerr));
+      fillSRhisto(histos, "PreselARyield",                     sn, sn2, SRSS[ 3], SR3l[ 3], weight, weight);
+      fillSRhisto(histos, "PreselFakeEstimation",              sn, sn2, SRSS[ 3], SR3l[ 3], weight*SFSS, weight*SF3l);
+      fillSRhisto(histos, "PreselFakeEstimationFRup",          sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosureup",     sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosuredn",     sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
       if(SRSS[ 1]>=0){
 	int t = SRSS[ 1];
 	if(fabs(Mjj   -80.)<20.)  t = -1;

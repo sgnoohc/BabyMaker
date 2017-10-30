@@ -1055,8 +1055,8 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
     }
     else if(splitWW==2){
       if(samplename=="WW"){
-	mapname = histonames[i] + "_WWRest";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+	//mapname = histonames[i] + "_WW";//loaded later
+	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
 	mapname = histonames[i] + "_WWVBS";
 	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
       }
@@ -1065,8 +1065,8 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
 	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
 	mapname = histonames[i] + "_ttZ";
 	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_OtherttV";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+	//mapname = histonames[i] + "_ttV";//loaded later
+	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
       }
     }
     if(samplename.find("Other")!=string::npos){
@@ -1410,6 +1410,16 @@ float getlepFRClosureError(int index, bool data, bool conecorr){
   float FR = getlepFakeRateandError(err, index, data, conecorr);
   if(abs(lep_pdgId()[index])==11) return 0.17*FR/(1.-FR);
   else                            return 0.31*FR/(1.-FR);
+}
+
+float getPUWeight(int variation){
+  return puWeight(nTrueInt(),variation);
+}
+
+float getPUWeightAndError(float &errorup, float &errordown){
+  errorup   = getPUWeight( 1);
+  errordown = getPUWeight(-1);
+  return      getPUWeight();
 }
 
 bool addeventtocheck(vector<myevt> &eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber){

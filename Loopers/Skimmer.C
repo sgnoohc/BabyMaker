@@ -32,8 +32,10 @@
 using namespace std;
 using namespace tas;
 
-vector<string> ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
+//vector<string> ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
 
+  //if(skimFilePrefix=="Background") return 0;
   bool mergesample = false;//probably false is good
   string outdir = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";
   string newname = outdir+skimFilePrefix+".root";
@@ -265,5 +267,6 @@ vector<string> ScanChain( TChain* chain, bool fast = true, int nEvents = -1, str
   cout << "Real Time:	" << Form( "%.01f", bmark->GetRealTime("benchmark") ) << endl;
   cout << endl;
   delete bmark;
-  return filestomerge;
+  //return filestomerge;
+  return 1;
 }

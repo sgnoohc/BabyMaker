@@ -90,6 +90,9 @@ float getlepFakeRateandError(float &error, int index, bool data=true, bool conec
 float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false);
 float getlepFRClosureError(int index, bool data=true, bool conecorr=true);
 
+float getPUWeight(int variation=0);
+float getPUWeightAndError(float &errorup, float &errordown);
+
 bool addeventtocheck(vector<myevt> &eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber);
 bool checkthisevent(vector<myevt> eventvector, unsigned int runnumber, unsigned int lumisection, long long eventnumber);
 void addeventtolist(std::ostringstream *&stream);

@@ -37,6 +37,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
+  bool applyPUrewgt    = true;
   
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -79,6 +80,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("Mjj_CRlike_allSS_jesup");                     hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
   histonames.push_back("Mjj_CRlike_allSS_jesdn");                     hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
   histonames.push_back("Mjj_CRlike_allSS");                           hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
+  //PU unc
+  histonames.push_back("YieldsSR_PUup");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_PUdn");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_dropMjj_PUup");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_dropMjj_PUdn");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_PUup");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_PUdn");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   //MSFOS/lep SF uncertainty
   histonames.push_back("YieldsCR_lepSFup");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_lepSFdn");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -180,6 +188,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(isData()) weight = 1.;
       double rawweight = weight;
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
+      float PUweight(1.), PUweightup(1.), PUweightdn(1.);
+      if(applyPUrewgt&&!isData()){
+	PUweight = getPUWeightAndError(PUweightdn,PUweightup);
+	weight *= PUweight;
+      }
       
       LorentzVector MET; MET.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
       //LorentzVector METx;   METx  .SetPxPyPzE(met_T1CHS_miniAOD_CORE_pt()   *TMath::Cos(met_T1CHS_miniAOD_CORE_phi()   ),met_T1CHS_miniAOD_CORE_pt()   *TMath::Sin(met_T1CHS_miniAOD_CORE_phi()   ),0,met_T1CHS_miniAOD_CORE_pt()   );
@@ -344,13 +357,17 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	fillSRhisto(histos, "YieldsSR_rawweight", sn, sn2, SRSS[ 0], SR3l[ 0], rawweight, rawweight);
 	fillSRhisto(histos, "YieldsSR_jesup",     sn, sn2, SRSS[ 6], SR3l[ 6], weight, weight);
 	fillSRhisto(histos, "YieldsSR_jesdn",     sn, sn2, SRSS[10], SR3l[10], weight, weight);
+	fillSRhisto(histos, "YieldsSR_PUup",      sn, sn2, SRSS[ 0], SR3l[ 0], weight*PUweightup/PUweight, weight*PUweightup/PUweight);
+	fillSRhisto(histos, "YieldsSR_PUdn",      sn, sn2, SRSS[ 0], SR3l[ 0], weight*PUweightdn/PUweight, weight*PUweightdn/PUweight);
 	if(SR3l[ 0]>=0||SRSS[ 1]>=0){
 	  int t = SRSS[ 1];
 	  if(MjjL>400.||Detajj>1.5) t = -1;
 	  if(SRSS[ 1]==0&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
 	  if(SRSS[ 1]==1&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=30.||MTmax<=90.)) t = -1;
 	  if(SRSS[ 1]==2&&(               (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
-	  fillSRhisto(histos, "YieldsSR_dropMjj",   sn, sn2, t, SR3l[ 0], weight, weight);
+	  fillSRhisto(histos, "YieldsSR_dropMjj",        sn, sn2, t, SR3l[ 0], weight, weight);
+	  fillSRhisto(histos, "YieldsSR_dropMjj_PUup",   sn, sn2, t, SR3l[ 0], weight*PUweightup/PUweight, weight*PUweightup/PUweight);
+	  fillSRhisto(histos, "YieldsSR_dropMjj_PUdn",   sn, sn2, t, SR3l[ 0], weight*PUweightdn/PUweight, weight*PUweightdn/PUweight);
 	}
 	if(SR3l[ 6]>=0||SRSS[ 7]>=0){
 	  int t = SRSS[ 7];
@@ -450,6 +467,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(histos, "YieldsCR",           sn2,sn2, SRSS[ 2], SR3l[ 2], weight, weight);
       fillSRhisto(histos, "YieldsCR_jesup",     sn2,sn2, SRSS[ 8], SR3l[ 8], weight, weight);
       fillSRhisto(histos, "YieldsCR_jesdn",     sn2,sn2, SRSS[12], SR3l[12], weight, weight);
+      fillSRhisto(histos, "YieldsCR_PUup",      sn2,sn2, SRSS[ 8], SR3l[ 8], weight*PUweightup/PUweight, weight*PUweightup/PUweight);
+      fillSRhisto(histos, "YieldsCR_PUdn",      sn2,sn2, SRSS[12], SR3l[12], weight*PUweightdn/PUweight, weight*PUweightdn/PUweight);
       if(fabs(Mjj   -80.)<20.||SR3l[ 2]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj",       sn2,sn2, SRSS[ 2], SR3l[ 2], weight, weight);
       if(fabs(Mjj_up-80.)<20.||SR3l[ 8]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesup", sn2,sn2, SRSS[ 8], SR3l[ 8], weight, weight);
       if(fabs(Mjj_dn-80.)<20.||SR3l[12]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesdn", sn2,sn2, SRSS[12], SR3l[12], weight, weight);

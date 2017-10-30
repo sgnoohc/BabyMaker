@@ -40,6 +40,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
+  bool applyPUrewgt    = true;
 
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -117,6 +118,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(isData()) weight = 1.;
       double rawweight = weight;
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
+      float PUweight(1.), PUweightup(1.), PUweightdn(1.);
+      if(applyPUrewgt&&!isData()){
+	PUweight = getPUWeightAndError(PUweightdn,PUweightup);
+	weight *= PUweight;
+      }
 
       LorentzVector MET; MET.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
       int nj(0), nb(0), nj30(0);
@@ -167,7 +173,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       bool isphotonSS = (temp =="photonfakes");
       bool isphoton3l = (temp2=="photonfakes");
       bool trueSS = (temp =="trueSS");
-      bool true3l = (temp2=="true3l");
+      bool true3l = (temp2=="true3l"||temp2=="trueWWW");
       if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
       else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
       else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
