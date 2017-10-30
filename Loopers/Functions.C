@@ -1075,6 +1075,30 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
       mapname = histonames[i] + "_WHtoWWW";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     }
+    else if(samplename.find("FakeRate")!=string::npos){
+      mapname = histonames[i] + "_fakesPred";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_Data";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_trueSS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_chargeflips";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_SSLL";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_fakes";//jetfakes
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_photonfakes";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_others";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_trueWWW";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_3lLL";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_true3L";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    }
     else if(samplename.find("Background")!=string::npos){
       mapname = histonames[i] + "_trueSS";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
@@ -1093,6 +1117,8 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
       mapname = histonames[i] + "_3lLL";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
       mapname = histonames[i] + "_true3L";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_fakesPred";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     } else {
       mapname = histonames[i] + "_"+samplename;
