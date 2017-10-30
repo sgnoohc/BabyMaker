@@ -69,6 +69,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("MET_VR3l_noZ_ge2j_ge1bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
   histonames.push_back("Ptll_VRSS_MjjW_ge4j_ge1bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
   histonames.push_back("MET_VRSS_MjjW_ge4j_ge1bmed");      hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MSFOS_VR3l_Z_ge2j_ge1bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge1bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
 
   //WW VBS
   histonames.push_back("MjjL_VRSS_Detajj1p5");             hbins.push_back(10); hlow.push_back( 0); hup.push_back(500);
@@ -255,7 +257,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       selects3l[0] = true; selects3l[1] = true;
       //2: VR3l,Z,ge2j,ge1bmed
-      //3: VR3l,noZ,ge2j,ge1b
+      //3: VR3l,noZ,ge2j,ge1bmed
       checkbothSRCR3l(VR[3],VR[2],i3l,true,fakenj,nbmed,MET,0,true);
       VR[3] = std::max(VR[3],VR[2]);
       if(VR[3]>0){
@@ -269,6 +271,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(VR[3]>0){
 	  VR[3] = MSFOSvec.size()-countMZ;
 	  VR[2] = countMZ;
+	  if(countMZ>0){
+	    if(     skimFilePrefix=="ttV"&&passextra1)        histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(MSFOSvec[0],weight);
+	    else if(skimFilePrefix=="ttV"&&passextra2)        histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(MSFOSvec[0],weight);
+	    else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(MSFOSvec[0],weight);
+	  }
+	  else {
+	    if(     skimFilePrefix=="ttV"&&passextra1)        histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(MSFOSvec[0],weight);
+	    else if(skimFilePrefix=="ttV"&&passextra2)        histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(MSFOSvec[0],weight);
+	    else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(MSFOSvec[0],weight);
+	  }
 	}
       }
       selects3l[2] = true; selects3l[3] = true;
@@ -307,7 +319,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
 	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_Z_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
       }
-      if(VR[1]>=0){
+      if(VR[0]==0){
 	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn1]->Fill(nb,weight);
 	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
 	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_noZ_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
@@ -333,7 +345,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  }
 	}
       }
-      if(VR[3]>=0){
+      if(VR[2]==0){
 	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight);
 	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight);
 	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight);
