@@ -65,6 +65,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsSR_raw");                               hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_rawweight");                         hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR");                                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_noMSFOSsel_SS");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
 
   //SS JEC uncertainty
   histonames.push_back("YieldsSR_jesup");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -104,6 +105,10 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsSR_Mjjsideband_lowMTmax");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
 
   //validation 3l
+  histonames.push_back("YieldsSR_inverteitherMETdPhiPt");             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_invertMETdPhiPt");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_inverteitherMETdPhiPt");             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_invertMETdPhiPt");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("MSFOS_all3l");                                hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_all3l_lepSFup");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_all3l_lepSFdn");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
@@ -478,6 +483,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(histos, "YieldsCR_lepSFup",     sn2,sn2, SRSS[ 2], SR3l[ 2], weight_lepSF_up, weight_lepSF_up);
       fillSRhisto(histos, "YieldsCR_lepSFdn",     sn2,sn2, SRSS[ 2], SR3l[ 2], weight_lepSF_dn, weight_lepSF_dn);
       if(SRSS[ 4]>=0&&MSFOSvec.size()>0){
+      fillSRhisto(histos, "YieldsCR_noMSFOSsel_SS",sn2,sn2, SRSS[ 4], -1, weight, weight);
 	histos["MSFOS_CRlike_allSS_"        +sn2]->Fill(MSFOSvec[0],    weight);
 	histos["MSFOS_CRlike_allSS_lepSFup_"+sn2]->Fill(MSFOSvec[0],    weight_lepSF_up);
 	histos["MSFOS_CRlike_allSS_lepSFup_"+sn2]->Fill(MSFOSvec[0],    weight_lepSF_dn);
@@ -500,6 +506,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	bool passnotall   = !(passMET&&passPTlll&&passDPhilllMET);
 	
 	if(passneither){
+	  fillSRhisto(histos, "YieldsSR_invertMETdPhiPt",   sn , sn2, -1, SR3l[ 1], weight, weight);
+	  fillSRhisto(histos, "YieldsCR_invertMETdPhiPt",   sn2, sn2, -1, SR3l[ 3], weight, weight);
 	  histos["MSFOS_all3l_invertMETdPhiPt_"       +sn2]->Fill(MSFOSvec[0],    weight);
 	  if((SR3l[ 1]==1)||(SR3l[ 3]==1)){
 	    histos["MSFOS_1SFOS_invertMETdPhiPt_"     +sn2]->Fill(MSFOSvec[0],    weight);
@@ -515,6 +523,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  }
 	}
 	if(passnotall){
+	  fillSRhisto(histos, "YieldsSR_inverteitherMETdPhiPt",   sn , sn2, -1, SR3l[ 1], weight, weight);
+	  fillSRhisto(histos, "YieldsCR_inverteitherMETdPhiPt",   sn2, sn2, -1, SR3l[ 3], weight, weight);
 	  histos["MSFOS_all3l_inverteitherMETdPhiPt_"       +sn2]->Fill(MSFOSvec[0],    weight);
 	  if((SR3l[ 1]==1)||(SR3l[ 3]==1)){
 	    histos["MSFOS_1SFOS_inverteitherMETdPhiPt_"     +sn2]->Fill(MSFOSvec[0],    weight);
