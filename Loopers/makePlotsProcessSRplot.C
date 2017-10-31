@@ -70,7 +70,7 @@ void makePlotsProcessSRplot(){
     cols.push_back(2007);
     //cols.push_back(2006);
     cols.push_back(2005);
-if(!addlostlepto3l)     cols.push_back(2011);
+    if(!addlostlepto3l)     cols.push_back(2011);
     cols.push_back(2003);
     cols.push_back(2003);
     cols.push_back(2001);

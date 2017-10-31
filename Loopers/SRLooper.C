@@ -34,7 +34,10 @@ using namespace tas;
 int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
 
   vector<myevt> e;
-  //addeventtocheck(e,276361,248, 475159525);
+  addeventtocheck(e,1, 2842, 1443084);
+  addeventtocheck(e,1,17341, 8807395);
+  addeventtocheck(e,1,15849, 8049420);
+  addeventtocheck(e,1,21682,11012507);
 
   bool blindSR = true;
   bool btagreweighting = true;
@@ -49,7 +52,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   TBenchmark *bmark = new TBenchmark();
   bmark->Start("benchmark");
 
-  bool storeeventnumbers = false;
+  bool storeeventnumbers = true;
   std::ostringstream*  SREE    ;
   std::ostringstream*  SREM    ;
   std::ostringstream*  SRMM    ;
@@ -218,6 +221,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	trigSF    = getTriggerWeightandError(trigSFerr, i3l,ia3l);
 	weight *= trigSF;
       }
+      if(checkevent) cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << PUweight << " trig " << trigSF << " lep " << lepSF << endl;
+
       int nvetoSS = vSS.size();
       int nveto3l = v3l.size();
       int nSS = iSS.size();
