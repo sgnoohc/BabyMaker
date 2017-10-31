@@ -1,7 +1,7 @@
 void makePlotsProcess(){
 
     string outdir = "plots/";
-    bool data = false;
+    bool data = true;
     bool twosig = false;
     bool addsig = true;
     bool addlostlepto3l = true;
@@ -73,6 +73,7 @@ void makePlotsProcess(){
     //histonames.push_back("Mlll_VR3l_noZ_METleq50");      axisnames.push_back("M_{lll} [GeV] | validation of Z#gamma");                               onlySSSFOS.push_back(2);
     //histonames.push_back("pTlll_VR3l_noZ_METleq50");     axisnames.push_back("p_{T}(lll) [GeV] | validation of Z#gamma");                            onlySSSFOS.push_back(2);
     */
+    /*
     TFile *f = TFile::Open("rootfiles/Check3lWZCR.root");
     histonames.push_back("YieldsCR");                             axisnames.push_back("three-lepton / lost-lepton control region");                               onlySSSFOS.push_back(2);
     histonames.push_back("YieldsCR_cutonMjj");                    axisnames.push_back("three-lepton / lost-lepton control region | selection on M_{jj}");         onlySSSFOS.push_back(2);
@@ -89,6 +90,7 @@ void makePlotsProcess(){
     histonames.push_back("MSFOS_all3l_invertMETdPhiPt");          axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | three-lepton validation region 2");         onlySSSFOS.push_back(2);
     histonames.push_back("MSFOSall_all3l_inverteitherMETdPhiPt"); axisnames.push_back("M_{SFOS} [GeV] | three-lepton validation region 2");                       onlySSSFOS.push_back(2);
     histonames.push_back("MSFOSall_all3l_invertMETdPhiPt");       axisnames.push_back("M_{SFOS} [GeV] | three-lepton validation region 2");                       onlySSSFOS.push_back(2);
+    */
 
     TColor *lightblue  = new TColor(2001,91/255.,187/255.,241/255.);
     TColor *blue       = new TColor(2002,60/255.,144/255.,196/255.);
@@ -112,7 +114,7 @@ void makePlotsProcess(){
     samples.push_back("chargeflips"); samplesleg.push_back("charge misassignment");            is3lSS.push_back(0);
     //samples.push_back("doublefakes"); samplesleg.push_back("double fakes");                    is3lSS.push_back(0);
     samples.push_back("fakes");       samplesleg.push_back("non-prompt leptons");              is3lSS.push_back(0);
-    //samples.push_back("FakePred");    samplesleg.push_back("fakes from data");                 is3lSS.push_back(0);
+    //samples.push_back("fakesPred");    samplesleg.push_back("fakes from data");                 is3lSS.push_back(0);
     if(!addlostlepto3l) { samples.push_back("3lLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(2);}
     samples.push_back("SSLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(1);
     samples.push_back("true3L");      samplesleg.push_back("three leptons");                   is3lSS.push_back(2);
@@ -200,9 +202,9 @@ void makePlotsProcess(){
 	else if(!addsig&&twosig&&s==1) {
 	  h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
 	}
-	else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); }
+	else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); h[mapname]->SetMarkerSize(0); }
 	if(s==nsig){
-	  h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544);
+	  h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544); h[bgname]->SetMarkerSize(0);
 	}
 	if(s>=nsig){
 	  stack[stackname]->Add(h[mapname],"");

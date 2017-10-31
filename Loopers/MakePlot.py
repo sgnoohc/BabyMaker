@@ -66,12 +66,14 @@ for h,a in zip(histonames,axisnames) :
             #print h+"_"+s,c
             histos[h+"_"+s].SetLineColor(1)
             histos[h+"_"+s].SetFillColor(c)
+            histos[h+"_"+s].SetMarkerSize(0)
             stacks[h].Add(histos[h+"_"+s])
             if h+"_bg" not in histos :
                 histos[h+"_bg"] = histos[h+"_"+s].Clone(h+"_bg")
                 histos[h+"_bg"].SetLineColor(ROOT.kBlack)
                 histos[h+"_bg"].SetFillColor(ROOT.kBlack)
                 histos[h+"_bg"].SetFillStyle(3544)
+                histos[h+"_bg"].SetMarkerSize(0)
             else :
                 histos[h+"_bg"].Add(histos[h+"_"+s])
         elif s == "WHtoWWW" :

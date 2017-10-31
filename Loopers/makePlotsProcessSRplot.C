@@ -143,9 +143,9 @@ void makePlotsProcessSRplot(){
             else if(!addsig&&twosig&&s==1) {
                 h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
             }
-            else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); }
+            else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack);  h[mapname]->SetMarkerSize(0); }
             if(s==nsig){
-                h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544);
+	      h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544); h[mapname]->SetMarkerSize(0);
             }
             if(s>=nsig) stack[stackname]->Add(h[mapname],"");
         }
