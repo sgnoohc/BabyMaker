@@ -2,8 +2,10 @@ void makePlotsProcessSRplot(){
     
     string outdir = "plots/";
     bool data = true;
-    bool twosig = true;
+    bool twosig = false;
+    bool addsig = true;
     bool addlostlepto3l = true;
+    bool plotsimErrorHashed = false;
     gStyle->SetOptStat(0);
     bool logy = false;
     map<string, TH1D*> h;
@@ -42,7 +44,7 @@ void makePlotsProcessSRplot(){
 
     vector<int> is3lSS;
     samples.push_back("WWW");         samplesleg.push_back("WWW signal");                      is3lSS.push_back(0);
-////    if(twosig) { samples.push_back("WHtoWWW");     samplesleg.push_back("WH#rightarrowWWW");   is3lSS.push_back(0); }
+    if(twosig) { samples.push_back("WHtoWWW");     samplesleg.push_back("WH#rightarrowWWW");   is3lSS.push_back(0); }
     //samples.push_back("others");      samplesleg.push_back("Other");                           is3lSS.push_back(0);
     samples.push_back("photonfakes"); samplesleg.push_back("#gamma #rightarrow l");            is3lSS.push_back(0);
     samples.push_back("chargeflips"); samplesleg.push_back("charge misassignment");            is3lSS.push_back(0);
@@ -62,7 +64,7 @@ void makePlotsProcessSRplot(){
     }
     
     cols.push_back(632);//kRed
-////    if(twosig) cols.push_back(kBlue);//kRed
+    if(twosig) cols.push_back(kBlue);//kRed
     //cols.push_back(2012);//other
     cols.push_back(kGray);
     cols.push_back(2007);
@@ -131,29 +133,35 @@ if(!addlostlepto3l)     cols.push_back(2011);
             if(s==0) {
                 h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3);
                 //new twosig
-                if(twosig){
+                if(addsig){
                     string mapname2 =histonames[n] + "_WHtoWWW";
                     h[mapname2 ]=(TH1D*)f->Get(mapname2.c_str());
                     for(int i = 1; i<=h[mapname]->GetNbinsX();++i) h[mapname2]->GetXaxis()->SetBinLabel(i,h[mapname]->GetXaxis()->GetBinLabel(i));
                     h[mapname]->Add(h[mapname2],1.);
                 }
             }
-////            else if(twosig&&s==1) {
-////                h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
-////            }
+            else if(!addsig&&twosig&&s==1) {
+                h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
+            }
             else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); }
             if(s==nsig){
                 h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544);
             }
             if(s>=nsig) stack[stackname]->Add(h[mapname],"");
         }
-        if(data) rat[stackname] = (TH1D*)h[stackname + "_Data"        ]->Clone(stackname.c_str());
-        else     rat[stackname] = (TH1D*)h[stackname + "_"+samples[0] ]->Clone(stackname.c_str());
-        rat[stackname]->Divide(h[stackname + "_bg"]);
-////        if(twosig&&!data){
-////            rat[stackname+"v2"] = (TH1D*)h[stackname + "_"+samples[1] ]->Clone(stackname.c_str());
-////            rat[stackname+"v2"]->Divide(h[stackname + "_bg"]);
-////        }
+        if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname] = (TH1D*)h[stackname + "_Data"        ]->Clone(stackname.c_str());
+        else                                          rat[stackname] = (TH1D*)h[stackname + "_"+samples[0] ]->Clone(stackname.c_str());
+	h[stackname+"BGnoErr"] = (TH1D*)h[stackname + "_bg"]->Clone((stackname+"BGnoErr").c_str());
+	if(plotsimErrorHashed) { for(int i = 1; i<=h[stackname+"BGnoErr"]->GetNbinsX();++i) h[stackname+"BGnoErr"]->SetBinError(i,0.); }//don't put sim error on both data and MC ratio
+        
+	rat[stackname]->Divide(h[stackname + "BGnoErr"]);
+	rat[stackname+"BG"] = (TH1D*)h[stackname + "_bg"]->Clone((stackname+"BG").c_str());
+	rat[stackname+"BG"]->Divide(h[stackname +"BGnoErr"]);
+
+        if(!addsig&&twosig&&!data){
+	  rat[stackname+"v2"] = (TH1D*)h[stackname + "_"+samples[1] ]->Clone(stackname.c_str());
+	  rat[stackname+"v2"]->Divide(h[stackname + "_BGnoErr"]);
+        }
     }
     
     TLatex *tLumi = new TLatex(0.95,0.955,"35.9 fb^{-1} (13 TeV)");
@@ -341,7 +349,7 @@ if(!addlostlepto3l)     cols.push_back(2011);
         stack[stackname]->SetHistogram(h[bgname]);
         stack[stackname]->Draw("hist");
         h[bgname]->Draw("sameE2");
-        if(data) h[stackname+"_Data"]->Draw("sameE0X0");
+        if(data&&h[stackname+"_Data"]->Integral()!=0) h[stackname+"_Data"]->Draw("sameE0X0");
         string signame = stackname + "_"+ samples[0];
         h[signame]->Draw("histsame");
         signame = stackname + "_"+ samples[1];
@@ -382,13 +390,17 @@ if(!addlostlepto3l)     cols.push_back(2011);
         ratiopad->SetFrameBorderMode(0);
         ratiopad->SetFrameFillStyle(0);
         ratiopad->SetFrameBorderMode(0);
-        if(data){
+        if(data&&h[stackname+"_Data"]->Integral()!=0){
             rat[stackname]->SetMinimum(0.5);
             rat[stackname]->SetMaximum(2.-0.5);
+	    rat[stackname+"BG"]->SetMinimum(0.5);
+	    rat[stackname+"BG"]->SetMaximum(2.-0.5);
         }
         else {
             rat[stackname]->SetMinimum(0.);
             rat[stackname]->SetMaximum(0.65);
+	    rat[stackname+"BG"]->SetMinimum(0.);
+	    rat[stackname+"BG"]->SetMaximum(0.65);
         }
         rat[stackname]->GetXaxis()->SetTitle(axisnames[n].c_str());
         rat[stackname]->GetXaxis()->SetTitleSize(0.16);
@@ -396,12 +408,29 @@ if(!addlostlepto3l)     cols.push_back(2011);
         rat[stackname]->GetXaxis()->SetLabelSize(0.0);
         rat[stackname]->GetYaxis()->SetNdivisions(504);
         rat[stackname]->GetYaxis()->SetTitle("signal / bgd");
-        if(data) rat[stackname]->GetYaxis()->SetTitle("data / bgd");
+        if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->GetYaxis()->SetTitle("data / bgd");
         rat[stackname]->GetYaxis()->SetTitleSize(0.14);
         rat[stackname]->GetYaxis()->SetTitleOffset(0.28);
         rat[stackname]->GetYaxis()->SetLabelSize(0.14);
-        rat[stackname]->Draw("E0X0");
-/*        if(twosig&&!data){
+	rat[stackname+"BG"]->GetXaxis()->SetTitle(axisnames[n].c_str());
+	rat[stackname+"BG"]->GetXaxis()->SetTitleSize(0.16);
+	rat[stackname+"BG"]->GetXaxis()->SetTitleOffset(0.76);
+	rat[stackname+"BG"]->GetXaxis()->SetLabelSize(0.0);
+	rat[stackname+"BG"]->GetYaxis()->SetNdivisions(504);
+	rat[stackname+"BG"]->GetYaxis()->SetTitle("signal / bgd");
+	if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname+"BG"]->GetYaxis()->SetTitle("data / bgd");
+	rat[stackname+"BG"]->GetYaxis()->SetTitleSize(0.14);
+	rat[stackname+"BG"]->GetYaxis()->SetTitleOffset(0.28);
+	rat[stackname+"BG"]->GetYaxis()->SetLabelSize(0.14);
+	if(plotsimErrorHashed){
+	  if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname+"BG"]->Draw("E2");
+	  if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->Draw("sameE0X0");
+	  else                                          rat[stackname]->Draw("hist");
+	} else {
+	  if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->Draw("E0X0");
+	  else                                          rat[stackname]->Draw("hist");
+	}
+        if(!addsig&&twosig&&!data){
             rat[stackname+"v2"]->SetMinimum(0.);
             rat[stackname+"v2"]->SetMaximum(0.65);
             rat[stackname+"v2"]->GetXaxis()->SetTitle(axisnames[n].c_str());
@@ -415,8 +444,8 @@ if(!addlostlepto3l)     cols.push_back(2011);
             rat[stackname+"v2"]->GetYaxis()->SetTitleOffset(0.28);
             rat[stackname+"v2"]->GetYaxis()->SetLabelSize(0.14);
             rat[stackname+"v2"]->Draw("same");
-        }*/
-        if(data){
+        }
+        if(data&&h[stackname+"_Data"]->Integral()!=0){
             TLine *rline = new TLine(rat[stackname]->GetXaxis()->GetBinLowEdge(1),1.,rat[stackname]->GetXaxis()->GetBinLowEdge(rat[stackname]->GetNbinsX()+1),1.);
             rline->SetLineWidth(2);
             rline->SetLineStyle(7);

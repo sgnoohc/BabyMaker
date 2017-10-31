@@ -4,6 +4,8 @@ void makePlotsProcess(){
     bool data = false;
     bool twosig = false;
     bool addsig = true;
+    bool addlostlepto3l = true;
+    bool plotsimErrorHashed = false;
     gStyle->SetOptStat(0);
     bool logy = false;
     map<string, TH1D*> h;
@@ -75,62 +77,79 @@ void makePlotsProcess(){
     int nsig = 1;
     if(twosig) ++nsig;
     for(unsigned int n = 0; n<histonames.size();++n){
-            string bgname = histonames[n] + "_bg";
-            string stackname = histonames[n];
-            //cout << stackname << endl;
-            stack[stackname] = new THStack();
-            stack[stackname]->SetName(stackname.c_str());
-            string mapname = "";
-            if(data) {
-                mapname = histonames[n] + "_Data";
-                h[mapname ]=(TH1D*)f->Get(mapname.c_str());
-                h[mapname]->SetLineColor(kBlack);
-                h[mapname]->SetLineWidth(2);
-                h[mapname]->SetMarkerStyle(20);
-            }
-            for(unsigned int s = 0; s<samples.size()-1; ++s){
-                mapname = histonames[n] + "_" + samples[s];
-                cout << mapname << endl;
-                h[mapname ]=(TH1D*)f->Get(mapname.c_str());
-                h[mapname]->GetXaxis()->SetTitle(axisnames[n].c_str());
-                h[mapname]->GetYaxis()->SetTitle("Events");
-                h[mapname]->GetXaxis()->SetTitleSize(0.);
-                if(addsig&&s==0){
-                    string addname = histonames[n] + "_" + samples[s];
-                    h[addname ]=(TH1D*)f->Get(addname.c_str());
-                    h[mapname ]->Add(h[addname ],1.);
-                }
-                for(int b = 0; b<h[mapname]->GetNbinsX();++b){ if(h[mapname]->GetBinContent(b)<0){h[mapname]->SetBinContent(b,0); h[mapname]->SetBinError(b,0); } }
-                if(s==nsig) h[bgname] = (TH1D*)h[mapname]->Clone(bgname.c_str());
-                else if(s>nsig) {
-                    h[bgname]->Add(h[mapname],1.);
-                }
-                if(s==0) {
-                    h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3);
-                }
-                else if(twosig&&s==1) {
-                    h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
-                }
-                else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); }
-                if(s==nsig){
-                    h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544);
-                }
-                if(s>=nsig){
-                    stack[stackname]->Add(h[mapname],"");
-                }
-            }
-            if(data){
-                for(int i = 1; i<=h[stackname + "_Data"        ]->GetNbinsX();++i){
-                    //if(((h[stackname + "_"+samples[0] ]->GetBinContent(i)/h[stackname + "_bg"]->GetBinContent(i)>0.1) || (h[stackname + "_"+samples[0] ]->GetBinContent(i)/h[stackname + "_bg"]->GetBinContent(i)>0.5*h[stackname + "_bg"]->GetBinError(i)))&&h[stackname + "_"+samples[0] ]->GetBinContent(i)>0.5 ) h[stackname + "_Data"]->SetBinContent(i,-999);
-                }
-            }
-            if(data) rat[stackname] = (TH1D*)h[stackname + "_Data"        ]->Clone(stackname.c_str());
-            else     rat[stackname] = (TH1D*)h[stackname + "_"+samples[0] ]->Clone(stackname.c_str());
-            rat[stackname]->Divide(h[stackname + "_bg"]);
-            if(twosig&&!data){
-                rat[stackname+"v2"] = (TH1D*)h[stackname + "_"+samples[1] ]->Clone(stackname.c_str());
-                rat[stackname+"v2"]->Divide(h[stackname + "_bg"]);
-            }
+      string bgname = histonames[n] + "_bg";
+      string stackname = histonames[n];
+      //cout << stackname << endl;
+      stack[stackname] = new THStack();
+      stack[stackname]->SetName(stackname.c_str());
+      string mapname = "";
+      if(data) {
+	mapname = histonames[n] + "_Data";
+	string  mapnameX = histonames[n] + "_X";
+	h[mapnameX ]=(TH1D*)f->Get(mapname.c_str());
+	h[mapnameX]->SetName(mapnameX.c_str());
+	h[mapname] = new TH1D(mapname.c_str(),"",h[mapnameX]->GetNbinsX(), h[mapnameX]->GetXaxis()->GetBinLowEdge(1), h[mapnameX]->GetXaxis()->GetBinLowEdge(h[mapnameX]->GetNbinsX()+1));
+	h[mapname]->SetBinErrorOption(TH1::kPoisson);
+	for(int i = 1; i<=h[mapname]->GetNbinsX(); ++i){
+	  //cout << h[mapnameX]->GetBinContent(i) << endl;
+	  for(int n = 1; n<=h[mapnameX]->GetBinContent(i); ++n){
+	    h[mapname]->Fill(h[mapnameX]->GetXaxis()->GetBinCenter(i),1);
+	  }
+	}
+	h[mapname ]=(TH1D*)f->Get(mapname.c_str());
+	h[mapname]->SetLineColor(kBlack);
+	h[mapname]->SetLineWidth(2);
+	h[mapname]->SetMarkerStyle(20);
+      }
+      for(unsigned int s = 0; s<samples.size()-1; ++s){
+	mapname = histonames[n] + "_" + samples[s];
+	cout << mapname << endl;
+	h[mapname ]=(TH1D*)f->Get(mapname.c_str());
+	h[mapname]->GetXaxis()->SetTitle(axisnames[n].c_str());
+	h[mapname]->GetYaxis()->SetTitle("Events");
+	h[mapname]->GetXaxis()->SetTitleSize(0.);
+	if(addsig&&s==0){
+	  string addname = histonames[n] + "_WHtoWWW";
+	  h[addname ]=(TH1D*)f->Get(addname.c_str());
+	  h[mapname ]->Add(h[addname ],1.);
+	}
+	for(int b = 0; b<h[mapname]->GetNbinsX();++b){ if(h[mapname]->GetBinContent(b)<0){h[mapname]->SetBinContent(b,0); h[mapname]->SetBinError(b,0); } }
+	if(s==nsig) h[bgname] = (TH1D*)h[mapname]->Clone(bgname.c_str());
+	else if(s>nsig) {
+	  h[bgname]->Add(h[mapname],1.);
+	}
+	if(s==0) {
+	  h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3);
+	}
+	else if(!addsig&&twosig&&s==1) {
+	  h[mapname]->SetLineColor(cols[s]); h[mapname]->SetLineWidth(3); h[mapname]->SetLineStyle(7);
+	}
+	else { h[mapname]->SetFillColor(cols[s]); h[mapname]->SetLineColor(kBlack); }
+	if(s==nsig){
+	  h[bgname]->SetFillColor(cols[samples.size()-1]); h[bgname]->SetLineColor(cols[samples.size()-1]); h[bgname]->SetFillStyle(3544);
+	}
+	if(s>=nsig){
+	  stack[stackname]->Add(h[mapname],"");
+	}
+      }
+      if(data){
+	for(int i = 1; i<=h[stackname + "_Data"        ]->GetNbinsX();++i){
+	  //if(((h[stackname + "_"+samples[0] ]->GetBinContent(i)/h[stackname + "_bg"]->GetBinContent(i)>0.1) || (h[stackname + "_"+samples[0] ]->GetBinContent(i)/h[stackname + "_bg"]->GetBinContent(i)>0.5*h[stackname + "_bg"]->GetBinError(i)))&&h[stackname + "_"+samples[0] ]->GetBinContent(i)>0.5 ) h[stackname + "_Data"]->SetBinContent(i,-999);
+	}
+      }
+      if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname] = (TH1D*)h[stackname + "_Data"        ]->Clone(stackname.c_str());
+      else                                          rat[stackname] = (TH1D*)h[stackname + "_"+samples[0] ]->Clone(stackname.c_str());
+      h[stackname+"BGnoErr"] = (TH1D*)h[stackname + "_bg"]->Clone((stackname+"BGnoErr").c_str());
+      if(plotsimErrorHashed) { for(int i = 1; i<=h[stackname+"BGnoErr"]->GetNbinsX();++i) h[stackname+"BGnoErr"]->SetBinError(i,0.); }//don't put sim error on both data and MC ratio
+        
+      rat[stackname]->Divide(h[stackname + "BGnoErr"]);
+      rat[stackname+"BG"] = (TH1D*)h[stackname + "_bg"]->Clone((stackname+"BG").c_str());
+      rat[stackname+"BG"]->Divide(h[stackname +"BGnoErr"]);
+
+      if(!addsig&&twosig&&!data){
+	rat[stackname+"v2"] = (TH1D*)h[stackname + "_"+samples[1] ]->Clone(stackname.c_str());
+	rat[stackname+"v2"]->Divide(h[stackname + "_BGnoErr"]);
+      }
     }
     
     TLatex *tLumi = new TLatex(0.95,0.955,"35.9 fb^{-1} (13 TeV)");
@@ -277,144 +296,157 @@ void makePlotsProcess(){
     }
 
     for(unsigned int n = 0; n<histonames.size();++n){
-        for(int b =0; b<3; ++b){
-            string SS="";
-            if(b!=0) continue;
-            //if(b==0) SS = "ee";
-            //if(b==1) SS = "em";
-            //if(b==2) SS = "mm";
-            //cout << b << " " << SS << endl;
-            TCanvas *c1 = new TCanvas("c1", "",334,192,600,600);
-            c1->SetFillColor(0);
-            c1->SetBorderMode(0);
-            c1->SetBorderSize(2);
-            //if(logy) c1->SetLogy();    // Log y
-            c1->SetTickx(1);
-            c1->SetTicky(1);
-            c1->SetLeftMargin(0.18);
-            c1->SetRightMargin(0.05);
-            c1->SetTopMargin(0.07);
-            c1->SetBottomMargin(0.15);
-            c1->SetFrameFillStyle(0);
-            c1->SetFrameBorderMode(0);
-            c1->SetFrameFillStyle(0);
-            c1->SetFrameBorderMode(0);
-            TPad *plotpad = new TPad("plotpad", "Pad containing the overlay plot",0,0.165,1,1);//0,0.18,1,1);
-            plotpad->Draw();
-            plotpad->cd();
-            plotpad->Range(-85.71429,-3.864499,628.5714,6.791402);//(133.1169,-3.101927,782.4675,0.7583922);
-            plotpad->SetFillColor(0);
-            plotpad->SetBorderMode(0);
-            plotpad->SetBorderSize(2);
-            if(logy) plotpad->SetLogy();
-            plotpad->SetTickx(1);
-            plotpad->SetTicky(1);
-            plotpad->SetLeftMargin(0.12);
-            plotpad->SetRightMargin(0.04);
-            plotpad->SetTopMargin(0.05);
-            // plotpad->SetBottomMargin(0.15);
-            plotpad->SetFrameFillStyle(0);
-            plotpad->SetFrameBorderMode(0);
-            plotpad->SetFrameFillStyle(0);
-            plotpad->SetFrameBorderMode(0);
+      TCanvas *c1 = new TCanvas("c1", "",334,192,600,600);
+      c1->SetFillColor(0);
+      c1->SetBorderMode(0);
+      c1->SetBorderSize(2);
+      //if(logy) c1->SetLogy();    // Log y
+      c1->SetTickx(1);
+      c1->SetTicky(1);
+      c1->SetLeftMargin(0.18);
+      c1->SetRightMargin(0.05);
+      c1->SetTopMargin(0.07);
+      c1->SetBottomMargin(0.15);
+      c1->SetFrameFillStyle(0);
+      c1->SetFrameBorderMode(0);
+      c1->SetFrameFillStyle(0);
+      c1->SetFrameBorderMode(0);
+      TPad *plotpad = new TPad("plotpad", "Pad containing the overlay plot",0,0.165,1,1);//0,0.18,1,1);
+      plotpad->Draw();
+      plotpad->cd();
+      plotpad->Range(-85.71429,-3.864499,628.5714,6.791402);//(133.1169,-3.101927,782.4675,0.7583922);
+      plotpad->SetFillColor(0);
+      plotpad->SetBorderMode(0);
+      plotpad->SetBorderSize(2);
+      if(logy) plotpad->SetLogy();
+      plotpad->SetTickx(1);
+      plotpad->SetTicky(1);
+      plotpad->SetLeftMargin(0.12);
+      plotpad->SetRightMargin(0.04);
+      plotpad->SetTopMargin(0.05);
+      // plotpad->SetBottomMargin(0.15);
+      plotpad->SetFrameFillStyle(0);
+      plotpad->SetFrameBorderMode(0);
+      plotpad->SetFrameFillStyle(0);
+      plotpad->SetFrameBorderMode(0);
         
-            plotpad->cd();
+      plotpad->cd();
     
-            string stackname = SS+histonames[n];
-            string bgname = stackname + "_bg";
-            //cout << stackname << endl;
-            double max;
-            if(data) max = TMath::Max((h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin() ) ),(h[stackname+"_Data"]->GetBinContent(h[stackname+"_Data"]->GetMaximumBin() )+0.5*h[stackname+"_Data"]->GetBinError(h[stackname+"_Data"]->GetMaximumBin() ) ) )*1.45;
-            else max = (h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin()))*1.45;
-            stack[stackname]->SetMaximum(max);
-            stack[stackname]->Draw("hist");
-            h[bgname]->Draw("sameE2");
-            if(data) h[stackname+"_Data"]->Draw("sameE0X0");
-            string signame = stackname + "_"+ samples[0];
-            h[signame]->Draw("histsame");
-            signame = stackname + "_"+ samples[1];
-            if(twosig) h[signame]->Draw("histsame");
-            string outname = stackname + ".pdf";
-            if(logy) outname = outdir + "log/" + outname;
-            else     outname = outdir + outname;
+      string stackname = histonames[n];
+      string bgname = stackname + "_bg";
+      //cout << stackname << endl;
+      double max;
+      if(data) max = TMath::Max((h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin() ) ),(h[stackname+"_Data"]->GetBinContent(h[stackname+"_Data"]->GetMaximumBin() )+0.5*h[stackname+"_Data"]->GetBinError(h[stackname+"_Data"]->GetMaximumBin() ) ) )*1.45;
+      else max = (h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin()))*1.45;
+      stack[stackname]->SetMaximum(max);
+      stack[stackname]->Draw("hist");
+      h[bgname]->Draw("sameE2");
+      if(data&&h[stackname+"_Data"]->Integral()!=0) h[stackname+"_Data"]->Draw("sameE0X0");
+      string signame = stackname + "_"+ samples[0];
+      h[signame]->Draw("histsame");
+      signame = stackname + "_"+ samples[1];
+      if(twosig) h[signame]->Draw("histsame");
+      string outname = stackname + ".pdf";
+      if(logy) outname = outdir + "log/" + outname;
+      else     outname = outdir + outname;
 
-            if(onlySSSFOS[n]==0){ leg1  ->Draw(); leg2  ->Draw(); }
-            if(onlySSSFOS[n]==1){ leg1SS->Draw(); leg2SS->Draw(); }
-            if(onlySSSFOS[n]==2){ leg13l->Draw(); leg23l->Draw(); }
-            tLumi->Draw();
-            tCMS->Draw();
-            tSim->Draw();
-            /*
-            if(stackname.find("SSee" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"e^{#pm}e^{#pm}");
-            if(stackname.find("SSem" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"e^{#pm}#mu^{#pm}");
-            if(stackname.find("SSmm" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"#mu^{#pm}#mu^{#pm}");
-            if(stackname.find("allSS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"SS region");
-            if(stackname.find("0SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"0 SFOS pairs");
-            if(stackname.find("1SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"1 SFOS pair");
-            if(stackname.find("2SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"2 SFOS pairs");
-            if(stackname.find("allSFOS")!=string::npos) tlx->DrawLatex(0.45,0.955,"3l region");
-             */
-            c1->cd();
-            TPad *ratiopad = new TPad("ratiopad", "Pad containing the ratio",0,0,1,0.21); //0,0,1,0.26);
-            ratiopad->Draw();
-            ratiopad->cd();
-            ratiopad->SetFillColor(0);
-            ratiopad->SetBorderMode(0);
-            ratiopad->SetBorderSize(2);
-            ratiopad->SetTickx(1);
-            ratiopad->SetTicky(1);
-            ratiopad->SetLeftMargin(0.12);
-            ratiopad->SetRightMargin(0.04);
-            //  ratiopad->SetTopMargin(0.04);
-            ratiopad->SetBottomMargin(0.3);
-            ratiopad->SetFrameFillStyle(0);
-            ratiopad->SetFrameBorderMode(0);
-            ratiopad->SetFrameFillStyle(0);
-            ratiopad->SetFrameBorderMode(0);
-            if(data){
-                rat[stackname]->SetMinimum(0.);
-                rat[stackname]->SetMaximum(2.);
-            }
-            else {
-                rat[stackname]->SetMinimum(0.);
-                rat[stackname]->SetMaximum(0.2);
-            }
-            rat[stackname]->GetXaxis()->SetTitle(axisnames[n].c_str());
-            rat[stackname]->GetXaxis()->SetTitleSize(0.16);
-            rat[stackname]->GetXaxis()->SetTitleOffset(0.76);
-            rat[stackname]->GetXaxis()->SetLabelSize(0.0);
-            rat[stackname]->GetYaxis()->SetNdivisions(504);
-            rat[stackname]->GetYaxis()->SetTitle("signal / bgd");
-            if(data) rat[stackname]->GetYaxis()->SetTitle("data / bgd");
-            rat[stackname]->GetYaxis()->SetTitleSize(0.14);
-            rat[stackname]->GetYaxis()->SetTitleOffset(0.28);
-            rat[stackname]->GetYaxis()->SetLabelSize(0.14);
-            rat[stackname]->Draw();
-            if(twosig&&!data){
-                rat[stackname+"v2"]->SetMinimum(0.);
-                rat[stackname+"v2"]->SetMaximum(0.2);
-                rat[stackname+"v2"]->GetXaxis()->SetTitle(axisnames[n].c_str());
-                rat[stackname+"v2"]->GetXaxis()->SetTitleSize(0.16);
-                rat[stackname+"v2"]->GetXaxis()->SetTitleOffset(0.76);
-                rat[stackname+"v2"]->GetXaxis()->SetLabelSize(0.0);
-                rat[stackname+"v2"]->GetYaxis()->SetNdivisions(504);
-                rat[stackname+"v2"]->GetYaxis()->SetTitle("signal / bgd");
-                if(data) rat[stackname+"v2"]->GetYaxis()->SetTitle("data / bgd");
-                rat[stackname+"v2"]->GetYaxis()->SetTitleSize(0.14);
-                rat[stackname+"v2"]->GetYaxis()->SetTitleOffset(0.28);
-                rat[stackname+"v2"]->GetYaxis()->SetLabelSize(0.14);
-                rat[stackname+"v2"]->Draw("same");
-            }
-            if(data){
-                TLine *rline = new TLine(rat[stackname]->GetXaxis()->GetBinLowEdge(1),1.,rat[stackname]->GetXaxis()->GetBinLowEdge(rat[stackname]->GetNbinsX()+1),1.);
-                rline->SetLineWidth(2);
-                rline->SetLineStyle(7);
-                rline->Draw();
-            }
-            c1->cd();
-            c1->SaveAs(outname.c_str());
-            //c1->Clear();
-            c1->cd();
-        }
+      if(onlySSSFOS[n]==0){ leg1  ->Draw(); leg2  ->Draw(); }
+      if(onlySSSFOS[n]==1){ leg1SS->Draw(); leg2SS->Draw(); }
+      if(onlySSSFOS[n]==2){ leg13l->Draw(); leg23l->Draw(); }
+      tLumi->Draw();
+      tCMS->Draw();
+      tSim->Draw();
+      /*
+	if(stackname.find("SSee" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"e^{#pm}e^{#pm}");
+	if(stackname.find("SSem" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"e^{#pm}#mu^{#pm}");
+	if(stackname.find("SSmm" )  !=string::npos) tlx->DrawLatex(0.45,0.955,"#mu^{#pm}#mu^{#pm}");
+	if(stackname.find("allSS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"SS region");
+	if(stackname.find("0SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"0 SFOS pairs");
+	if(stackname.find("1SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"1 SFOS pair");
+	if(stackname.find("2SFOS")  !=string::npos) tlx->DrawLatex(0.45,0.955,"2 SFOS pairs");
+	if(stackname.find("allSFOS")!=string::npos) tlx->DrawLatex(0.45,0.955,"3l region");
+      */
+      c1->cd();
+      TPad *ratiopad = new TPad("ratiopad", "Pad containing the ratio",0,0,1,0.21); //0,0,1,0.26);
+      ratiopad->Draw();
+      ratiopad->cd();
+      ratiopad->SetFillColor(0);
+      ratiopad->SetBorderMode(0);
+      ratiopad->SetBorderSize(2);
+      ratiopad->SetTickx(1);
+      ratiopad->SetTicky(1);
+      ratiopad->SetLeftMargin(0.12);
+      ratiopad->SetRightMargin(0.04);
+      //  ratiopad->SetTopMargin(0.04);
+      ratiopad->SetBottomMargin(0.3);
+      ratiopad->SetFrameFillStyle(0);
+      ratiopad->SetFrameBorderMode(0);
+      ratiopad->SetFrameFillStyle(0);
+      ratiopad->SetFrameBorderMode(0);
+      if(data&&h[stackname+"_Data"]->Integral()!=0){
+	rat[stackname]->SetMinimum(0.);
+	rat[stackname]->SetMaximum(2.);
+	rat[stackname+"BG"]->SetMinimum(0.);
+	rat[stackname+"BG"]->SetMaximum(2.);
+      }
+      else {
+	rat[stackname]->SetMinimum(0.);
+	rat[stackname]->SetMaximum(0.2);
+	rat[stackname+"BG"]->SetMinimum(0.);
+	rat[stackname+"BG"]->SetMaximum(2.);
+      }
+      rat[stackname]->GetXaxis()->SetTitle(axisnames[n].c_str());
+      rat[stackname]->GetXaxis()->SetTitleSize(0.16);
+      rat[stackname]->GetXaxis()->SetTitleOffset(0.76);
+      rat[stackname]->GetXaxis()->SetLabelSize(0.0);
+      rat[stackname]->GetYaxis()->SetNdivisions(504);
+      rat[stackname]->GetYaxis()->SetTitle("signal / bgd");
+      if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->GetYaxis()->SetTitle("data / bgd");
+      rat[stackname]->GetYaxis()->SetTitleSize(0.14);
+      rat[stackname]->GetYaxis()->SetTitleOffset(0.28);
+      rat[stackname]->GetYaxis()->SetLabelSize(0.14);
+      rat[stackname+"BG"]->GetXaxis()->SetTitle(axisnames[n].c_str());
+      rat[stackname+"BG"]->GetXaxis()->SetTitleSize(0.16);
+      rat[stackname+"BG"]->GetXaxis()->SetTitleOffset(0.76);
+      rat[stackname+"BG"]->GetXaxis()->SetLabelSize(0.0);
+      rat[stackname+"BG"]->GetYaxis()->SetNdivisions(504);
+      rat[stackname+"BG"]->GetYaxis()->SetTitle("signal / bgd");
+      if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname+"BG"]->GetYaxis()->SetTitle("data / bgd");
+      rat[stackname+"BG"]->GetYaxis()->SetTitleSize(0.14);
+      rat[stackname+"BG"]->GetYaxis()->SetTitleOffset(0.28);
+      rat[stackname+"BG"]->GetYaxis()->SetLabelSize(0.14);
+      if(plotsimErrorHashed){
+	if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname+"BG"]->Draw("E2");
+	if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->Draw("sameE0X0");
+	else                                          rat[stackname]->Draw("samehist");
+      } else {
+	if(data&&h[stackname+"_Data"]->Integral()!=0) rat[stackname]->Draw("E0X0");
+	else                                          rat[stackname]->Draw("hist");
+      }
+      if(!addsig&&twosig&&!data){
+	rat[stackname+"v2"]->SetMinimum(0.);
+	rat[stackname+"v2"]->SetMaximum(0.2);
+	rat[stackname+"v2"]->GetXaxis()->SetTitle(axisnames[n].c_str());
+	rat[stackname+"v2"]->GetXaxis()->SetTitleSize(0.16);
+	rat[stackname+"v2"]->GetXaxis()->SetTitleOffset(0.76);
+	rat[stackname+"v2"]->GetXaxis()->SetLabelSize(0.0);
+	rat[stackname+"v2"]->GetYaxis()->SetNdivisions(504);
+	rat[stackname+"v2"]->GetYaxis()->SetTitle("signal / bgd");
+	if(data) rat[stackname+"v2"]->GetYaxis()->SetTitle("data / bgd");
+	rat[stackname+"v2"]->GetYaxis()->SetTitleSize(0.14);
+	rat[stackname+"v2"]->GetYaxis()->SetTitleOffset(0.28);
+	rat[stackname+"v2"]->GetYaxis()->SetLabelSize(0.14);
+	rat[stackname+"v2"]->Draw("same");
+      }
+      if(data&&h[stackname+"_Data"]->Integral()!=0){
+	TLine *rline = new TLine(rat[stackname]->GetXaxis()->GetBinLowEdge(1),1.,rat[stackname]->GetXaxis()->GetBinLowEdge(rat[stackname]->GetNbinsX()+1),1.);
+	rline->SetLineWidth(2);
+	rline->SetLineStyle(7);
+	rline->Draw();
+      }
+      c1->cd();
+      c1->SaveAs(outname.c_str());
+      //c1->Clear();
+      c1->cd();
     }
 }
