@@ -7,6 +7,10 @@ frameinfo = getframeinfo(currentframe())
 addsig = True
 twosig = False
 data = True
+addLLto3l = True
+plotHashRatio = True
+if addsig :
+    twosig = False
 
 outdir = "plots/"
 
@@ -18,8 +22,8 @@ histonames = ["SignalRegion",  "WZControlRegion",                      "Applicat
 axisnames  = ["signal regions","lost-lepton/3l-with-Z control regions","application regions"]
 SSorSFOS   = [ 0,               0,                                      0]
 
-samples  = ["WWW","others","photonfakes"         ,"chargeflips","fakes"    ,"3lLL",       "SSLL"       ,"true3L","trueSS"                 ,"trueWWW"]
-legnames = ["WWW","Other" ,"#gamma #rightarrow l","charge flip","jet fakes","lost lepton","lost lepton","3l"    ,"W^{#pm}W^{#pm}(W^{#mp})","W^{#pm}W^{#pm}(W^{#mp})"]
+samples  = ["WWW","others","photonfakes"         ,"chargeflips","fakes"    ,"3lLL",       "SSLL"       ,"true3L",          "trueSS"                 ,"trueWWW"]
+legnames = ["WWW","Other" ,"#gamma #rightarrow l","charge flip","jet fakes","lost lepton","lost lepton","three lepton"    ,"W^{#pm}W^{#pm}(W^{#mp})","W^{#pm}W^{#pm}(W^{#mp})"]
 colors   = [ 632,  2012,    920,                   2007,         2005,       2011,         2003,         2003,    2001,                     2001]  
 isSS3l   = [ -1,    -1,      0,                     0,            0,          2,            1,            2,       1,                        2]  
 if twosig :
@@ -41,8 +45,13 @@ histos = dict()
 for h,a in zip(histonames,axisnames) :
     stacks[h] = ROOT.THStack()
     for s,l,c in zip(samples,legnames,colors) :
+        if addLLto3l and s == "3lLL" :
+            continue
         #print h+"_"+s
         histos[h+"_"+s] = f.Get(h+"_"+s)
+        if addLLto3l and s == "true3L" :
+            histos[h+"_3lLL"] = f.Get(h+"_3lLL")
+            histos[h+"_"+s].Add(histos[h+"_3lLL"],1.)
         if s == "WWW" and addsig :
             histos[h+"_WHtoWWW"] = f.Get(h+"_WHtoWWW")
             histos[h+"_"+s].Add(histos[h+"_WHtoWWW"],1.)
@@ -75,19 +84,26 @@ for h,a in zip(histonames,axisnames) :
             histos[h+"_"+s].SetLineColor(c)
             histos[h+"_"+s].SetLineWidth(3)
             histos[h+"_"+s].SetLineStyle(1)
+    histos[h+"BG"] = histos[h+"_bg"].Clone(h+"BG")
+    histos[h+"_BGRatio"] = histos[h+"_bg"].Clone(h+"_BGRatio")
+    if plotHashRatio :
+        for i in range(1,histos[h+"BG"].GetNbinsX()) :
+            histos[h+"BG"].SetBinError(i,0)
+    histos[h+"_BGRatio"].Divide(histos[h+"BG"])
     if data :
         histos[h+"_Data"] = f.Get(h+"_Data")
         histos[h+"_Data"].SetLineColor(ROOT.kBlack)
         histos[h+"_Data"].SetLineWidth(2)
         histos[h+"_Data"].SetMarkerStyle(20)
+    if data and histos[h+"_Data"].Integral()!=0 :
         histos[h+"_Ratio"] = histos[h+"_Data"].Clone(h+"_Ratio")
-        histos[h+"_Ratio"].Divide(histos[h+"_bg"])
+        histos[h+"_Ratio"].Divide(histos[h+"BG"])
     else :
         histos[h+"_Ratio"] = histos[h+"_WWW"].Clone(h+"_Ratio")
-        histos[h+"_Ratio"].Divide(histos[h+"_bg"])
+        histos[h+"_Ratio"].Divide(histos[h+"BG"])
         if twosig :
             histos[h+"_Ratio2"] = histos[h+"_WHtoWWW"].Clone(h+"_Ratio2")
-            histos[h+"_Ratio2"].Divide(histos[h+"_bg"])
+            histos[h+"_Ratio2"].Divide(histos[h+"BG"])
             
 tLumi = ROOT.TLatex(0.95,0.955,"35.9 fb^{-1} (13 TeV)")
 tLumi.SetNDC()
@@ -122,7 +138,7 @@ tPrel.SetLineWidth(2)
 
 #one column 0.2 0.67 0.50 0.89
 #two column 0.2 0.67 0.85 0.89
-legSS = ROOT.TLegend(0.2,0.65,0.5,0.9025,"","brNDC")
+legSS = ROOT.TLegend(0.1667,0.65,0.5,0.9025,"","brNDC")
 legSS.SetBorderSize(0)
 legSS.SetTextSize(0.033)
 legSS.SetLineColor(1)
@@ -132,7 +148,7 @@ legSS.SetFillColor(0)
 legSS.SetFillStyle(1001)
 #one column 0.55 0.67 0.85 0.89
 #two column 0.20 0.67 0.85 0.89
-leg3l = ROOT.TLegend(0.2,0.65,0.85,0.9025,"","brNDC")
+leg3l = ROOT.TLegend(0.1667,0.65,0.85,0.9025,"","brNDC")
 leg3l.SetBorderSize(0)
 leg3l.SetTextSize(0.033)
 leg3l.SetLineColor(1)
@@ -141,6 +157,10 @@ leg3l.SetLineWidth(2)
 leg3l.SetFillColor(0)
 leg3l.SetFillStyle(1001)
 for s,l,i in zip(reversed(samples),reversed(legnames),reversed(isSS3l)) :
+    if addLLto3l and s == "3lLL" :
+        continue
+    if addLLto3l and s == "true3L" :
+        l = "three lepton / lost lepton"
     if i == 0 or i == 1 :
         #print histonames[0]+"_"+s,legSS.GetNRows()
         legSS.AddEntry(histos[histonames[0]+"_"+s],l,"f")
@@ -196,7 +216,7 @@ for h,a,b in zip(histonames,axisnames,SSorSFOS) :
     stacks[h].SetHistogram(histos[h+"_bg"])
     stacks[h].Draw("hist")
     histos[h+"_bg"].Draw("sameE2")
-    histos[h+"_Data"].Draw("sameE0X0") if data else True
+    histos[h+"_Data"].Draw("sameE0X0") if data and histos[h+"_Data"].Integral()!=0 else True
     histos[h+"_WWW"].Draw("histsame")
     histos[h+"_WHtoWWW"].Draw("histsame") if twosig else True
     outname = outdir + h + ".pdf"
@@ -250,12 +270,16 @@ for h,a,b in zip(histonames,axisnames,SSorSFOS) :
     ratiopad.SetFrameBorderMode(0)
     ratiopad.SetFrameFillStyle(0)
     ratiopad.SetFrameBorderMode(0)
-    if data :
+    if data and histos[h+"_Data"].Integral()!=0 :
         histos[h+"_Ratio"].SetMinimum(0.)
         histos[h+"_Ratio"].SetMaximum(2.)
+        histos[h+"_BGRatio"].SetMinimum(0.)
+        histos[h+"_BGRatio"].SetMaximum(2.)
     else : 
         histos[h+"_Ratio"].SetMinimum(0.)
         histos[h+"_Ratio"].SetMaximum(0.65)
+        histos[h+"_BGRatio"].SetMinimum(0.)
+        histos[h+"_BGRatio"].SetMaximum(0.65)
     histos[h+"_Ratio"].GetXaxis().SetTitle(a)
     histos[h+"_Ratio"].GetXaxis().SetTitleSize(0.16)
     histos[h+"_Ratio"].GetXaxis().SetTitleOffset(0.76)
@@ -265,7 +289,26 @@ for h,a,b in zip(histonames,axisnames,SSorSFOS) :
     histos[h+"_Ratio"].GetYaxis().SetTitleSize(0.14)
     histos[h+"_Ratio"].GetYaxis().SetTitleOffset(0.28)
     histos[h+"_Ratio"].GetYaxis().SetLabelSize(0.14)
-    histos[h+"_Ratio"].Draw()        
+    histos[h+"_BGRatio"].GetXaxis().SetTitle(a)
+    histos[h+"_BGRatio"].GetXaxis().SetTitleSize(0.16)
+    histos[h+"_BGRatio"].GetXaxis().SetTitleOffset(0.76)
+    histos[h+"_BGRatio"].GetXaxis().SetLabelSize(0.0)
+    histos[h+"_BGRatio"].GetYaxis().SetNdivisions(504)
+    histos[h+"_BGRatio"].GetYaxis().SetTitle("data / bgd") if data else histos[h+"_BGRatio"].GetYaxis().SetTitle("signal / bgd")
+    histos[h+"_BGRatio"].GetYaxis().SetTitleSize(0.14)
+    histos[h+"_BGRatio"].GetYaxis().SetTitleOffset(0.28)
+    histos[h+"_BGRatio"].GetYaxis().SetLabelSize(0.14)
+    if plotHashRatio :
+        if data and histos[h+"_Data"].Integral()!=0 :
+            histos[h+"_BGRatio"].Draw("E2")
+            histos[h+"_Ratio"].Draw("sameE0X0")
+        else :
+            histos[h+"_Ratio"].Draw("hist")
+    else :
+        if data and histos[h+"_Data"].Integral()!=0 :
+            histos[h+"_Ratio"].Draw("E0X0")
+        else :
+            histos[h+"_Ratio"].Draw("hist")
     if twosig and not data :
         histos[h+"_Ratio2"].SetMinimum(0.)
         histos[h+"_Ratio2"].SetMaximum(0.65)
@@ -279,7 +322,7 @@ for h,a,b in zip(histonames,axisnames,SSorSFOS) :
         histos[h+"_Ratio2"].GetYaxis().SetTitleOffset(0.28)
         histos[h+"_Ratio2"].GetYaxis().SetLabelSize(0.14)
         histos[h+"_Ratio2"].Draw("same")
-    if data :
+    if data and histos[h+"_Data"].Integral()!=0 :
         rline = ROOT.TLine(histos[h+"_Ratio"].GetXaxis().GetBinLowEdge(1),1.,histos[h+"_Ratio"].GetXaxis().GetBinLowEdge(histos[h+"_Ratio"].GetNbinsX()+1),1.)
         rline.SetLineWidth(2)
         rline.SetLineStyle(7)
