@@ -10,7 +10,7 @@
   //gROOT->ProcessLine(".L WWTTWSplitter.C+");
   //gROOT->ProcessLine(".L Check3lWZCR.C+");
     gROOT->ProcessLine(".L FakeRateBtagVal.C+");
-  const unsigned int chainsize = 18;
+  const unsigned int chainsize = 19;
   TChain *ch[chainsize];
   string dataset[chainsize];
 
@@ -176,7 +176,7 @@
   myhelper = babylocation + "data_*mm*.root";          ch[18]->Add(myhelper.c_str());
 
   for(int i = 0; i<chainsize; ++i){
-    //if(i!=7) continue;
+//    if(i!=18) continue;
     //if(i>=3&&i<=15) continue;//don't run over individual samples (but for signal) - run over combined background instead
     //if activating above flag, run over ttV and WW too for validation looper and WWTTW splitter 
     TChain *mych = ch[i];
