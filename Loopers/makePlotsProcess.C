@@ -21,11 +21,75 @@ void makePlotsProcess(){
     vector<int> onlySSSFOS;
     
     
+    /*
     TFile *f = TFile::Open("rootfiles/NminusOnePlots.root");
-    histonames.push_back("Mjj_SRSS_presel");        axisnames.push_back("M_{jj} [GeV] | preselection");               onlySSSFOS.push_back(1);
-    histonames.push_back("Mjj_SRSS_NmO");           axisnames.push_back("M_{jj} [GeV] | full selection");             onlySSSFOS.push_back(1);
-    histonames.push_back("PTlll_SR3l_presel");      axisnames.push_back("p_{T}(lll) [GeV] | preselection");           onlySSSFOS.push_back(2);
-    histonames.push_back("PTlll_SR3l_NmO");         axisnames.push_back("p_{T}(lll) [GeV] | full selection");         onlySSSFOS.push_back(2);
+    histonames.push_back("DetajjL_SRSS_NmO");       axisnames.push_back("#Delta#eta_{JJ} | full selection");                              onlySSSFOS.push_back(1);
+    histonames.push_back("DetajjL_SRSS_presel");    axisnames.push_back("#Delta#eta_{JJ} | preselection");                                onlySSSFOS.push_back(1);
+    histonames.push_back("MET_SRSS_NmO");           axisnames.push_back("E_{T}^{miss} [GeV] | full selection");                           onlySSSFOS.push_back(1);
+    histonames.push_back("MET_SRSS_presel");        axisnames.push_back("E_{T}^{miss} [GeV] | preselection");                             onlySSSFOS.push_back(1);
+    histonames.push_back("Mjj_SRSS_NmO");           axisnames.push_back("M_{jj} [GeV] | full selection");                                 onlySSSFOS.push_back(1);
+    histonames.push_back("Mjj_SRSS_presel");        axisnames.push_back("M_{jj} [GeV] | preselection");                                   onlySSSFOS.push_back(1);
+    histonames.push_back("MjjL_SRSS_NmO");          axisnames.push_back("M_{JJ} [GeV] | full selection");                                 onlySSSFOS.push_back(1);
+    histonames.push_back("MjjL_SRSS_presel");       axisnames.push_back("M_{JJ} [GeV] | preselection");                                   onlySSSFOS.push_back(1);
+    histonames.push_back("Mll_SRSS_NmO");           axisnames.push_back("M_{ll} [GeV] | full selection");                                 onlySSSFOS.push_back(1);
+    histonames.push_back("Mll_SRSS_presel");        axisnames.push_back("M_{ll} [GeV] | preselection");                                   onlySSSFOS.push_back(1);
+    histonames.push_back("MTmax_SRSS_NmO");         axisnames.push_back("M_{T}^{max} [GeV] | full selection");                            onlySSSFOS.push_back(1);
+    histonames.push_back("MTmax_SRSS_presel");      axisnames.push_back("M_{T}^{max} [GeV] | preselection");                              onlySSSFOS.push_back(1);
+    histonames.push_back("pTll_SRSS_NmO");          axisnames.push_back("p_{T}(ll) [GeV] | full selection");                              onlySSSFOS.push_back(1);
+    histonames.push_back("pTll_SRSS_presel");       axisnames.push_back("p_{T}(ll) [GeV] | preselection");                                onlySSSFOS.push_back(1);
+    histonames.push_back("DPhilllMET_SR3l_NmO");    axisnames.push_back("#Delta#phi(lll,#vec{p}_{T}^{miss}) | full selection");           onlySSSFOS.push_back(2);
+    histonames.push_back("DPhilllMET_SR3l_presel"); axisnames.push_back("#Delta#phi(lll,#vec{p}_{T}^{miss}) | preselection");             onlySSSFOS.push_back(2);
+    histonames.push_back("MET_SR3l_NmO");           axisnames.push_back("E_{T}^{miss} [GeV] | full selection");                           onlySSSFOS.push_back(2);
+    histonames.push_back("MET_SR3l_presel");        axisnames.push_back("E_{T}^{miss} [GeV] | preselection");                             onlySSSFOS.push_back(2);
+    histonames.push_back("Mlll_SR3l_NmO");          axisnames.push_back("M_{lll} [GeV] | full selection");                                onlySSSFOS.push_back(2);
+    histonames.push_back("Mlll_SR3l_presel");       axisnames.push_back("M_{lll} [GeV] | preselection");                                  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSZlike_SR3l_NmO");    axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | preselection | full selection");  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSZlike_SR3l_presel"); axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | preselection");                   onlySSSFOS.push_back(2);
+    histonames.push_back("PTlll_SR3l_NmO");         axisnames.push_back("p_{T}(lll) [GeV] | full selection");                             onlySSSFOS.push_back(2);
+    histonames.push_back("PTlll_SR3l_presel");      axisnames.push_back("p_{T}(lll) [GeV] | preselection");                               onlySSSFOS.push_back(2);
+    */
+    /*
+    TFile *f = TFile::Open("rootfiles/Validations.root");
+    //VBS
+    histonames.push_back("Detajj_VRSS_MjjL400");         axisnames.push_back("#Delta#eta_{jj} | validation of VBS WW");                              onlySSSFOS.push_back(1);
+    histonames.push_back("MjjL_VRSS_Detajj1p5");         axisnames.push_back("M_{JJ} [GeV] | validation of VBS WW");                                 onlySSSFOS.push_back(1);
+    //ttX
+    histonames.push_back("MET_VR3l_noZ_ge2j_ge1bmed");   axisnames.push_back("E_{T}^{miss} [GeV] | validation of ttV, 3l w/o Z, N_{B}^{med}#geq1");  onlySSSFOS.push_back(2);
+    histonames.push_back("MET_VR3l_Z_ge2j_ge1bmed");     axisnames.push_back("E_{T}^{miss} [GeV] | validation of ttV, 3l w/ Z, N_{B}^{med}#geq1");   onlySSSFOS.push_back(2);
+    histonames.push_back("MET_VRSS_MjjW_ge4j_ge1bmed");  axisnames.push_back("M_{T}^{max} [GeV] | validation of ttV, 2l SS");                        onlySSSFOS.push_back(1);
+    histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge1bmed"); axisnames.push_back("M_{SFOS} [GeV] | validation of ttV, 3l w/o Z, N_{B}^{med}#geq1");      onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_VR3l_Z_ge2j_ge1bmed");   axisnames.push_back("M_{SFOS} [GeV] | validation of ttV, 3l w/ Z, N_{B}^{med}#geq1");       onlySSSFOS.push_back(2);
+    histonames.push_back("NB_VR3l_noZ_ge2j_ge1b");       axisnames.push_back("N_{B} | validation of ttV, 3l w/o Z, N_{B}#geq1");                     onlySSSFOS.push_back(2);
+    histonames.push_back("NB_VR3l_noZ_ge2j_ge1bmed");    axisnames.push_back("N_{B}^{med} | validation of ttV, 3l w/o Z, N_{B}^{med}#geq1");         onlySSSFOS.push_back(2);
+    histonames.push_back("NB_VR3l_Z_ge2j_ge1b");         axisnames.push_back("N_{B} | validation of ttV, 3l w/ Z, N_{B}#geq1");                      onlySSSFOS.push_back(2);
+    histonames.push_back("NB_VR3l_Z_ge2j_ge1bmed");      axisnames.push_back("N_{B}^{med} | validation of ttV, 3l w/ Z, N_{B}^{med}#geq1");          onlySSSFOS.push_back(2);
+    histonames.push_back("NB_VRSS_MjjW_ge4j_ge1b");      axisnames.push_back("N_{B} | validation of ttV, 2l SS");                                    onlySSSFOS.push_back(1);
+    histonames.push_back("NB_VRSS_MjjW_ge4j_ge1bmed");   axisnames.push_back("N_{B}^{med} | validation of ttV, 2l SS");                              onlySSSFOS.push_back(1);
+    histonames.push_back("Ptll_VRSS_MjjW_ge4j_ge1bmed"); axisnames.push_back("p_{T}(ll) [GeV] | validation of ttV, 2l SS");                          onlySSSFOS.push_back(1);
+    histonames.push_back("Ptlll_VR3l_noZ_ge2j_ge1bmed"); axisnames.push_back("p_{T}(lll) [GeV] | validation of ttV, 3l w/o Z, N_{B}^{med}#geq1");    onlySSSFOS.push_back(2);
+    histonames.push_back("Ptlll_VR3l_Z_ge2j_ge1bmed");   axisnames.push_back("p_{T}(lll) [GeV] | validation of ttV, 3l w/ Z, N_{B}^{med}#geq1");     onlySSSFOS.push_back(2);
+    histonames.push_back("ZPt_VR3l_Z_ge2j_ge1bmed");     axisnames.push_back("p_{T}(Z) [GeV] | validation of ttV, 3l w/ Z, N_{B}^{med}#geq1");       onlySSSFOS.push_back(2);
+    //Zg
+    //histonames.push_back("Mlll_VR3l_noZ_METleq50");      axisnames.push_back("M_{lll} [GeV] | validation of Z#gamma");                               onlySSSFOS.push_back(2);
+    //histonames.push_back("pTlll_VR3l_noZ_METleq50");     axisnames.push_back("p_{T}(lll) [GeV] | validation of Z#gamma");                            onlySSSFOS.push_back(2);
+    */
+    TFile *f = TFile::Open("rootfiles/Check3lWZCR.root");
+    histonames.push_back("YieldsCR");                             axisnames.push_back("three-lepton / lost-lepton control region");                               onlySSSFOS.push_back(2);
+    histonames.push_back("YieldsCR_cutonMjj");                    axisnames.push_back("three-lepton / lost-lepton control region | selection on M_{jj}");         onlySSSFOS.push_back(2);
+    histonames.push_back("Mjj_CRlike_allSS");                     axisnames.push_back("M_{jj} [GeV] | lost-lepton control region");                               onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_CRlike_allSS");                   axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | lost-lepton control region");               onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSall_CRlike_allSS");                axisnames.push_back("M_{SFOS} [GeV] | lost-lepton control region");                             onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_1SFOS_inverteitherMETdPhiPt");    axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | 1 SFOS three-lepton validation region 2");  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_1SFOS_invertMETdPhiPt");          axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | 1 SFOS three-lepton validation region 1");  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_2SFOS_inverteitherMETdPhiPt");    axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | 2 SFOS three-lepton validation region 2");  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_2SFOS_invertMETdPhiPt");          axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | 2 SFOS three-lepton validation region 1");  onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSall_2SFOS_inverteitherMETdPhiPt"); axisnames.push_back("M_{SFOS} [GeV] | 2 SFOS three-lepton validation region 2");                onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSall_2SFOS_invertMETdPhiPt");       axisnames.push_back("M_{SFOS} [GeV] | 2 SFOS three-lepton validation region 1");                onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_all3l_inverteitherMETdPhiPt");    axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | three-lepton validation region 2");         onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOS_all3l_invertMETdPhiPt");          axisnames.push_back("M_{SFOS} (most Z-like) [GeV] | three-lepton validation region 2");         onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSall_all3l_inverteitherMETdPhiPt"); axisnames.push_back("M_{SFOS} [GeV] | three-lepton validation region 2");                       onlySSSFOS.push_back(2);
+    histonames.push_back("MSFOSall_all3l_invertMETdPhiPt");       axisnames.push_back("M_{SFOS} [GeV] | three-lepton validation region 2");                       onlySSSFOS.push_back(2);
+
     TColor *lightblue  = new TColor(2001,91/255.,187/255.,241/255.);
     TColor *blue       = new TColor(2002,60/255.,144/255.,196/255.);
     TColor *orange     = new TColor(2003,230/255.,159/255.,0/255.);
@@ -41,38 +105,44 @@ void makePlotsProcess(){
 
 
     vector<int> is3lSS;
-    samples.push_back("WWW");         samplesleg.push_back("WWW");                          is3lSS.push_back(0);
-    if(twosig) { samples.push_back("WHtoWWW");     samplesleg.push_back("WH#rightarrowWWW");is3lSS.push_back(0);}
-    samples.push_back("others");      samplesleg.push_back("Other");                        is3lSS.push_back(0);
-    
-    samples.push_back("photonfakes");      samplesleg.push_back("#gamma #rightarrow l");    is3lSS.push_back(0);
-    
-    samples.push_back("chargeflips"); samplesleg.push_back("charge flip");                  is3lSS.push_back(0);
-    //samples.push_back("doublefakes"); samplesleg.push_back("double fakes");                 is3lSS.push_back(0);
-    samples.push_back("fakes");       samplesleg.push_back("jet fakes");                    is3lSS.push_back(0);
-    //samples.push_back("FakePred");    samplesleg.push_back("fakes from data");              is3lSS.push_back(0);
-    samples.push_back("3lLL");        samplesleg.push_back("lost lepton");                  is3lSS.push_back(2);
-    samples.push_back("SSLL");        samplesleg.push_back("lost lepton");                  is3lSS.push_back(1);
-    samples.push_back("true3L");      samplesleg.push_back("3l");                           is3lSS.push_back(2);
-    samples.push_back("trueWWW");     samplesleg.push_back("WWW bg (ttW)");                 is3lSS.push_back(2);
-    samples.push_back("trueSS");      samplesleg.push_back("SS bg (W^{#pm}W^{#pm},ttW)");   is3lSS.push_back(1);
-    samples.push_back("bg");          samplesleg.push_back("background");                   is3lSS.push_back(-1);
-    
+    samples.push_back("WWW");         samplesleg.push_back("WWW signal");                      is3lSS.push_back(0);
+    if(twosig) { samples.push_back("WHtoWWW");     samplesleg.push_back("WH#rightarrowWWW");   is3lSS.push_back(0); }
+    //samples.push_back("others");      samplesleg.push_back("Other");                           is3lSS.push_back(0);
+    samples.push_back("photonfakes"); samplesleg.push_back("#gamma #rightarrow l");            is3lSS.push_back(0);
+    samples.push_back("chargeflips"); samplesleg.push_back("charge misassignment");            is3lSS.push_back(0);
+    //samples.push_back("doublefakes"); samplesleg.push_back("double fakes");                    is3lSS.push_back(0);
+    samples.push_back("fakes");       samplesleg.push_back("non-prompt leptons");              is3lSS.push_back(0);
+    //samples.push_back("FakePred");    samplesleg.push_back("fakes from data");                 is3lSS.push_back(0);
+    if(!addlostlepto3l) { samples.push_back("3lLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(2);}
+    samples.push_back("SSLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(1);
+    samples.push_back("true3L");      samplesleg.push_back("three leptons");                   is3lSS.push_back(2);
+    samples.push_back("trueWWW");     samplesleg.push_back("WWW bg (ttW)");                    is3lSS.push_back(2);
+    samples.push_back("trueSS");      samplesleg.push_back("W^{#pm}W^{#pm} bg (DPS,VBS,ttW)"); is3lSS.push_back(1);
+    //samples.push_back("WWVBS");       samplesleg.push_back("W^{#pm}W^{#pm} VBS");              is3lSS.push_back(1);
+    //samples.push_back("ttZ");         samplesleg.push_back("t#bar{t}Z");                       is3lSS.push_back(0);
+    //samples.push_back("ttW");         samplesleg.push_back("t#bar{t}W");                       is3lSS.push_back(0);
+    samples.push_back("bg");          samplesleg.push_back("background");                      is3lSS.push_back(-1);
+    if(addlostlepto3l){
+        for(unsigned int i = 0; i<samples.size();++i){
+            if(samples[i].find("true3L")!=string::npos) samplesleg[i] = "three leptons/lost leptons";
+        }
+    }
     
     cols.push_back(632);//kRed
     if(twosig) cols.push_back(kBlue);//kRed
-    cols.push_back(2012);
-    
+    //cols.push_back(2012);
     cols.push_back(kGray);
-    
     cols.push_back(2007);
     //cols.push_back(2006);
     cols.push_back(2005);
-    cols.push_back(2011);
+    if(!addlostlepto3l)     cols.push_back(2011);
     cols.push_back(2003);
     cols.push_back(2003);
     cols.push_back(2001);
     cols.push_back(2001);
+    //cols.push_back(kCyan);//VBS
+    //cols.push_back(kCyan+2);//ttZ
+    //cols.push_back(kCyan);//ttW
     cols.push_back(kBlack);
     int nsig = 1;
     if(twosig) ++nsig;
@@ -112,6 +182,12 @@ void makePlotsProcess(){
 	  string addname = histonames[n] + "_WHtoWWW";
 	  h[addname ]=(TH1D*)f->Get(addname.c_str());
 	  h[mapname ]->Add(h[addname ],1.);
+	}
+	if(addlostlepto3l&&samples[s].find("true3L")!=string::npos){
+	  string mapname2 =histonames[n] + "_3lLL";
+	  h[mapname2 ]=(TH1D*)f->Get(mapname2.c_str());
+	  for(int i = 1; i<=h[mapname]->GetNbinsX();++i) h[mapname2]->GetXaxis()->SetBinLabel(i,h[mapname]->GetXaxis()->GetBinLabel(i));
+	  h[mapname]->Add(h[mapname2],1.);
 	}
 	for(int b = 0; b<h[mapname]->GetNbinsX();++b){ if(h[mapname]->GetBinContent(b)<0){h[mapname]->SetBinContent(b,0); h[mapname]->SetBinError(b,0); } }
 	if(s==nsig) h[bgname] = (TH1D*)h[mapname]->Clone(bgname.c_str());
@@ -207,7 +283,7 @@ void makePlotsProcess(){
     leg1->SetLineWidth(2);
     leg1->SetFillColor(0);
     leg1->SetFillStyle(1001);
-    TLegend *leg1SS = new TLegend(0.2,0.67,0.5,0.89,NULL,"brNDC");
+    TLegend *leg1SS = new TLegend(0.1667,0.67,0.5,0.89,NULL,"brNDC");
     leg1SS->SetBorderSize(0);
     leg1SS->SetTextSize(0.035);
     leg1SS->SetLineColor(1);
@@ -215,7 +291,7 @@ void makePlotsProcess(){
     leg1SS->SetLineWidth(2);
     leg1SS->SetFillColor(0);
     leg1SS->SetFillStyle(1001);
-    TLegend *leg13l = new TLegend(0.2,0.67,0.5,0.89,NULL,"brNDC");
+    TLegend *leg13l = new TLegend(0.1667,0.67,0.5,0.89,NULL,"brNDC");
     leg13l->SetBorderSize(0);
     leg13l->SetTextSize(0.035);
     leg13l->SetLineColor(1);
@@ -226,21 +302,30 @@ void makePlotsProcess(){
     int legcount(0);
     int legcountSS(0);
     int legcount3l(0);
-    for(unsigned int s = nsig; s<(samples.size()-1);++s){
-        if(is3lSS[s]==0||is3lSS[s]==1) {
-            leg1->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
-            legcount = s;
-        }
+    unsigned int legSStot(0);
+    unsigned int leg3ltot(0);
+    for(unsigned int s = 0; s<samples.size();++s){
+      if(is3lSS[s]==0||is3lSS[s]==1) ++legSStot;
+      if(is3lSS[s]==0||is3lSS[s]==2) ++leg3ltot;
     }
-    for(unsigned int s = nsig; s<(samples.size()/2)+2;++s){
-        if(is3lSS[s]==0||is3lSS[s]==1) {
-            leg1SS->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
-            legcountSS = s;
-        }
-        if(is3lSS[s]==0||is3lSS[s]==2) {
-            leg13l->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
-            legcount3l = s;
-        }
+    if(data){ ++legSStot; ++leg3ltot; }
+    for(unsigned int s = nsig; s<(samples.size()-1);++s){
+      if(is3lSS[s]==0||is3lSS[s]==1) {
+	leg1->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
+	legcount = s;
+      }
+    }
+    for(unsigned int s = nsig; s<=legSStot/2+nsig;++s){
+      if(is3lSS[s]==0||is3lSS[s]==1) {
+	leg1SS->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
+	legcountSS = s;
+      }
+    }
+    for(unsigned int s = nsig; s<=leg3ltot/2+nsig;++s){
+      if(is3lSS[s]==0||is3lSS[s]==2) {
+	leg13l->AddEntry(h[histonames[0]+"_"+samples[s] ],samplesleg[s].c_str(), "f");
+	legcount3l = s;
+      }
     }
     TLegend *leg2 = new TLegend(0.55,0.63,0.85,0.9075,NULL,"brNDC");
     leg2->SetBorderSize(0);
@@ -282,7 +367,7 @@ void makePlotsProcess(){
     leg2->AddEntry(h[histonames[0]+"_"+samples[0] ],samplesleg[0].c_str(), "l");
     leg2SS->AddEntry(h[histonames[0]+"_"+samples[0] ],samplesleg[0].c_str(), "l");
     leg23l->AddEntry(h[histonames[0]+"_"+samples[0] ],samplesleg[0].c_str(), "l");
-    if(twosig){
+    if(twosig&&!addsig){
         leg1->AddEntry(h[histonames[0]+"_"+samples[1] ],samplesleg[1].c_str(), "l");
         leg2->AddEntry(h[histonames[0]+"_"+samples[1] ],samplesleg[1].c_str(), "l");
         leg2SS->AddEntry(h[histonames[0]+"_"+samples[1] ],samplesleg[1].c_str(), "l");
@@ -336,8 +421,8 @@ void makePlotsProcess(){
       string bgname = stackname + "_bg";
       //cout << stackname << endl;
       double max;
-      if(data) max = TMath::Max((h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin() ) ),(h[stackname+"_Data"]->GetBinContent(h[stackname+"_Data"]->GetMaximumBin() )+0.5*h[stackname+"_Data"]->GetBinError(h[stackname+"_Data"]->GetMaximumBin() ) ) )*1.45;
-      else max = (h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin()))*1.45;
+      if(data) max = TMath::Max((h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin() ) ),(h[stackname+"_Data"]->GetBinContent(h[stackname+"_Data"]->GetMaximumBin() )+0.5*h[stackname+"_Data"]->GetBinError(h[stackname+"_Data"]->GetMaximumBin() ) ) )*1.667;
+      else max = (h[bgname]->GetBinContent(h[bgname]->GetMaximumBin() )+0.5*h[bgname]->GetBinError(h[bgname]->GetMaximumBin()))*1.667;
       stack[stackname]->SetMaximum(max);
       stack[stackname]->Draw("hist");
       h[bgname]->Draw("sameE2");
@@ -391,9 +476,9 @@ void makePlotsProcess(){
       }
       else {
 	rat[stackname]->SetMinimum(0.);
-	rat[stackname]->SetMaximum(0.2);
+	rat[stackname]->SetMaximum(0.3333);
 	rat[stackname+"BG"]->SetMinimum(0.);
-	rat[stackname+"BG"]->SetMaximum(2.);
+	rat[stackname+"BG"]->SetMaximum(0.3333);
       }
       rat[stackname]->GetXaxis()->SetTitle(axisnames[n].c_str());
       rat[stackname]->GetXaxis()->SetTitleSize(0.16);
