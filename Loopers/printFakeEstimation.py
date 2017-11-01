@@ -29,7 +29,7 @@ for i in range(1,7):
     if splitunc:
        upvars.pop(0)
        dnvars.pop(0)
-       print bins[i-1],'$%.2f'%nominal[i],'\pm','%.2f$'%nominale[i],'\pm','%.2f$'%sumvar(upvars)
+       print bins[i-1],'$%.2f'%nominal[i],'\pm','%.2f'%nominale[i],'\pm','%.2f$'%sumvar(upvars)
     print bins[i-1],'$%.2f'%nominal[i],'\pm','%.2f$'%sumvar(upvars)
 
     
