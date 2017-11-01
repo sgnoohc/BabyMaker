@@ -62,6 +62,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("FakeEstimationFRdn");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosureup");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosuredn");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("njets_SRSS_btag");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("nbjets_SRSS_btag");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("pTl1_SRSS_btag");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("pTl2_SRSS_btag");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("Mjj_SRSS_btag");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
@@ -255,9 +257,32 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(histos, "FakeEstimationClosureup",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
       fillSRhisto(histos, "FakeEstimationClosuredn",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
        
+	float Mll = -999;
+   if(SRSS[ 0]>=0){
+  Mll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
+	histos["Mjj_SRSS_btag_"+     sn]->Fill(Mjj,      weight);
+	histos["njets_SRSS_btag_"+     sn]->Fill(nj30,      weight);
+	histos["nbjets_SRSS_btag_"+     sn]->Fill(nb,      weight);
+	histos["pTl1_SRSS_btag_"+     sn]->Fill(lep_p4()[iSS[0] ].pt(),      weight);
+	histos["pTl2_SRSS_btag_"+     sn]->Fill(lep_p4()[iSS[1] ].pt(),      weight);
+	histos["Mll_SRSS_btag_"+     sn]->Fill(Mll,      weight);
+	histos["MTmax_SRSS_btag_"+     sn]->Fill(MTmax,      weight);
+	histos["MET_SRSS_btag_"+     sn]->Fill(met_pt(), weight);
+    }
       if(isfakeSS||isfake3l)  continue; //skip fakes when filling in fake estimations from data
-
       if(skimFilePrefix.find("FakeRate")!=string::npos || isData()) {
+      if(SRSS[2]>=0) {
+         sn = "fakesPred";
+  Mll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
+	histos["njets_SRSS_btag_"+     sn]->Fill(nj30,      weight*SFSS);
+	histos["nbjets_SRSS_btag_"+     sn]->Fill(nb,      weight*SFSS);
+	histos["Mjj_SRSS_btag_"+     sn]->Fill(Mjj,      weight*SFSS);
+	histos["pTl1_SRSS_btag_"+     sn]->Fill(lep_p4()[iSS[0] ].pt(),      weight*SFSS);
+	histos["pTl2_SRSS_btag_"+     sn]->Fill(lep_p4()[iSS[1] ].pt(),      weight*SFSS);
+	histos["Mll_SRSS_btag_"+     sn]->Fill(Mll,      weight*SFSS);
+	histos["MTmax_SRSS_btag_"+     sn]->Fill(MTmax,      weight*SFSS);
+	 histos["MET_SRSS_btag_"+     sn]->Fill(met_pt(), weight*SFSS);
+      }
       //if(SFSS<0)cout<<SFSS<<endl;
       fillSRhisto(histos, "SRyield",                           "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
       fillSRhisto(histos, "FakeEstimationFRup",                "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
