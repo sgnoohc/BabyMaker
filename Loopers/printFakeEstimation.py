@@ -2,7 +2,7 @@ import ROOT
 import math
 
 f = ROOT.TFile("rootfiles/FakeRateHistograms.root","open")
-
+splitunc = True
 def sumvar(variations):
     return math.sqrt(sum([x*x for x in variations]))
 
@@ -23,6 +23,12 @@ closureup,closureupe = histlist(f.Get("FakeEstimationClosureup_fakesPred"))
 bins = ['ee','em','mm','0SFOS','1SFOS','2SFOS']
 
 for i in range(1,7):
+       
     upvars = [nominale[i],frup[i]-nominal[i],closureup[i]-nominal[i]]
     dnvars = [nominale[i],frdn[i]-nominal[i],closuredn[i]-nominal[i]]    
-    print bins[i-1],'$%.2f'%nominal[i],'\pm','%.2f$'%sumvar(upvars)
+    if splitunc:
+       upvars.pop(0)
+       dnvars.pop(0)
+    print bins[i-1],'$%.2f'%nominal[i],'\pm','%.2f$'%nominale[i],'\pm','%.2f$'%sumvar(upvars)
+
+    
