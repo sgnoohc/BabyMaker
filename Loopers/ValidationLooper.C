@@ -31,7 +31,7 @@
 using namespace std;
 using namespace tas;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   bool blindSR = true;
   bool btagreweighting = true;
@@ -188,40 +188,19 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(!passonlineTrigger) continue;
       }
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
-      string extrasn1 = skimFilePrefix;
-      string extrasn2 = skimFilePrefix;
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
+
+      string extrasn = "";
       bool passextra1 = false;
       bool passextra2 = false;
-      bool vetobg1    = false;
-      bool vetobg2    = false;
-      if(sn=="WW"){
-	extrasn1 = "WWVBS";
-	if(fname.find("wpwpjj_ewk")!=string::npos) passextra1 = true;
-      }
-      if(sn=="ttV"){
-	extrasn1 = "ttW";
-	extrasn2 = "ttZ";
-	if(fname.find("ttw_")!=string::npos) passextra1 = true;
-	if(fname.find("ttz_")!=string::npos) passextra2 = true;
-      }
-      if(skimFilePrefix=="Background"){
-	if(fname.find("wpwpjj_ewk")!=string::npos) vetobg1 = true;
-	if(fname.find("ttw_"      )!=string::npos) vetobg2 = true;
-	if(fname.find("ttz_"      )!=string::npos) vetobg2 = true;
-      }
-
+      if(fname.find("wpwpjj_ewk")!=string::npos) { passextra1 = true; extrasn  = "WWVBS"; }
+      if(fname.find("ttw_"      )!=string::npos) { passextra2 = true; extrasn  = "ttW";   }
+      if(fname.find("ttz_"      )!=string::npos) { passextra2 = true; extrasn  = "ttZ";   }
 
       float MTmax = -1;
       if(iSS.size()==2) MTmax = calcMTmax(iSS,MET);
@@ -272,14 +251,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  VR[3] = MSFOSvec.size()-countMZ;
 	  VR[2] = countMZ;
 	  if(countMZ>0){
-	    if(     skimFilePrefix=="ttV"&&passextra1)        histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(MSFOSvec[0],weight);
-	    else if(skimFilePrefix=="ttV"&&passextra2)        histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(MSFOSvec[0],weight);
-	    else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MSFOS_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(MSFOSvec[0],weight);
+	    if(!passextra2) fillhisto(histos, "MSFOS_VR3l_Z_ge2j_ge1bmed",   sample, sn2,     MSFOSvec[0], weight);
+	    else            fillhisto(histos, "MSFOS_VR3l_Z_ge2j_ge1bmed",   sample, extrasn, MSFOSvec[0], weight, false);
 	  }
 	  else {
-	    if(     skimFilePrefix=="ttV"&&passextra1)        histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(MSFOSvec[0],weight);
-	    else if(skimFilePrefix=="ttV"&&passextra2)        histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(MSFOSvec[0],weight);
-	    else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MSFOS_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(MSFOSvec[0],weight);
+	    if(!passextra2) fillhisto(histos, "MSFOS_VR3l_noZ_ge2j_ge1bmed", sample, sn2,     MSFOSvec[0], weight);
+	    else            fillhisto(histos, "MSFOS_VR3l_noZ_ge2j_ge1bmed", sample, extrasn, MSFOSvec[0], weight, false);
 	  }
 	}
       }
@@ -315,76 +292,63 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       //cout << __LINE__ << " " << sn << " " << sn2 << " " << passextra1 << " " << passextra2 << " " << extrasn1 << " " << extrasn2 << endl;
       if(VR[0]>=1){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_Z_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_Z_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",         sample, sn2,     nb,       weight);
+	else            fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",         sample, extrasn, nb,       weight, false);
       }
       if(VR[0]==0){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_noZ_ge2j_ge1b_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_noZ_ge2j_ge1b_"+     sn2]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",       sample, sn2,     nb,       weight);
+	else            fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",       sample, extrasn, nb,       weight, false);
       }
       if(VR[2]>=1){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",      sample, sn2,     nbmed,    weight);
+	else            fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",      sample, extrasn, nbmed,    weight, false);
 	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["Ptlll_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight);
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["MET_VR3l_Z_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MET_VR3l_Z_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight);
+	if(!passextra2) fillhisto(histos, "Ptlll_VR3l_Z_ge2j_ge1bmed",   sample, sn2,     ptlll,    weight);
+	else            fillhisto(histos, "Ptlll_VR3l_Z_ge2j_ge1bmed",   sample, extrasn, ptlll,    weight, false);
+	if(!passextra2) fillhisto(histos, "MET_VR3l_Z_ge2j_ge1bmed",     sample, sn2,     met_pt(), weight);
+	else            fillhisto(histos, "MET_VR3l_Z_ge2j_ge1bmed",     sample, extrasn, met_pt(), weight, false);
 	for(unsigned int i1 = 0; i1<3;++i1){
 	  for(unsigned int i2 = i1+1; i2<3;++i2){
 	    if((lep_pdgId()[i3l[i1] ])!=(-lep_pdgId()[i3l[i2] ])) continue;
 	    if(fabs((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).M()-MZ)>15.) continue;
-	    if(     skimFilePrefix=="ttV"&&passextra1)        histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn1]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
-	    else if(skimFilePrefix=="ttV"&&passextra2)        histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+extrasn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
-	    else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["ZPt_VR3l_Z_ge2j_ge1bmed_"+     sn2]->Fill((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(),weight);
+	    if(!passextra2) fillhisto(histos, "ZPt_VR3l_Z_ge2j_ge1bmed", sample, sn2,     (lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(), weight);
+	    else            fillhisto(histos, "ZPt_VR3l_Z_ge2j_ge1bmed", sample, extrasn, (lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(), weight, false);
 	  }
 	}
       }
       if(VR[2]==0){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",    sample, sn2,     nbmed,    weight);
+	else            fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",    sample, extrasn, nbmed,    weight, false);
 	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn1]->Fill(ptlll,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+extrasn2]->Fill(ptlll,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["Ptlll_VR3l_noZ_ge2j_ge1bmed_"+     sn2]->Fill(ptlll,weight);
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn1]->Fill(met_pt(),weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +extrasn2]->Fill(met_pt(),weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MET_VR3l_noZ_ge2j_ge1bmed_"  +     sn2]->Fill(met_pt(),weight);
+	if(!passextra2) fillhisto(histos, "Ptlll_VR3l_noZ_ge2j_ge1bmed", sample, sn2,     ptlll,    weight);
+	else            fillhisto(histos, "Ptlll_VR3l_noZ_ge2j_ge1bmed", sample, extrasn, ptlll,    weight, false);
+	if(!passextra2) fillhisto(histos, "MET_VR3l_noZ_ge2j_ge1bmed",   sample, sn2,     met_pt(), weight);
+	else            fillhisto(histos, "MET_VR3l_noZ_ge2j_ge1bmed",   sample, extrasn, met_pt(), weight, false);
       }
       if(VR[4]>=0){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VRSS_MjjW_ge4j_ge1b_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VRSS_MjjW_ge4j_ge1b_"+      sn]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1b",      sample, sn,      nb,       weight);
+	else            fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1b",      sample, extrasn, nb,       weight, false);
       }
       if(VR[5]>=0){
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(nb,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(nb,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["NB_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(nb,weight);
+	if(!passextra2) fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, sn,      nbmed,    weight);
+	else            fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, extrasn, nbmed,    weight, false);
 	float ptll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).Pt();
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn1]->Fill(ptll,weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+extrasn2]->Fill(ptll,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["Ptll_VRSS_MjjW_ge4j_ge1bmed_"+      sn]->Fill(ptll,weight);
-	if(     skimFilePrefix=="ttV"&&passextra1)        histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn1]->Fill(met_pt(),weight);
-	else if(skimFilePrefix=="ttV"&&passextra2)        histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +extrasn2]->Fill(met_pt(),weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg2)) histos["MET_VRSS_MjjW_ge4j_ge1bmed_" +      sn]->Fill(met_pt(),weight);
+	if(!passextra2) fillhisto(histos, "Ptll_VRSS_MjjW_ge4j_ge1bmed", sample, sn,      ptll,     weight);
+	else            fillhisto(histos, "Ptll_VRSS_MjjW_ge4j_ge1bmed", sample, extrasn, ptll,     weight, false);
+	if(!passextra2) fillhisto(histos, "MET_VRSS_MjjW_ge4j_ge1bmed",  sample, sn,      met_pt(), weight);
+	else            fillhisto(histos, "MET_VRSS_MjjW_ge4j_ge1bmed",  sample, extrasn, met_pt(), weight, false);
       }
       if(VR[6]>=0){
-	if(skimFilePrefix=="WW"&&passextra1)              histos["Detajj_VRSS_MjjL400_"+extrasn1]->Fill(Detajj,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg1)) histos["Detajj_VRSS_MjjL400_"+      sn]->Fill(Detajj,weight);
+	if(!passextra1) fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, sn,      Detajj,   weight);
+	else            fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, extrasn, Detajj,   weight, false);
       }
       if(VR[7]>=0){
-	if(skimFilePrefix=="WW"&&passextra1)              histos["MjjL_VRSS_Detajj1p5_"+extrasn1]->Fill(MjjL,weight);
-	else if(!(skimFilePrefix=="Background"&&vetobg1)) histos["MjjL_VRSS_Detajj1p5_"+      sn]->Fill(MjjL,weight);
+	if(!passextra1) fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, sn,      MjjL,    weight);
+	else            fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, extrasn, MjjL,    weight, false);
       }
       if(VR[8]>=0){
-	histos["pTlll_VR3l_noZ_METleq50_"+sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt(),weight);
-	histos["Mlll_VR3l_noZ_METleq50_" +sn2]->Fill((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M() ,weight);
+	fillhisto(histos, "pTlll_VR3l_noZ_METleq50", sample, sn2, (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt(), weight);
+	fillhisto(histos, "Mlll_VR3l_noZ_METleq50",  sample, sn2, (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M(),  weight);
       }
 
  
@@ -399,8 +363,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cout << Form( "ERROR: number of events from files (%d) is not equal to total number of events (%d)", nEventsChain, nEventsTotal ) << endl;
   }
   
-  SaveHistosToFile("rootfiles/Validations.root",histos,true,true);
-
+  SaveHistosToFile("rootfiles/Validations.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
+  
   // return
   bmark->Stop("benchmark");
   cout << endl;

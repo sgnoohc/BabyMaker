@@ -116,10 +116,10 @@ void makePlotsProcess(){
     samples.push_back("fakes");       samplesleg.push_back("non-prompt leptons");              is3lSS.push_back(0);
     //samples.push_back("fakesPred");    samplesleg.push_back("fakes from data");                 is3lSS.push_back(0);
     if(!addlostlepto3l) { samples.push_back("3lLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(2);}
-    samples.push_back("SSLL");        samplesleg.push_back("lost leptons");                     is3lSS.push_back(1);
+    samples.push_back("SSLL");        samplesleg.push_back("lost leptons");                    is3lSS.push_back(1);
     samples.push_back("true3L");      samplesleg.push_back("three leptons");                   is3lSS.push_back(2);
-    samples.push_back("trueWWW");     samplesleg.push_back("WWW bg (ttW)");                    is3lSS.push_back(2);
-    samples.push_back("trueSS");      samplesleg.push_back("W^{#pm}W^{#pm} bg (DPS,VBS,ttW)"); is3lSS.push_back(1);
+    samples.push_back("trueWWW");     samplesleg.push_back("irreducible");                     is3lSS.push_back(2);
+    samples.push_back("trueSS");      samplesleg.push_back("irreducible");                     is3lSS.push_back(1);
     //samples.push_back("WWVBS");       samplesleg.push_back("W^{#pm}W^{#pm} VBS");              is3lSS.push_back(1);
     //samples.push_back("ttZ");         samplesleg.push_back("t#bar{t}Z");                       is3lSS.push_back(0);
     //samples.push_back("ttW");         samplesleg.push_back("t#bar{t}W");                       is3lSS.push_back(0);

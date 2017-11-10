@@ -32,7 +32,7 @@ using namespace std;
 using namespace tas;
 //using namespace mt2_bisect;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   bool blindSR = true;
   bool btagreweighting = true;
@@ -214,21 +214,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(!passonlineTrigger) continue;
       }
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");   
-      bool isfakeSS = (temp =="fakes");
-      bool isfake3l = (temp2=="fakes");
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
-
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      bool isfakeSS   = (sn =="fakes");
+      bool isfake3l   = (sn2=="fakes");
+      //int subtract = 1;
+      //if( !isData()&&(!isfakeSS&&!isfake3l)) subtract = -1;
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
 
       float MTmax = -1;
       if(iSS.size()==2) MTmax = calcMTmax(iSS,MET);
@@ -262,7 +257,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       
       for(int i = 0; i<4; ++i) {
         if(!selects3l[i]){
-          if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
+          if(vetophotonprocess(fname,isphotonSS))   { SRSS[i] = -1; }
         }
         else if(vetophotonprocess(fname,isphoton3l)){ SRSS[i] = -1; }
         if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
@@ -285,20 +280,28 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
 
       if(iaSS.size()>=1&&abs(lep_pdgId()[iaSS[0] ])==11){
-	if(SRSS[ 2]>=0) histos["FakeEstimationEvsMu_"        +sn]->Fill(0.,    weight*SFSS);
-	if(SRSS[ 2]>=0) histos["ARyieldEvsMu_"               +sn]->Fill(0.,    weight);
-	if(SRSS[ 2]>=0) histos["RawARyieldEvsMu_"            +sn]->Fill(0.,    1.);
-	if(SRSS[ 3]>=0) histos["PreselFakeEstimationEvsMu_"  +sn]->Fill(0.,    weight*SFSS);
-	if(SRSS[ 3]>=0) histos["PreselARyieldEvsMu_"         +sn]->Fill(0.,    weight);
-	if(SRSS[ 3]>=0) histos["RawPreselARyieldEvsMu_"      +sn]->Fill(0.,    1.);
+	if(SRSS[ 2]>=0){
+	  fillhisto(histos, "FakeEstimationEvsMu",       sample, sn, 0., weight*SFSS);
+	  fillhisto(histos, "ARyieldEvsMu",              sample, sn, 0., weight);
+	  fillhisto(histos, "RawARyieldEvsMu",           sample, sn, 0., 1.);
+	}
+	if(SRSS[ 3]>=0){
+	  fillhisto(histos, "PreselFakeEstimationEvsMu", sample, sn, 0., weight*SFSS);
+	  fillhisto(histos, "PreselARyieldEvsMu",        sample, sn, 0., weight);
+	  fillhisto(histos, "RawPreselARyieldEvsMu",     sample, sn, 0., 1.);
+	}
       }
       if(iaSS.size()>=1&&abs(lep_pdgId()[iaSS[0] ])==13){
-	if(SRSS[ 2]>=0) histos["FakeEstimationEvsMu_"        +sn]->Fill(1.,    weight*SFSS);
-	if(SRSS[ 2]>=0) histos["RawARyieldEvsMu_"            +sn]->Fill(1.,    1.);
-	if(SRSS[ 2]>=0) histos["ARyieldEvsMu_"               +sn]->Fill(1.,    weight);
-	if(SRSS[ 3]>=0) histos["PreselFakeEstimationEvsMu_"  +sn]->Fill(1.,    weight*SFSS);
-	if(SRSS[ 3]>=0) histos["PreselARyieldEvsMu_"         +sn]->Fill(1.,    weight);
-	if(SRSS[ 3]>=0) histos["RawPreselARyieldEvsMu_"      +sn]->Fill(1.,    1.);
+	if(SRSS[ 2]>=0){
+	  fillhisto(histos, "FakeEstimationEvsMu",       sample, sn, 1., weight*SFSS);
+	  fillhisto(histos, "ARyieldEvsMu",              sample, sn, 1., weight);
+	  fillhisto(histos, "RawARyieldEvsMu",           sample, sn, 1., 1.);
+	}
+	if(SRSS[ 3]>=0){
+	  fillhisto(histos, "PreselFakeEstimationEvsMu", sample, sn, 1., weight*SFSS);
+	  fillhisto(histos, "PreselARyieldEvsMu",        sample, sn, 1., weight);
+	  fillhisto(histos, "RawPreselARyieldEvsMu",     sample, sn, 1., 1.);
+	}
       }
       if(iSS.size()==2&&isfakeSS){
 	int id = -1;
@@ -323,76 +326,76 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
 	 
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",           sn, sn2, SRSS[ 0], SR3l[ 0], weight, weight);
-	fillSRhisto(histos, "PreselSRyield",     sn, sn2, SRSS[ 1], SR3l[ 1], weight, weight);
+	fillSRhisto(histos, "SRyield",                         sample, sn, sn2, SRSS[ 0], SR3l[ 0], weight, weight);
+	fillSRhisto(histos, "PreselSRyield",                   sample, sn, sn2, SRSS[ 1], SR3l[ 1], weight, weight);
       }
-      fillSRhisto(histos, "ARyield",                           sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "FakeEstimation",                    sn, sn2, SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
-      fillSRhisto(histos, "FakeEstimationFRup",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
-      fillSRhisto(histos, "FakeEstimationClosureup",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
-      fillSRhisto(histos, "FakeEstimationClosuredn",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
-      fillSRhisto(histos, "NoConeCorrARyield",                 sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "NoConeCorrFakeEstimation",          sn, sn2, SRSS[ 2], SR3l[ 2], weight*noconeSFSS, weight*noconeSF3l);
-      fillSRhisto(histos, "NoConeCorrFakeEstimationFRup",      sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+noconeSFSSerr), weight*(noconeSF3l+noconeSF3lerr));
-      fillSRhisto(histos, "NoConeCorrFakeEstimationFRdn",      sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-noconeSFSSerr), weight*(noconeSF3l-noconeSF3lerr));
-      fillSRhisto(histos, "NoConeCorrFakeEstimationClosureup", sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+closureSSerr), weight*(noconeSF3l+closure3lerr));
-      fillSRhisto(histos, "NoConeCorrFakeEstimationClosuredn", sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-closureSSerr), weight*(noconeSF3l-closure3lerr));
-      fillSRhisto(histos, "PreselARyield",                     sn, sn2, SRSS[ 3], SR3l[ 3], weight, weight);
-      fillSRhisto(histos, "PreselFakeEstimation",              sn, sn2, SRSS[ 3], SR3l[ 3], weight*SFSS, weight*SF3l);
-      fillSRhisto(histos, "PreselFakeEstimationFRup",          sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
-      fillSRhisto(histos, "PreselFakeEstimationClosureup",     sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
-      fillSRhisto(histos, "PreselFakeEstimationClosuredn",     sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
+      fillSRhisto(histos, "ARyield",                           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
+      fillSRhisto(histos, "FakeEstimation",                    sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
+      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
+      fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
+      fillSRhisto(histos, "NoConeCorrARyield",                 sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
+      fillSRhisto(histos, "NoConeCorrFakeEstimation",          sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*noconeSFSS, weight*noconeSF3l);
+      fillSRhisto(histos, "NoConeCorrFakeEstimationFRup",      sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+noconeSFSSerr), weight*(noconeSF3l+noconeSF3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationFRdn",      sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-noconeSFSSerr), weight*(noconeSF3l-noconeSF3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationClosureup", sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS+closureSSerr), weight*(noconeSF3l+closure3lerr));
+      fillSRhisto(histos, "NoConeCorrFakeEstimationClosuredn", sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(noconeSFSS-closureSSerr), weight*(noconeSF3l-closure3lerr));
+      fillSRhisto(histos, "PreselARyield",                     sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight, weight);
+      fillSRhisto(histos, "PreselFakeEstimation",              sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*SFSS, weight*SF3l);
+      fillSRhisto(histos, "PreselFakeEstimationFRup",          sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosureup",     sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosuredn",     sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
       if(SRSS[ 1]>=0){
 	int t = SRSS[ 1];
 	if(fabs(Mjj   -80.)<20.)  t = -1;
-	fillSRhisto(histos, "PreselSRyield_Mjjsideband",   sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "PreselSRyield_Mjjsideband",                  sample, sn, sn2, t, -1, weight, weight);
 	if(MjjL>400.||Detajj>1.5) t = -1;
 	if(SRSS[ 1]==0&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
 	if(SRSS[ 1]==1&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=30.||MTmax<=90.)) t = -1;
 	if(SRSS[ 1]==2&&(               (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
-	fillSRhisto(histos, "SRyield_Mjjsideband",   sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "SRyield_Mjjsideband",                        sample, sn, sn2, t, -1, weight, weight);
 	t = SRSS[ 1];
 	if(MET.Pt()>40.) t = -1;
 	if(fabs(Mjj   -80.)<20.)  t = -1;
-	fillSRhisto(histos, "PreselSRyield_MjjsidebandlowMET",   sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "PreselSRyield_MjjsidebandlowMET",            sample, sn, sn2, t, -1, weight, weight);
 	if(MjjL>400.||Detajj>1.5) t = -1;
 	if(SRSS[ 1]==0&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
 	if(SRSS[ 1]==1&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=30.||MTmax<=90.)) t = -1;
 	if(SRSS[ 1]==2&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()<=40.)            ) t = -1;
-	fillSRhisto(histos, "SRyield_MjjsidebandlowMET",   sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "SRyield_MjjsidebandlowMET",                  sample, sn, sn2, t, -1, weight, weight);
       }
       if(SRSS[ 3]>=0){
 	int t = SRSS[ 3];
 	if(fabs(Mjj   -80.)<20.)  t = -1;
-	fillSRhisto(histos, "PreselARyield_Mjjsideband",              sn, sn2, t, -1, weight, weight);
-	fillSRhisto(histos, "PreselFakeEstimation_Mjjsideband",       sn, sn2, t, -1, weight*SFSS, weight*SF3l);
-	fillSRhisto(histos, "PreselFakeEstimationFRup_Mjjsideband",   sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-	fillSRhisto(histos, "PreselFakeEstimationFRdn_Mjjsideband",   sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+	fillSRhisto(histos, "PreselARyield_Mjjsideband",                  sample, sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "PreselFakeEstimation_Mjjsideband",           sample, sn, sn2, t, -1, weight*SFSS, weight*SF3l);
+	fillSRhisto(histos, "PreselFakeEstimationFRup_Mjjsideband",       sample, sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+	fillSRhisto(histos, "PreselFakeEstimationFRdn_Mjjsideband",       sample, sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
 	if(MjjL>400.||Detajj>1.5) t = -1;
 	if(SRSS[ 3]==0&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=40.)            ) t = -1;
 	if(SRSS[ 3]==1&&(MET.Pt()<=40.||(lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=30.||MTmax<=90.)) t = -1;
 	if(SRSS[ 3]==2&&(               (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=40.)            ) t = -1;
-	fillSRhisto(histos, "ARyield_Mjjsideband",              sn, sn2, t, -1, weight, weight);
-	fillSRhisto(histos, "FakeEstimation_Mjjsideband",       sn, sn2, t, -1, weight*SFSS, weight*SF3l);
-	fillSRhisto(histos, "FakeEstimationFRup_Mjjsideband",   sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-	fillSRhisto(histos, "FakeEstimationFRdn_Mjjsideband",   sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+	fillSRhisto(histos, "ARyield_Mjjsideband",                        sample, sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "FakeEstimation_Mjjsideband",                 sample, sn, sn2, t, -1, weight*SFSS, weight*SF3l);
+	fillSRhisto(histos, "FakeEstimationFRup_Mjjsideband",             sample, sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+	fillSRhisto(histos, "FakeEstimationFRdn_Mjjsideband",             sample, sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
 	t = SRSS[ 3];
 	if(MET.Pt()>40.) t = -1;
 	if(fabs(Mjj   -80.)<20.)  t = -1;
-	fillSRhisto(histos, "PreselARyield_MjjsidebandlowMET",              sn, sn2, t, -1, weight, weight);
-	fillSRhisto(histos, "PreselFakeEstimation_MjjsidebandlowMET",       sn, sn2, t, -1, weight*SFSS, weight*SF3l);
-	fillSRhisto(histos, "PreselFakeEstimationFRup_MjjsidebandlowMET",   sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-	fillSRhisto(histos, "PreselFakeEstimationFRdn_MjjsidebandlowMET",   sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+	fillSRhisto(histos, "PreselARyield_MjjsidebandlowMET",            sample, sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "PreselFakeEstimation_MjjsidebandlowMET",     sample, sn, sn2, t, -1, weight*SFSS, weight*SF3l);
+	fillSRhisto(histos, "PreselFakeEstimationFRup_MjjsidebandlowMET", sample, sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+	fillSRhisto(histos, "PreselFakeEstimationFRdn_MjjsidebandlowMET", sample, sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
 	if(MjjL>400.||Detajj>1.5) t = -1;
 	if(SRSS[ 3]==0&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=40.)            ) t = -1;
 	if(SRSS[ 3]==1&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=30.||MTmax<=90.)) t = -1;
 	if(SRSS[ 3]==2&&(MET.Pt()>40.||(lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M()<=40.)            ) t = -1;
-	fillSRhisto(histos, "ARyield_MjjsidebandlowMET",              sn, sn2, t, -1, weight, weight);
-	fillSRhisto(histos, "FakeEstimation_MjjsidebandlowMET",       sn, sn2, t, -1, weight*SFSS, weight*SF3l);
-	fillSRhisto(histos, "FakeEstimationFRup_MjjsidebandlowMET",   sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-	fillSRhisto(histos, "FakeEstimationFRdn_MjjsidebandlowMET",   sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
+	fillSRhisto(histos, "ARyield_MjjsidebandlowMET",                  sample, sn, sn2, t, -1, weight, weight);
+	fillSRhisto(histos, "FakeEstimation_MjjsidebandlowMET",           sample, sn, sn2, t, -1, weight*SFSS, weight*SF3l);
+	fillSRhisto(histos, "FakeEstimationFRup_MjjsidebandlowMET",       sample, sn, sn2, t, -1, weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
+	fillSRhisto(histos, "FakeEstimationFRdn_MjjsidebandlowMET",       sample, sn, sn2, t, -1, weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
       }
       
     }//event loop
@@ -406,7 +409,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cout << Form( "ERROR: number of events from files (%d) is not equal to total number of events (%d)", nEventsChain, nEventsTotal ) << endl;
   }
 
-  SaveHistosToFile("rootfiles/FakeRateHistograms.root",histos,true,true);
+  SaveHistosToFile("rootfiles/FakeRateHistograms.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
 
   // return
   bmark->Stop("benchmark");

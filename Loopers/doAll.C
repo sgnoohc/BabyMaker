@@ -2,15 +2,15 @@
 
   gROOT->ProcessLine(".L Functions.C+"); 
 
-  //gROOT->ProcessLine(".L Nminus1Looper.C+");
-  //gROOT->ProcessLine(".L ValidationLooper.C+");
   //gROOT->ProcessLine(".L Skimmer.C+");
-  //gROOT->ProcessLine(".L SRLooper.C+");
+  gROOT->ProcessLine(".L SRLooper.C+");
+  //gROOT->ProcessLine(".L Nminus1Looper.C+");
   //gROOT->ProcessLine(".L FakeRateMethod.C+");
-  //gROOT->ProcessLine(".L WWTTWSplitter.C+");
+  //gROOT->ProcessLine(".L FakeRateBtagVal.C+");
   //gROOT->ProcessLine(".L Check3lWZCR.C+");
-    gROOT->ProcessLine(".L FakeRateBtagVal.C+");
-  const unsigned int chainsize = 19;
+  //gROOT->ProcessLine(".L WWTTWSplitter.C+");
+  //gROOT->ProcessLine(".L ValidationLooper.C+");
+  const unsigned int chainsize = 17;
   TChain *ch[chainsize];
   string dataset[chainsize];
 
@@ -130,59 +130,21 @@
   myhelper = babylocation + "wgstar_lnee_012jets_madgraph*.root";       ch[15]->Add(myhelper.c_str());
   myhelper = babylocation + "wgstar_lnmm_012jets_madgraph*.root";       ch[15]->Add(myhelper.c_str());
 
-   
-  dataset[16] = "Background";
+  dataset[16] = "Data";
   ch[16] = new TChain("t");
-  ch[16]->Add(ch[2]);
-  ch[16]->Add(ch[3]);
-  ch[16]->Add(ch[4]);
-  ch[16]->Add(ch[5]);
-  ch[16]->Add(ch[6]);
-  ch[16]->Add(ch[7]);
-  ch[16]->Add(ch[8]);
-  ch[16]->Add(ch[9]);
-  ch[16]->Add(ch[10]);
-  ch[16]->Add(ch[11]);
-  ch[16]->Add(ch[12]);
-  ch[16]->Add(ch[13]);
-  ch[16]->Add(ch[14]);
-  ch[16]->Add(ch[15]);
+  myhelper = babylocation + "data_*ee*.root";          ch[16]->Add(myhelper.c_str());
+  myhelper = babylocation + "data_*em*.root";          ch[16]->Add(myhelper.c_str());
+  myhelper = babylocation + "data_*mm*.root";          ch[16]->Add(myhelper.c_str());
+  //myhelper = babylocation + "data_*ph*.root";          ch[16]->Add(myhelper.c_str());
 
-  dataset[17] = "Data";
-  ch[17] = new TChain("t");
-  myhelper = babylocation + "data_*ee*.root";          ch[17]->Add(myhelper.c_str());
-  myhelper = babylocation + "data_*em*.root";          ch[17]->Add(myhelper.c_str());
-  myhelper = babylocation + "data_*mm*.root";          ch[17]->Add(myhelper.c_str());
-  //myhelper = babylocation + "data_*ph*.root";          ch[17]->Add(myhelper.c_str());
-  
-  dataset[18] = "FakeRate";
-  ch[18] = new TChain("t");
-  ch[18]->Add(ch[2]);
-  ch[18]->Add(ch[3]);
-  ch[18]->Add(ch[4]);
-  ch[18]->Add(ch[5]);
-  ch[18]->Add(ch[6]);
-  ch[18]->Add(ch[7]);
-  ch[18]->Add(ch[8]);
-  ch[18]->Add(ch[9]);
-  ch[18]->Add(ch[10]);
-  ch[18]->Add(ch[11]);
-  ch[18]->Add(ch[12]);
-  ch[18]->Add(ch[13]);
-  ch[18]->Add(ch[14]);
-  ch[18]->Add(ch[15]);
-  myhelper = babylocation + "data_*ee*.root";          ch[18]->Add(myhelper.c_str());
-  myhelper = babylocation + "data_*em*.root";          ch[18]->Add(myhelper.c_str());
-  myhelper = babylocation + "data_*mm*.root";          ch[18]->Add(myhelper.c_str());
-
+  int j = 0;
   for(int i = 0; i<chainsize; ++i){
-//    if(i!=18) continue;
     //if(i>=3&&i<=15) continue;//don't run over individual samples (but for signal) - run over combined background instead
     //if activating above flag, run over ttV and WW too for validation looper and WWTTW splitter 
     TChain *mych = ch[i];
     string mydataset = dataset[i];
     cout << "Now entering " << mydataset << endl;
-    ScanChain(mych,true,-1,mydataset); 
-
+    ScanChain(mych,true,-1,mydataset,j); 
+    ++j;
   }
 }

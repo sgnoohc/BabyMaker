@@ -123,6 +123,9 @@ bool sortMSFOS(float M1, float M2){
 bool sortPt(int i1, int i2){
   return lep_p4()[i1].Pt()>=lep_p4()[i2].Pt();
 }
+bool sortDecreasing(double i1, double i2){
+  return i1>=i2;
+}
 
 int numJ(float jetpt, float jeteta, float csv, int jec){
   int num = 0;
@@ -572,10 +575,11 @@ bool splitVH(string filename){
 }
 
 string process(string filename, bool SS, vector<int> tightlep, vector<int> looselep){
-  if(splitVH(filename))                               return "WHtoWWW";//be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("www_2l_")         !=string::npos) return "WWW";    //be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("www_incl_amcnlo_")!=string::npos) return "WWWv2";  //be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("data_")           !=string::npos) return "Data";  //be careful not to double-count (for Hannsjoerg only)
+  if(isData())                                        return "Data";
+  if(splitVH(filename))                               return "WHtoWWW";
+  if(filename.find("www_2l_")         !=string::npos) return "WWW";
+  if(filename.find("www_incl_amcnlo_")!=string::npos) return "WWWv2";
+  if(filename.find("data_")           !=string::npos) return "Data"; 
   if(SS){
     if((tightlep.size()+looselep.size())<2)           return "not2l";
     int l1, l2;
@@ -1033,95 +1037,54 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
   if(histonames.size()!=hup.size()) return histos;
   for(unsigned int i = 0; i<histonames.size(); ++i){
     string mapname = histonames[i];
+    mapname = histonames[i] + "_"+samplename;
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_fakesPred";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_Other";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_WHtoWWW";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_trueSS";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_chargeflips";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_SSLL";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_fakes";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_photonfakes";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_others";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_trueWWW";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_3lLL";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_true3L";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     if(splitWW==1){
-      if(samplename=="WW"){
-	mapname = histonames[i] + "_WWRest";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_otherWWSS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWVBS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWDPS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-      if(samplename.find("ttV")!=string::npos){
-	mapname = histonames[i] + "_ttVSS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_OtherttV";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_ttV3l";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
+      mapname = histonames[i] + "_WWRest";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_otherWWSS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_WWVBS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_WWDPS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_ttVSS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_OtherttV";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_ttV3l";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     }
     else if(splitWW==2){
-      if(samplename=="WW"){
-	//mapname = histonames[i] + "_WW";//loaded later
-	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWVBS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-      if(samplename.find("ttV")!=string::npos){
-	mapname = histonames[i] + "_ttW";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_ttZ";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	//mapname = histonames[i] + "_ttV";//loaded later
-	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-    }
-    if(samplename.find("Other")!=string::npos){
-      mapname = histonames[i] + "_Other";
+      mapname = histonames[i] + "_WWVBS";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_WHtoWWW";
+      mapname = histonames[i] + "_ttW";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    }
-    else if(samplename.find("FakeRate")!=string::npos){
-      mapname = histonames[i] + "_fakesPred";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_Data";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueSS";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_chargeflips";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_SSLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakes";//jetfakes
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_photonfakes";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_others";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueWWW";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_3lLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_true3L";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    }
-    else if(samplename.find("Background")!=string::npos){
-      mapname = histonames[i] + "_trueSS";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_chargeflips";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_SSLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakes";//jetfakes
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_photonfakes";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_others";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueWWW";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_3lLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_true3L";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakesPred";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    } else {
-      mapname = histonames[i] + "_"+samplename;
+      mapname = histonames[i] + "_ttZ";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     }
   }
@@ -1131,20 +1094,44 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
   return histos;
 }
 
-bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l){
+bool deleteHistograms(map<string, TH1D*> histos){
+  for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h) delete h->second;
+  return true;
+}
+
+bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l, bool fillsample){
   float weight2 = weight3l;
   if(weight3l<-1e6) weight2 = weight;
-  if(SRSS==0) histos[histoname+"_"+sn ]->Fill(0.,weight);
-  if(SRSS==1) histos[histoname+"_"+sn ]->Fill(1.,weight);
-  if(SRSS==2) histos[histoname+"_"+sn ]->Fill(2.,weight);
-  if(SR3l==0) histos[histoname+"_"+sn2]->Fill(3.,weight2);
-  if(SR3l==1) histos[histoname+"_"+sn2]->Fill(4.,weight2);
-  if(SR3l==2) histos[histoname+"_"+sn2]->Fill(5.,weight2);
+  if(fillsample){
+    if(SRSS==0)   histos[histoname+"_"+sample]->Fill(0.,weight);
+    if(SRSS==1)   histos[histoname+"_"+sample]->Fill(1.,weight);
+    if(SRSS==2)   histos[histoname+"_"+sample]->Fill(2.,weight);
+    if(SR3l==0)   histos[histoname+"_"+sample]->Fill(3.,weight2);
+    if(SR3l==1)   histos[histoname+"_"+sample]->Fill(4.,weight2);
+    if(SR3l==2)   histos[histoname+"_"+sample]->Fill(5.,weight2);
+  }
+  if(sample!=sn){
+    if(SRSS==0) histos[histoname+"_"+sn    ]->Fill(0.,weight);
+    if(SRSS==1) histos[histoname+"_"+sn    ]->Fill(1.,weight);
+    if(SRSS==2) histos[histoname+"_"+sn    ]->Fill(2.,weight);
+  }
+  if(sample!=sn2){
+    if(SR3l==0) histos[histoname+"_"+sn2   ]->Fill(3.,weight2);
+    if(SR3l==1) histos[histoname+"_"+sn2   ]->Fill(4.,weight2);
+    if(SR3l==2) histos[histoname+"_"+sn2   ]->Fill(5.,weight2);
+  }
   if(SRSS>=0||SR3l>=0) return true;
   else return false;
 }
 
-bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow, bool addoverflow){
+bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample){
+  if(fillsample) histos[  histoname+"_"+sample]->Fill(value,weight);
+  if(sample!=sn)
+    histos[histoname+"_"+sn    ]->Fill(value,weight);
+  return true;
+}
+
+bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow, bool addoverflow, bool deletefile){
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
     //add overflow
     if(addoverflow){
@@ -1158,13 +1145,25 @@ bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderf
     }
   }
   
-  TFile *f = new TFile(filename.c_str(),"UPDATE");
+  TFile *f;
+  if(deletefile) f = new TFile(filename.c_str(),"RECREATE");
+  else           f = new TFile(filename.c_str(),"UPDATE");
   f->cd();
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
-    h->second->Write(h->first.c_str(),TObject::kOverwrite);
+    if(f->GetListOfKeys()->Contains(h->first.c_str())){
+      h->second->SetName((h->first+"new").c_str());
+      TH1D *hold = (TH1D*)f->Get(h->first.c_str());
+      hold->SetName((h->first+"old").c_str());
+      TH1D *hnew = (TH1D*)hold->Clone(h->first.c_str());
+      hnew->Add(h->second);
+      hnew->Write(h->first.c_str(),TObject::kOverwrite);
+    }
+    else
+      h->second->Write(h->first.c_str(),TObject::kOverwrite);
   }
   f->Close();
   cout << "Saved histos in " << f->GetName() << endl;
+  delete f;
   return true;
 }
 

@@ -193,7 +193,7 @@ void makeFinalPlot(){
     leg1->SetLineWidth(2);
     leg1->SetFillColor(0);
     leg1->SetFillStyle(1001);
-    leg1->AddEntry(WWorWWW, "W^{#pm}W^{#pm} VBS/DPS/ttX",   "f");
+    leg1->AddEntry(WWorWWW, "irreducible",   "f");
     leg1->AddEntry(LL3l   , "lost-leptons/three-leptons",   "f");
     leg1->AddEntry(fakes  , "non-prompt leptons",           "f");
     leg1->AddEntry(gamma  , "#gamma #rightarrow l",         "f");
@@ -209,7 +209,7 @@ void makeFinalPlot(){
     leg2->SetFillStyle(1001);
     
     leg2->AddEntry(qflips , "charge misassignment",         "f");
-    leg2->AddEntry(WWW    , "W^{#pm}W^{#pm}W^{#mp} signal", "l");
+    leg2->AddEntry(WWW    , "W^{#pm}W^{#pm}W^{#mp} signal (stacked)", "l");
     leg2->AddEntry(Data   , "Data",                        "ep");
     
         TCanvas *c1 = new TCanvas("c1", "",334,192,600,600);
