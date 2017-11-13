@@ -1528,3 +1528,19 @@ void storeeventlist(string output, string sample, std::ostringstream *&streamEE,
   delete stream1SFOS;
   delete stream2SFOS;
 }
+
+int calcNSFOS(std::vector<int> tightlep)
+{
+  bool OS01 = (lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ]<0); bool SF01 = (abs(lep_pdgId()[tightlep[0] ])==abs(lep_pdgId()[tightlep[1] ]));
+  bool OS02 = (lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[2] ]<0); bool SF02 = (abs(lep_pdgId()[tightlep[0] ])==abs(lep_pdgId()[tightlep[2] ]));
+  bool OS12 = (lep_pdgId()[tightlep[1] ]*lep_pdgId()[tightlep[2] ]<0); bool SF12 = (abs(lep_pdgId()[tightlep[1] ])==abs(lep_pdgId()[tightlep[2] ]));
+  int SFOScounter = 0;
+  if(OS01&&SF01) ++SFOScounter;
+  if(OS02&&SF02) ++SFOScounter;
+  if(OS12&&SF12) ++SFOScounter;
+  if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<20.) SFOScounter = -1;
+  if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<20.) SFOScounter = -1;
+  if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<20.) SFOScounter = -1;
+  if(abs(lep_charge()[tightlep[0] ]+lep_charge()[tightlep[1] ]+lep_charge()[tightlep[2] ])==3) SFOScounter = -1;
+  return SFOScounter;
+}

@@ -8,6 +8,7 @@
 #include "rooutil/dorky.h"
 #include "rooutil/goodrun.h"
 #include "rooutil/eventlist.h"
+#include "rooutil/ttreex.h"
 
 #include "CMS3_WWW0116.h"
 #include "Functions.h"
@@ -27,19 +28,24 @@ public:
     typedef std::vector<int> IdxList;
 
     //---------------------------------------------------------------------------------------------
-    // Data samples related variables
+    // I/O related variables
     //---------------------------------------------------------------------------------------------
     TString babydir;
     TString dataset_to_run_over; // This or the following will need to be set.
     TString input_root_file_to_run_over; // This or the option before will need to be set.
     TString output_name;
+    TFile* ofile;
+    TTree* otree;
     TChain* chain;
     std::map<TString, std::vector<TString>> datasetMap;
     RooUtil::Looper<CMS3> looper;
+    RooUtil::EventList eventlist;
+    RooUtil::TTreeX ttreex;
 
     //---------------------------------------------------------------------------------------------
     // Configurational related variables
     //---------------------------------------------------------------------------------------------
+    bool is_initialized;
     TString eventlist_file_path;
     bool blindSR;
     bool storeeventnumbers;
@@ -89,6 +95,9 @@ public:
     float MTmax_dn;
     float MTmax3l;
 
+    // Lepton + Lepton variables
+    float MllSS;
+
     // Weights
     float weight;
     float btagsf;
@@ -130,10 +139,13 @@ public:
     // Functions
     //---------------------------------------------------------------------------------------------
     WWWAnalysis();
+    void init();
+    void createBranches();
     void run();
+    void setBranches();
     void setDatasetMap();
     void setChain();
-    bool setStdVariables();
+    bool calcStdVariables();
     void checkEvent();
     TString getSampleNameFromFileName(TString);
 };
@@ -205,6 +217,9 @@ int main(int argc, char* argv[])
         // Set the eventlist.txt path
         wwwanalysis.eventlist_file_path = options["eventlist"].as<std::string>();
 
+        // Initialize the analysis module
+        wwwanalysis.init();
+
         // Run the looper!
         wwwanalysis.run();
 
@@ -219,38 +234,178 @@ int main(int argc, char* argv[])
 }
 
 //#################################################################################################
+void WWWAnalysis::init()
+{
+    if (!is_initialized)
+    {
+        // Set good runs list
+        set_goodrun_file_json("data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt");
+
+        // Event lists to check
+        eventlist.load(eventlist_file_path);
+
+        // From the options set create the TChain and load all the relevant root files.
+        setChain();
+
+        // Set the looper instance
+        looper.init(chain, &cms3, -1);
+
+        // Set the output file
+        ofile = new TFile(output_name, "recreate");
+
+        // Create output TTree
+        otree = new TTree("t", "WWWAnalysis Output TTree");
+
+        // Hook the otree to TTreeX
+        ttreex.setTree(otree);
+
+        // Create branches to the output TTree
+        createBranches();
+
+        // Set the is_initialized
+        is_initialized = true;
+    }
+    else
+    {
+        RooUtil::warning("[WWWAnalysis::init()] WWWAnalysis is already initialized! Why are you asking to initialize again?");
+    }
+}
+
+//#################################################################################################
+// Create variables to output to the TTree
+void WWWAnalysis::createBranches()
+{
+    ttreex.createBranch<LV>("tight_ss_lep0");
+    ttreex.createBranch<LV>("tight_ss_lep1");
+    ttreex.createBranch<LV>("loose_ss_lep0");
+    ttreex.createBranch<LV>("loose_ss_lep1");
+    ttreex.createBranch<LV>("veto_ss_lep0");
+    ttreex.createBranch<LV>("veto_ss_lep1");
+    ttreex.createBranch<LV>("looseveto_ss_lep0");
+    ttreex.createBranch<LV>("looseveto_ss_lep1");
+
+    ttreex.createBranch<LV>("tight_3l_lep0");
+    ttreex.createBranch<LV>("tight_3l_lep1");
+    ttreex.createBranch<LV>("tight_3l_lep2");
+    ttreex.createBranch<LV>("loose_3l_lep0");
+    ttreex.createBranch<LV>("loose_3l_lep1");
+    ttreex.createBranch<LV>("loose_3l_lep2");
+    ttreex.createBranch<LV>("veto_3l_lep0");
+    ttreex.createBranch<LV>("veto_3l_lep1");
+    ttreex.createBranch<LV>("veto_3l_lep2");
+    ttreex.createBranch<LV>("looseveto_3l_lep0");
+    ttreex.createBranch<LV>("looseveto_3l_lep1");
+    ttreex.createBranch<LV>("looseveto_3l_lep2");
+
+    ttreex.createBranch<int>("tight_ss_lep0_pdgid");
+    ttreex.createBranch<int>("tight_ss_lep1_pdgid");
+    ttreex.createBranch<int>("loose_ss_lep0_pdgid");
+    ttreex.createBranch<int>("loose_ss_lep1_pdgid");
+    ttreex.createBranch<int>("veto_ss_lep0_pdgid");
+    ttreex.createBranch<int>("veto_ss_lep1_pdgid");
+    ttreex.createBranch<int>("looseveto_ss_lep0_pdgid");
+    ttreex.createBranch<int>("looseveto_ss_lep1_pdgid");
+
+    ttreex.createBranch<int>("tight_3l_lep0_pdgid");
+    ttreex.createBranch<int>("tight_3l_lep1_pdgid");
+    ttreex.createBranch<int>("tight_3l_lep2_pdgid");
+    ttreex.createBranch<int>("loose_3l_lep0_pdgid");
+    ttreex.createBranch<int>("loose_3l_lep1_pdgid");
+    ttreex.createBranch<int>("loose_3l_lep2_pdgid");
+    ttreex.createBranch<int>("veto_3l_lep0_pdgid");
+    ttreex.createBranch<int>("veto_3l_lep1_pdgid");
+    ttreex.createBranch<int>("veto_3l_lep2_pdgid");
+    ttreex.createBranch<int>("looseveto_3l_lep0_pdgid");
+    ttreex.createBranch<int>("looseveto_3l_lep1_pdgid");
+    ttreex.createBranch<int>("looseveto_3l_lep2_pdgid");
+
+    ttreex.createBranch<LV>("MET");
+    ttreex.createBranch<LV>("MET_up");
+    ttreex.createBranch<LV>("MET_dn");
+
+    ttreex.createBranch<int>("nj");
+    ttreex.createBranch<int>("nb");
+    ttreex.createBranch<int>("nj30");
+    ttreex.createBranch<float>("Mjj");
+    ttreex.createBranch<float>("MjjL");
+    ttreex.createBranch<float>("Detajj");
+
+    ttreex.createBranch<int>("nj_up");
+    ttreex.createBranch<int>("nb_up");
+    ttreex.createBranch<int>("nj30_up");
+    ttreex.createBranch<float>("Mjj_up");
+    ttreex.createBranch<float>("MjjL_up");
+    ttreex.createBranch<float>("Detajj_up");
+
+    ttreex.createBranch<int>("nj_dn");
+    ttreex.createBranch<int>("nb_dn");
+    ttreex.createBranch<int>("nj30_dn");
+    ttreex.createBranch<float>("Mjj_dn");
+    ttreex.createBranch<float>("MjjL_dn");
+    ttreex.createBranch<float>("Detajj_dn");
+
+    ttreex.createBranch<float>("MTmax");
+    ttreex.createBranch<float>("MTmax_up");
+    ttreex.createBranch<float>("MTmax_dn");
+    ttreex.createBranch<float>("MTmax3l");
+
+    ttreex.createBranch<float>("weight");
+    ttreex.createBranch<float>("btagsf");
+    ttreex.createBranch<float>("btagsf_hfup");
+    ttreex.createBranch<float>("btagsf_hfdn");
+    ttreex.createBranch<float>("btagsf_lfup");
+    ttreex.createBranch<float>("btagsf_lfdn");
+    ttreex.createBranch<float>("purewgt");
+    ttreex.createBranch<float>("purewgt_up");
+    ttreex.createBranch<float>("purewgt_dn");
+    ttreex.createBranch<float>("lepsf");
+    ttreex.createBranch<float>("lepsf_err");
+    ttreex.createBranch<float>("trigsf");
+    ttreex.createBranch<float>("trigsf_err");
+
+    ttreex.createBranch<bool>("pass_offline_trig");
+    ttreex.createBranch<bool>("pass_online_trig");
+    ttreex.createBranch<bool>("pass_filters");
+    ttreex.createBranch<bool>("pass_goodrun");
+
+    ttreex.createBranch<TString>("sample_name");
+    ttreex.createBranch<TString>("process_name_ss");
+    ttreex.createBranch<TString>("process_name_3l");
+    ttreex.createBranch<bool>("isphotonSS");
+    ttreex.createBranch<bool>("isphoton3l");
+
+    ttreex.createBranch<int>("run_number");
+    ttreex.createBranch<int>("lumiblock_number");
+    ttreex.createBranch<int>("event_number");
+}
+
+//#################################################################################################
 void WWWAnalysis::run()
 {
-    // Set good runs list
-    set_goodrun_file_json("data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt");
-    // Event lists to check
-    RooUtil::EventList eventlist(eventlist_file_path);
-    // From the options set create the TChain and load all the relevant root files.
-    setChain();
-    // Set the looper instance
-    looper.init(chain, &cms3, -1);
     // Loop over events.
     while (looper.nextEvent())
     {
         // Computes standard variables and returns whether it passes basic selections.
         // If it does not pass basical selections, then skip.
-        if (!setStdVariables()) continue;
+        if (!calcStdVariables()) continue;
+
+        // Set the branches to TTree
+        setBranches();
+
+        // Fill the TTree
+        ttreex.fill();
 
         // checking events with run/lumi/evt matching in the list provided.
-        bool checkevent = eventlist.has(tas::run(), tas::lumi(), tas::evt());
-        if (checkevent)
-        {
-            std::cout << "Checking the event" << std::endl;
-            std::cout << tas::run() << " " << tas::lumi() << " " << tas::evt() << std::endl;
-        }
-
-
+        if (eventlist.has(tas::run(), tas::lumi(), tas::evt())) checkEvent();
     }
+
+    // Save the TTree
+    ttreex.save(ofile);
 }
 
 //#################################################################################################
 // Sets standard variables and returns false if fails preselection.
-bool WWWAnalysis::setStdVariables()
+bool WWWAnalysis::calcStdVariables()
 {
     using namespace tas;
 
@@ -267,6 +422,7 @@ bool WWWAnalysis::setStdVariables()
     if (nVert() < 0)              { return false;; }
     if (looper.getCurrentFileName().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { return false;; }
     if (looper.getCurrentFileName().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { return false;; }
+    if (list_tight_3l_lep_idx.size() < 1) { return false; }
     if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false;; }
 
     // Set MET
@@ -327,6 +483,115 @@ bool WWWAnalysis::setStdVariables()
     MTmax3l = calcMTmax(list_tight_3l_lep_idx, MET, true);
 
     return true;
+}
+
+//#################################################################################################
+// Set the TTreeX branches with the variables calculated from calcStdVariables()(
+void WWWAnalysis::setBranches()
+{
+    using namespace tas;
+    ttreex.setBranch<LV>("tight_ss_lep0"     , list_tight_ss_lep_idx.size() > 0 ? lep_p4()[list_tight_ss_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("tight_ss_lep1"     , list_tight_ss_lep_idx.size() > 1 ? lep_p4()[list_tight_ss_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("loose_ss_lep0"     , list_loose_ss_lep_idx.size() > 0 ? lep_p4()[list_loose_ss_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("loose_ss_lep1"     , list_loose_ss_lep_idx.size() > 1 ? lep_p4()[list_loose_ss_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("veto_ss_lep0"      , list_veto_ss_lep_idx.size() > 0 ? lep_p4()[list_veto_ss_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("veto_ss_lep1"      , list_veto_ss_lep_idx.size() > 1 ? lep_p4()[list_veto_ss_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("looseveto_ss_lep0" , list_looseveto_ss_lep_idx.size() > 0 ? lep_p4()[list_looseveto_ss_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("looseveto_ss_lep1" , list_looseveto_ss_lep_idx.size() > 1 ? lep_p4()[list_looseveto_ss_lep_idx[1]] : LV());
+
+    ttreex.setBranch<LV>("tight_3l_lep0"     , list_tight_3l_lep_idx.size() > 0 ? lep_p4()[list_tight_3l_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("tight_3l_lep1"     , list_tight_3l_lep_idx.size() > 1 ? lep_p4()[list_tight_3l_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("tight_3l_lep2"     , list_tight_3l_lep_idx.size() > 2 ? lep_p4()[list_tight_3l_lep_idx[2]] : LV());
+    ttreex.setBranch<LV>("loose_3l_lep0"     , list_loose_3l_lep_idx.size() > 0 ? lep_p4()[list_loose_3l_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("loose_3l_lep1"     , list_loose_3l_lep_idx.size() > 1 ? lep_p4()[list_loose_3l_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("loose_3l_lep2"     , list_loose_3l_lep_idx.size() > 2 ? lep_p4()[list_loose_3l_lep_idx[2]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep0"      , list_veto_3l_lep_idx.size() > 0 ? lep_p4()[list_veto_3l_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep1"      , list_veto_3l_lep_idx.size() > 1 ? lep_p4()[list_veto_3l_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep2"      , list_veto_3l_lep_idx.size() > 2 ? lep_p4()[list_veto_3l_lep_idx[2]] : LV());
+    ttreex.setBranch<LV>("looseveto_3l_lep0" , list_looseveto_3l_lep_idx.size() > 0 ? lep_p4()[list_looseveto_3l_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("looseveto_3l_lep1" , list_looseveto_3l_lep_idx.size() > 1 ? lep_p4()[list_looseveto_3l_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("looseveto_3l_lep2" , list_looseveto_3l_lep_idx.size() > 2 ? lep_p4()[list_looseveto_3l_lep_idx[2]] : LV());
+
+    ttreex.setBranch<int>("tight_ss_lep0_pdgid"     , list_tight_ss_lep_idx.size() > 0 ? lep_pdgId()[list_tight_ss_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("tight_ss_lep1_pdgid"     , list_tight_ss_lep_idx.size() > 1 ? lep_pdgId()[list_tight_ss_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("loose_ss_lep0_pdgid"     , list_loose_ss_lep_idx.size() > 0 ? lep_pdgId()[list_loose_ss_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("loose_ss_lep1_pdgid"     , list_loose_ss_lep_idx.size() > 1 ? lep_pdgId()[list_loose_ss_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("veto_ss_lep0_pdgid"      , list_veto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_veto_ss_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("veto_ss_lep1_pdgid"      , list_veto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_veto_ss_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("looseveto_ss_lep0_pdgid" , list_looseveto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_looseveto_ss_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("looseveto_ss_lep1_pdgid" , list_looseveto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_looseveto_ss_lep_idx[1]] : 0);
+
+    ttreex.setBranch<int>("tight_3l_lep0_pdgid"     , list_tight_3l_lep_idx.size() > 0 ? lep_pdgId()[list_tight_3l_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("tight_3l_lep1_pdgid"     , list_tight_3l_lep_idx.size() > 1 ? lep_pdgId()[list_tight_3l_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("tight_3l_lep2_pdgid"     , list_tight_3l_lep_idx.size() > 2 ? lep_pdgId()[list_tight_3l_lep_idx[2]] : 0);
+    ttreex.setBranch<int>("loose_3l_lep0_pdgid"     , list_loose_3l_lep_idx.size() > 0 ? lep_pdgId()[list_loose_3l_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("loose_3l_lep1_pdgid"     , list_loose_3l_lep_idx.size() > 1 ? lep_pdgId()[list_loose_3l_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("loose_3l_lep2_pdgid"     , list_loose_3l_lep_idx.size() > 2 ? lep_pdgId()[list_loose_3l_lep_idx[2]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep0_pdgid"      , list_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_veto_3l_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep1_pdgid"      , list_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_veto_3l_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep2_pdgid"      , list_veto_3l_lep_idx.size() > 2 ? lep_pdgId()[list_veto_3l_lep_idx[2]] : 0);
+    ttreex.setBranch<int>("looseveto_3l_lep0_pdgid" , list_looseveto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_looseveto_3l_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("looseveto_3l_lep1_pdgid" , list_looseveto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_looseveto_3l_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("looseveto_3l_lep2_pdgid" , list_looseveto_3l_lep_idx.size() > 2 ? lep_pdgId()[list_looseveto_3l_lep_idx[2]] : 0);
+
+    ttreex.setBranch<LV>("MET", MET);
+    ttreex.setBranch<LV>("MET_up", MET_up);
+    ttreex.setBranch<LV>("MET_dn", MET_dn);
+
+    ttreex.setBranch<int>("nj", nj);
+    ttreex.setBranch<int>("nb", nb);
+    ttreex.setBranch<int>("nj30", nj30);
+    ttreex.setBranch<float>("Mjj", Mjj);
+    ttreex.setBranch<float>("MjjL", MjjL);
+    ttreex.setBranch<float>("Detajj", Detajj);
+
+    ttreex.setBranch<int>("nj_up", nj_up);
+    ttreex.setBranch<int>("nb_up", nb_up);
+    ttreex.setBranch<int>("nj30_up", nj30_up);
+    ttreex.setBranch<float>("Mjj_up", Mjj_up);
+    ttreex.setBranch<float>("MjjL_up", MjjL_up);
+    ttreex.setBranch<float>("Detajj_up", Detajj_up);
+
+    ttreex.setBranch<int>("nj_dn", nj_dn);
+    ttreex.setBranch<int>("nb_dn", nb_dn);
+    ttreex.setBranch<int>("nj30_dn", nj30_dn);
+    ttreex.setBranch<float>("Mjj_dn", Mjj_dn);
+    ttreex.setBranch<float>("MjjL_dn", MjjL_dn);
+    ttreex.setBranch<float>("Detajj_dn", Detajj_dn);
+
+    ttreex.setBranch<float>("MTmax", MTmax);
+    ttreex.setBranch<float>("MTmax_up", MTmax_up);
+    ttreex.setBranch<float>("MTmax_dn", MTmax_dn);
+    ttreex.setBranch<float>("MTmax3l", MTmax3l);
+
+    ttreex.setBranch<float>("weight", weight);
+    ttreex.setBranch<float>("btagsf", btagsf);
+    ttreex.setBranch<float>("btagsf_hfup", btagsf_hfup);
+    ttreex.setBranch<float>("btagsf_hfdn", btagsf_hfdn);
+    ttreex.setBranch<float>("btagsf_lfup", btagsf_lfup);
+    ttreex.setBranch<float>("btagsf_lfdn", btagsf_lfdn);
+    ttreex.setBranch<float>("purewgt", purewgt);
+    ttreex.setBranch<float>("purewgt_up", purewgt_up);
+    ttreex.setBranch<float>("purewgt_dn", purewgt_dn);
+    ttreex.setBranch<float>("lepsf", lepsf);
+    ttreex.setBranch<float>("lepsf_err", lepsf_err);
+    ttreex.setBranch<float>("trigsf", trigsf);
+    ttreex.setBranch<float>("trigsf_err", trigsf_err);
+
+    ttreex.setBranch<bool>("pass_offline_trig", pass_offline_trig);
+    ttreex.setBranch<bool>("pass_online_trig", pass_online_trig);
+    ttreex.setBranch<bool>("pass_filters", pass_filters);
+    ttreex.setBranch<bool>("pass_goodrun", pass_goodrun);
+
+    ttreex.setBranch<TString>("sample_name", sample_name);
+    ttreex.setBranch<TString>("process_name_ss", process_name_ss);
+    ttreex.setBranch<TString>("process_name_3l", process_name_3l);
+    ttreex.setBranch<bool>("isphotonSS", isphotonSS);
+    ttreex.setBranch<bool>("isphoton3l", isphoton3l);
+
+    ttreex.setBranch<int>("run_number", run_number);
+    ttreex.setBranch<int>("lumiblock_number", lumiblock_number);
+    ttreex.setBranch<int>("event_number", event_number);
 }
 
 //#################################################################################################
@@ -407,7 +672,8 @@ WWWAnalysis::WWWAnalysis()
     babydir = "";
     input_root_file_to_run_over = "";
     dataset_to_run_over = "";
-    blindSR           = true;
+    is_initialized = false;
+    blindSR = true;
     storeeventnumbers = true;
     setDatasetMap();
 }

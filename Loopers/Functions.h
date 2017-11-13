@@ -104,3 +104,5 @@ void addeventtolist(int SRSS, int SR3l, std::ostringstream *&streamEE, std::ostr
 void storeeventlist(string output, string sample, std::ostringstream *&stream);
 void storeeventlist(string output, string sample, bool isSS, std::ostringstream *&streamEE, std::ostringstream *&streamEM, std::ostringstream *&streamMM);
 void storeeventlist(string output, string sample, std::ostringstream *&streamEE, std::ostringstream *&streamEM, std::ostringstream *&streamMM, std::ostringstream *&stream0SFOS, std::ostringstream *&stream1SFOS, std::ostringstream *&stream2SFOS);
+
+int calcNSFOS(std::vector<int> tightlep);
