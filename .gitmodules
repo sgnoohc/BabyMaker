@@ -1,0 +1,3 @@
+[submodule "Loopers/rooutil"]
+	path = Loopers/rooutil
+	url = git@github.com:sgnoohc/rooutil.git
