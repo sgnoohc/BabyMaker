@@ -32,8 +32,10 @@ public:
     TString babydir;
     TString dataset_to_run_over; // This or the following will need to be set.
     TString input_root_file_to_run_over; // This or the option before will need to be set.
+    TString output_name;
     TChain* chain;
     std::map<TString, std::vector<TString>> datasetMap;
+    RooUtil::Looper<CMS3> looper;
 
     //---------------------------------------------------------------------------------------------
     // Configurational related variables
@@ -131,6 +133,8 @@ public:
     void run();
     void setDatasetMap();
     void setChain();
+    bool setStdVariables();
+    void checkEvent();
     TString getSampleNameFromFileName(TString);
 };
 
@@ -150,6 +154,7 @@ int main(int argc, char* argv[])
             ("i,input", "Instead of -d,--dataset option one can run over single file using this option.", cxxopts::value<std::string>(), "INPUTROOTFILE")
             ("d,dataset", "Dataset to run over (e.g. WWW, Other, VVV, tt1l, tt2l, singleTop, ttV, Wjets, Zjets, WW, WZ, ZZ, WG, ZG, WGstar, Data)", cxxopts::value<std::string>(), "DATASET")
             ("e,eventlist", "File containing the event list to check", cxxopts::value<std::string>()->default_value("eventlist.txt"), "EVENTLISTFILE")
+            ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
             ("h,help", "Print help")
             ;
         options.parse(argc, argv);
@@ -193,6 +198,9 @@ int main(int argc, char* argv[])
         if (options.count("input"))
             wwwanalysis.input_root_file_to_run_over = options["input"].as<std::string>();
 
+        // Set the output_name string
+        wwwanalysis.output_name = options["output"].as<std::string>();
+
         // Set the eventlist.txt path
         wwwanalysis.eventlist_file_path = options["eventlist"].as<std::string>();
 
@@ -212,18 +220,20 @@ int main(int argc, char* argv[])
 //#################################################################################################
 void WWWAnalysis::run()
 {
-    // From the options set create the TChain and load all the relevant root files.
-    setChain();
-    // Create a Looper instance.
-    RooUtil::Looper<CMS3> looper(chain, &cms3, -1);
-    // Event lists to check
-    RooUtil::EventList eventlist(eventlist_file_path);
     // Set good runs list
     set_goodrun_file_json("data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt");
+    // Event lists to check
+    RooUtil::EventList eventlist(eventlist_file_path);
+    // From the options set create the TChain and load all the relevant root files.
+    setChain();
+    // Set the looper instance
+    looper.init(chain, &cms3, -1);
     // Loop over events.
     while (looper.nextEvent())
     {
-        using namespace tas;
+        // Computes standard variables and returns whether it passes basic selections.
+        // If it does not pass basical selections, then skip.
+        if (!setStdVariables()) continue;
 
         // checking events with run/lumi/evt matching in the list provided.
         bool checkevent = eventlist.has(tas::run(), tas::lumi(), tas::evt());
@@ -233,78 +243,125 @@ void WWWAnalysis::run()
             std::cout << tas::run() << " " << tas::lumi() << " " << tas::evt() << std::endl;
         }
 
-        // Set the event ID
-        run_number = tas::run();
-        lumiblock_number = tas::lumi();
-        event_number = tas::evt();
 
-        // Preselection. Events not passing these are never used anywhere.
-        if (firstgoodvertex() != 0)   { continue; }
-        if (nVert() < 0)              { continue; }
-        if (looper.getCurrentFileTitle().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { continue; }
-        if (looper.getCurrentFileTitle().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { continue; }
-
-        // Get all the lepton indices
-        getleptonindices( list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
-
-        // Set MET
-        MET.SetPxPyPzE( met_pt() * TMath::Cos(met_phi()), met_pt() * TMath::Sin(met_phi()), 0, met_pt());
-        MET_up.SetPxPyPzE( met_T1CHS_miniAOD_CORE_up_pt() * TMath::Cos(met_T1CHS_miniAOD_CORE_up_phi()), met_T1CHS_miniAOD_CORE_up_pt() * TMath::Sin(met_T1CHS_miniAOD_CORE_up_phi()), 0, met_T1CHS_miniAOD_CORE_up_pt());
-        MET_dn.SetPxPyPzE( met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi()), met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi()), 0, met_T1CHS_miniAOD_CORE_dn_pt());
-
-        // Set jet related variables
-        getalljetnumbers(nj, nj30, nb);
-        getalljetnumbers(nj_up, nj30_up, nb_up, 1);
-        getalljetnumbers(nj_dn, nj30_dn, nb_dn, -1);
-        getMjjAndDeta(Mjj, MjjL, Detajj);
-        getMjjAndDeta(Mjj_up, MjjL_up, Detajj_up, 1);
-        getMjjAndDeta(Mjj_dn, MjjL_dn, Detajj_dn, -1);
-
-        // Set base weights
-        weight = isData() ? 1 : evt_scale1fb() * 35.9; // Base weight
-        if (looper.getCurrentFileTitle().Contains("www_2l_mia")     ) { weight *= 0.066805 * 91900. / (91900. + 164800.); } //(208fb/1pb)*BR(WWW>=2l)*combineweight
-        if (looper.getCurrentFileTitle().Contains("www_2l_ext1_mia")) { weight *= 0.066805 * 164800. / (91900. + 164800.); } //(208fb/1pb)*BR(WWW>=2l)*combineweight
-
-        // Set b-tagging weights
-        btagsf = isData() ? 1. : weight_btagsf();
-        btagsf_hfup = isData() ? 1. : btagsf != 0 ? weight_btagsf_heavy_UP() / weight_btagsf() : 1;
-        btagsf_hfdn = isData() ? 1. : btagsf != 0 ? weight_btagsf_heavy_DN() / weight_btagsf() : 1;
-        btagsf_lfup = isData() ? 1. : btagsf != 0 ? weight_btagsf_light_UP() / weight_btagsf() : 1;
-        btagsf_lfdn = isData() ? 1. : btagsf != 0 ? weight_btagsf_light_DN() / weight_btagsf() : 1;
-
-        // Set PU reweighting
-        purewgt = isData() ? 1. : getPUWeightAndError(purewgt_dn, purewgt_up);
-
-        // Set lepton SF
-        lepsf = isData() ? 1. : getlepSFWeightandError(lepsf_err, list_tight_3l_lep_idx, list_loose_3l_lep_idx);
-
-        // Set trigger SF
-        trigsf = isData() ? 1. : getTriggerWeightandError(trigsf_err, list_tight_3l_lep_idx, list_loose_3l_lep_idx);
-
-        // Offline trigger requirement (To stay on plateau)
-        pass_offline_trig = passofflineTriggers(list_tight_3l_lep_idx, list_loose_3l_lep_idx);
-        pass_online_trig = passonlineTriggers(list_tight_3l_lep_idx, list_loose_3l_lep_idx);
-
-        // Event filters
-        pass_filters = passFilters();
-
-        // Good runs list
-        pass_goodrun = !isData() ? 1. : goodrun(tas::run(), tas::lumi());
-
-        // Sample names and types
-        sample_name = splitVH(looper.getCurrentFileTitle().Data()) ? "WHtoWWW" : getSampleNameFromFileName(looper.getCurrentFileTitle());
-        process_name_ss = ((list_tight_ss_lep_idx.size() + list_loose_ss_lep_idx.size()) >= 2) ? process(looper.getCurrentFileTitle().Data(), true , list_tight_ss_lep_idx, list_loose_ss_lep_idx) : "not2l";
-        process_name_3l = ((list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size()) >= 3) ? process(looper.getCurrentFileTitle().Data(), false, list_tight_3l_lep_idx, list_loose_3l_lep_idx) : "not3l";
-        isphotonSS = process_name_ss.EqualTo("photonfakes");
-        isphoton3l = process_name_3l.EqualTo("photonfakes");
-
-        // Lepton + MET variables
-        MTmax = calcMTmax(list_tight_ss_lep_idx, MET);
-        MTmax_up = calcMTmax(list_tight_ss_lep_idx, MET_up);
-        MTmax_dn = calcMTmax(list_tight_ss_lep_idx, MET_dn);
-        MTmax3l = calcMTmax(list_tight_3l_lep_idx, MET, true);
     }
 }
+
+//#################################################################################################
+// Sets standard variables and returns false if fails preselection.
+bool WWWAnalysis::setStdVariables()
+{
+    using namespace tas;
+
+    // Set the event ID
+    run_number = tas::run();
+    lumiblock_number = tas::lumi();
+    event_number = tas::evt();
+
+    // Get all the lepton indices
+    getleptonindices( list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+
+    // Preselection. Events not passing these are never used anywhere.
+    if (firstgoodvertex() != 0)   { return false;; }
+    if (nVert() < 0)              { return false;; }
+    if (looper.getCurrentFileName().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { return false;; }
+    if (looper.getCurrentFileName().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { return false;; }
+    if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false;; }
+
+    // Set MET
+    MET.SetPxPyPzE( met_pt() * TMath::Cos(met_phi()), met_pt() * TMath::Sin(met_phi()), 0, met_pt());
+    MET_up.SetPxPyPzE( met_T1CHS_miniAOD_CORE_up_pt() * TMath::Cos(met_T1CHS_miniAOD_CORE_up_phi()), met_T1CHS_miniAOD_CORE_up_pt() * TMath::Sin(met_T1CHS_miniAOD_CORE_up_phi()), 0, met_T1CHS_miniAOD_CORE_up_pt());
+    MET_dn.SetPxPyPzE( met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi()), met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi()), 0, met_T1CHS_miniAOD_CORE_dn_pt());
+
+    // Set jet related variables
+    getalljetnumbers(nj, nj30, nb);
+    getalljetnumbers(nj_up, nj30_up, nb_up, 1);
+    getalljetnumbers(nj_dn, nj30_dn, nb_dn, -1);
+    getMjjAndDeta(Mjj, MjjL, Detajj);
+    getMjjAndDeta(Mjj_up, MjjL_up, Detajj_up, 1);
+    getMjjAndDeta(Mjj_dn, MjjL_dn, Detajj_dn, -1);
+
+    // Set base weights
+    weight = isData() ? 1 : evt_scale1fb() * 35.9; // Base weight
+    if (looper.getCurrentFileName().Contains("www_2l_mia")     ) { weight *= 0.066805 * 91900. / (91900. + 164800.); } //(208fb/1pb)*BR(WWW>=2l)*combineweight
+    if (looper.getCurrentFileName().Contains("www_2l_ext1_mia")) { weight *= 0.066805 * 164800. / (91900. + 164800.); } //(208fb/1pb)*BR(WWW>=2l)*combineweight
+
+    // Set b-tagging weights
+    btagsf = isData() ? 1. : weight_btagsf();
+    btagsf_hfup = isData() ? 1. : btagsf != 0 ? weight_btagsf_heavy_UP() / weight_btagsf() : 1;
+    btagsf_hfdn = isData() ? 1. : btagsf != 0 ? weight_btagsf_heavy_DN() / weight_btagsf() : 1;
+    btagsf_lfup = isData() ? 1. : btagsf != 0 ? weight_btagsf_light_UP() / weight_btagsf() : 1;
+    btagsf_lfdn = isData() ? 1. : btagsf != 0 ? weight_btagsf_light_DN() / weight_btagsf() : 1;
+
+    // Set PU reweighting
+    purewgt = isData() ? 1. : getPUWeightAndError(purewgt_dn, purewgt_up);
+
+    // Set lepton SF
+    lepsf = isData() ? 1. : getlepSFWeightandError(lepsf_err, list_tight_3l_lep_idx, list_loose_3l_lep_idx);
+
+    // Set trigger SF
+    trigsf = isData() ? 1. : getTriggerWeightandError(trigsf_err, list_tight_3l_lep_idx, list_loose_3l_lep_idx);
+
+    // Offline trigger requirement (To stay on plateau)
+    pass_offline_trig = passofflineTriggers(list_tight_3l_lep_idx, list_loose_3l_lep_idx);
+    pass_online_trig = passonlineTriggers(list_tight_3l_lep_idx, list_loose_3l_lep_idx);
+
+    // Event filters
+    pass_filters = passFilters();
+
+    // Good runs list
+    pass_goodrun = !isData() ? 1. : goodrun(tas::run(), tas::lumi());
+
+    // Sample names and types
+    sample_name = getSampleNameFromFileName(looper.getCurrentFileName());
+    process_name_ss = ((list_tight_ss_lep_idx.size() + list_loose_ss_lep_idx.size()) >= 2) ? process(looper.getCurrentFileName().Data(), true , list_tight_ss_lep_idx, list_loose_ss_lep_idx) : "not2l";
+    process_name_3l = ((list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size()) >= 3) ? process(looper.getCurrentFileName().Data(), false, list_tight_3l_lep_idx, list_loose_3l_lep_idx) : "not3l";
+    isphotonSS = process_name_ss.EqualTo("photonfakes");
+    isphoton3l = process_name_3l.EqualTo("photonfakes");
+
+    // Lepton + MET variables
+    MTmax = calcMTmax(list_tight_ss_lep_idx, MET);
+    MTmax_up = calcMTmax(list_tight_ss_lep_idx, MET_up);
+    MTmax_dn = calcMTmax(list_tight_ss_lep_idx, MET_dn);
+    MTmax3l = calcMTmax(list_tight_3l_lep_idx, MET, true);
+
+    return true;
+}
+
+//#################################################################################################
+// Prints various info on the event for debugging purpose
+void WWWAnalysis::checkEvent()
+{
+    using namespace std;
+    using namespace tas;
+    cout << "nj30 " << nj30 << " nj " << nj << " nb " << nb << " Mjj " << Mjj << " MjjL " << MjjL << " Detajj " << Detajj << endl;
+    for (unsigned int i = 0; i < jets_p4().size(); ++i)
+    {
+        cout << "jet pT " << jets_p4()[i].Pt() << " eta " << jets_p4()[i].Eta() << " CSV " << jets_csv()[i];// << endl;
+        for (unsigned int j = i + 1; j < jets_p4().size(); ++j) { cout << " M" << i << j << " " << (jets_p4()[i] + jets_p4()[j]).M() << " (dR " << dR(jets_p4()[i], jets_p4()[j]) << ")"; }
+        cout << endl;
+    }
+    cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << purewgt << " trig " << trigsf << " lep " << lepsf << endl;
+    cout << "nSS " << list_tight_ss_lep_idx.size();
+    cout << " n3l " << list_tight_3l_lep_idx.size();
+    cout << " naSS " << list_loose_ss_lep_idx.size();
+    cout << " na3l " << list_loose_3l_lep_idx.size();
+    cout << " nvetoaSS " << list_veto_ss_lep_idx.size();
+    cout << " nvetoa3l " << list_veto_3l_lep_idx.size();
+    cout << " ntracks " << nisoTrack_mt2_cleaned_VVV_cutbased_veto() << endl;
+    for (unsigned int i = 0; i < lep_pdgId().size(); ++i)
+    {
+        cout << "lep " << lep_pdgId()[i] << " Pt " << lep_p4()[i].Pt() << " eta " << lep_p4()[i].Eta() << " ID t/l/v/trig " << lep_pass_VVV_cutbased_tight_noiso()[i] << "/" << lep_pass_VVV_cutbased_fo_noiso()[i] << "/" << lep_pass_VVV_cutbased_veto_noiso()[i] << "/" << lep_isTriggerSafe_v1()[i] << " iso " << lep_relIso03EAv2()[i] << " ip3d " << lep_ip3d()[i] << " losthits " << lep_lostHits()[i] << " t.q " << lep_tightCharge()[i];
+        for (unsigned int j = i + 1; j < lep_pdgId().size(); ++j)
+        {
+            cout << " M" << i << j << " " << (lep_p4()[i] + lep_p4()[j]).M();
+            for (unsigned int k = j + 1; k < lep_pdgId().size(); ++k) { cout << " M" << i << j << k << " " << (lep_p4()[i] + lep_p4()[j] + lep_p4()[k]).M() << " Pt " << (lep_p4()[i] + lep_p4()[j] + lep_p4()[k]).Pt() << " DPhiMET " << dPhi((lep_p4()[i] + lep_p4()[j] + lep_p4()[k]), MET); }
+        }
+        cout << endl;
+    }
+    cout << "MET " << MET.Pt() << " MTmax " << MTmax << " MTmax3l " << MTmax3l << endl;
+}
+
 
 //#################################################################################################
 void WWWAnalysis::setChain()
@@ -355,6 +412,7 @@ WWWAnalysis::WWWAnalysis()
 }
 
 //#################################################################################################
+// Initializes map between dataset name -> list of files to loop over.
 void WWWAnalysis::setDatasetMap()
 {
     datasetMap["WWW"].push_back("www_2l_mia_*.root");
@@ -436,8 +494,12 @@ void WWWAnalysis::setDatasetMap()
 }
 
 //#################################################################################################
+// From the root file name determine which dataset it corresponds to.
 TString WWWAnalysis::getSampleNameFromFileName(TString filename)
 {
+    if (splitVH(filename.Data()))
+       return "WHtoWWW";
+
     for (auto& dataset : datasetMap)
     {
         for (auto& pttn : dataset.second)
