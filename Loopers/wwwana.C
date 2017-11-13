@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
         WWWAnalysis wwwanalysis;
 
         // If no babydir option is given, take the default one
-        if (!options.count("babydir"))
+        if (!options.count("babydir") && !options.count("input"))
         {
             TString default_baby_dir_path = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/";
             RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
             wwwanalysis.babydir = options["babydir"].as<std::string>() + "/";
         }
 
+        // Sanity check on the options provided.
         if (!options.count("dataset") && !options.count("input"))
         {
             RooUtil::error(Form("Both --dataset and --input is not set! Check your arguments! Type ./%s --help for help.", argv[0]));
