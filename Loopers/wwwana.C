@@ -73,6 +73,9 @@ public:
     IdxList list_incl_veto_ss_lep_idx;  // veto
     IdxList list_incl_veto_3l_lep_idx;  // veto
 
+    // track multiplicity
+    int ntrk;
+
     // SFOS
     int nSFOS;
 
@@ -322,6 +325,9 @@ void WWWAnalysis::createBranches()
     ttreex.createBranch<int>("n_veto_ss_lep");
     ttreex.createBranch<int>("n_veto_3l_lep");
 
+    ttreex.createBranch<int>("ntrk");
+    ttreex.createBranch<int>("nSFOS");
+
     ttreex.createBranch<LV>("MET");
     ttreex.createBranch<LV>("MET_up");
     ttreex.createBranch<LV>("MET_dn");
@@ -514,6 +520,8 @@ bool WWWAnalysis::calcStdVariables()
 
     }
 
+    ntrk = nisoTrack_mt2_cleaned_VVV_cutbased_veto();
+
     nSFOS = -1;
     if (list_incl_veto_3l_lep_idx.size() >= 3) nSFOS = calcNSFOS(list_incl_veto_3l_lep_idx);
 
@@ -620,6 +628,9 @@ void WWWAnalysis::setBranches()
     ttreex.setBranch<int>("n_loose_3l_lep", list_incl_loose_3l_lep_idx.size());
     ttreex.setBranch<int>("n_veto_ss_lep", list_incl_veto_ss_lep_idx.size());
     ttreex.setBranch<int>("n_veto_3l_lep", list_incl_veto_3l_lep_idx.size());
+
+    ttreex.setBranch<int>("ntrk", ntrk);
+    ttreex.setBranch<int>("nSFOS", nSFOS);
 
     ttreex.setBranch<LV>("MET", MET);
     ttreex.setBranch<LV>("MET_up", MET_up);

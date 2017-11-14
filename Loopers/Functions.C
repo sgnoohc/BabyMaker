@@ -1549,18 +1549,18 @@ float get0SFOSMll(std::vector<int> lepidx)
 {
     if (lepidx.size() != 3)
     { return -999; }
-    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
-    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
-    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
     if (pdgid0 == pdgid1)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[1]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
     else if (pdgid0 == pdgid2)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid1 == pdgid2)
-        return (cms3.lep_p4()[lepidx[1]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     std::cout <<
               "Warning: Shouldn't be here if function call are at the right places."
               << std::endl;
@@ -1571,18 +1571,18 @@ float get0SFOSMee(std::vector<int> lepidx)
 {
     if (lepidx.size() != 3)
     { return -999; }
-    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
-    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
-    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
     if (pdgid0 == pdgid1 && abs(pdgid0) == 11)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[1]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
     else if (pdgid0 == pdgid2 && abs(pdgid0) == 11)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid1 == pdgid2 && abs(pdgid1) == 11)
-        return (cms3.lep_p4()[lepidx[1]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     return -999;
 }
 
@@ -1590,18 +1590,18 @@ float get1SFOSMll(std::vector<int> lepidx)
 {
     if (lepidx.size() != 3)
     { return -999; }
-    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
-    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
-    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
     if (pdgid0 == -pdgid1)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[1]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
     else if (pdgid0 == -pdgid2)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid1 == -pdgid2)
-        return (cms3.lep_p4()[lepidx[1]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     std::cout <<
               "Warning: Shouldn't be here if function call are at the right places."
               << std::endl;
@@ -1612,18 +1612,18 @@ float get2SFOSMll0(std::vector<int> lepidx)
 {
     if (lepidx.size() != 3)
     { return -999; }
-    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
-    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
-    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
     if (pdgid0 == -pdgid1)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[1]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
     else if (pdgid0 == -pdgid2)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid1 == -pdgid2)
-        return (cms3.lep_p4()[lepidx[1]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     std::cout <<
               "Warning: Shouldn't be here if function call are at the right places."
               << std::endl;
@@ -1634,18 +1634,18 @@ float get2SFOSMll1(std::vector<int> lepidx)
 {
     if (lepidx.size() != 3)
     { return -999; }
-    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
-    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
-    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
     if (pdgid2 == -pdgid1)
-        return (cms3.lep_p4()[lepidx[1]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid0 == -pdgid2)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[2]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
     else if (pdgid1 == -pdgid0)
-        return (cms3.lep_p4()[lepidx[0]]
-                + cms3.lep_p4()[lepidx[1]]).mass();
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
     std::cout <<
               "Warning: Shouldn't be here if function call are at the right places."
               << std::endl;
@@ -1655,55 +1655,55 @@ float get2SFOSMll1(std::vector<int> lepidx)
 // returns if the given igen'th gen particle is a W to be considered.
 bool isW(int igen)
 {
-    if (!(abs(cms3.genPart_pdgId()[igen]) == 24)) return false;
-    if (!(abs(cms3.genPart_status()[igen]) == 62)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) == 24)) return false;
+    if (!(abs(tas::genPart_status()[igen]) == 62)) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
 bool isParentW(int igen)
 {
-    if (!(abs(cms3.genPart_motherId()[igen]) == 24)) return false;
-    if (!(abs(cms3.genPart_pdgId()[igen]) != 24)) return false;
+    if (!(abs(tas::genPart_motherId()[igen]) == 24)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) != 24)) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
 bool isParentTau(int igen)
 {
-    if (!(abs(cms3.genPart_motherId()[igen]) == 15)) return false;
-    if (!(abs(cms3.genPart_pdgId()[igen]) != 15)) return false;
+    if (!(abs(tas::genPart_motherId()[igen]) == 15)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) != 15)) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a lepton.
 bool isLepton(int igen)
 {
-    if (!(abs(cms3.genPart_pdgId()[igen]) == 11 ||
-          abs(cms3.genPart_pdgId()[igen]) == 13 ||
-          abs(cms3.genPart_pdgId()[igen]) == 15 )) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) == 11 ||
+          abs(tas::genPart_pdgId()[igen]) == 13 ||
+          abs(tas::genPart_pdgId()[igen]) == 15 )) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a lepton.
 bool isQuark(int igen)
 {
-    if (!(abs(cms3.genPart_pdgId()[igen]) <= 5 )) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) <= 5 )) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a lepton.
 bool isLightLepton(int igen)
 {
-    if (!(abs(cms3.genPart_pdgId()[igen]) == 11 ||
-          abs(cms3.genPart_pdgId()[igen]) == 13 )) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) == 11 ||
+          abs(tas::genPart_pdgId()[igen]) == 13 )) return false;
     return true;
 }
 
 // returns if the given igen'th gen particle is a lepton.
 bool isTau(int igen)
 {
-    if (!(abs(cms3.genPart_pdgId()[igen]) == 15)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) == 15)) return false;
     return true;
 }
 
@@ -1718,7 +1718,7 @@ std::tuple<vIdx, vIdx> getGenIndices()
 //    vIdx ilts;
 //    vIdx its;
     vIdx ifls;
-    for (unsigned int igen = 0; igen < cms3.genPart_pdgId().size(); ++igen)
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
     {
 //        /* W bosons */ if (isW(igen)) iws.push_back(igen);
 //        /* Fermions */ if (isParentW(igen)) ifs.push_back(igen);
