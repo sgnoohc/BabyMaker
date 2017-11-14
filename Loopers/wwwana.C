@@ -546,7 +546,6 @@ bool WWWAnalysis::calcStdVariables()
     if (sample_name.Contains("WWW"))
     {
         std::tie(list_gen_quarks, list_gen_leptons) = getGenIndices();
-        std::cout <<  " list_gen_leptons.size(): " << list_gen_leptons.size() <<  " list_gen_quarks.size(): " << list_gen_quarks.size() <<  std::endl;
         if (list_gen_quarks.size() == 2 && list_gen_leptons.size() == 2)
         {
             gen_Mjj = (genPart_p4()[list_gen_quarks[0]] + genPart_p4()[list_gen_quarks[1]]).mass();
@@ -881,8 +880,7 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
                 return dataset.first;
         }
     }
-    RooUtil::error(Form("Failed to determine which dataset this rootfile belongs to file=%s", filename.Data()));
-    return "";
+    return "NotUsed";
 }
 
 //eof

@@ -1,3 +1,6 @@
 [submodule "Loopers/rooutil"]
 	path = Loopers/rooutil
 	url = git@github.com:sgnoohc/rooutil.git
+[submodule "Loopers/ProjectMetis"]
+	path = Loopers/ProjectMetis
+	url = git@github.com:aminnj/ProjectMetis.git
