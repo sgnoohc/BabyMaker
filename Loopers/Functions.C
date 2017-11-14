@@ -1544,3 +1544,192 @@ int calcNSFOS(std::vector<int> tightlep)
   if(abs(lep_charge()[tightlep[0] ]+lep_charge()[tightlep[1] ]+lep_charge()[tightlep[2] ])==3) SFOScounter = -1;
   return SFOScounter;
 }
+
+float get0SFOSMll(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
+    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
+    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    if (pdgid0 == pdgid1)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == pdgid2)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == pdgid2)
+        return (cms3.lep_p4()[lepidx[1]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get0SFOSMee(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
+    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
+    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    if (pdgid0 == pdgid1 && abs(pdgid0) == 11)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == pdgid2 && abs(pdgid0) == 11)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == pdgid2 && abs(pdgid1) == 11)
+        return (cms3.lep_p4()[lepidx[1]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    return -999;
+}
+
+float get1SFOSMll(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
+    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
+    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    if (pdgid0 == -pdgid1)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (cms3.lep_p4()[lepidx[1]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get2SFOSMll0(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
+    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
+    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    if (pdgid0 == -pdgid1)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (cms3.lep_p4()[lepidx[1]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get2SFOSMll1(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = cms3.lep_pdgId()[lepidx[0]];
+    int pdgid1 = cms3.lep_pdgId()[lepidx[1]];
+    int pdgid2 = cms3.lep_pdgId()[lepidx[2]];
+    if (pdgid2 == -pdgid1)
+        return (cms3.lep_p4()[lepidx[1]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid0)
+        return (cms3.lep_p4()[lepidx[0]]
+                + cms3.lep_p4()[lepidx[1]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+// returns if the given igen'th gen particle is a W to be considered.
+bool isW(int igen)
+{
+    if (!(abs(cms3.genPart_pdgId()[igen]) == 24)) return false;
+    if (!(abs(cms3.genPart_status()[igen]) == 62)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
+bool isParentW(int igen)
+{
+    if (!(abs(cms3.genPart_motherId()[igen]) == 24)) return false;
+    if (!(abs(cms3.genPart_pdgId()[igen]) != 24)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
+bool isParentTau(int igen)
+{
+    if (!(abs(cms3.genPart_motherId()[igen]) == 15)) return false;
+    if (!(abs(cms3.genPart_pdgId()[igen]) != 15)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isLepton(int igen)
+{
+    if (!(abs(cms3.genPart_pdgId()[igen]) == 11 ||
+          abs(cms3.genPart_pdgId()[igen]) == 13 ||
+          abs(cms3.genPart_pdgId()[igen]) == 15 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isQuark(int igen)
+{
+    if (!(abs(cms3.genPart_pdgId()[igen]) <= 5 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isLightLepton(int igen)
+{
+    if (!(abs(cms3.genPart_pdgId()[igen]) == 11 ||
+          abs(cms3.genPart_pdgId()[igen]) == 13 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isTau(int igen)
+{
+    if (!(abs(cms3.genPart_pdgId()[igen]) == 15)) return false;
+    return true;
+}
+
+// Loops over gen particles and returns W and W's desecendents
+std::tuple<vIdx, vIdx> getGenIndices()
+{
+//    vIdx iws;
+//    vIdx ifs;
+//    vIdx ils;
+    vIdx iqs;
+//    vIdx ills;
+//    vIdx ilts;
+//    vIdx its;
+    vIdx ifls;
+    for (unsigned int igen = 0; igen < cms3.genPart_pdgId().size(); ++igen)
+    {
+//        /* W bosons */ if (isW(igen)) iws.push_back(igen);
+//        /* Fermions */ if (isParentW(igen)) ifs.push_back(igen);
+//        /* Leptons  */ if (isParentW(igen) && isLepton(igen)) ils.push_back(igen);
+        /* Quarks   */ if (isParentW(igen) && isQuark(igen)) iqs.push_back(igen);
+//        /* e, muons */ if (isParentW(igen) && isLightLepton(igen)) ills.push_back(igen);
+//        /* taus     */ if (isParentW(igen) && isTau(igen)) its.push_back(igen);
+//        /* e,m <- t */ if (isParentTau(igen) && isLepton(igen)) ilts.push_back(igen);
+        /* e, muons */ if ((isParentTau(igen) && isLepton(igen)) || (isParentW(igen) && isLightLepton(igen))) ifls.push_back(igen);
+    }
+//    return std::make_tuple(iws, ifs, ils, iqs, ills, ilts, its, ifls);
+    return std::make_tuple(iqs, ifls);
+}
+

@@ -13,6 +13,7 @@
 #include "CMS3_WWW0116.h"
 #include "Functions.h"
 
+#include "Math/VectorUtil.h"
 #include "TString.h"
 
 #include <map>
@@ -54,7 +55,7 @@ public:
     // Analysis related variables
     //---------------------------------------------------------------------------------------------
 
-    // lepton indices
+    // lepton indices (The convention is a bit more "exclusively" defined.)
     IdxList list_tight_ss_lep_idx; // tight
     IdxList list_tight_3l_lep_idx; // tight
     IdxList list_loose_ss_lep_idx; // loose but !tight
@@ -63,6 +64,17 @@ public:
     IdxList list_veto_3l_lep_idx;  // veto but !tight
     IdxList list_looseveto_ss_lep_idx; // veto but !loose
     IdxList list_looseveto_3l_lep_idx; // veto but !loose
+
+    // lepton indices
+    IdxList list_incl_tight_ss_lep_idx; // tight
+    IdxList list_incl_tight_3l_lep_idx; // tight
+    IdxList list_incl_loose_ss_lep_idx; // loose
+    IdxList list_incl_loose_3l_lep_idx; // loose
+    IdxList list_incl_veto_ss_lep_idx;  // veto
+    IdxList list_incl_veto_3l_lep_idx;  // veto
+
+    // SFOS
+    int nSFOS;
 
     // MET kinematics
     LorentzVector MET;
@@ -97,6 +109,12 @@ public:
 
     // Lepton + Lepton variables
     float MllSS;
+    float MeeSS;
+    float Mll0SFOS;
+    float Mee0SFOS;
+    float Mll1SFOS;
+    float Mll2SFOS0;
+    float Mll2SFOS1;
 
     // Weights
     float weight;
@@ -135,6 +153,13 @@ public:
     int lumiblock_number;
     int event_number;
 
+    // Generator level variables for signal
+    IdxList list_gen_quarks; // generatore level quarks from W boson in the WWW signal sample
+    IdxList list_gen_leptons; // generatore level light-leptons from W boson (or the subsequent decay from the tau) in the WWW signal sample
+    float gen_Mjj;
+    float gen_DEtajj;
+    float gen_DRjj;
+
     //---------------------------------------------------------------------------------------------
     // Functions
     //---------------------------------------------------------------------------------------------
@@ -146,6 +171,7 @@ public:
     void setDatasetMap();
     void setChain();
     bool calcStdVariables();
+    void processLeptonIndices();
     void checkEvent();
     TString getSampleNameFromFileName(TString);
 };
@@ -275,49 +301,26 @@ void WWWAnalysis::init()
 // Create variables to output to the TTree
 void WWWAnalysis::createBranches()
 {
-    ttreex.createBranch<LV>("tight_ss_lep0");
-    ttreex.createBranch<LV>("tight_ss_lep1");
-    ttreex.createBranch<LV>("loose_ss_lep0");
-    ttreex.createBranch<LV>("loose_ss_lep1");
     ttreex.createBranch<LV>("veto_ss_lep0");
     ttreex.createBranch<LV>("veto_ss_lep1");
-    ttreex.createBranch<LV>("looseveto_ss_lep0");
-    ttreex.createBranch<LV>("looseveto_ss_lep1");
 
-    ttreex.createBranch<LV>("tight_3l_lep0");
-    ttreex.createBranch<LV>("tight_3l_lep1");
-    ttreex.createBranch<LV>("tight_3l_lep2");
-    ttreex.createBranch<LV>("loose_3l_lep0");
-    ttreex.createBranch<LV>("loose_3l_lep1");
-    ttreex.createBranch<LV>("loose_3l_lep2");
     ttreex.createBranch<LV>("veto_3l_lep0");
     ttreex.createBranch<LV>("veto_3l_lep1");
     ttreex.createBranch<LV>("veto_3l_lep2");
-    ttreex.createBranch<LV>("looseveto_3l_lep0");
-    ttreex.createBranch<LV>("looseveto_3l_lep1");
-    ttreex.createBranch<LV>("looseveto_3l_lep2");
 
-    ttreex.createBranch<int>("tight_ss_lep0_pdgid");
-    ttreex.createBranch<int>("tight_ss_lep1_pdgid");
-    ttreex.createBranch<int>("loose_ss_lep0_pdgid");
-    ttreex.createBranch<int>("loose_ss_lep1_pdgid");
     ttreex.createBranch<int>("veto_ss_lep0_pdgid");
     ttreex.createBranch<int>("veto_ss_lep1_pdgid");
-    ttreex.createBranch<int>("looseveto_ss_lep0_pdgid");
-    ttreex.createBranch<int>("looseveto_ss_lep1_pdgid");
 
-    ttreex.createBranch<int>("tight_3l_lep0_pdgid");
-    ttreex.createBranch<int>("tight_3l_lep1_pdgid");
-    ttreex.createBranch<int>("tight_3l_lep2_pdgid");
-    ttreex.createBranch<int>("loose_3l_lep0_pdgid");
-    ttreex.createBranch<int>("loose_3l_lep1_pdgid");
-    ttreex.createBranch<int>("loose_3l_lep2_pdgid");
     ttreex.createBranch<int>("veto_3l_lep0_pdgid");
     ttreex.createBranch<int>("veto_3l_lep1_pdgid");
     ttreex.createBranch<int>("veto_3l_lep2_pdgid");
-    ttreex.createBranch<int>("looseveto_3l_lep0_pdgid");
-    ttreex.createBranch<int>("looseveto_3l_lep1_pdgid");
-    ttreex.createBranch<int>("looseveto_3l_lep2_pdgid");
+
+    ttreex.createBranch<int>("n_tight_ss_lep");
+    ttreex.createBranch<int>("n_tight_3l_lep");
+    ttreex.createBranch<int>("n_loose_ss_lep");
+    ttreex.createBranch<int>("n_loose_3l_lep");
+    ttreex.createBranch<int>("n_veto_ss_lep");
+    ttreex.createBranch<int>("n_veto_3l_lep");
 
     ttreex.createBranch<LV>("MET");
     ttreex.createBranch<LV>("MET_up");
@@ -349,6 +352,14 @@ void WWWAnalysis::createBranches()
     ttreex.createBranch<float>("MTmax_dn");
     ttreex.createBranch<float>("MTmax3l");
 
+    ttreex.createBranch<float>("MllSS");
+    ttreex.createBranch<float>("MeeSS");
+    ttreex.createBranch<float>("Mll0SFOS");
+    ttreex.createBranch<float>("Mee0SFOS");
+    ttreex.createBranch<float>("Mll1SFOS");
+    ttreex.createBranch<float>("Mll2SFOS0");
+    ttreex.createBranch<float>("Mll2SFOS1");
+
     ttreex.createBranch<float>("weight");
     ttreex.createBranch<float>("btagsf");
     ttreex.createBranch<float>("btagsf_hfup");
@@ -377,6 +388,13 @@ void WWWAnalysis::createBranches()
     ttreex.createBranch<int>("run_number");
     ttreex.createBranch<int>("lumiblock_number");
     ttreex.createBranch<int>("event_number");
+
+    ttreex.createBranch<float>("gen_Mjj");
+    ttreex.createBranch<float>("gen_DEtajj");
+    ttreex.createBranch<float>("gen_DRjj");
+
+    ttreex.createBranch<LV>("gen_quark0");
+    ttreex.createBranch<LV>("gen_quark1");
 }
 
 //#################################################################################################
@@ -415,7 +433,10 @@ bool WWWAnalysis::calcStdVariables()
     event_number = tas::evt();
 
     // Get all the lepton indices
-    getleptonindices( list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+
+    // I like to keep the lepton indices to be more about what they actually mean.
+    processLeptonIndices();
 
     // Preselection. Events not passing these are never used anywhere.
     if (firstgoodvertex() != 0)   { return false;; }
@@ -482,57 +503,124 @@ bool WWWAnalysis::calcStdVariables()
     MTmax_dn = calcMTmax(list_tight_ss_lep_idx, MET_dn);
     MTmax3l = calcMTmax(list_tight_3l_lep_idx, MET, true);
 
+    // Lepton + Lepton variables
+    MllSS = -999;
+    MeeSS = -999;
+    if (list_incl_veto_ss_lep_idx.size() >= 2)
+    {
+        MllSS = (lep_p4()[list_incl_veto_ss_lep_idx[0]] + lep_p4()[list_incl_veto_ss_lep_idx[1]]).mass();
+        if (abs(lep_pdgId()[list_incl_veto_ss_lep_idx[0]]) == 11 && abs(lep_pdgId()[list_incl_veto_ss_lep_idx[1]]) == 11)
+            MeeSS = (lep_p4()[list_incl_veto_ss_lep_idx[0]] + lep_p4()[list_incl_veto_ss_lep_idx[1]]).mass();
+
+    }
+
+    nSFOS = -1;
+    if (list_incl_veto_3l_lep_idx.size() >= 3) nSFOS = calcNSFOS(list_incl_veto_3l_lep_idx);
+
+    Mll0SFOS = -999;
+    Mee0SFOS = -999;
+    Mll1SFOS = -999;
+    Mll2SFOS0 = -999;
+    Mll2SFOS1 = -999;
+    if (list_incl_veto_3l_lep_idx.size() >= 3)
+    {
+        if (nSFOS == 0)
+        {
+            Mll0SFOS = get0SFOSMll(list_incl_veto_3l_lep_idx);
+            Mee0SFOS = get0SFOSMee(list_incl_veto_3l_lep_idx);;
+        }
+        else if (nSFOS == 1)
+        {
+            Mll1SFOS = get1SFOSMll(list_incl_veto_3l_lep_idx);;
+        }
+        else if (nSFOS == 2)
+        {
+            Mll2SFOS0 = get2SFOSMll0(list_incl_veto_3l_lep_idx);;
+            Mll2SFOS1 = get2SFOSMll1(list_incl_veto_3l_lep_idx);;
+        }
+    }
+
+    gen_Mjj = -999;
+    gen_DEtajj = -999;
+    gen_DRjj = -999;
+    if (sample_name.Contains("WWW"))
+    {
+        std::tie(list_gen_quarks, list_gen_leptons) = getGenIndices();
+        std::cout <<  " list_gen_leptons.size(): " << list_gen_leptons.size() <<  " list_gen_quarks.size(): " << list_gen_quarks.size() <<  std::endl;
+        if (list_gen_quarks.size() == 2 && list_gen_leptons.size() == 2)
+        {
+            gen_Mjj = (genPart_p4()[list_gen_quarks[0]] + genPart_p4()[list_gen_quarks[1]]).mass();
+            gen_DEtajj = fabs(genPart_p4()[list_gen_quarks[0]].eta() - genPart_p4()[list_gen_quarks[1]].eta());
+            gen_DRjj = ROOT::Math::VectorUtil::DeltaR(genPart_p4()[list_gen_quarks[0]], genPart_p4()[list_gen_quarks[1]]);
+        }
+    }
+
     return true;
 }
+
+//#################################################################################################
+// The standard lepton indices obtained from the function getleptonindices from Functions.h are set in an exclusive way.
+// i.e. in 'list_loose_ss_lep_idx' only the loose but not tight are saved.
+// I like to keep it such that they are selected by what they actually mean.
+// So with this function I set indices like 'list_incl_loose_ss_lep_idx'.
+void WWWAnalysis::processLeptonIndices()
+{
+    list_incl_tight_ss_lep_idx.clear();
+    list_incl_tight_3l_lep_idx.clear();
+    list_incl_loose_ss_lep_idx.clear();
+    list_incl_loose_3l_lep_idx.clear();
+    list_incl_veto_ss_lep_idx.clear();
+    list_incl_veto_3l_lep_idx.clear();
+
+    // Tights just need to be a copy of itself.
+    list_incl_tight_ss_lep_idx.insert(list_incl_tight_ss_lep_idx.end(), list_tight_ss_lep_idx.begin(), list_tight_ss_lep_idx.end());
+    list_incl_tight_3l_lep_idx.insert(list_incl_tight_3l_lep_idx.end(), list_tight_3l_lep_idx.begin(), list_tight_3l_lep_idx.end());
+
+    // The loose needs to have tight + loose
+    list_incl_loose_ss_lep_idx.insert(list_incl_loose_ss_lep_idx.end(), list_tight_ss_lep_idx.begin(), list_tight_ss_lep_idx.end());
+    list_incl_loose_ss_lep_idx.insert(list_incl_loose_ss_lep_idx.end(), list_loose_ss_lep_idx.begin(), list_loose_ss_lep_idx.end());
+    list_incl_loose_3l_lep_idx.insert(list_incl_loose_3l_lep_idx.end(), list_tight_3l_lep_idx.begin(), list_tight_3l_lep_idx.end());
+    list_incl_loose_3l_lep_idx.insert(list_incl_loose_3l_lep_idx.end(), list_loose_3l_lep_idx.begin(), list_loose_3l_lep_idx.end());
+
+    // The loose needs to have tight + veto
+    list_incl_veto_ss_lep_idx.insert(list_incl_veto_ss_lep_idx.end(), list_tight_ss_lep_idx.begin(), list_tight_ss_lep_idx.end());
+    list_incl_veto_ss_lep_idx.insert(list_incl_veto_ss_lep_idx.end(), list_veto_ss_lep_idx.begin(), list_veto_ss_lep_idx.end());
+    list_incl_veto_3l_lep_idx.insert(list_incl_veto_3l_lep_idx.end(), list_tight_3l_lep_idx.begin(), list_tight_3l_lep_idx.end());
+    list_incl_veto_3l_lep_idx.insert(list_incl_veto_3l_lep_idx.end(), list_veto_3l_lep_idx.begin(), list_veto_3l_lep_idx.end());
+
+    // Then sort them
+    sort(list_incl_loose_ss_lep_idx.begin(), list_incl_loose_ss_lep_idx.end(), sortPt);
+    sort(list_incl_loose_3l_lep_idx.begin(), list_incl_loose_3l_lep_idx.end(), sortPt);
+    sort(list_incl_veto_ss_lep_idx.begin(), list_incl_veto_ss_lep_idx.end(), sortPt);
+    sort(list_incl_veto_3l_lep_idx.begin(), list_incl_veto_3l_lep_idx.end(), sortPt);
+}
+
 
 //#################################################################################################
 // Set the TTreeX branches with the variables calculated from calcStdVariables()(
 void WWWAnalysis::setBranches()
 {
     using namespace tas;
-    ttreex.setBranch<LV>("tight_ss_lep0"     , list_tight_ss_lep_idx.size() > 0 ? lep_p4()[list_tight_ss_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("tight_ss_lep1"     , list_tight_ss_lep_idx.size() > 1 ? lep_p4()[list_tight_ss_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("loose_ss_lep0"     , list_loose_ss_lep_idx.size() > 0 ? lep_p4()[list_loose_ss_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("loose_ss_lep1"     , list_loose_ss_lep_idx.size() > 1 ? lep_p4()[list_loose_ss_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("veto_ss_lep0"      , list_veto_ss_lep_idx.size() > 0 ? lep_p4()[list_veto_ss_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("veto_ss_lep1"      , list_veto_ss_lep_idx.size() > 1 ? lep_p4()[list_veto_ss_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("looseveto_ss_lep0" , list_looseveto_ss_lep_idx.size() > 0 ? lep_p4()[list_looseveto_ss_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("looseveto_ss_lep1" , list_looseveto_ss_lep_idx.size() > 1 ? lep_p4()[list_looseveto_ss_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("veto_ss_lep0" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_p4()[list_incl_veto_ss_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("veto_ss_lep1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_p4()[list_incl_veto_ss_lep_idx[1]] : LV());
 
-    ttreex.setBranch<LV>("tight_3l_lep0"     , list_tight_3l_lep_idx.size() > 0 ? lep_p4()[list_tight_3l_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("tight_3l_lep1"     , list_tight_3l_lep_idx.size() > 1 ? lep_p4()[list_tight_3l_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("tight_3l_lep2"     , list_tight_3l_lep_idx.size() > 2 ? lep_p4()[list_tight_3l_lep_idx[2]] : LV());
-    ttreex.setBranch<LV>("loose_3l_lep0"     , list_loose_3l_lep_idx.size() > 0 ? lep_p4()[list_loose_3l_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("loose_3l_lep1"     , list_loose_3l_lep_idx.size() > 1 ? lep_p4()[list_loose_3l_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("loose_3l_lep2"     , list_loose_3l_lep_idx.size() > 2 ? lep_p4()[list_loose_3l_lep_idx[2]] : LV());
-    ttreex.setBranch<LV>("veto_3l_lep0"      , list_veto_3l_lep_idx.size() > 0 ? lep_p4()[list_veto_3l_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("veto_3l_lep1"      , list_veto_3l_lep_idx.size() > 1 ? lep_p4()[list_veto_3l_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("veto_3l_lep2"      , list_veto_3l_lep_idx.size() > 2 ? lep_p4()[list_veto_3l_lep_idx[2]] : LV());
-    ttreex.setBranch<LV>("looseveto_3l_lep0" , list_looseveto_3l_lep_idx.size() > 0 ? lep_p4()[list_looseveto_3l_lep_idx[0]] : LV());
-    ttreex.setBranch<LV>("looseveto_3l_lep1" , list_looseveto_3l_lep_idx.size() > 1 ? lep_p4()[list_looseveto_3l_lep_idx[1]] : LV());
-    ttreex.setBranch<LV>("looseveto_3l_lep2" , list_looseveto_3l_lep_idx.size() > 2 ? lep_p4()[list_looseveto_3l_lep_idx[2]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep0" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_p4()[list_incl_veto_3l_lep_idx[0]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep1" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_p4()[list_incl_veto_3l_lep_idx[1]] : LV());
+    ttreex.setBranch<LV>("veto_3l_lep2" , list_incl_veto_3l_lep_idx.size() > 2 ? lep_p4()[list_incl_veto_3l_lep_idx[2]] : LV());
 
-    ttreex.setBranch<int>("tight_ss_lep0_pdgid"     , list_tight_ss_lep_idx.size() > 0 ? lep_pdgId()[list_tight_ss_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("tight_ss_lep1_pdgid"     , list_tight_ss_lep_idx.size() > 1 ? lep_pdgId()[list_tight_ss_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("loose_ss_lep0_pdgid"     , list_loose_ss_lep_idx.size() > 0 ? lep_pdgId()[list_loose_ss_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("loose_ss_lep1_pdgid"     , list_loose_ss_lep_idx.size() > 1 ? lep_pdgId()[list_loose_ss_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("veto_ss_lep0_pdgid"      , list_veto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_veto_ss_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("veto_ss_lep1_pdgid"      , list_veto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_veto_ss_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("looseveto_ss_lep0_pdgid" , list_looseveto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_looseveto_ss_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("looseveto_ss_lep1_pdgid" , list_looseveto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_looseveto_ss_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("veto_ss_lep0_pdgid" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_ss_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("veto_ss_lep1_pdgid" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_ss_lep_idx[1]] : 0);
 
-    ttreex.setBranch<int>("tight_3l_lep0_pdgid"     , list_tight_3l_lep_idx.size() > 0 ? lep_pdgId()[list_tight_3l_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("tight_3l_lep1_pdgid"     , list_tight_3l_lep_idx.size() > 1 ? lep_pdgId()[list_tight_3l_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("tight_3l_lep2_pdgid"     , list_tight_3l_lep_idx.size() > 2 ? lep_pdgId()[list_tight_3l_lep_idx[2]] : 0);
-    ttreex.setBranch<int>("loose_3l_lep0_pdgid"     , list_loose_3l_lep_idx.size() > 0 ? lep_pdgId()[list_loose_3l_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("loose_3l_lep1_pdgid"     , list_loose_3l_lep_idx.size() > 1 ? lep_pdgId()[list_loose_3l_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("loose_3l_lep2_pdgid"     , list_loose_3l_lep_idx.size() > 2 ? lep_pdgId()[list_loose_3l_lep_idx[2]] : 0);
-    ttreex.setBranch<int>("veto_3l_lep0_pdgid"      , list_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_veto_3l_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("veto_3l_lep1_pdgid"      , list_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_veto_3l_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("veto_3l_lep2_pdgid"      , list_veto_3l_lep_idx.size() > 2 ? lep_pdgId()[list_veto_3l_lep_idx[2]] : 0);
-    ttreex.setBranch<int>("looseveto_3l_lep0_pdgid" , list_looseveto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_looseveto_3l_lep_idx[0]] : 0);
-    ttreex.setBranch<int>("looseveto_3l_lep1_pdgid" , list_looseveto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_looseveto_3l_lep_idx[1]] : 0);
-    ttreex.setBranch<int>("looseveto_3l_lep2_pdgid" , list_looseveto_3l_lep_idx.size() > 2 ? lep_pdgId()[list_looseveto_3l_lep_idx[2]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep0_pdgid" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_3l_lep_idx[0]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep1_pdgid" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_3l_lep_idx[1]] : 0);
+    ttreex.setBranch<int>("veto_3l_lep2_pdgid" , list_incl_veto_3l_lep_idx.size() > 2 ? lep_pdgId()[list_incl_veto_3l_lep_idx[2]] : 0);
+
+    ttreex.setBranch<int>("n_tight_ss_lep", list_incl_tight_ss_lep_idx.size());
+    ttreex.setBranch<int>("n_tight_3l_lep", list_incl_tight_3l_lep_idx.size());
+    ttreex.setBranch<int>("n_loose_ss_lep", list_incl_loose_ss_lep_idx.size());
+    ttreex.setBranch<int>("n_loose_3l_lep", list_incl_loose_3l_lep_idx.size());
+    ttreex.setBranch<int>("n_veto_ss_lep", list_incl_veto_ss_lep_idx.size());
+    ttreex.setBranch<int>("n_veto_3l_lep", list_incl_veto_3l_lep_idx.size());
 
     ttreex.setBranch<LV>("MET", MET);
     ttreex.setBranch<LV>("MET_up", MET_up);
@@ -564,6 +652,14 @@ void WWWAnalysis::setBranches()
     ttreex.setBranch<float>("MTmax_dn", MTmax_dn);
     ttreex.setBranch<float>("MTmax3l", MTmax3l);
 
+    ttreex.setBranch<float>("MllSS", MllSS);
+    ttreex.setBranch<float>("MeeSS", MeeSS);
+    ttreex.setBranch<float>("Mll0SFOS", Mll0SFOS);
+    ttreex.setBranch<float>("Mee0SFOS", Mee0SFOS);
+    ttreex.setBranch<float>("Mll1SFOS", Mll1SFOS);
+    ttreex.setBranch<float>("Mll2SFOS0", Mll2SFOS0);
+    ttreex.setBranch<float>("Mll2SFOS1", Mll2SFOS1);
+
     ttreex.setBranch<float>("weight", weight);
     ttreex.setBranch<float>("btagsf", btagsf);
     ttreex.setBranch<float>("btagsf_hfup", btagsf_hfup);
@@ -592,6 +688,13 @@ void WWWAnalysis::setBranches()
     ttreex.setBranch<int>("run_number", run_number);
     ttreex.setBranch<int>("lumiblock_number", lumiblock_number);
     ttreex.setBranch<int>("event_number", event_number);
+
+    ttreex.setBranch<float>("gen_Mjj", gen_Mjj);
+    ttreex.setBranch<float>("gen_DEtajj", gen_DEtajj);
+    ttreex.setBranch<float>("gen_DRjj", gen_DRjj);
+
+    ttreex.setBranch<LV>("gen_quark0", list_gen_quarks.size() > 0 ? genPart_p4()[list_gen_quarks[0]] : LV());
+    ttreex.setBranch<LV>("gen_quark1", list_gen_quarks.size() > 1 ? genPart_p4()[list_gen_quarks[1]] : LV());
 }
 
 //#################################################################################################

@@ -19,6 +19,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <tuple>
 
 // CMS3
 #include "CMS3_WWW0116.h"
@@ -105,4 +106,21 @@ void storeeventlist(string output, string sample, std::ostringstream *&stream);
 void storeeventlist(string output, string sample, bool isSS, std::ostringstream *&streamEE, std::ostringstream *&streamEM, std::ostringstream *&streamMM);
 void storeeventlist(string output, string sample, std::ostringstream *&streamEE, std::ostringstream *&streamEM, std::ostringstream *&streamMM, std::ostringstream *&stream0SFOS, std::ostringstream *&stream1SFOS, std::ostringstream *&stream2SFOS);
 
+// Calculating SFOS pair number and invariant masses
 int calcNSFOS(std::vector<int> tightlep);
+float get0SFOSMll(std::vector<int> lepidx);
+float get0SFOSMee(std::vector<int> lepidx);
+float get1SFOSMll(std::vector<int> lepidx);
+float get2SFOSMll0(std::vector<int> lepidx);
+float get2SFOSMll1(std::vector<int> lepidx);
+
+// Getting the truth info on the signal samples. (Verified only on the WWW samples. (not WH))
+bool isW(int igen);
+bool isParentW(int igen);
+bool isParentTau(int igen);
+bool isLepton(int igen);
+bool isQuark(int igen);
+bool isLightLepton(int igen);
+bool isTau(int igen);
+typedef std::vector<int> vIdx;
+std::tuple<vIdx, vIdx> getGenIndices();
