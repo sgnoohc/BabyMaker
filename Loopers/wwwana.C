@@ -3,6 +3,7 @@
 
 #include "rooutil/cxxopts.h"
 #include "rooutil/looper.h"
+#include "rooutil/multidraw.h"
 #include "rooutil/fileutil.h"
 #include "rooutil/printutil.h"
 #include "rooutil/dorky.h"
@@ -104,11 +105,14 @@ public:
     float MjjL_dn; // Mjj with two leading jets.
     float Detajj_dn; // Detajj with two leading jets.
 
+    float MjjBal;
+
     // Lepton + MET variables
     float MTmax;
     float MTmax_up;
     float MTmax_dn;
     float MTmax3l;
+    float MT1SFOS;
 
     // Lepton + Lepton variables
     float MllSS;
@@ -177,6 +181,8 @@ public:
     void processLeptonIndices();
     void checkEvent();
     TString getSampleNameFromFileName(TString);
+
+    void cutflow();
 };
 
 //#################################################################################################
@@ -196,6 +202,7 @@ int main(int argc, char* argv[])
             ("d,dataset", "Dataset to run over (e.g. WWW, Other, VVV, tt1l, tt2l, singleTop, ttV, Wjets, Zjets, WW, WZ, ZZ, WG, ZG, WGstar, Data)", cxxopts::value<std::string>(), "DATASET")
             ("e,eventlist", "File containing the event list to check", cxxopts::value<std::string>()->default_value("eventlist.txt"), "EVENTLISTFILE")
             ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
+            ("c,cutflow", "Do cutflow")
             ("h,help", "Print help")
             ;
         options.parse(argc, argv);
@@ -249,8 +256,16 @@ int main(int argc, char* argv[])
         // Initialize the analysis module
         wwwanalysis.init();
 
-        // Run the looper!
-        wwwanalysis.run();
+        if (options.count("cutflow"))
+        {
+            // Run the cutflow!
+            wwwanalysis.cutflow();
+        }
+        else
+        {
+            // Run the looper!
+            wwwanalysis.run();
+        }
 
     }
     catch (const cxxopts::OptionException& e)
@@ -357,6 +372,7 @@ void WWWAnalysis::createBranches()
     ttreex.createBranch<float>("MTmax_up");
     ttreex.createBranch<float>("MTmax_dn");
     ttreex.createBranch<float>("MTmax3l");
+    ttreex.createBranch<float>("MT1SFOS");
 
     ttreex.createBranch<float>("MllSS");
     ttreex.createBranch<float>("MeeSS");
@@ -525,6 +541,16 @@ bool WWWAnalysis::calcStdVariables()
     nSFOS = -1;
     if (list_incl_veto_3l_lep_idx.size() >= 3) nSFOS = calcNSFOS(list_incl_veto_3l_lep_idx);
 
+    MT1SFOS = -999;
+    if (nSFOS == 1)
+    {
+        int idx = -1;
+        if (lep_pdgId()[list_incl_veto_3l_lep_idx[0]] == -lep_pdgId()[list_incl_veto_3l_lep_idx[1]]) idx = 2;
+        if (lep_pdgId()[list_incl_veto_3l_lep_idx[0]] == -lep_pdgId()[list_incl_veto_3l_lep_idx[2]]) idx = 1;
+        if (lep_pdgId()[list_incl_veto_3l_lep_idx[1]] == -lep_pdgId()[list_incl_veto_3l_lep_idx[2]]) idx = 0;
+        MT1SFOS = mT(lep_p4()[idx], MET);
+    }
+
     Mll0SFOS = -999;
     Mee0SFOS = -999;
     Mll1SFOS = -999;
@@ -661,6 +687,7 @@ void WWWAnalysis::setBranches()
     ttreex.setBranch<float>("MTmax_up", MTmax_up);
     ttreex.setBranch<float>("MTmax_dn", MTmax_dn);
     ttreex.setBranch<float>("MTmax3l", MTmax3l);
+    ttreex.setBranch<float>("MT1SFOS", MT1SFOS);
 
     ttreex.setBranch<float>("MllSS", MllSS);
     ttreex.setBranch<float>("MeeSS", MeeSS);
@@ -892,6 +919,76 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
         }
     }
     return "NotUsed";
+}
+
+//#################################################################################################
+// From the output of the WWWAnalysis main functions run cutflow
+void WWWAnalysis::cutflow()
+{
+//    TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti(chain);
+    TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti("t", "/hadoop/cms/store/user/phchang/metis/wwwlooper/v2/WWW_v0_1_16_v2/www_2l_*mia_skim_1.root");
+    if (!p)
+        RooUtil::error("Failed to create TMulti");
+    std::cout << p << std::endl;
+    std::vector<TString> cuts;
+    cuts.push_back("ntrk == 0");
+    cuts.push_back("pass_offline_trig>0");
+    cuts.push_back("(veto_ss_lep0_pdgid*veto_ss_lep1_pdgid)==169");
+    cuts.push_back("n_tight_ss_lep>=2");
+    cuts.push_back("n_veto_ss_lep==2");
+//    cuts.push_back("sample_name==\"WHtoWWW\"");
+    cuts.push_back("nj30>=2");
+    cuts.push_back("(Mjj<100.&&Mjj>60.)");
+    cuts.push_back("nb==0");
+    cuts.push_back("MllSS > 40.");
+    cuts.push_back("MjjL < 400.");
+    cuts.push_back("Detajj < 1.5");
+
+    std::map<TString, TString> hists;
+    hists["count"] = "0>>%s%zu(1, 0, 1)";
+    hists["gen_DRjj"] = "gen_DRjj>>%s%zu(50, 0, 9)";
+    hists["Mjj"] = "Mjj>>%s%zu(30, 0, 150)";
+    hists["gen_quark0_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.pt()))>>%s%zu(30, 0, 150)";
+    hists["gen_quark1_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150)";
+    hists["gen_quark0_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.eta()))>>%s%zu(30, -5, 5)";
+    hists["gen_quark1_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.eta()))>>%s%zu(30, -5, 5)";
+    hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
+    hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
+
+    for (size_t i = 0; i < cuts.size(); ++i)
+    {
+        for (auto& hist : hists)
+        {
+            TString bookHist = Form(hist.second.Data(), hist.first.Data(), i);
+            TString cut = Form("(%s)*(weight*btagsf*lepsf*trigsf*purewgt)", RooUtil::StringUtil::join(std::vector<TString>(cuts.begin(), cuts.begin() + i + 1), ")*(").Data());
+//            std::cout << bookHist << " " << cut << std::endl;
+            p->queueDraw(bookHist.Data(), cut.Data(), "goffe");
+        }
+    }
+
+    p->execute();
+
+    std::cout << " " << std::endl;
+
+    std::map<TString, TH1*> ret_hists;
+    for (size_t i = 0; i < cuts.size(); ++i)
+    {
+        for (auto& hist : hists)
+        {
+            TString histname = Form("%s%zu", hist.first.Data(), i);
+            TH1* h = RooUtil::FileUtil::get(histname);
+            if (h)
+                ret_hists[histname] = h;
+            if (hist.first.EqualTo("count"))
+                std::cout << h->GetBinContent(1) << " +/- " << h->GetBinError(1) << " " << cuts.at(i) << std::endl;
+        }
+    }
+
+    // Set the output file
+    ofile = new TFile(output_name, "recreate"); 
+    for (auto& hist : ret_hists)
+        if (hist.second)
+            hist.second->Write();
 }
 
 //eof

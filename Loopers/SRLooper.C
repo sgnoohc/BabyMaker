@@ -393,6 +393,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
 
       if(!isData()||!blindSR){//SR is blinded
+//	fillSRhisto(histos, "SignalRegion",               sample, sn, sn2, SRSS[0], SR3l[0], 1, 1);
 	fillSRhisto(histos, "SignalRegion",               sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
 	fillSRhisto(histos, "SignalRegionPresel",         sample, sn, sn2, SRSS[1], SR3l[1], weight, weight);
 	fillSRhisto(histos, "SignalRegion_JECup",         sample, sn, sn2, SRSS[6], SR3l[6], weight,         weight);
