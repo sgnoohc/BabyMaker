@@ -635,10 +635,8 @@ bool passJetSSstate(bool preselect, int nj, int nb, float Mjj, float MjjL, float
   if(fabs(Deta)>1.5)                  return false;
   if(fabs(MassjjL)>400.)              return false;
   if(is3lCR)                          return true;
-//  if( Mjjside&&fabs(Massjj-80.)<20.)  return false;
-//  if(!Mjjside&&fabs(Massjj-80.)>=20.) return false;
-  if( Mjjside&&(Massjj <90.&&Massjj >60.))  return false;
-  if(!Mjjside&&(Massjj>=90.||Massjj<=60.)) return false;
+  if( Mjjside&&fabs(Massjj-80.)<20.)  return false;
+  if(!Mjjside&&fabs(Massjj-80.)>=20.) return false;
   return true;
 }
       
