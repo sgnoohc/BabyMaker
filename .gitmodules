@@ -4,3 +4,6 @@
 [submodule "Loopers/ProjectMetis"]
 	path = Loopers/ProjectMetis
 	url = git@github.com:aminnj/ProjectMetis.git
+[submodule "Loopers/plottery"]
+	path = Loopers/plottery
+	url = git@github.com:aminnj/plottery.git
