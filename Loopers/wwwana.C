@@ -11,6 +11,7 @@
 #include "rooutil/eventlist.h"
 #include "rooutil/ttreex.h"
 #include "rooutil/json.h"
+#include "rooutil/draw.h"
 
 #include "CMS3_WWW0116.h"
 #include "Functions.h"
@@ -990,284 +991,32 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
 // Computing SFs and etc.
 void WWWAnalysis::runAnalysis()
 {
-
-//    TString cut_SSpresel = join(_j["cuts_SSpresel"]);
-//    TString cut_WZCRpresel = join(_j["cuts_WZCRpresel"]);
-
-//    std::map<TString, TH1*> ret_hists;
-//    for (auto& sample : datasetMap)
-//    {
-//        // Vector to hold the datasets to run over
-//        std::vector<TString> dataset_paths;
-//
-//        // Set the datasets
-//        for (auto& dataset_path : datasetMap.at(sample.first))
-//            dataset_paths.push_back(babydir + dataset_path);
-//
-//        // Create at TChain from the list of root files.
-//        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
-//
-//        // Total entry number
-//        int nentries = chain->GetEntries();
-//
-//        // Create a Multi TTree Draw module
-//        TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti(chain);
-//
-//        if (!p)
-//            RooUtil::error("Failed to create TMulti");
-//
-//        std::cout << p << std::endl;
-//
-//        std::vector<TString> cuts_SSpresel;
-//        cuts_SSpresel.push_back("ntrk == 0");
-//        cuts_SSpresel.push_back("pass_offline_trig>0");
-//        cuts_SSpresel.push_back("pass_online_trig>0");
-//        cuts_SSpresel.push_back("n_tight_ss_lep==2");
-//        cuts_SSpresel.push_back("n_veto_ss_lep==2");
-//        cuts_SSpresel.push_back("MllSS > 40.");
-//        TString cut_SSpresel = Form("(%s)", join(cuts_SSpresel, ")*(").Data());
-//
-//        std::vector<TString> cuts_WZCRpresel;
-//        cuts_WZCRpresel.push_back("ntrk == 0");
-//        cuts_WZCRpresel.push_back("pass_offline_trig>0");
-//        cuts_WZCRpresel.push_back("pass_online_trig>0");
-//        cuts_WZCRpresel.push_back("n_tight_ss_lep>=2");
-//        cuts_WZCRpresel.push_back("n_tight_3l_lep==3");
-//        cuts_WZCRpresel.push_back("n_veto_3l_lep==3");
-//        cuts_WZCRpresel.push_back("nj>=2");
-//        cuts_WZCRpresel.push_back("nSFOS>=1");
-//        cuts_WZCRpresel.push_back("MllSS > 40.");
-////        cuts_WZCRpresel.push_back("nSFOSinZ>=1");
-////        cuts_WZCRpresel.push_back("((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10.))+((nSFOS==2)*((abs(Mll2SFOS0-91.1876)<10.)+(abs(Mll2SFOS1-91.1876)<10.)))");
-//        TString cut_WZCRpresel = Form("(%s)", join(cuts_WZCRpresel, ")*(").Data());
-//
-//        // Define cuts
-//        std::vector<TString> cuts_common;
-////        cuts_common.push_back("nb==0");
-////        cuts_common.push_back("nj30>=2");
-////        cuts_common.push_back("(Mjj<100.&&Mjj>60.)");
-////        cuts_common.push_back("MjjL < 400.");
-////        cuts_common.push_back("Detajj < 1.5");
-//
-//        // Same Sign Signal regions
-//        std::map<TString, std::vector<TString>> cuts_Regions;
-//        cuts_Regions["SSee"].push_back(Form("(%s)*(lep_flav_prod_ss==121)", cut_SSpresel.Data()));
-//        cuts_Regions["SSem"].push_back(Form("(%s)*(lep_flav_prod_ss==143)", cut_SSpresel.Data()));
-//        cuts_Regions["SSmm"].push_back(Form("(%s)*(lep_flav_prod_ss==169)", cut_SSpresel.Data()));
-//        cuts_Regions["SSee"].insert(cuts_Regions["SSee"].end(), cuts_common.begin(), cuts_common.end());
-//        cuts_Regions["SSem"].insert(cuts_Regions["SSem"].end(), cuts_common.begin(), cuts_common.end());
-//        cuts_Regions["SSmm"].insert(cuts_Regions["SSmm"].end(), cuts_common.begin(), cuts_common.end());
-//
-//        // WZ CR
-//        cuts_Regions["WZCRee"].push_back(Form("(%s)*(lep_flav_prod_3l==121)", cut_WZCRpresel.Data()));
-//        cuts_Regions["WZCRem"].push_back(Form("(%s)*(lep_flav_prod_3l==143)", cut_WZCRpresel.Data()));
-//        cuts_Regions["WZCRmm"].push_back(Form("(%s)*(lep_flav_prod_3l==169)", cut_WZCRpresel.Data()));
-//        cuts_Regions["WZCRee"].insert(cuts_Regions["WZCRee"].end(), cuts_common.begin(), cuts_common.end());
-//        cuts_Regions["WZCRem"].insert(cuts_Regions["WZCRem"].end(), cuts_common.begin(), cuts_common.end());
-//        cuts_Regions["WZCRmm"].insert(cuts_Regions["WZCRmm"].end(), cuts_common.begin(), cuts_common.end());
-//
-//        // Define histograms
-//        std::map<TString, TString> hists;
-//        hists[Form("%s_Mll"    , sample.first.Data())] = "MllSS  >> %s_%s_cut%zu(25 , 0 , 250)";
-////        hists[Form("%s_nj30"   , sample.first.Data())] = "nj30   >> %s_%s_cut%zu(7  , 0 , 7)";
-////        hists[Form("%s_nb"     , sample.first.Data())] = "nb     >> %s_%s_cut%zu(5  , 0 , 5)";
-////        hists[Form("%s_Mjj"    , sample.first.Data())] = "Mjj    >> %s_%s_cut%zu(50 , 0 , 250)";
-////        hists[Form("%s_MjjL"   , sample.first.Data())] = "MjjL   >> %s_%s_cut%zu(50 , 0 , 250)";
-////        hists[Form("%s_Detajj" , sample.first.Data())] = "Detajj >> %s_%s_cut%zu(50 , 0 , 9)";
-////        hists[Form("%s_count"  , sample.first.Data())] = "0      >> %s_%s_cut%zu(1  , 0 , 1)";
-//
-//        //hists["count"] = "0>>%s%zu(1, 0, 1)";
-//        //hists["gen_DRjj"] = "gen_DRjj>>%s%zu(50, 0, 9)";
-//        //hists["Mjj"] = "Mjj>>%s%zu(30, 0, 150)";
-//        //hists["gen_quark0_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.pt()))>>%s%zu(30, 0, 150)";
-//        //hists["gen_quark1_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150)";
-//        //hists["gen_quark0_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.eta()))>>%s%zu(30, -5, 5)";
-//        //hists["gen_quark1_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.eta()))>>%s%zu(30, -5, 5)";
-//        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-//        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-//
-//        TString weightstr = sample.first.Contains("Data") ? "1" : "weight*lepsf*trigsf*purewgt";
-//
-//        // Book jobs
-//        for (auto& Reg : cuts_Regions)
-//        {
-//            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
-//            {
-//                for (auto& hist : hists)
-//                {
-//                    TString histbook = Form(hist.second.Data(), Reg.first.Data(), hist.first.Data(), i);
-//                    TString cut = Form("(%s)*(%s)", join(std::vector<TString>(cuts_Regions[Reg.first].begin(), cuts_Regions[Reg.first].begin() + i + 1), ")*(").Data(), weightstr.Data()); 
-//                    p->queueDraw(histbook.Data(), cut.Data(), "goffe", nentries);
-//                }
-//            }
-//        }
-//
-//        // Execute the TTree Draw
-//        p->execute();
-//
-//        std::cout << " " << std::endl;
-//
-//        // Retrieve jobs
-//        for (auto& Reg : cuts_Regions)
-//        {
-//            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
-//            {
-//                for (auto& hist : hists)
-//                {
-//                    TString histname = Form("%s_%s_cut%zu", Reg.first.Data(), hist.first.Data(), i);
-//                    TH1* h = RooUtil::FileUtil::get(histname);
-//                    if (h)
-//                        ret_hists[histname] = h;
-//                }
-//            }
-//        }
-//    }
-//
-//    // Set the output file
-//    ofile = new TFile(output_name, "recreate"); 
-//    for (auto& hist : ret_hists)
-//        if (hist.second)
-//            hist.second->Write();
+    std::map<TString, TH1*> allhists;
+    for (auto& sample : datasetMap)
+    {
+        // Vector to hold the datasets to run over
+        std::vector<TString> dataset_paths;
+        // Set the datasets
+        for (auto& dataset_path : datasetMap.at(sample.first))
+            dataset_paths.push_back(babydir + dataset_path);
+        // Create at TChain from the list of root files.
+        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
+        bool isdata = sample.first.Contains("Data");
+        std::cout <<  " isdata: " << isdata <<  std::endl;
+        std::map<TString, TH1*> hists
+            = RooUtil::Draw::drawHistograms(chain, _j["WZEst"], sample.first, isdata);
+        allhists.insert(hists.begin(), hists.end());
+    }
+    ofile = new TFile(output_name, "recreate"); 
+    for (auto& hist : allhists)
+        if (hist.second)
+            hist.second->Write();
 }
 
 //#################################################################################################
 // From the output of the WWWAnalysis main functions run readAnalysis
 void WWWAnalysis::readAnalysis()
 {
-    std::map<TString, TH1*> ret_hists;
-    for (auto& sample : datasetMap)
-    {
-        // Vector to hold the datasets to run over
-        std::vector<TString> dataset_paths;
-
-        // Set the datasets
-        for (auto& dataset_path : datasetMap.at(sample.first))
-            dataset_paths.push_back(babydir + dataset_path);
-
-        // Create at TChain from the list of root files.
-        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
-
-        // Total entry number
-        int nentries = chain->GetEntries();
-
-        // Create a Multi TTree Draw module
-        TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti(chain);
-
-        if (!p)
-            RooUtil::error("Failed to create TMulti");
-
-        std::cout << p << std::endl;
-
-        std::vector<TString> cuts_SSpresel;
-        cuts_SSpresel.push_back("ntrk == 0");
-        cuts_SSpresel.push_back("pass_offline_trig>0");
-        cuts_SSpresel.push_back("pass_online_trig>0");
-        cuts_SSpresel.push_back("n_tight_ss_lep==2");
-        cuts_SSpresel.push_back("n_veto_ss_lep==2");
-        cuts_SSpresel.push_back("MllSS > 40.");
-        TString cut_SSpresel = Form("(%s)", join(cuts_SSpresel, ")*(").Data());
-
-        std::vector<TString> cuts_WZCRpresel;
-        cuts_WZCRpresel.push_back("ntrk == 0");
-        cuts_WZCRpresel.push_back("pass_offline_trig>0");
-        cuts_WZCRpresel.push_back("pass_online_trig>0");
-        cuts_WZCRpresel.push_back("n_tight_ss_lep>=2");
-        cuts_WZCRpresel.push_back("n_tight_3l_lep==3");
-        cuts_WZCRpresel.push_back("n_veto_3l_lep==3");
-        cuts_WZCRpresel.push_back("nj>=2");
-        cuts_WZCRpresel.push_back("nSFOS>=1");
-        cuts_WZCRpresel.push_back("MllSS > 40.");
-//        cuts_WZCRpresel.push_back("nSFOSinZ>=1");
-//        cuts_WZCRpresel.push_back("((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10.))+((nSFOS==2)*((abs(Mll2SFOS0-91.1876)<10.)+(abs(Mll2SFOS1-91.1876)<10.)))");
-        TString cut_WZCRpresel = Form("(%s)", join(cuts_WZCRpresel, ")*(").Data());
-
-        // Define cuts
-        std::vector<TString> cuts_common;
-//        cuts_common.push_back("nb==0");
-//        cuts_common.push_back("nj30>=2");
-//        cuts_common.push_back("(Mjj<100.&&Mjj>60.)");
-//        cuts_common.push_back("MjjL < 400.");
-//        cuts_common.push_back("Detajj < 1.5");
-
-        // Same Sign Signal regions
-        std::map<TString, std::vector<TString>> cuts_Regions;
-        cuts_Regions["SSee"].push_back(Form("(%s)*(lep_flav_prod_ss==121)", cut_SSpresel.Data()));
-        cuts_Regions["SSem"].push_back(Form("(%s)*(lep_flav_prod_ss==143)", cut_SSpresel.Data()));
-        cuts_Regions["SSmm"].push_back(Form("(%s)*(lep_flav_prod_ss==169)", cut_SSpresel.Data()));
-        cuts_Regions["SSee"].insert(cuts_Regions["SSee"].end(), cuts_common.begin(), cuts_common.end());
-        cuts_Regions["SSem"].insert(cuts_Regions["SSem"].end(), cuts_common.begin(), cuts_common.end());
-        cuts_Regions["SSmm"].insert(cuts_Regions["SSmm"].end(), cuts_common.begin(), cuts_common.end());
-
-        // WZ CR
-        cuts_Regions["WZCRee"].push_back(Form("(%s)*(lep_flav_prod_3l==121)", cut_WZCRpresel.Data()));
-        cuts_Regions["WZCRem"].push_back(Form("(%s)*(lep_flav_prod_3l==143)", cut_WZCRpresel.Data()));
-        cuts_Regions["WZCRmm"].push_back(Form("(%s)*(lep_flav_prod_3l==169)", cut_WZCRpresel.Data()));
-        cuts_Regions["WZCRee"].insert(cuts_Regions["WZCRee"].end(), cuts_common.begin(), cuts_common.end());
-        cuts_Regions["WZCRem"].insert(cuts_Regions["WZCRem"].end(), cuts_common.begin(), cuts_common.end());
-        cuts_Regions["WZCRmm"].insert(cuts_Regions["WZCRmm"].end(), cuts_common.begin(), cuts_common.end());
-
-        // Define histograms
-        std::map<TString, TString> hists;
-        hists[Form("%s_Mll"    , sample.first.Data())] = "MllSS  >> %s_%s_cut%zu(25 , 0 , 250)";
-//        hists[Form("%s_nj30"   , sample.first.Data())] = "nj30   >> %s_%s_cut%zu(7  , 0 , 7)";
-//        hists[Form("%s_nb"     , sample.first.Data())] = "nb     >> %s_%s_cut%zu(5  , 0 , 5)";
-//        hists[Form("%s_Mjj"    , sample.first.Data())] = "Mjj    >> %s_%s_cut%zu(50 , 0 , 250)";
-//        hists[Form("%s_MjjL"   , sample.first.Data())] = "MjjL   >> %s_%s_cut%zu(50 , 0 , 250)";
-//        hists[Form("%s_Detajj" , sample.first.Data())] = "Detajj >> %s_%s_cut%zu(50 , 0 , 9)";
-//        hists[Form("%s_count"  , sample.first.Data())] = "0      >> %s_%s_cut%zu(1  , 0 , 1)";
-
-        //hists["count"] = "0>>%s%zu(1, 0, 1)";
-        //hists["gen_DRjj"] = "gen_DRjj>>%s%zu(50, 0, 9)";
-        //hists["Mjj"] = "Mjj>>%s%zu(30, 0, 150)";
-        //hists["gen_quark0_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.pt()))>>%s%zu(30, 0, 150)";
-        //hists["gen_quark1_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150)";
-        //hists["gen_quark0_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.eta()))>>%s%zu(30, -5, 5)";
-        //hists["gen_quark1_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.eta()))>>%s%zu(30, -5, 5)";
-        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-
-        TString weightstr = sample.first.Contains("Data") ? "1" : "weight*lepsf*trigsf*purewgt";
-
-        // Book jobs
-        for (auto& Reg : cuts_Regions)
-        {
-            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
-            {
-                for (auto& hist : hists)
-                {
-                    TString histbook = Form(hist.second.Data(), Reg.first.Data(), hist.first.Data(), i);
-                    TString cut = Form("(%s)*(%s)", join(std::vector<TString>(cuts_Regions[Reg.first].begin(), cuts_Regions[Reg.first].begin() + i + 1), ")*(").Data(), weightstr.Data()); 
-                    p->queueDraw(histbook.Data(), cut.Data(), "goffe", nentries);
-                }
-            }
-        }
-
-        // Execute the TTree Draw
-        p->execute();
-
-        std::cout << " " << std::endl;
-
-        // Retrieve jobs
-        for (auto& Reg : cuts_Regions)
-        {
-            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
-            {
-                for (auto& hist : hists)
-                {
-                    TString histname = Form("%s_%s_cut%zu", Reg.first.Data(), hist.first.Data(), i);
-                    TH1* h = RooUtil::FileUtil::get(histname);
-                    if (h)
-                        ret_hists[histname] = h;
-                }
-            }
-        }
-    }
-
-    // Set the output file
-    ofile = new TFile(output_name, "recreate"); 
-    for (auto& hist : ret_hists)
-        if (hist.second)
-            hist.second->Write();
 }
 
 //eof

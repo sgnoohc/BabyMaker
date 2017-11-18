@@ -1,48 +1,57 @@
 {
-    "default_baby_dir_path": "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/",
+    "default_baby_dir_path": "/hadoop/cms/store/user/phchang/metis/wwwlooper/v4/WWW_v0_1_16_v4/",
 
-    "Analysis1" :
+    "WZEst" :
     {
-        "PreselectionRegion1":
+        "WZCRPreselection":
         {
             "cuts":
             {
                 "preselections" :
                 [
-                    "ntrk == 0",
+                    "ntrk == 0 ^ weight*lepsf*trigsf*purewgt",
                     "pass_offline_trig>0",
                     "pass_online_trig>0",
-                    "n_tight_ss_lep==2",
-                    "n_veto_ss_lep==2"
-                ],
-                "selections" :
-                [
-                    "MllSS > 40."
-                ]
-            }
-        },
-        "PreselectionRegion2":
-        {
-            "cuts":
-            {
-                "preselections" :
-                [
-                    "#PreselectionRegion1%3,4",
                     "n_tight_ss_lep>=2",
                     "n_tight_3l_lep==3",
                     "n_veto_3l_lep==3",
                     "nj>=2",
-                    "nSFOS>=1"
+                    "nSFOS>=1",
+                    "MllSS > 40."
                 ]
+            },
+            "histograms":
+            {
+                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
+                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
             }
         },
-        "Region1" :
+        "WZCRSSee":
         {
             "cuts":
             {
                 "preselections" :
                 [
-                    "#PreselectionRegion1"
+                    "#WZCRPreselection"
+                ],
+                "selections" :
+                [
+                    "lep_flav_prod_3l==121"
+                ]
+            },
+            "histograms":
+            {
+                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
+                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
+            }
+        },
+        "WZCRSSem":
+        {
+            "cuts":
+            {
+                "preselections" :
+                [
+                    "#WZCRPreselection"
                 ],
                 "selections" :
                 [
@@ -51,25 +60,30 @@
             },
             "histograms":
             {
-                "hist1" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "hist2" : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
-                
+                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
+                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
             }
+
         },
-        "Region2" :
+        "WZCRSSmm":
         {
             "cuts":
             {
                 "preselections" :
                 [
-                    "#PreselectionRegion2"
+                    "#WZCRPreselection"
+                ],
+                "selections" :
+                [
+                    "lep_flav_prod_3l==169"
                 ]
             },
             "histograms":
             {
-                "hist1" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "hist2" : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
+                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
+                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
             }
+
         }
     }
 }
