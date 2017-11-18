@@ -22,6 +22,7 @@
 #include <vector>
 
 using json = nlohmann::json;
+using namespace RooUtil::StringUtil;
 
 //#################################################################################################
 int main(int argc, char* argv[]);
@@ -191,6 +192,7 @@ public:
     void checkEvent();
     TString getSampleNameFromFileName(TString);
 
+    void runAnalysis();
     void readAnalysis();
 };
 
@@ -211,6 +213,7 @@ int main(int argc, char* argv[])
             ("d,dataset", "Dataset to run over (e.g. WWW, Other, VVV, tt1l, tt2l, singleTop, ttV, Wjets, Zjets, WW, WZ, ZZ, WG, ZG, WGstar, Data)", cxxopts::value<std::string>(), "DATASET")
             ("e,eventlist", "File containing the event list to check", cxxopts::value<std::string>()->default_value("eventlist.txt"), "EVENTLISTFILE")
             ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
+            ("run", "run runAnalysis")
             ("r,read", "run readAnalysis")
             ("h,help", "Print help")
             ;
@@ -233,8 +236,7 @@ int main(int argc, char* argv[])
         // If no babydir option is given, take the default one
         if (!options.count("babydir") && !options.count("input"))
         {
-            //TString default_baby_dir_path = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/";
-            TString default_baby_dir_path = wwwanalysis._j["default_baby_dir_path"].get<std::string>();
+            TString default_baby_dir_path = wwwanalysis._j["default_baby_dir_path"];
             RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
             wwwanalysis.babydir = default_baby_dir_path;
         }
@@ -244,7 +246,7 @@ int main(int argc, char* argv[])
         }
 
         // Sanity check on the options provided.
-        if (!options.count("dataset") && !options.count("input") && !options.count("read"))
+        if (!options.count("dataset") && !options.count("input") && !(options.count("read") || options.count("run")))
         {
             RooUtil::error(Form("Both --dataset and --input is not set! Check your arguments! Type ./%s --help for help.", argv[0]));
         }
@@ -267,7 +269,12 @@ int main(int argc, char* argv[])
         // Set the eventlist.txt path
         wwwanalysis.eventlist_file_path = options["eventlist"].as<std::string>();
 
-        if (options.count("read"))
+        if (options.count("run"))
+        {
+            // Run the runAnalysis!
+            wwwanalysis.runAnalysis();
+        }
+        else if (options.count("read"))
         {
             // Run the readAnalysis!
             wwwanalysis.readAnalysis();
@@ -859,7 +866,7 @@ void WWWAnalysis::setChain()
         }
 
         // Create at TChain from the list of root files.
-        chain = RooUtil::FileUtil::createTChain("t", RooUtil::StringUtil::join(dataset_paths, ","));
+        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths));
     }
 }
 
@@ -969,7 +976,7 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
     {
         for (auto& pttn : dataset.second)
         {
-            std::vector<TString> tokens = RooUtil::StringUtil::split(pttn, "*");
+            std::vector<TString> tokens = split(pttn, "*");
             TString pttn1 = tokens.at(0);
             TString pttn2 = tokens.size() == 3 ? tokens.at(1) : "";
             if (filename.Contains(pttn1) && filename.Contains(pttn2))
@@ -977,6 +984,150 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
         }
     }
     return "NotUsed";
+}
+
+//#################################################################################################
+// Computing SFs and etc.
+void WWWAnalysis::runAnalysis()
+{
+
+//    TString cut_SSpresel = join(_j["cuts_SSpresel"]);
+//    TString cut_WZCRpresel = join(_j["cuts_WZCRpresel"]);
+
+//    std::map<TString, TH1*> ret_hists;
+//    for (auto& sample : datasetMap)
+//    {
+//        // Vector to hold the datasets to run over
+//        std::vector<TString> dataset_paths;
+//
+//        // Set the datasets
+//        for (auto& dataset_path : datasetMap.at(sample.first))
+//            dataset_paths.push_back(babydir + dataset_path);
+//
+//        // Create at TChain from the list of root files.
+//        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
+//
+//        // Total entry number
+//        int nentries = chain->GetEntries();
+//
+//        // Create a Multi TTree Draw module
+//        TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti(chain);
+//
+//        if (!p)
+//            RooUtil::error("Failed to create TMulti");
+//
+//        std::cout << p << std::endl;
+//
+//        std::vector<TString> cuts_SSpresel;
+//        cuts_SSpresel.push_back("ntrk == 0");
+//        cuts_SSpresel.push_back("pass_offline_trig>0");
+//        cuts_SSpresel.push_back("pass_online_trig>0");
+//        cuts_SSpresel.push_back("n_tight_ss_lep==2");
+//        cuts_SSpresel.push_back("n_veto_ss_lep==2");
+//        cuts_SSpresel.push_back("MllSS > 40.");
+//        TString cut_SSpresel = Form("(%s)", join(cuts_SSpresel, ")*(").Data());
+//
+//        std::vector<TString> cuts_WZCRpresel;
+//        cuts_WZCRpresel.push_back("ntrk == 0");
+//        cuts_WZCRpresel.push_back("pass_offline_trig>0");
+//        cuts_WZCRpresel.push_back("pass_online_trig>0");
+//        cuts_WZCRpresel.push_back("n_tight_ss_lep>=2");
+//        cuts_WZCRpresel.push_back("n_tight_3l_lep==3");
+//        cuts_WZCRpresel.push_back("n_veto_3l_lep==3");
+//        cuts_WZCRpresel.push_back("nj>=2");
+//        cuts_WZCRpresel.push_back("nSFOS>=1");
+//        cuts_WZCRpresel.push_back("MllSS > 40.");
+////        cuts_WZCRpresel.push_back("nSFOSinZ>=1");
+////        cuts_WZCRpresel.push_back("((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10.))+((nSFOS==2)*((abs(Mll2SFOS0-91.1876)<10.)+(abs(Mll2SFOS1-91.1876)<10.)))");
+//        TString cut_WZCRpresel = Form("(%s)", join(cuts_WZCRpresel, ")*(").Data());
+//
+//        // Define cuts
+//        std::vector<TString> cuts_common;
+////        cuts_common.push_back("nb==0");
+////        cuts_common.push_back("nj30>=2");
+////        cuts_common.push_back("(Mjj<100.&&Mjj>60.)");
+////        cuts_common.push_back("MjjL < 400.");
+////        cuts_common.push_back("Detajj < 1.5");
+//
+//        // Same Sign Signal regions
+//        std::map<TString, std::vector<TString>> cuts_Regions;
+//        cuts_Regions["SSee"].push_back(Form("(%s)*(lep_flav_prod_ss==121)", cut_SSpresel.Data()));
+//        cuts_Regions["SSem"].push_back(Form("(%s)*(lep_flav_prod_ss==143)", cut_SSpresel.Data()));
+//        cuts_Regions["SSmm"].push_back(Form("(%s)*(lep_flav_prod_ss==169)", cut_SSpresel.Data()));
+//        cuts_Regions["SSee"].insert(cuts_Regions["SSee"].end(), cuts_common.begin(), cuts_common.end());
+//        cuts_Regions["SSem"].insert(cuts_Regions["SSem"].end(), cuts_common.begin(), cuts_common.end());
+//        cuts_Regions["SSmm"].insert(cuts_Regions["SSmm"].end(), cuts_common.begin(), cuts_common.end());
+//
+//        // WZ CR
+//        cuts_Regions["WZCRee"].push_back(Form("(%s)*(lep_flav_prod_3l==121)", cut_WZCRpresel.Data()));
+//        cuts_Regions["WZCRem"].push_back(Form("(%s)*(lep_flav_prod_3l==143)", cut_WZCRpresel.Data()));
+//        cuts_Regions["WZCRmm"].push_back(Form("(%s)*(lep_flav_prod_3l==169)", cut_WZCRpresel.Data()));
+//        cuts_Regions["WZCRee"].insert(cuts_Regions["WZCRee"].end(), cuts_common.begin(), cuts_common.end());
+//        cuts_Regions["WZCRem"].insert(cuts_Regions["WZCRem"].end(), cuts_common.begin(), cuts_common.end());
+//        cuts_Regions["WZCRmm"].insert(cuts_Regions["WZCRmm"].end(), cuts_common.begin(), cuts_common.end());
+//
+//        // Define histograms
+//        std::map<TString, TString> hists;
+//        hists[Form("%s_Mll"    , sample.first.Data())] = "MllSS  >> %s_%s_cut%zu(25 , 0 , 250)";
+////        hists[Form("%s_nj30"   , sample.first.Data())] = "nj30   >> %s_%s_cut%zu(7  , 0 , 7)";
+////        hists[Form("%s_nb"     , sample.first.Data())] = "nb     >> %s_%s_cut%zu(5  , 0 , 5)";
+////        hists[Form("%s_Mjj"    , sample.first.Data())] = "Mjj    >> %s_%s_cut%zu(50 , 0 , 250)";
+////        hists[Form("%s_MjjL"   , sample.first.Data())] = "MjjL   >> %s_%s_cut%zu(50 , 0 , 250)";
+////        hists[Form("%s_Detajj" , sample.first.Data())] = "Detajj >> %s_%s_cut%zu(50 , 0 , 9)";
+////        hists[Form("%s_count"  , sample.first.Data())] = "0      >> %s_%s_cut%zu(1  , 0 , 1)";
+//
+//        //hists["count"] = "0>>%s%zu(1, 0, 1)";
+//        //hists["gen_DRjj"] = "gen_DRjj>>%s%zu(50, 0, 9)";
+//        //hists["Mjj"] = "Mjj>>%s%zu(30, 0, 150)";
+//        //hists["gen_quark0_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.pt()))>>%s%zu(30, 0, 150)";
+//        //hists["gen_quark1_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150)";
+//        //hists["gen_quark0_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.eta()))>>%s%zu(30, -5, 5)";
+//        //hists["gen_quark1_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.eta()))>>%s%zu(30, -5, 5)";
+//        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
+//        //hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
+//
+//        TString weightstr = sample.first.Contains("Data") ? "1" : "weight*lepsf*trigsf*purewgt";
+//
+//        // Book jobs
+//        for (auto& Reg : cuts_Regions)
+//        {
+//            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
+//            {
+//                for (auto& hist : hists)
+//                {
+//                    TString histbook = Form(hist.second.Data(), Reg.first.Data(), hist.first.Data(), i);
+//                    TString cut = Form("(%s)*(%s)", join(std::vector<TString>(cuts_Regions[Reg.first].begin(), cuts_Regions[Reg.first].begin() + i + 1), ")*(").Data(), weightstr.Data()); 
+//                    p->queueDraw(histbook.Data(), cut.Data(), "goffe", nentries);
+//                }
+//            }
+//        }
+//
+//        // Execute the TTree Draw
+//        p->execute();
+//
+//        std::cout << " " << std::endl;
+//
+//        // Retrieve jobs
+//        for (auto& Reg : cuts_Regions)
+//        {
+//            for (size_t i = 0; i < cuts_Regions[Reg.first].size(); ++i)
+//            {
+//                for (auto& hist : hists)
+//                {
+//                    TString histname = Form("%s_%s_cut%zu", Reg.first.Data(), hist.first.Data(), i);
+//                    TH1* h = RooUtil::FileUtil::get(histname);
+//                    if (h)
+//                        ret_hists[histname] = h;
+//                }
+//            }
+//        }
+//    }
+//
+//    // Set the output file
+//    ofile = new TFile(output_name, "recreate"); 
+//    for (auto& hist : ret_hists)
+//        if (hist.second)
+//            hist.second->Write();
 }
 
 //#################################################################################################
@@ -994,7 +1145,7 @@ void WWWAnalysis::readAnalysis()
             dataset_paths.push_back(babydir + dataset_path);
 
         // Create at TChain from the list of root files.
-        chain = RooUtil::FileUtil::createTChain("t", RooUtil::StringUtil::join(dataset_paths, ","));
+        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
 
         // Total entry number
         int nentries = chain->GetEntries();
@@ -1014,7 +1165,7 @@ void WWWAnalysis::readAnalysis()
         cuts_SSpresel.push_back("n_tight_ss_lep==2");
         cuts_SSpresel.push_back("n_veto_ss_lep==2");
         cuts_SSpresel.push_back("MllSS > 40.");
-        TString cut_SSpresel = Form("(%s)", RooUtil::StringUtil::join(cuts_SSpresel, ")*(").Data());
+        TString cut_SSpresel = Form("(%s)", join(cuts_SSpresel, ")*(").Data());
 
         std::vector<TString> cuts_WZCRpresel;
         cuts_WZCRpresel.push_back("ntrk == 0");
@@ -1028,7 +1179,7 @@ void WWWAnalysis::readAnalysis()
         cuts_WZCRpresel.push_back("MllSS > 40.");
 //        cuts_WZCRpresel.push_back("nSFOSinZ>=1");
 //        cuts_WZCRpresel.push_back("((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10.))+((nSFOS==2)*((abs(Mll2SFOS0-91.1876)<10.)+(abs(Mll2SFOS1-91.1876)<10.)))");
-        TString cut_WZCRpresel = Form("(%s)", RooUtil::StringUtil::join(cuts_WZCRpresel, ")*(").Data());
+        TString cut_WZCRpresel = Form("(%s)", join(cuts_WZCRpresel, ")*(").Data());
 
         // Define cuts
         std::vector<TString> cuts_common;
@@ -1085,7 +1236,7 @@ void WWWAnalysis::readAnalysis()
                 for (auto& hist : hists)
                 {
                     TString histbook = Form(hist.second.Data(), Reg.first.Data(), hist.first.Data(), i);
-                    TString cut = Form("(%s)*(%s)", RooUtil::StringUtil::join(std::vector<TString>(cuts_Regions[Reg.first].begin(), cuts_Regions[Reg.first].begin() + i + 1), ")*(").Data(), weightstr.Data()); 
+                    TString cut = Form("(%s)*(%s)", join(std::vector<TString>(cuts_Regions[Reg.first].begin(), cuts_Regions[Reg.first].begin() + i + 1), ")*(").Data(), weightstr.Data()); 
                     p->queueDraw(histbook.Data(), cut.Data(), "goffe", nentries);
                 }
             }
