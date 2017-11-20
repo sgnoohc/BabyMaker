@@ -168,6 +168,38 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 	} // if (isFastsim)
   }
   
+  // Isolation BDT
+  reader1 = new TMVA::Reader("!Color:!Silent");
+  reader2 = new TMVA::Reader("!Color:!Silent");
+  reader3 = new TMVA::Reader("!Color:!Silent");
+  reader1->AddVariable("lepton_eta", &lepton_eta);
+  reader1->AddVariable("lepton_phi", &lepton_phi);
+  reader1->AddVariable("lepton_pt", &lepton_pt);
+  reader1->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader1->AddVariable("lepton_chiso", &lepton_chiso);
+  reader1->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader1->AddVariable("lepton_emiso", &lepton_emiso);
+  reader1->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader1->AddVariable("lepton_dxy", &lepton_dxy);
+  reader1->AddVariable("lepton_dz", &lepton_dz);
+  reader1->AddVariable("lepton_ip3d", &lepton_ip3d);
+  reader1->BookMVA("BDT1", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.2__preliminary_11lepvec_1Msig_100Kbkg_events/TMVA_BDT.weights.xml");
+  reader2->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader2->AddVariable("lepton_chiso", &lepton_chiso);
+  reader2->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader2->AddVariable("lepton_emiso", &lepton_emiso);
+  reader2->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader2->AddVariable("lepton_dxy", &lepton_dxy);
+  reader2->AddVariable("lepton_dz", &lepton_dz);
+  reader2->AddVariable("lepton_ip3d", &lepton_ip3d);
+  reader2->BookMVA("BDT2", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.4__nolepp4/TMVA_BDT.weights.xml");
+  reader3->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader3->AddVariable("lepton_chiso", &lepton_chiso);
+  reader3->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader3->AddVariable("lepton_emiso", &lepton_emiso);
+  reader3->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader3->BookMVA("BDT3", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.5__nop4noip/TMVA_BDT.weights.xml");
+  
   TDirectory *rootdir = gDirectory->GetDirectory("Rint:");
 
 
@@ -962,12 +994,15 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   	  }
       //cout<<__LINE__<<endl;
       //LEPTONS
-  	  std::vector<std::pair<int, float> > lep_pt_ordering;
-  	  vector<float>vec_lep_pt;
-      vector<float>vec_lep_eta;
-      vector<float>vec_lep_phi;
-      vector<float>vec_lep_mass;
-      vector<float>vec_lep_charge;
+      std::vector<std::pair<int, float> > lep_pt_ordering;
+      vector<float> vec_lep_bdt1;
+      vector<float> vec_lep_bdt2;
+      vector<float> vec_lep_bdt3;
+      vector<float> vec_lep_pt;
+      vector<float> vec_lep_eta;
+      vector<float> vec_lep_phi;
+      vector<float> vec_lep_mass;
+      vector<float> vec_lep_charge;
       
       //for WWW
       vector< bool >    vec_lep_3ch_agree;
@@ -1000,14 +1035,18 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector< bool >   vec_lep_isTriggerSafe_v2;
 
 
-      vector<int>  vec_lep_pdgId;
-      vector<int>  vec_lep_mc_Id;
-      vector<float>vec_lep_dxy;
-      vector<float>vec_lep_ip3d;
-      vector<float>vec_lep_ip3derr;
-      vector<float>vec_lep_dz;
-      vector<int>  vec_lep_tightId;
+      vector<int>     vec_lep_pdgId;
+      vector<int>     vec_lep_mc_Id;
+      vector<float>   vec_lep_dxy;
+      vector<float>   vec_lep_ip3d;
+      vector<float>   vec_lep_ip3derr;
+      vector<float>   vec_lep_dz;
+      vector<int>     vec_lep_tightId;
+      
 
+      vector< bool >   vec_lep_pass_POG_loose_noiso;
+      vector< bool >   vec_lep_pass_POG_medium_noiso;
+      vector< bool >   vec_lep_pass_POG_tight_noiso;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto_noiso;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto_noiso_noip;
@@ -1030,6 +1069,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector<float>vec_lep_etaSC;
       vector<float>vec_lep_validfraction;
       vector<float>vec_lep_ptErr;
+      vector<float>vec_lep_trk_pt;
       vector<float>vec_lep_r9;
 
       //cout<<__LINE__<<endl;
@@ -1077,7 +1117,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 
   	  for(unsigned int iEl = 0; iEl < cms3.els_p4().size(); iEl++){
    	  	//cout<<"checking electrons"<<endl;
-        if( !(passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso_noip ) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
+        if( !(isLooseElectronPOGspring16noIso_v1(iEl) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
           /*cout<<"Electron did not pass analysis selection, checking veto selection"<<endl;
           cout<<"etaSC: "<<fabs(els_etaSC().at(iEl))<<" ";
           cout<<"conv_vtx: "<<els_conv_vtx_flag().at(iEl)<<" ";
@@ -1108,6 +1148,24 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           nElectrons10++;
 
     		if( cms3.els_p4().at(iEl).pt() > 10.0 ){
+          //Start BDT Variables----------------------------------------------------------------------
+          lepton_eta = cms3.els_p4()[iEl].eta();
+          lepton_phi = cms3.els_p4()[iEl].phi();
+          lepton_pt = cms3.els_p4()[iEl].pt();
+          lepton_relIso03EA = eleRelIso03EA(iEl, 2);;
+          lepton_chiso = els_pfChargedHadronIso()[iEl];
+          lepton_nhiso = els_pfNeutralHadronIso()[iEl];
+          lepton_emiso = els_pfPhotonIso()[iEl];
+          lepton_ncorriso = lepton_nhiso + lepton_emiso - evt_fixgridfastjet_all_rho() * elEA03(iEl, 2);
+          lepton_dxy = cms3.els_dxyPV()[iEl];
+          lepton_dz = cms3.els_dzPV()[iEl];
+          lepton_ip3d = cms3.els_ip3d()[iEl];
+          vec_lep_bdt1         .push_back( reader1->EvaluateMVA("BDT1")     );
+          vec_lep_bdt2         .push_back( reader2->EvaluateMVA("BDT2")     );
+          vec_lep_bdt3         .push_back( reader3->EvaluateMVA("BDT3")     );
+          //End BDT Variables----------------------------------------------------------------------
+
+
     		  lep_pt_ordering	   .push_back( std::pair<int, float>(nlep, cms3.els_p4().at(iEl).pt()));
     		  vec_lep_p4s          .push_back( cms3.els_p4().at(iEl)           );
     		  vec_lep_pt           .push_back( cms3.els_p4().at(iEl).pt()      );
@@ -1140,6 +1198,10 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_isTriggerSafe_v1     .push_back(isTriggerSafe_v1(iEl)     );
           vec_lep_isTriggerSafe_v2     .push_back(isTriggerSafe_v2(iEl)     );
 
+          
+          vec_lep_pass_POG_loose_noiso                   .push_back( isLooseElectronPOGspring16noIso_v1(iEl)                         ); 
+          vec_lep_pass_POG_medium_noiso                  .push_back( isMediumElectronPOGspring16noIso_v1(iEl)                        ); 
+          vec_lep_pass_POG_tight_noiso                   .push_back( isTightElectronPOGspring16noIso_v1(iEl)                         ); 
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto             ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso       ) );
           vec_lep_pass_VVV_cutbased_veto_noiso_noip      .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso_noip  ) );
@@ -1203,8 +1265,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_MVA          .push_back( getMVAoutput(iEl)               );
     		  vec_lep_validfraction.push_back( -1                              );
     		  vec_lep_ptErr        .push_back( cms3.els_ptErr() .at(iEl)       );
-    		  vec_lep_sta_pterrOpt .push_back ( -1                             );
-    		  vec_lep_glb_pterrOpt .push_back ( -1                             );
+          vec_lep_trk_pt       .push_back ( cms3.els_trk_p4().at(iEl).pt() );
+          vec_lep_sta_pterrOpt .push_back ( -1                             );
+          vec_lep_glb_pterrOpt .push_back ( -1                             );
     		  // vec_lep_bft_pterrOpt .push_back ( cms3.els_bfit_qoverpError().at(iEl) / cms3.els_bfit_qoverp() .at(iEl) );
     		  vec_lep_x2ondof      .push_back ( cms3.els_chi2()            .at(iEl) / cms3.els_ndof()        .at(iEl) );
     		  vec_lep_sta_x2ondof  .push_back ( -1                             );
@@ -1251,7 +1314,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         if (recent_cms3_version) {
           if (cms3.mus_p4().at(iMu).pt() > 20.0 && isBadGlobalMuon(iMu)) ++nBadMuons20;
         }
-   	  	if( !passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso_noip ) ){
+   	  	if( ! isLooseMuonPOG(iMu) ){
           /*cout<<"Muon did not pass analysis selection, checking veto selection"<<endl;
           cout<<"dxy: "<<fabs(mus_dxyPV().at(iMu))<<" ";
           cout<<"dz: "<<fabs(mus_dzPV().at(iMu))<<" ";
@@ -1288,6 +1351,23 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         //cout<<__LINE__<<endl;  
         
     		if( cms3.mus_p4().at(iMu).pt() > 10.0 ){
+          //Start BDT Variables----------------------------------------------------------------------
+          lepton_eta = cms3.mus_p4()[iMu].eta();
+          lepton_phi = cms3.mus_p4()[iMu].phi();
+          lepton_pt = cms3.mus_p4()[iMu].pt();
+          lepton_relIso03EA = muRelIso03EA(iMu, 2);;
+          lepton_chiso = mus_isoR03_pf_ChargedHadronPt()[iMu];
+          lepton_nhiso = mus_isoR03_pf_NeutralHadronEt()[iMu];
+          lepton_emiso = mus_isoR03_pf_PhotonEt()[iMu];
+          lepton_ncorriso = lepton_nhiso + lepton_emiso - evt_fixgridfastjet_all_rho() * muEA03(iMu, 2);
+          lepton_dxy = cms3.mus_dxyPV()[iMu];
+          lepton_dz = cms3.mus_dzPV()[iMu];
+          lepton_ip3d = cms3.mus_ip3d()[iMu];
+          vec_lep_bdt1         .push_back ( reader1->EvaluateMVA("BDT1")     );
+          vec_lep_bdt2         .push_back ( reader2->EvaluateMVA("BDT2")     );
+          vec_lep_bdt3         .push_back ( reader3->EvaluateMVA("BDT3")     );
+          //End BDT Variables----------------------------------------------------------------------
+
      		  lep_pt_ordering	   .push_back ( std::pair<int, float>(nlep, cms3.mus_p4().at(iMu).pt()));
     		  vec_lep_p4s          .push_back ( cms3.mus_p4()     .at(iMu)       );
     		  vec_lep_pt           .push_back ( cms3.mus_p4()     .at(iMu).pt()  );
@@ -1320,6 +1400,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_isTriggerSafe_v1     .push_back(true); //Muons always pass
           vec_lep_isTriggerSafe_v2     .push_back(true); //Muons always pass
 
+          vec_lep_pass_POG_loose_noiso                   .push_back( isLooseMuonPOG(iMu)                                          );
+          vec_lep_pass_POG_medium_noiso                  .push_back( isMediumMuonPOG(iMu)                                         );
+          vec_lep_pass_POG_tight_noiso                   .push_back( isTightMuonPOG(iMu)                                          );
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto              ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso        ) );
           vec_lep_pass_VVV_cutbased_veto_noiso_noip      .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso_noip   ) );
@@ -1385,6 +1468,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_MVA          .push_back ( -99                              );
     		  vec_lep_validfraction.push_back ( validFraction                    );
     		  vec_lep_ptErr        .push_back ( cms3.mus_ptErr() .at(iMu)        );
+          vec_lep_trk_pt       .push_back ( cms3.mus_trk_p4().at(iMu).pt()   );
 
           //cout<<__LINE__<<endl;  
           
@@ -1431,6 +1515,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       for(std::vector<std::pair<int, float> >::iterator it = lep_pt_ordering.begin(); it!= lep_pt_ordering.end(); ++it){
     		lep_p4                  .push_back( vec_lep_p4s                 .at(it->first));
     		lep_pt                  .push_back( vec_lep_pt                  .at(it->first));
+        lep_bdt1                .push_back( vec_lep_bdt1                .at(it->first));
+        lep_bdt2                .push_back( vec_lep_bdt2                .at(it->first));
+        lep_bdt3                .push_back( vec_lep_bdt3                .at(it->first));
     		lep_eta                 .push_back( vec_lep_eta                 .at(it->first));
     		lep_phi                 .push_back( vec_lep_phi                 .at(it->first));
     		lep_mass                .push_back( vec_lep_mass                .at(it->first));
@@ -1475,6 +1562,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         lep_isTriggerSafe_v1      .push_back( vec_lep_isTriggerSafe_v1       .at(it->first));
         lep_isTriggerSafe_v2      .push_back( vec_lep_isTriggerSafe_v2       .at(it->first));
 
+        lep_pass_POG_loose_noiso                    .push_back( vec_lep_pass_POG_loose_noiso                     .at(it->first));
+        lep_pass_POG_medium_noiso                   .push_back( vec_lep_pass_POG_medium_noiso                    .at(it->first));
+        lep_pass_POG_tight_noiso                    .push_back( vec_lep_pass_POG_tight_noiso                     .at(it->first));
         lep_pass_VVV_cutbased_veto                  .push_back( vec_lep_pass_VVV_cutbased_veto                   .at(it->first));
         lep_pass_VVV_cutbased_veto_noiso            .push_back( vec_lep_pass_VVV_cutbased_veto_noiso             .at(it->first));
         lep_pass_VVV_cutbased_veto_noiso_noip       .push_back( vec_lep_pass_VVV_cutbased_veto_noiso_noip        .at(it->first));
@@ -1498,6 +1588,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		lep_MVA                 .push_back( vec_lep_MVA                 .at(it->first));
     		lep_validfraction       .push_back( vec_lep_validfraction       .at(it->first));
     		lep_pterr               .push_back( vec_lep_ptErr               .at(it->first));
+        lep_trk_pt              .push_back( vec_lep_trk_pt              .at(it->first));
     		lep_sta_pterrOpt        .push_back( vec_lep_sta_pterrOpt        .at(it->first));
     		lep_glb_pterrOpt        .push_back( vec_lep_glb_pterrOpt        .at(it->first));
     		// lep_bft_pterrOpt     .push_back( vec_lep_bft_pterrOpt        .at(it->first));
@@ -2937,6 +3028,9 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_phi"          , "std::vector< Float_t >"       , &lep_phi        );
   BabyTree_->Branch("lep_mass"         , "std::vector< Float_t >"       , &lep_mass       );
   BabyTree_->Branch("lep_charge"       , "std::vector< Int_t >"         , &lep_charge     );
+  BabyTree_->Branch("lep_bdt1"         , "std::vector< Float_t >"       , &lep_bdt1    );
+  BabyTree_->Branch("lep_bdt2"         , "std::vector< Float_t >"       , &lep_bdt2    );
+  BabyTree_->Branch("lep_bdt3"         , "std::vector< Float_t >"       , &lep_bdt3    );
   
   //New vars for testing WWW
   BabyTree_->Branch("lep_3ch_agree"            , "std::vector< Bool_t  > " , &lep_3ch_agree             );
@@ -2968,6 +3062,9 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_isTriggerSafe_v1"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v1             );
   BabyTree_->Branch("lep_isTriggerSafe_v2"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v2             );
 
+  BabyTree_->Branch("lep_pass_POG_loose_noiso"                     , "std::vector< Bool_t  > " , &lep_pass_POG_loose_noiso                    );
+  BabyTree_->Branch("lep_pass_POG_medium_noiso"                    , "std::vector< Bool_t  > " , &lep_pass_POG_medium_noiso                   );
+  BabyTree_->Branch("lep_pass_POG_tight_noiso"                     , "std::vector< Bool_t  > " , &lep_pass_POG_tight_noiso                    );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto"                   , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto                  );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso"             , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso            );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso_noip"        , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso_noip       );
@@ -3012,6 +3109,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_MVA"          , "std::vector< Float_t >"       , &lep_MVA        );
   BabyTree_->Branch("lep_validfraction", &lep_validfraction );
   BabyTree_->Branch("lep_pterr"        , &lep_pterr         );
+  BabyTree_->Branch("lep_trk_pt"       , &lep_trk_pt        );
   BabyTree_->Branch("lep_sta_pterrOpt" , &lep_sta_pterrOpt  );
   BabyTree_->Branch("lep_glb_pterrOpt" , &lep_glb_pterrOpt  );
   // BabyTree_->Branch("lep_bft_pterrOpt" , &lep_bft_pterrOpt  );
@@ -3471,6 +3569,10 @@ void babyMaker::InitBabyNtuple () {
   nVetoMu_relIso03EAless03 = -999;
   nVetoMu_relIso03EAless04 = -999;
 
+  lep_bdt1.clear();
+  lep_bdt2.clear();
+  lep_bdt3.clear();
+
   lep_p4            .clear();
   lep_pt            .clear();
   lep_eta           .clear();
@@ -3507,6 +3609,9 @@ void babyMaker::InitBabyNtuple () {
   lep_isTriggerSafe_v1      .clear();
   lep_isTriggerSafe_v2      .clear();
 
+  lep_pass_POG_loose_noiso                    .clear();
+  lep_pass_POG_medium_noiso                   .clear();
+  lep_pass_POG_tight_noiso                    .clear();
   lep_pass_VVV_cutbased_veto                  .clear();
   lep_pass_VVV_cutbased_veto_noiso            .clear();
   lep_pass_VVV_cutbased_veto_noiso_noip       .clear();
@@ -3552,6 +3657,7 @@ void babyMaker::InitBabyNtuple () {
   lep_MVA           .clear();
   lep_validfraction .clear();
   lep_pterr         .clear();
+  lep_trk_pt        .clear();
   lep_sta_pterrOpt  .clear();
   lep_glb_pterrOpt  .clear();
   // lep_bft_pterrOpt  .clear();
