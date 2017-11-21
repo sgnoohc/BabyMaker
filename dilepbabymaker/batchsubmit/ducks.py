@@ -36,6 +36,7 @@ p.merging_scripts = vvv.merging_scripts
 p.baby_merged_dir = vvv.baby_merged_dir
 p.merge_babies_on_condor = vvv.merge_babies_on_condor
 p.exit_when_done = True
+p.do_cms3 = True
 
 run.main(instructions=instructions, params=p)
 
