@@ -12,6 +12,7 @@
 #include "rooutil/ttreex.h"
 #include "rooutil/json.h"
 #include "rooutil/draw.h"
+#include "rooutil/ana.h"
 
 #include "CMS3_WWW0116.h"
 #include "Functions.h"
@@ -195,6 +196,8 @@ public:
 
     void runAnalysis();
     void readAnalysis();
+
+    void sandbox();
 };
 
 //#################################################################################################
@@ -216,6 +219,7 @@ int main(int argc, char* argv[])
             ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
             ("run", "run runAnalysis")
             ("r,read", "run readAnalysis")
+            ("sandbox", "run sandbox")
             ("h,help", "Print help")
             ;
         options.parse(argc, argv);
@@ -238,7 +242,7 @@ int main(int argc, char* argv[])
         if (!options.count("babydir") && !options.count("input"))
         {
             TString default_baby_dir_path = wwwanalysis._j["default_baby_dir_path"];
-            RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
+            //RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
             wwwanalysis.babydir = default_baby_dir_path;
         }
         else
@@ -247,7 +251,7 @@ int main(int argc, char* argv[])
         }
 
         // Sanity check on the options provided.
-        if (!options.count("dataset") && !options.count("input") && !(options.count("read") || options.count("run")))
+        if (!options.count("dataset") && !options.count("input") && !(options.count("read") || options.count("run") || options.count("sandbox")))
         {
             RooUtil::error(Form("Both --dataset and --input is not set! Check your arguments! Type ./%s --help for help.", argv[0]));
         }
@@ -270,7 +274,11 @@ int main(int argc, char* argv[])
         // Set the eventlist.txt path
         wwwanalysis.eventlist_file_path = options["eventlist"].as<std::string>();
 
-        if (options.count("run"))
+        if (options.count("sandbox"))
+        {
+            wwwanalysis.sandbox();
+        }
+        else if (options.count("run"))
         {
             // Run the runAnalysis!
             wwwanalysis.runAnalysis();
@@ -566,7 +574,7 @@ bool WWWAnalysis::calcStdVariables()
     pass_goodrun = !isData() ? 1. : goodrun(tas::run(), tas::lumi());
 
     // Sample names and types
-    sample_name = getSampleNameFromFileName(looper.getCurrentFileName());
+    sample_name = getSampleNameFromFileName(looper.getCurrentFileBaseName());
     process_name_ss = ((list_tight_ss_lep_idx.size() + list_loose_ss_lep_idx.size()) >= 2) ? process(looper.getCurrentFileName().Data(), true , list_tight_ss_lep_idx, list_loose_ss_lep_idx) : "not2l";
     process_name_3l = ((list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size()) >= 3) ? process(looper.getCurrentFileName().Data(), false, list_tight_3l_lep_idx, list_loose_3l_lep_idx) : "not3l";
     isphotonSS = process_name_ss.EqualTo("photonfakes");
@@ -991,32 +999,285 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
 // Computing SFs and etc.
 void WWWAnalysis::runAnalysis()
 {
-    std::map<TString, TH1*> allhists;
-    for (auto& sample : datasetMap)
+
+    using namespace RooUtil::DrawUtil;
+
+    // All the histogram informations
+    HistDefs hs = getHistDefs(_j["histograms"]);
+
+    // Pre-compiled cuts
+    Cuts all_precompile_cuts = getCuts(_j["WWWAnalysis"]);
+
+    // Print all the cuts
+    printCuts(all_precompile_cuts);
+
+    // Samples and type separations
+    std::vector<TString> samples = {"WWW", "WHtoWWW", "Other", "VVV", "tt1l", "tt2l", "singleTop", "ttV", "Wjets", "Zjets", "WW", "WZ", "ZZ", "WG", "ZG", "WGstar", "DataEE", "DataEM", "DataMM"};
+    std::vector<TString> nonwzbkgs = {"Other", "VVV", "tt1l", "tt2l", "singleTop", "ttV", "Wjets", "Zjets", "WW", "ZZ", "WG", "ZG", "WGstar"};
+    std::vector<TString> datas = {"DataEE", "DataEM", "DataMM"};
+    std::vector<TString> types_ss = {"trueSS", "chargeflips", "SSLL", "fakes", "photonfakes", "others"};
+    std::vector<TString> types_3l = {"trueWWW", "true3L", "chargeflips", "3lLL", "fakes", "photonfakes", "others"};
+
+    Cuts all_cuts;
+
+    // Separations by samples
+    for (auto& sample : samples)
     {
-        // Vector to hold the datasets to run over
-        std::vector<TString> dataset_paths;
-        // Set the datasets
-        for (auto& dataset_path : datasetMap.at(sample.first))
-            dataset_paths.push_back(babydir + dataset_path);
-        // Create at TChain from the list of root files.
-        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths, ","));
-        bool isdata = sample.first.Contains("Data");
-        std::cout <<  " isdata: " << isdata <<  std::endl;
-        std::map<TString, TH1*> hists
-            = RooUtil::Draw::drawHistograms(chain, _j["WZEst"], sample.first, isdata);
-        allhists.insert(hists.begin(), hists.end());
+        std::vector<TString> modifier = {Form("proccut=sample_name==\"%s\"", sample.Data()), "sstypecut=1", "3ltypecut=1"};
+        Cuts compiled_cuts = compileCuts(all_precompile_cuts, modifier);
+        for (auto& compiled_cut : compiled_cuts)
+        {
+            Cut c = compiled_cut;
+            c.reg = Form("%s_%s", c.reg.Data(), sample.Data());
+            all_cuts.push_back(c);
+        }
     }
-    ofile = new TFile(output_name, "recreate"); 
-    for (auto& hist : allhists)
-        if (hist.second)
-            hist.second->Write();
+
+    // Separations by categories
+    // 1. Signal
+    for (auto& sample : std::vector<TString>({"WWW", "WHtoWWW"}))
+    {
+        std::vector<TString> modifier = {Form("proccut=sample_name==\"%s\"", sample.Data()),
+                                         Form("sstypecut=process_name_ss==\"%s\"", sample.Data()),
+                                         "3ltypecut=1"};
+        Cuts compiled_cuts = compileCuts(all_precompile_cuts, modifier);
+        for (auto& compiled_cut : compiled_cuts)
+        {
+            Cut c = compiled_cut;
+            c.reg = Form("%s_%s_ss", c.reg.Data(), sample.Data());
+            all_cuts.push_back(c);
+        }
+    }
+    // 2. WZ
+    for (auto& sample : std::vector<TString>({"WZ"}))
+    {
+        for (auto& type_ss : types_ss)
+        {
+            std::vector<TString> modifier = {Form("proccut=sample_name==\"%s\"", sample.Data()),
+                                             Form("sstypecut=((process_name_ss!=\"not2l\")&&(process_name_ss==\"%s\"))", type_ss.Data()),
+                                             "3ltypecut=1"};
+            Cuts compiled_cuts = compileCuts(all_precompile_cuts, modifier);
+            for (auto& compiled_cut : compiled_cuts)
+            {
+                Cut c = compiled_cut;
+                c.reg = Form("%s_%s_%s_ss", c.reg.Data(), sample.Data(), type_ss.Data());
+                all_cuts.push_back(c);
+            }
+        }
+    }
+    // 3. non-WZ
+    std::vector<TString> nonwzsels;
+    for (auto& sample : nonwzbkgs)
+        nonwzsels.push_back(Form("sample_name==\"%s\"", sample.Data()));
+    TString nonwzsel = Form("(%s)", join(nonwzsels, ")*(").Data());
+    for (auto& type_ss : types_ss)
+    {
+        std::vector<TString> modifier = {Form("proccut=%s", nonwzsel.Data()),
+                                         Form("sstypecut=((process_name_ss!=\"not2l\")&&(process_name_ss==\"%s\"))", type_ss.Data()),
+                                         "3ltypecut=1"};
+        Cuts compiled_cuts = compileCuts(all_precompile_cuts, modifier);
+        for (auto& compiled_cut : compiled_cuts)
+        {
+            Cut c = compiled_cut;
+            c.reg = Form("%s_NonWZBkg_%s_ss", c.reg.Data(), type_ss.Data());
+            all_cuts.push_back(c);
+        }
+    }
+    // 4. data
+    for (auto& sample : datas)
+    {
+        std::vector<TString> modifier = {Form("proccut=sample_name==\"%s\"", sample.Data()),
+                                         "sstypecut=process_name_ss==\"Data\"",
+                                         "3ltypecut=1"};
+        Cuts compiled_cuts = compileCuts(all_precompile_cuts, modifier);
+        for (auto& compiled_cut : compiled_cuts)
+        {
+            Cut c = compiled_cut;
+            c.reg = Form("%s_%s_ss", c.reg.Data(), sample.Data());
+            all_cuts.push_back(c);
+        }
+    }
+
+    //printCuts(all_cuts);
+    std::cout <<  " all_cuts.size(): " << all_cuts.size() <<  std::endl;
+
+    // Combine all the expresions into actual TTree Draw expressions
+    DrawExprs drawexprs;
+    for (auto& c : all_cuts)
+    {
+        for (auto& h : hs)
+        {
+            TString histexpr = "{var}>>{reg}_cut{idx}_{name}{bin}";
+            TString cutexpr = "{cut}";
+            TString wgtexpr = "{wgt}";
+            TString name = h.name;
+            TString var  = h.var;
+            TString bin  = h.bin;
+            TString reg = c.reg;
+            int     idx = c.idx;
+            TString cut = c.cut;
+            TString wgt = c.wgt;
+            histexpr = format(histexpr, std::vector<TString>(
+                        {Form("var=%s", var.Data()),
+                         Form("reg=%s", reg.Data()),
+                         Form("idx=%d", idx),
+                         Form("name=%s", name.Data()),
+                         Form("bin=%s", bin.Data())}));
+            cutexpr = format(cutexpr, std::vector<TString>({Form("cut=%s", cut.Data())}));
+            wgtexpr = format(wgtexpr, std::vector<TString>({Form("wgt=%s", wgt.Data())}));
+            DrawExpr drawexpr;
+            drawexpr.cmd = histexpr;
+            drawexpr.cut = cutexpr;
+            drawexpr.wgt = wgtexpr;
+            drawexprs.push_back(drawexpr);
+        }
+    }
+
+    //printDrawExprs(drawexprs);
+    std::cout <<  " drawexprs.size(): " << drawexprs.size() <<  std::endl;
+
+    // Gather all the root files
+    std::vector<TString> root_file_paths;
+    if (!input_root_file_to_run_over.IsNull())
+    {
+        root_file_paths.push_back(input_root_file_to_run_over);
+    }
+    else
+    {
+        for (auto& sample : datasetMap)
+            for (auto& dataset_path : datasetMap.at(sample.first))
+                root_file_paths.push_back(babydir + dataset_path);
+    }
+
+    return;
+    
+    // Create at TChain from the list of root files.
+    chain = RooUtil::FileUtil::createTChain("t", join(root_file_paths, ","));
+
+    // Run!!
+    std::map<TString, TH1*> hists = RooUtil::DrawUtil::drawHistograms(chain, drawexprs);
+
+    // Save the outputs
+    ofile = new TFile(output_name, "recreate");
+    RooUtil::FileUtil::saveAllHistograms(hists, ofile);
+    RooUtil::FileUtil::saveJson(_j, ofile);
+
+    return;
 }
 
 //#################################################################################################
 // From the output of the WWWAnalysis main functions run readAnalysis
 void WWWAnalysis::readAnalysis()
 {
+    TFile* file = new TFile(output_name, "open");
+    std::map<TString, TH1*> allhists = RooUtil::FileUtil::getAllHistograms(file);
+    json j = RooUtil::FileUtil::getJson(file);
+    std::map<TString, std::vector<float>> nfs;
+    std::map<TString, std::vector<float>> nf_errs;
+//    std::tie(nfs["WZCRSSee"], nf_errs["WZCRSSee"]) = RooUtil::Ana::getNFs(allhists, j["WZEst"], "WZCRSSee");
+//    std::tie(nfs["WZCRSSem"], nf_errs["WZCRSSem"]) = RooUtil::Ana::getNFs(allhists, j["WZEst"], "WZCRSSem");
+//    std::tie(nfs["WZCRSSmm"], nf_errs["WZCRSSmm"]) = RooUtil::Ana::getNFs(allhists, j["WZEst"], "WZCRSSmm");
+//    std::cout <<  " nfs['WZCRSSee'][0]: " << nfs["WZCRSSee"][0] <<  " nfs['WZCRSSem'][0]: " << nfs["WZCRSSem"][0] <<  " nfs['WZCRSSmm'][0]: " << nfs["WZCRSSmm"][0] <<  std::endl;
+//    std::cout <<  " nf_errs['WZCRSSee'][0]: " << nf_errs["WZCRSSee"][0] <<  " nf_errs['WZCRSSem'][0]: " << nf_errs["WZCRSSem"][0] <<  " nf_errs['WZCRSSmm'][0]: " << nf_errs["WZCRSSmm"][0] <<  std::endl;
+//    std::cout <<  " nfs['WZCRSSee'][1]: " << nfs["WZCRSSee"][1] <<  " nfs['WZCRSSem'][1]: " << nfs["WZCRSSem"][1] <<  " nfs['WZCRSSmm'][1]: " << nfs["WZCRSSmm"][1] <<  std::endl;
+//    std::cout <<  " nf_errs['WZCRSSee'][1]: " << nf_errs["WZCRSSee"][1] <<  " nf_errs['WZCRSSem'][1]: " << nf_errs["WZCRSSem"][1] <<  " nf_errs['WZCRSSmm'][1]: " << nf_errs["WZCRSSmm"][1] <<  std::endl;
+}
+
+//#################################################################################################
+// Sand box area for developing
+void WWWAnalysis::sandbox()
+{
+//    // All the histogram informations
+//    std::vector<std::tuple<TString, TString, TString>> hs = RooUtil::DrawUtil::getHistogramBookings(_j["histograms"]);
+//
+//    // Samples and type separations
+//    std::vector<TString> samples = {"WWW", "WHtoWWW", "Other", "VVV", "tt1l", "tt2l", "singleTop", "ttV", "Wjets", "Zjets", "WW", "WZ", "ZZ", "WG", "ZG", "WGstar", "DataEE", "DataEM", "DataMM"};
+//    std::vector<TString> types_ss = {"not2l", "trueSS", "chargeflips", "SSLL", "fakes", "photonfakes", "others"};
+//    std::vector<TString> types_3l = {"not3l", "trueWWW", "true3L", "chargeflips", "3lLL", "fakes", "photonfakes", "others"};
+//
+//    // Cut modifiers depending on each samples
+//    std::vector<std::vector<TString>> all_modifiers;
+//    ///* WWW cut modifier */ all_modifiers.push_back(std::vector<TString>({"proc=WWW"     , "type=WWW"     , "proccut=sample_name==\\\"WWW\\\""     , "sstypecut=1" , "3ltypecut=1"}));
+//    for (auto& sample : samples)
+//        all_modifiers.push_back(std::vector<TString>({Form("proc=%s", sample.Data()) , Form("type=%s", sample.Data()) , Form("proccut=sample_name==\\\"%s\\\"", sample.Data()) , "sstypecut=1" , "3ltypecut=1"}));
+//
+//    // All compiled cuts
+//    std::vector<std::vector<std::tuple<TString, int, TString, TString>>> all_cuts;
+//    for (auto& modifier : all_modifiers) all_cuts.push_back(RooUtil::DrawUtil::getCutsAndWeights(_j["WWWAnalysis"], modifier));
+//
+//    // Print all the histograms
+//    for (auto& h : hs)
+//    {
+//        TString name = std::get<0>(h);
+//        TString var  = std::get<1>(h);
+//        TString bin  = std::get<2>(h);
+//        std::cout <<  " name: " << name <<  " var: " << var <<  " bin: " << bin <<  std::endl;
+//    }
+//
+//    // Print all the cuts
+//    for (auto& cuts : all_cuts)
+//    {
+//        for (auto& c : cuts)
+//        {
+//            TString reg = std::get<0>(c);
+//            int     idx = std::get<1>(c);
+//            TString cut = std::get<2>(c);
+//            TString wgt = std::get<3>(c);
+//            std::cout <<  " reg: " << reg <<  " idx: " << idx <<  " cut: " << cut <<  " wgt: " << wgt <<  std::endl;
+//        }
+//    }
+//
+//    // Combine all the expresions into actual TTree Draw expressions
+//    std::vector<std::tuple<TString, TString, TString>> drawexprs;
+//    for (auto& cuts : all_cuts)
+//    {
+//        for (auto& c : cuts)
+//        {
+//            for (auto& h : hs)
+//            {
+//                TString histexpr = "{var}>>{reg}_cut{idx}_{name}{bin}";
+//                TString cutexpr = "{cut}";
+//                TString wgtexpr = "{wgt}";
+//                TString name = std::get<0>(h);
+//                TString var  = std::get<1>(h);
+//                TString bin  = std::get<2>(h);
+//                TString reg = std::get<0>(c);
+//                int     idx = std::get<1>(c);
+//                TString cut = std::get<2>(c);
+//                TString wgt = std::get<3>(c);
+//                histexpr = format(histexpr, std::vector<TString>(
+//                            {Form("var=%s", var.Data()),
+//                             Form("reg=%s", reg.Data()),
+//                             Form("idx=%d", idx),
+//                             Form("name=%s", name.Data()),
+//                             Form("bin=%s", bin.Data())}));
+//                cutexpr = format(cutexpr, std::vector<TString>({Form("cut=%s", cut.Data())}));
+//                wgtexpr = format(wgtexpr, std::vector<TString>({Form("wgt=%s", wgt.Data())}));
+//                drawexprs.push_back(std::make_tuple(histexpr, cutexpr, wgtexpr));
+//            }
+//        }
+//    }
+//
+//    // Gather all the root files
+//    std::vector<TString> root_file_paths;
+//    if (!input_root_file_to_run_over.IsNull())
+//    {
+//        root_file_paths.push_back(input_root_file_to_run_over);
+//    }
+//    else {
+//        for (auto& sample : datasetMap) for (auto& dataset_path : datasetMap.at(sample.first)) root_file_paths.push_back(babydir + dataset_path);
+//    }
+//
+//    // Create at TChain from the list of root files.
+//    chain = RooUtil::FileUtil::createTChain("t", join(root_file_paths, ","));
+//
+//    // Run!!
+//    std::map<TString, TH1*> hists = RooUtil::DrawUtil::drawHistograms(chain, drawexprs);
+//
+//    // Save the outputs
+//    ofile = new TFile(output_name, "recreate");
+//    RooUtil::FileUtil::saveAllHistograms(hists, ofile);
+//    RooUtil::FileUtil::saveJson(_j, ofile);
 }
 
 //eof

@@ -1,14 +1,87 @@
 {
     "default_baby_dir_path": "/hadoop/cms/store/user/phchang/metis/wwwlooper/v4/WWW_v0_1_16_v4/",
-
-    "WZEst" :
+    "histograms":
     {
+        "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
+        "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
+    },
+    "WWWAnalysis" :
+    {
+        "SSPreselection":
+        {
+            "cuts":
+            {
+                "preselections" :
+                [
+                    "{proccut}",
+                    "{sstypecut}",
+                    "ntrk == 0 ^ weight*lepsf*trigsf*purewgt",
+                    "pass_offline_trig>0",
+                    "pass_online_trig>0",
+                    "n_tight_ss_lep==2",
+                    "n_veto_ss_lep==2",
+                    "nj>=2",
+                    "MllSS > 40."
+                ]
+            },
+            "skip": true
+        },
+        "SSee":
+        {
+            "cuts":
+            {
+                "preselections":
+                [
+                    "#SSPreselection",
+                    "lep_flav_prod_ss==121"
+                ],
+                "selections":
+                [
+                    "nb==0 ^ btagsf"
+                ]
+            }
+        },
+        "SSem":
+        {
+            "cuts":
+            {
+                "preselections":
+                [
+                    "#SSPreselection",
+                    "lep_flav_prod_ss==143"
+                ],
+                "selections":
+                [
+                    "nb==0 ^ btagsf"
+                ]
+            }
+        },
+        "SSmm":
+        {
+            "cuts":
+            {
+                "preselections":
+                [
+                    "#SSPreselection",
+                    "lep_flav_prod_ss==169"
+                ],
+                "selections":
+                [
+                    "nb==0 ^ btagsf",
+                    "MjjL<400.",
+                    "Detajj<1.5",
+                    "Mjj>60.&&Mjj<100."
+                ]
+            }
+        },
         "WZCRPreselection":
         {
             "cuts":
             {
                 "preselections" :
                 [
+                    "{proccut}",
+                    "{3ltypecut}",
                     "ntrk == 0 ^ weight*lepsf*trigsf*purewgt",
                     "pass_offline_trig>0",
                     "pass_online_trig>0",
@@ -20,11 +93,7 @@
                     "MllSS > 40."
                 ]
             },
-            "histograms":
-            {
-                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
-            }
+            "skip": true
         },
         "WZCRSSee":
         {
@@ -32,17 +101,13 @@
             {
                 "preselections" :
                 [
-                    "#WZCRPreselection"
+                    "#WZCRPreselection",
+                    "lep_flav_prod_3l==121"
                 ],
                 "selections" :
                 [
-                    "lep_flav_prod_3l==121"
+                    "nb==0 ^ btagsf"
                 ]
-            },
-            "histograms":
-            {
-                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
             }
         },
         "WZCRSSem":
@@ -51,19 +116,14 @@
             {
                 "preselections" :
                 [
-                    "#WZCRPreselection"
+                    "#WZCRPreselection",
+                    "lep_flav_prod_3l==143"
                 ],
                 "selections" :
                 [
-                    "lep_flav_prod_3l==143"
+                    "nb==0 ^ btagsf"
                 ]
-            },
-            "histograms":
-            {
-                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
             }
-
         },
         "WZCRSSmm":
         {
@@ -71,19 +131,23 @@
             {
                 "preselections" :
                 [
-                    "#WZCRPreselection"
+                    "#WZCRPreselection",
+                    "lep_flav_prod_3l==169"
                 ],
                 "selections" :
                 [
-                    "lep_flav_prod_3l==169"
+                    "nb==0 ^ btagsf",
+                    "MjjL<400.",
+                    "Detajj<1.5",
+                    "Mjj>60.&&Mjj<100."
                 ]
             },
-            "histograms":
+            "NF":
             {
-                "MllSS" : { "var" : "MllSS", "bin" : "(25, 0, 250)", "options" : { "doall" : true } },
-                "nb"    : { "var" : "nb"   , "bin" : "( 7, 0,   7)", "options" : { "doall" : true } }
+                "data": [],
+                "sig": [],
+                "bkg": []
             }
-
         }
     }
 }

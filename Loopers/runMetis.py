@@ -6,8 +6,16 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "v4"
-hadoop_path = "metis/wwwlooper/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
+#job_tag = "minibaby_v1"
+#input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.16/skim/"
+#args = ""
+
+job_tag = "minibaby_v1_hist_v2"
+input_location = "/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_16_minibaby_v1/"
+args = "--run"
+
+
+
 
 ###################################################################################################################
 ###################################################################################################################
@@ -44,13 +52,11 @@ tar_path = os.path.join(metis_path, "package.tar")
 tar_gz_path = tar_path + ".gz"
 metis_dashboard_path = os.path.join(metis_path, "dashboard")
 exec_path = os.path.join(main_dir, "metis.sh")
+hadoop_path = "metis/wwwanalysis" # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
 
 # Create tarball
 os.chdir(main_dir)
-os.system("tar -chzf {} localsetup.sh wwwana rooutil/lib*.so data".format(tar_gz_path))
-
-# Configurations
-args = ""
+os.system("tar -chzf {} localsetup.sh .wwwana.json wwwana rooutil/lib*.so data".format(tar_gz_path))
 
 # Change directory to metis
 os.chdir(metis_path)
@@ -63,7 +69,7 @@ while True:
     task = CondorTask(
             sample               = DirectorySample(
                 dataset="/WWW_v0_1_16",
-                location="/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.16/skim/",
+                location=input_location,
                 globber="*.root"),
             tag                  = job_tag,
             arguments            = args,
