@@ -73,7 +73,7 @@ source localsetup.sh
 echo ">>> ls -l"
 ls -l
 echo ">>> ./wwwana --input $INPUTFILENAMES"
-./wwwana --input "${INPUTFILENAMES}"
+./wwwana --input "${INPUTFILENAMES}" $@
 
 ###################################################################################################
 # ProjectMetis/CondorTask specific (Copying files over to hadoop)

@@ -10,6 +10,9 @@
 #include "rooutil/goodrun.h"
 #include "rooutil/eventlist.h"
 #include "rooutil/ttreex.h"
+#include "rooutil/json.h"
+#include "rooutil/draw.h"
+#include "rooutil/ana.h"
 
 #include "CMS3_WWW0116.h"
 #include "Functions.h"
@@ -19,6 +22,9 @@
 
 #include <map>
 #include <vector>
+
+using json = nlohmann::json;
+using namespace RooUtil::StringUtil;
 
 //#################################################################################################
 int main(int argc, char* argv[]);
@@ -51,6 +57,7 @@ public:
     TString eventlist_file_path;
     bool blindSR;
     bool storeeventnumbers;
+    json _j;
 
     //---------------------------------------------------------------------------------------------
     // Analysis related variables
@@ -74,11 +81,16 @@ public:
     IdxList list_incl_veto_ss_lep_idx;  // veto
     IdxList list_incl_veto_3l_lep_idx;  // veto
 
+    // lepton flavor product
+    int lep_flav_prod_ss;
+    int lep_flav_prod_3l;
+
     // track multiplicity
     int ntrk;
 
     // SFOS
     int nSFOS;
+    int nSFOSinZ;
 
     // MET kinematics
     LorentzVector MET;
@@ -182,7 +194,10 @@ public:
     void checkEvent();
     TString getSampleNameFromFileName(TString);
 
-    void cutflow();
+    void runAnalysis();
+    void readAnalysis();
+
+    void sandbox();
 };
 
 //#################################################################################################
@@ -202,7 +217,6 @@ int main(int argc, char* argv[])
             ("d,dataset", "Dataset to run over (e.g. WWW, Other, VVV, tt1l, tt2l, singleTop, ttV, Wjets, Zjets, WW, WZ, ZZ, WG, ZG, WGstar, Data)", cxxopts::value<std::string>(), "DATASET")
             ("e,eventlist", "File containing the event list to check", cxxopts::value<std::string>()->default_value("eventlist.txt"), "EVENTLISTFILE")
             ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
-            ("c,cutflow", "Do cutflow")
             ("h,help", "Print help")
             ;
         options.parse(argc, argv);
@@ -217,11 +231,15 @@ int main(int argc, char* argv[])
         // Declare the analysis module
         WWWAnalysis wwwanalysis;
 
+        // Default configuration file
+        ifstream default_config(".wwwana.json");
+        default_config >> wwwanalysis._j;
+
         // If no babydir option is given, take the default one
         if (!options.count("babydir") && !options.count("input"))
         {
-            TString default_baby_dir_path = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/";
-            RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
+            TString default_baby_dir_path = wwwanalysis._j["default_baby_dir_path"];
+            //RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
             wwwanalysis.babydir = default_baby_dir_path;
         }
         else
@@ -256,16 +274,8 @@ int main(int argc, char* argv[])
         // Initialize the analysis module
         wwwanalysis.init();
 
-        if (options.count("cutflow"))
-        {
-            // Run the cutflow!
-            wwwanalysis.cutflow();
-        }
-        else
-        {
-            // Run the looper!
-            wwwanalysis.run();
-        }
+        // Run the looper!
+        wwwanalysis.run();
 
     }
     catch (const cxxopts::OptionException& e)
@@ -340,8 +350,12 @@ void WWWAnalysis::createBranches()
     ttreex.createBranch<int>("n_veto_ss_lep");
     ttreex.createBranch<int>("n_veto_3l_lep");
 
+    ttreex.createBranch<int>("lep_flav_prod_ss");
+    ttreex.createBranch<int>("lep_flav_prod_3l");
+
     ttreex.createBranch<int>("ntrk");
     ttreex.createBranch<int>("nSFOS");
+    ttreex.createBranch<int>("nSFOSinZ");
 
     ttreex.createBranch<LV>("MET");
     ttreex.createBranch<LV>("MET_up");
@@ -461,12 +475,39 @@ bool WWWAnalysis::calcStdVariables()
     processLeptonIndices();
 
     // Preselection. Events not passing these are never used anywhere.
-    if (firstgoodvertex() != 0)   { return false;; }
-    if (nVert() < 0)              { return false;; }
-    if (looper.getCurrentFileName().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { return false;; }
-    if (looper.getCurrentFileName().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { return false;; }
+    if (firstgoodvertex() != 0)   { return false; }
+    if (nVert() < 0)              { return false; }
+    if (looper.getCurrentFileName().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { return false; }
+    if (looper.getCurrentFileName().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { return false; }
     if (list_tight_3l_lep_idx.size() < 1) { return false; }
-    if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false;; }
+    if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false; }
+    if (list_incl_veto_3l_lep_idx.size() != 2 && list_incl_veto_3l_lep_idx.size() != 3) { return false; }
+    int totalcharge = 0;
+    for (auto& idx : list_incl_veto_3l_lep_idx)
+    {
+        if (lep_pdgId()[idx] > 0)
+            totalcharge--;
+        else
+            totalcharge++;
+    }
+    if (list_incl_veto_3l_lep_idx.size() == 3 && abs(totalcharge) != 1) { return false; }
+
+    // lepton flavor product
+    lep_flav_prod_ss = 0;
+    lep_flav_prod_3l = 0;
+    if (list_incl_veto_ss_lep_idx.size() == 2)
+    {
+        lep_flav_prod_ss = lep_pdgId()[list_incl_veto_ss_lep_idx[0]] * lep_pdgId()[list_incl_veto_ss_lep_idx[1]];
+    }
+    else if (list_incl_veto_3l_lep_idx.size() == 3)
+    {
+        if (lep_pdgId()[list_incl_veto_3l_lep_idx[0]] * lep_pdgId()[list_incl_veto_3l_lep_idx[1]] > 0)
+            lep_flav_prod_3l = lep_pdgId()[list_incl_veto_3l_lep_idx[0]] * lep_pdgId()[list_incl_veto_3l_lep_idx[1]];
+        else if (lep_pdgId()[list_incl_veto_3l_lep_idx[0]] * lep_pdgId()[list_incl_veto_3l_lep_idx[2]] > 0)
+            lep_flav_prod_3l = lep_pdgId()[list_incl_veto_3l_lep_idx[0]] * lep_pdgId()[list_incl_veto_3l_lep_idx[2]];
+        else if (lep_pdgId()[list_incl_veto_3l_lep_idx[1]] * lep_pdgId()[list_incl_veto_3l_lep_idx[2]] > 0)
+            lep_flav_prod_3l = lep_pdgId()[list_incl_veto_3l_lep_idx[1]] * lep_pdgId()[list_incl_veto_3l_lep_idx[2]];
+    }
 
     // Set MET
     MET.SetPxPyPzE( met_pt() * TMath::Cos(met_phi()), met_pt() * TMath::Sin(met_phi()), 0, met_pt());
@@ -513,7 +554,7 @@ bool WWWAnalysis::calcStdVariables()
     pass_goodrun = !isData() ? 1. : goodrun(tas::run(), tas::lumi());
 
     // Sample names and types
-    sample_name = getSampleNameFromFileName(looper.getCurrentFileName());
+    sample_name = getSampleNameFromFileName(looper.getCurrentFileBaseName());
     process_name_ss = ((list_tight_ss_lep_idx.size() + list_loose_ss_lep_idx.size()) >= 2) ? process(looper.getCurrentFileName().Data(), true , list_tight_ss_lep_idx, list_loose_ss_lep_idx) : "not2l";
     process_name_3l = ((list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size()) >= 3) ? process(looper.getCurrentFileName().Data(), false, list_tight_3l_lep_idx, list_loose_3l_lep_idx) : "not3l";
     isphotonSS = process_name_ss.EqualTo("photonfakes");
@@ -556,6 +597,7 @@ bool WWWAnalysis::calcStdVariables()
     Mll1SFOS = -999;
     Mll2SFOS0 = -999;
     Mll2SFOS1 = -999;
+    nSFOSinZ = 0;
     if (list_incl_veto_3l_lep_idx.size() >= 3)
     {
         if (nSFOS == 0)
@@ -566,13 +608,21 @@ bool WWWAnalysis::calcStdVariables()
         else if (nSFOS == 1)
         {
             Mll1SFOS = get1SFOSMll(list_incl_veto_3l_lep_idx);;
+            if (fabs(Mll1SFOS-91.1876)<10.)
+                nSFOSinZ = 1;
         }
         else if (nSFOS == 2)
         {
             Mll2SFOS0 = get2SFOSMll0(list_incl_veto_3l_lep_idx);;
             Mll2SFOS1 = get2SFOSMll1(list_incl_veto_3l_lep_idx);;
+            if (fabs(Mll2SFOS0-91.1876)<10.)
+                nSFOSinZ++;
+            if (fabs(Mll2SFOS1-91.1876)<10.)
+                nSFOSinZ++;
         }
     }
+
+
 
     gen_Mjj = -999;
     gen_DEtajj = -999;
@@ -655,8 +705,12 @@ void WWWAnalysis::setBranches()
     ttreex.setBranch<int>("n_veto_ss_lep", list_incl_veto_ss_lep_idx.size());
     ttreex.setBranch<int>("n_veto_3l_lep", list_incl_veto_3l_lep_idx.size());
 
+    ttreex.setBranch<int>("lep_flav_prod_ss", lep_flav_prod_ss);
+    ttreex.setBranch<int>("lep_flav_prod_3l", lep_flav_prod_3l);
+
     ttreex.setBranch<int>("ntrk", ntrk);
     ttreex.setBranch<int>("nSFOS", nSFOS);
+    ttreex.setBranch<int>("nSFOSinZ", nSFOSinZ);
 
     ttreex.setBranch<LV>("MET", MET);
     ttreex.setBranch<LV>("MET_up", MET_up);
@@ -801,7 +855,7 @@ void WWWAnalysis::setChain()
         }
 
         // Create at TChain from the list of root files.
-        chain = RooUtil::FileUtil::createTChain("t", RooUtil::StringUtil::join(dataset_paths, ","));
+        chain = RooUtil::FileUtil::createTChain("t", join(dataset_paths));
     }
 }
 
@@ -895,9 +949,9 @@ void WWWAnalysis::setDatasetMap()
     datasetMap["WGstar"].push_back("wgstar_lnee_012jets_madgraph*.root");
     datasetMap["WGstar"].push_back("wgstar_lnmm_012jets_madgraph*.root");
 
-    datasetMap["Data"].push_back("data_*ee*.root");
-    datasetMap["Data"].push_back("data_*em*.root");
-    datasetMap["Data"].push_back("data_*mm*.root");
+    datasetMap["DataEE"].push_back("data_*ee*.root");
+    datasetMap["DataEM"].push_back("data_*em*.root");
+    datasetMap["DataMM"].push_back("data_*mm*.root");
 }
 
 //#################################################################################################
@@ -911,7 +965,7 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
     {
         for (auto& pttn : dataset.second)
         {
-            std::vector<TString> tokens = RooUtil::StringUtil::split(pttn, "*");
+            std::vector<TString> tokens = split(pttn, "*");
             TString pttn1 = tokens.at(0);
             TString pttn2 = tokens.size() == 3 ? tokens.at(1) : "";
             if (filename.Contains(pttn1) && filename.Contains(pttn2))
@@ -919,76 +973,6 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
         }
     }
     return "NotUsed";
-}
-
-//#################################################################################################
-// From the output of the WWWAnalysis main functions run cutflow
-void WWWAnalysis::cutflow()
-{
-//    TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti(chain);
-    TMultiDrawTreePlayer* p = RooUtil::FileUtil::createTMulti("t", "/hadoop/cms/store/user/phchang/metis/wwwlooper/v2/WWW_v0_1_16_v2/www_2l_*mia_skim_1.root");
-    if (!p)
-        RooUtil::error("Failed to create TMulti");
-    std::cout << p << std::endl;
-    std::vector<TString> cuts;
-    cuts.push_back("ntrk == 0");
-    cuts.push_back("pass_offline_trig>0");
-    cuts.push_back("(veto_ss_lep0_pdgid*veto_ss_lep1_pdgid)==169");
-    cuts.push_back("n_tight_ss_lep>=2");
-    cuts.push_back("n_veto_ss_lep==2");
-//    cuts.push_back("sample_name==\"WHtoWWW\"");
-    cuts.push_back("nj30>=2");
-    cuts.push_back("(Mjj<100.&&Mjj>60.)");
-    cuts.push_back("nb==0");
-    cuts.push_back("MllSS > 40.");
-    cuts.push_back("MjjL < 400.");
-    cuts.push_back("Detajj < 1.5");
-
-    std::map<TString, TString> hists;
-    hists["count"] = "0>>%s%zu(1, 0, 1)";
-    hists["gen_DRjj"] = "gen_DRjj>>%s%zu(50, 0, 9)";
-    hists["Mjj"] = "Mjj>>%s%zu(30, 0, 150)";
-    hists["gen_quark0_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.pt()))>>%s%zu(30, 0, 150)";
-    hists["gen_quark1_pt"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150)";
-    hists["gen_quark0_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark0.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark1.eta()))>>%s%zu(30, -5, 5)";
-    hists["gen_quark1_eta"] = "((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.eta()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.eta()))>>%s%zu(30, -5, 5)";
-    hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-    hists["Mjj_v_gen_quark1_pt"] = "Mjj:((gen_quark0.pt() > gen_quark1.pt())*(gen_quark1.pt()) + (gen_quark1.pt() > gen_quark0.pt())*(gen_quark0.pt()))>>%s%zu(30, 0, 150, 30, 0, 150)";
-
-    for (size_t i = 0; i < cuts.size(); ++i)
-    {
-        for (auto& hist : hists)
-        {
-            TString bookHist = Form(hist.second.Data(), hist.first.Data(), i);
-            TString cut = Form("(%s)*(weight*btagsf*lepsf*trigsf*purewgt)", RooUtil::StringUtil::join(std::vector<TString>(cuts.begin(), cuts.begin() + i + 1), ")*(").Data());
-//            std::cout << bookHist << " " << cut << std::endl;
-            p->queueDraw(bookHist.Data(), cut.Data(), "goffe");
-        }
-    }
-
-    p->execute();
-
-    std::cout << " " << std::endl;
-
-    std::map<TString, TH1*> ret_hists;
-    for (size_t i = 0; i < cuts.size(); ++i)
-    {
-        for (auto& hist : hists)
-        {
-            TString histname = Form("%s%zu", hist.first.Data(), i);
-            TH1* h = RooUtil::FileUtil::get(histname);
-            if (h)
-                ret_hists[histname] = h;
-            if (hist.first.EqualTo("count"))
-                std::cout << h->GetBinContent(1) << " +/- " << h->GetBinError(1) << " " << cuts.at(i) << std::endl;
-        }
-    }
-
-    // Set the output file
-    ofile = new TFile(output_name, "recreate"); 
-    for (auto& hist : ret_hists)
-        if (hist.second)
-            hist.second->Write();
 }
 
 //eof
