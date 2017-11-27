@@ -92,10 +92,10 @@ def printSR(showdata=False):
     addProcesses(printer, showdata)
     table = printer.createTable("style.firstColumnAlign=l")
     output_name = "cutflow_SR"
-    table.writeCSV("cutflow/{}.csv".format(output_name))
-    table.writeHTML("cutflow/{}.html".format(output_name))
-    table.writeLaTeX("cutflow/{}.tex".format(output_name))
-    table.writePlain("cutflow/{}.txt".format(output_name))
+    table.writeCSV("cutflows/{}.csv".format(output_name))
+    table.writeHTML("cutflows/{}.html".format(output_name))
+    table.writeLaTeX("cutflows/{}.tex".format(output_name))
+    table.writePlain("cutflows/{}.txt".format(output_name))
 
 #_______________________________________________________________________________
 def printCR(showdata=True):
@@ -107,10 +107,10 @@ def printCR(showdata=True):
     addProcesses(printer, showdata)
     table = printer.createTable("style.firstColumnAlign=l")
     output_name = "cutflow_CR"
-    table.writeCSV("cutflow/{}.csv".format(output_name))
-    table.writeHTML("cutflow/{}.html".format(output_name))
-    table.writeLaTeX("cutflow/{}.tex".format(output_name))
-    table.writePlain("cutflow/{}.txt".format(output_name))
+    table.writeCSV("cutflows/{}.csv".format(output_name))
+    table.writeHTML("cutflows/{}.html".format(output_name))
+    table.writeLaTeX("cutflows/{}.tex".format(output_name))
+    table.writePlain("cutflows/{}.txt".format(output_name))
 
 #_______________________________________________________________________________
 # Supports only printing out by process boundaries
@@ -124,10 +124,10 @@ def printCutflow(region_prefix, ncut, output_name, chan, showdata=False):
     printer.addCutflowCut("{}".format(region_prefix), "{}".format(region_prefix), 1)
     addProcesses(printer, showdata, chan)
     table = printer.createTable()
-    table.writeCSV("cutflow/{}.csv".format(output_name))
-    table.writeHTML("cutflow/{}.html".format(output_name))
-    table.writeLaTeX("cutflow/{}.tex".format(output_name))
-    table.writePlain("cutflow/{}.txt".format(output_name))
+    table.writeCSV("cutflows/{}.csv".format(output_name))
+    table.writeHTML("cutflows/{}.html".format(output_name))
+    table.writeLaTeX("cutflows/{}.tex".format(output_name))
+    table.writePlain("cutflows/{}.txt".format(output_name))
 
 applyWZNF()
 printSR()
