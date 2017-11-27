@@ -31,12 +31,18 @@ def applyWZNF():
     nf_ee = getWZNF("WZCRee")
     nf_em = getWZNF("WZCRem")
     nf_mm = getWZNF("WZCRmm")
+    nf_1SFOS = getWZNF("TLWZ1SFOS")
+    nf_2SFOS = getWZNF("TLWZ2SFOS")
     samples.setScaleFactor("SSee", nf_ee, "/bkg/VV/WZ")
     samples.setScaleFactor("SSem", nf_em, "/bkg/VV/WZ")
     samples.setScaleFactor("SSmm", nf_mm, "/bkg/VV/WZ")
     samples.setScaleFactor("SSee", nf_ee, "/typebkg/?/WZ")
     samples.setScaleFactor("SSem", nf_em, "/typebkg/?/WZ")
     samples.setScaleFactor("SSmm", nf_mm, "/typebkg/?/WZ")
+    samples.setScaleFactor("TL1SFOS", nf_1SFOS, "/bkg/VV/WZ")
+    samples.setScaleFactor("TL2SFOS", nf_2SFOS, "/bkg/VV/WZ")
+    samples.setScaleFactor("TL1SFOS", nf_1SFOS, "/typebkg/?/WZ")
+    samples.setScaleFactor("TL2SFOS", nf_2SFOS, "/typebkg/?/WZ")
 
 #_______________________________________________________________________________
 def addProcesses(printer, showdata):
@@ -87,8 +93,8 @@ def printSR(showdata=False):
     printer.addCutflowCut("SSmm", "SS: #mu#mu", True)
     printer.addCutflowCut("|", "|")
     printer.addCutflowCut("TL0SFOS", "3L: 0SFOS")
-    printer.addCutflowCut("TL1SFOS", "3L: 1SFOS")
-    printer.addCutflowCut("TL2SFOS", "3L: 2SFOS")
+    printer.addCutflowCut("TL1SFOS", "3L: 1SFOS", True)
+    printer.addCutflowCut("TL2SFOS", "3L: 2SFOS", True)
     addProcesses(printer, showdata)
     table = printer.createTable("style.firstColumnAlign=l")
     output_name = "cutflow_SR"
@@ -104,6 +110,9 @@ def printCR(showdata=True):
     printer.addCutflowCut("WZCRee", "WZCR: ee")
     printer.addCutflowCut("WZCRem", "WZCR: e#mu")
     printer.addCutflowCut("WZCRmm", "WZCR: #mu#mu")
+    printer.addCutflowCut("|", "|")
+    printer.addCutflowCut("TLWZ1SFOS", "WZCR: 1SFOS")
+    printer.addCutflowCut("TLWZ2SFOS", "WZCR: 2SFOS")
     addProcesses(printer, showdata)
     table = printer.createTable("style.firstColumnAlign=l")
     output_name = "cutflow_CR"
