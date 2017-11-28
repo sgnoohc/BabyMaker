@@ -22,7 +22,7 @@
 
 // CMS3
 #include "Functions.h"
-#include "CMS3_WWW0116.cc"
+#include "CMS3_WWW0117.cc"
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -237,6 +237,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
+      //getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
       getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
