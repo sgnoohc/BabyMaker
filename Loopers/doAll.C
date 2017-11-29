@@ -15,8 +15,8 @@
   string dataset[chainsize];
 
   //lightly skimmed babies
-  string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.16/skim/";
-  //string babylocation  = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.17/skim/";
+  //string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.16/skim/";
+  string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.17/skim/";
   
   //fully skimmed babies
   //string babylocation = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";

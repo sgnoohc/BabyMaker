@@ -9,7 +9,7 @@ float Zbi_(float sig, float bg, float bgrelunc=0.3){
     return Z_Bi;
 }
 
-void makeBigTable(){
+void makeBigTable(TString histogram_location = "rootfiles/SRLooper.root"){
     
     bool SoverB = false;
     bool twosig = false;
@@ -21,7 +21,7 @@ void makeBigTable(){
     vector<string> caption;
     vector<string> samples;
     vector<string> samples2;
-    TFile *f = TFile::Open("rootfiles/SRLooper.root");
+    TFile *f = TFile::Open(histogram_location);
     histonames.push_back("SignalRegion");                  caption.push_back("signal region");
     histonames.push_back("ApplicationRegion");             caption.push_back("application region");
     histonames.push_back("WZControlRegion");               caption.push_back("lost lepton / 3l-with-Z control region");
