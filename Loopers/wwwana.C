@@ -235,6 +235,8 @@ public:
     void readAnalysis();
 
     void sandbox();
+
+    bool getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l);
 };
 
 //#################################################################################################
@@ -637,7 +639,7 @@ bool WWWAnalysis::calcStdVariables()
 
     // Get all the lepton indices
     //getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
-    getleptonindices_BDT(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    getleptonindices_lepopt(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
 
     // I like to keep the lepton indices to be more about what they actually mean.
     processLeptonIndices();
@@ -1293,6 +1295,80 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
         }
     }
     return "NotUsed";
+}
+
+//#################################################################################################
+// Get lepton indices for lepton optimization
+bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l)
+{
+    // Fills in the lepton indicies for the all the different classes of lepton ID
+    // But uses the BDT based isolation variables instead of relIso.
+    iSS.clear();
+    i3l.clear();
+    iaSS.clear();
+    ia3l.clear();
+    vSS.clear();
+    v3l.clear();
+    vaSS.clear();
+    va3l.clear();
+    for (unsigned int i = 0; i < lep_pdgId().size(); ++i)
+    {
+        bool isSS    = false;
+        bool is3l    = false;
+        bool isaSS   = false;
+        bool isa3l   = false;
+
+        if (fabs(lep_p4()[i].Eta()) >= 2.4)
+            continue;
+
+        if (abs(lep_pdgId()[i]) == 11)
+        {
+            //tight ID
+            if (lep_isTriggerSafe_v1()[i] && lep_pass_VVV_cutbased_tight()[i] && lep_lostHits()[i] == 0 && lep_tightCharge()[i] == 2)
+            {
+                if (lep_p4()[i].Pt() > 20) { i3l.push_back(i); is3l = true; }
+                if (lep_p4()[i].Pt() > 30) { iSS.push_back(i); isSS = true; }
+            }
+            //loose ID
+            if (lep_pass_VVV_cutbased_fo()[i] && lep_isTriggerSafe_v1()[i] && lep_lostHits()[i] == 0 && lep_tightCharge()[i] == 2)
+            {
+                if (!is3l && lep_p4()[i].Pt() > 20) { ia3l.push_back(i); isa3l = true; }
+                if (!isSS && lep_p4()[i].Pt() > 30) { iaSS.push_back(i); isaSS = true; }
+            }
+            //vetoID
+            if (lep_pass_VVV_cutbased_veto()[i])
+            {
+                if (!isSS &&           lep_p4()[i].Pt() > 10) { vSS  .push_back(i); }
+                if (!is3l &&           lep_p4()[i].Pt() > 10) { v3l  .push_back(i); }
+                if (!isSS && !isaSS && lep_p4()[i].Pt() > 10) { vaSS .push_back(i); }
+                if (!is3l && !isa3l && lep_p4()[i].Pt() > 10) { va3l .push_back(i); }
+            }
+        }
+        else if (abs(lep_pdgId()[i]) == 13)
+        {
+            //tight ID
+            if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            {
+                if (lep_p4()[i].Pt() > 20) { i3l.push_back(i); is3l = true; }
+                if (lep_p4()[i].Pt() > 20) { iSS.push_back(i); isSS = true; }
+            }
+            //loose ID
+            if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            {
+                if (!is3l && lep_p4()[i].Pt() > 20) { ia3l.push_back(i); isa3l = true; }
+                if (!isSS && lep_p4()[i].Pt() > 20) { iaSS.push_back(i); isaSS = true; }
+            }
+            //vetoID
+            if (lep_pass_VVV_cutbased_veto()[i])
+            {
+                if (!isSS &&           lep_p4()[i].Pt() > 10) { vSS  .push_back(i); }
+                if (!is3l &&           lep_p4()[i].Pt() > 10) { v3l  .push_back(i); }
+                if (!isSS && !isaSS && lep_p4()[i].Pt() > 10) { vaSS .push_back(i); }
+                if (!is3l && !isa3l && lep_p4()[i].Pt() > 10) { va3l .push_back(i); }
+            }
+        }
+    }
+    return true;
 }
 
 //eof
