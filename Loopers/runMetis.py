@@ -6,8 +6,8 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v9"
-input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.16/skim/"
+job_tag = "minibaby_v10"
+input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.17/skim/"
 
 ###################################################################################################################
 ###################################################################################################################
@@ -60,7 +60,7 @@ while True:
 
     # define the task
     task = CondorTask(
-            sample               = DirectorySample(dataset="/WWW_v0_1_16",
+            sample               = DirectorySample(dataset="/WWW_v0_1_17",
                                                    location=input_location,
                                                    globber="*.root"),
             tag                  = job_tag,
@@ -79,7 +79,7 @@ while True:
     task.process()
 
     # save some information for the dashboard
-    total_summary["WWW_v0_1_16"] = task.get_task_summary()
+    total_summary["WWW_v0_1_17"] = task.get_task_summary()
 
     # parse the total summary and write out the dashboard
     StatsParser(data=total_summary, webdir=metis_dashboard_path).do()

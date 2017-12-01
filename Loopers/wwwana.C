@@ -14,7 +14,7 @@
 #include "rooutil/draw.h"
 #include "rooutil/ana.h"
 
-#include "CMS3_WWW0116.h"
+#include "CMS3_WWW0117.h"
 #include "Functions.h"
 
 #include "Math/VectorUtil.h"
@@ -130,8 +130,6 @@ public:
     float Mjj_dn; // Mjj with two closest jets.
     float MjjL_dn; // Mjj with two leading jets.
     float Detajj_dn; // Detajj with two leading jets.
-
-    float MjjBal;
 
     // Lepton + MET variables
     float MTmax;
@@ -399,6 +397,48 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<int>("veto_ss_lep0_pdgid");
     t.createBranch<int>("veto_ss_lep1_pdgid");
 
+    t.createBranch<float>("veto_ss_lep0_bdt1");
+    t.createBranch<float>("veto_ss_lep1_bdt1");
+
+    t.createBranch<float>("veto_ss_lep0_bdt2");
+    t.createBranch<float>("veto_ss_lep1_bdt2");
+
+    t.createBranch<float>("veto_ss_lep0_bdt3");
+    t.createBranch<float>("veto_ss_lep1_bdt3");
+
+    t.createBranch<float>("veto_ss_lep0_pterr");
+    t.createBranch<float>("veto_ss_lep1_pterr");
+
+    t.createBranch<float>("veto_ss_lep0_trkpt");
+    t.createBranch<float>("veto_ss_lep1_trkpt");
+
+    t.createBranch<float>("veto_ss_lep0_reliso");
+    t.createBranch<float>("veto_ss_lep1_reliso");
+
+    t.createBranch<float>("veto_ss_lep0_ptrel");
+    t.createBranch<float>("veto_ss_lep1_ptrel");
+
+    t.createBranch<float>("veto_ss_lep0_ptratio");
+    t.createBranch<float>("veto_ss_lep1_ptratio");
+
+    t.createBranch<float>("veto_ss_lep0_ip3d");
+    t.createBranch<float>("veto_ss_lep1_ip3d");
+
+    t.createBranch<float>("veto_ss_lep0_ip3derr");
+    t.createBranch<float>("veto_ss_lep1_ip3derr");
+
+    t.createBranch<int>("veto_ss_lep0_motheridss");
+    t.createBranch<int>("veto_ss_lep1_motheridss");
+
+    t.createBranch<bool>("veto_ss_lep0_medium");
+    t.createBranch<bool>("veto_ss_lep1_medium");
+
+    t.createBranch<bool>("veto_ss_lep0_loose");
+    t.createBranch<bool>("veto_ss_lep1_loose");
+
+    t.createBranch<bool>("veto_ss_lep0_tight");
+    t.createBranch<bool>("veto_ss_lep1_tight");
+
     t.createBranch<int>("veto_3l_lep0_pdgid");
     t.createBranch<int>("veto_3l_lep1_pdgid");
     t.createBranch<int>("veto_3l_lep2_pdgid");
@@ -474,8 +514,8 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<float>("trigsf_err");
     t.createBranch<float>("ffwgtss");
     t.createBranch<float>("ffwgt3l");
-    t.createBranch<float>("ffwgtss_noerr");
-    t.createBranch<float>("ffwgt3l_noerr");
+    t.createBranch<float>("ffwgtss_err");
+    t.createBranch<float>("ffwgt3l_err");
     t.createBranch<float>("ffwgtss_nocone");
     t.createBranch<float>("ffwgt3l_nocone");
     t.createBranch<float>("ffwgtss_nocone_noerr");
@@ -484,8 +524,8 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<float>("ffwgt3l_closerr");
     t.createBranch<float>("qcdffwgtss");
     t.createBranch<float>("qcdffwgt3l");
-    t.createBranch<float>("qcdffwgtss_noerr");
-    t.createBranch<float>("qcdffwgt3l_noerr");
+    t.createBranch<float>("qcdffwgtss_err");
+    t.createBranch<float>("qcdffwgt3l_err");
     t.createBranch<float>("qcdffwgtss_nocone");
     t.createBranch<float>("qcdffwgt3l_nocone");
     t.createBranch<float>("qcdffwgtss_nocone_noerr");
@@ -596,7 +636,8 @@ bool WWWAnalysis::calcStdVariables()
     event_number = tas::evt();
 
     // Get all the lepton indices
-    getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    //getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    getleptonindices_BDT(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
 
     // I like to keep the lepton indices to be more about what they actually mean.
     processLeptonIndices();
@@ -656,6 +697,24 @@ bool WWWAnalysis::calcStdVariables()
     MET_dn.SetPxPyPzE( met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi()), met_T1CHS_miniAOD_CORE_dn_pt() * TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi()), 0, met_T1CHS_miniAOD_CORE_dn_pt());
 
     // Set jet related variables
+    nj = -1; // Number of central jets.
+    nb = -1; // Number of b-tagged jets.
+    nj30 = -1; // Number of jets with abs(eta) up to 5.
+    Mjj = -1; // Mjj with two closest jets.
+    MjjL = -1; // Mjj with two leading jets.
+    Detajj = -1; // Detajj with two leading jets.
+    nj_up = -1; // Number of central jets.
+    nb_up = -1; // Number of b-tagged jets.
+    nj30_up = -1; // Number of jets with abs(eta) up to 5.
+    Mjj_up = -1; // Mjj with two closest jets.
+    MjjL_up = -1; // Mjj with two leading jets.
+    Detajj_up = -1; // Detajj with two leading jets.
+    nj_dn = -1; // Number of central jets.
+    nb_dn = -1; // Number of b-tagged jets.
+    nj30_dn = -1; // Number of jets with abs(eta) dn to 5.
+    Mjj_dn = -1; // Mjj with two closest jets.
+    MjjL_dn = -1; // Mjj with two leading jets.
+    Detajj_dn = -1; // Detajj with two leading jets.
     getalljetnumbers(nj, nj30, nb);
     getalljetnumbers(nj_up, nj30_up, nb_up, 1);
     getalljetnumbers(nj_dn, nj30_dn, nb_dn, -1);
@@ -751,6 +810,7 @@ bool WWWAnalysis::calcStdVariables()
 
     }
 
+    ntrk = -1;
     ntrk = nisoTrack_mt2_cleaned_VVV_cutbased_veto();
 
     nSFOS = -1;
@@ -885,6 +945,48 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
 
     t.setBranch<int>("veto_ss_lep0_pdgid" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_ss_lep_idx[0]] : 0);
     t.setBranch<int>("veto_ss_lep1_pdgid" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<float>("veto_ss_lep0_bdt1" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt1()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_bdt1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt1()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_bdt2" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt2()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_bdt2" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt2()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_bdt3" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt3()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_bdt3" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt3()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_pterr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pterr()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_pterr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pterr()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_trkpt", list_incl_veto_ss_lep_idx.size() > 0 ? lep_trk_pt()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_trkpt", list_incl_veto_ss_lep_idx.size() > 1 ? lep_trk_pt()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_reliso", list_incl_veto_ss_lep_idx.size() > 0 ? lep_relIso03EAv2()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_reliso", list_incl_veto_ss_lep_idx.size() > 1 ? lep_relIso03EAv2()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_ptrel", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ptRel()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_ptrel", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ptRel()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_ptratio", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ptRatio()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_ptratio", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ptRatio()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_ip3d", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ip3d()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_ip3d", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ip3d()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<float>("veto_ss_lep0_ip3derr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<float>("veto_ss_lep1_ip3derr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<int>("veto_ss_lep0_motheridss", list_incl_veto_ss_lep_idx.size() > 0 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[0]] : -999);
+    t.setBranch<int>("veto_ss_lep1_motheridss", list_incl_veto_ss_lep_idx.size() > 1 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[1]] : -999);
+
+    t.setBranch<bool>("veto_ss_lep0_medium", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<bool>("veto_ss_lep1_medium", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<bool>("veto_ss_lep0_loose", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<bool>("veto_ss_lep1_loose", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<bool>("veto_ss_lep0_tight", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<bool>("veto_ss_lep1_tight", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
 
     t.setBranch<int>("veto_3l_lep0_pdgid" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_3l_lep_idx[0]] : 0);
     t.setBranch<int>("veto_3l_lep1_pdgid" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_3l_lep_idx[1]] : 0);
