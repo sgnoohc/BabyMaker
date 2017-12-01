@@ -240,7 +240,7 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
   return true;
 }
 
-bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l){
+bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int bdtnum/* = 1*/, float bdt_wp/* = 0.85*/){
   // Fills in the lepton indicies for the all the different classes of lepton ID
   // But uses the BDT based isolation variables instead of relIso.
   iSS.clear();
@@ -251,26 +251,40 @@ bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS,
   v3l.clear();
   vaSS.clear();
   va3l.clear();
+
+  vector<float> bdtvals;
+
+  if      (bdtnum == 1) bdtvals = lep_bdt1();
+  else if (bdtnum == 2) bdtvals = lep_bdt2();
+  else                  bdtvals = lep_bdt3();
+
   for(unsigned int i = 0; i<lep_pdgId().size();++i){
     bool isSS    = false; bool is3l    = false;
     bool isaSS   = false; bool isa3l   = false;
     //tight ID
-    if(lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
-      if(abs(lep_pdgId()[i])==11&&lep_lostHits()[i]==0&&lep_tightCharge()[i]==2){
-  if(fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.0588){
-    if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
-    if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
-  } else if(fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.0571){
-    if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
-    if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
-  }
-      } else if(abs(lep_pdgId()[i])==13&&lep_bdt1()[i]>0.85){
-  if(  lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
-  if(  lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+    if(abs(lep_pdgId()[i])==11){ //Electrons
+      if(lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
+        if(lep_lostHits()[i]==0&&lep_tightCharge()[i]==2){
+          if(fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.0588){
+            if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+            if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+          }
+          else if(fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.0571){
+            if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+            if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+          }
+        } 
       }
     }
-    //loose ID
-    if(lep_pass_VVV_cutbased_fo_noiso()[i]   &&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
+    else if(abs(lep_pdgId()[i])==13){ //Muons
+      if(lep_pass_POG_medium_noiso()[i]&&bdtvals[i]>bdt_wp&&fabs(lep_p4()[i].Eta())<2.4&&(lep_pterr()[i]/lep_trk_pt()[i])<0.2){
+        if(  lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+        if(  lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+      }
+    }
+  
+  //loose ID
+  if(lep_pass_VVV_cutbased_fo_noiso()[i]   &&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
       if(abs(lep_pdgId()[i])==11&&lep_lostHits()[i]==0&&lep_tightCharge()[i]==2){
   if(fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.2){
     if(!is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
