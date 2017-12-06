@@ -135,6 +135,7 @@ private:
 
   Bool_t          evt_passgoodrunlist;
   Float_t         evt_scale1fb;
+  Float_t         evt_fixgridfastjet_allcalo_rho;
   Float_t         evt_xsec;
   Float_t         evt_kfactor;
   Float_t         evt_filter;
@@ -395,6 +396,43 @@ private:
   std::vector <Float_t> lep_sta_x2ondof  ;   //[nlep]
   std::vector <Float_t> lep_glb_x2ondof  ;   //[nlep]
   // std::vector <Float_t> lep_bft_x2ondof  ;   //[nlep]
+
+  //----Variables for custom ID:
+  std::vector <Float_t> lep_exp_innerlayers                   ;
+  std::vector <Float_t> lep_exp_outerlayers                   ;
+  std::vector <Int_t  > lep_nlayers                           ;
+  std::vector <Int_t  > lep_type                              ;
+  std::vector <Int_t  > lep_validHits                         ;
+
+  //---Electron Only:
+  std::vector <Float_t> lep_dEtaIn_e                          ;
+  std::vector <Float_t> lep_dEtaOut_e                         ;
+  std::vector <Float_t> lep_dPhiIn_e                          ;
+  std::vector <Float_t> lep_ecalEnergy_e                      ;
+  std::vector <Float_t> lep_ecalEnergyError_e                 ;
+  std::vector <Float_t> lep_ecalPFClusterIso_e                ;
+  std::vector <Float_t> lep_eOverPIn_e                        ;
+  std::vector <Float_t> lep_hcalPFClusterIso_e                ;
+  std::vector <Float_t> lep_hOverE_e                          ;
+  std::vector <Float_t> lep_scSeedEta_e                       ;
+  std::vector <Float_t> lep_sigmaIEtaIEta_full5x5_e           ;
+  std::vector <Float_t> lep_tkIso_e                           ;
+
+  //---Muon Only:
+  std::vector <Bool_t > lep_goodGlb_m                         ;
+  std::vector <Bool_t > lep_isGlobal_m                        ;
+  std::vector <Bool_t > lep_isTracker_m                       ;
+  std::vector <Int_t  > lep_gfit_ndof_m                       ;
+  std::vector <Float_t> lep_chi2LocalPosition_m               ;
+  std::vector <Float_t> lep_gfit_chi2_m                       ;
+  std::vector <Int_t  > lep_gfit_validSTAHits_m               ;
+  std::vector <Int_t  > lep_numberOfMatchedStations_m         ;
+  std::vector <Int_t  > lep_pid_PFMuon_m                      ;
+  std::vector <Float_t> lep_segmCompatibility_m               ;
+  std::vector <Float_t> lep_trkKink_m                         ;
+  std::vector <Int_t  > lep_validPixelHits_m                  ;
+  
+  
   
   Int_t nisoTrack_5gev;
   Int_t nisoTrack_stop;

@@ -605,6 +605,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   		}
 
   		evt_scale1fb = evt_xsec*1000/evt_nEvts;
+      evt_fixgridfastjet_allcalo_rho = cms3.evt_fixgridfastjet_allcalo_rho();
 
   		LorentzVector isrSystem_p4;
   		for( size_t genind = 0; genind < cms3.genps_p4().size(); genind++ ){
@@ -1042,6 +1043,37 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector<float>   vec_lep_ip3derr;
       vector<float>   vec_lep_dz;
       vector<int>     vec_lep_tightId;
+
+      vector <float> vec_lep_exp_innerlayers;
+      vector <float> vec_lep_exp_outerlayers;
+      vector <int>   vec_lep_nlayers;
+      vector <int>   vec_lep_type;
+      vector <int>   vec_lep_validHits;
+
+      vector <float> vec_lep_dEtaIn_e;
+      vector <float> vec_lep_dEtaOut_e;
+      vector <float> vec_lep_dPhiIn_e;
+      vector <float> vec_lep_ecalEnergy_e;
+      vector <float> vec_lep_ecalEnergyError_e;
+      vector <float> vec_lep_ecalPFClusterIso_e;
+      vector <float> vec_lep_eOverPIn_e;
+      vector <float> vec_lep_hcalPFClusterIso_e;
+      vector <float> vec_lep_hOverE_e;
+      vector <float> vec_lep_scSeedEta_e;
+      vector <float> vec_lep_sigmaIEtaIEta_full5x5_e;
+      vector <float> vec_lep_tkIso_e;
+      vector <bool>  vec_lep_goodGlb_m;
+      vector <bool>  vec_lep_isGlobal_m;
+      vector <bool>  vec_lep_isTracker_m;
+      vector <int>   vec_lep_gfit_ndof_m;
+      vector <float> vec_lep_chi2LocalPosition_m; 
+      vector <float> vec_lep_gfit_chi2_m;
+      vector <int>   vec_lep_gfit_validSTAHits_m;
+      vector <int>   vec_lep_numberOfMatchedStations_m;
+      vector <int>   vec_lep_pid_PFMuon_m;
+      vector <float> vec_lep_segmCompatibility_m;
+      vector <float> vec_lep_trkKink_m;
+      vector <int>   vec_lep_validPixelHits_m;
       
 
       vector< bool >   vec_lep_pass_POG_loose_noiso;
@@ -1117,7 +1149,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 
   	  for(unsigned int iEl = 0; iEl < cms3.els_p4().size(); iEl++){
    	  	//cout<<"checking electrons"<<endl;
-        if( !(isLooseElectronPOGspring16noIso_v1(iEl) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
+        if( !(isVetoElectronPOGspring16noIso_v1(iEl) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
           /*cout<<"Electron did not pass analysis selection, checking veto selection"<<endl;
           cout<<"etaSC: "<<fabs(els_etaSC().at(iEl))<<" ";
           cout<<"conv_vtx: "<<els_conv_vtx_flag().at(iEl)<<" ";
@@ -1273,6 +1305,37 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_sta_x2ondof  .push_back ( -1                             );
     		  vec_lep_glb_x2ondof  .push_back ( -1                             );
     		  // vec_lep_bft_x2ondof  .push_back ( cms3.els_bfit_chi2()       .at(iEl) / cms3.els_bfit_ndof()   .at(iEl) );
+          
+          vec_lep_exp_innerlayers            .push_back(cms3.els_exp_innerlayers().at(iEl));
+          vec_lep_exp_outerlayers            .push_back(cms3.els_exp_outerlayers().at(iEl));
+          vec_lep_nlayers                    .push_back(cms3.els_nlayers().at(iEl));
+          vec_lep_type                       .push_back(cms3.els_type().at(iEl));
+          vec_lep_validHits                  .push_back(cms3.els_validHits().at(iEl));
+
+          vec_lep_dEtaIn_e                   .push_back(cms3.els_dEtaIn().at(iEl))                  ;
+          vec_lep_dEtaOut_e                  .push_back(cms3.els_dEtaOut().at(iEl))                 ;
+          vec_lep_dPhiIn_e                   .push_back(cms3.els_dPhiIn().at(iEl))                  ;
+          vec_lep_ecalEnergy_e               .push_back(cms3.els_ecalEnergy().at(iEl))              ;
+          vec_lep_ecalEnergyError_e          .push_back(cms3.els_ecalEnergyError().at(iEl))         ;
+          vec_lep_ecalPFClusterIso_e         .push_back(cms3.els_ecalPFClusterIso().at(iEl))        ;
+          vec_lep_eOverPIn_e                 .push_back(cms3.els_eOverPIn().at(iEl))                ;
+          vec_lep_hcalPFClusterIso_e         .push_back(cms3.els_hcalPFClusterIso().at(iEl))        ;
+          vec_lep_hOverE_e                   .push_back(cms3.els_hOverE().at(iEl))                  ;
+          vec_lep_scSeedEta_e                .push_back(cms3.els_scSeedEta().at(iEl))               ;
+          vec_lep_sigmaIEtaIEta_full5x5_e    .push_back(cms3.els_sigmaIEtaIEta_full5x5().at(iEl))   ;
+          vec_lep_tkIso_e                    .push_back(cms3.els_tkIso().at(iEl))                   ;
+          vec_lep_goodGlb_m                  .push_back(true)                                       ; //always true for electrons
+          vec_lep_isGlobal_m                 .push_back(true)                                       ; //always true for electrons
+          vec_lep_isTracker_m                .push_back(true)                                       ; //always true for electrons
+          vec_lep_gfit_ndof_m                .push_back(-1)                                         ; //only exists for muons
+          vec_lep_chi2LocalPosition_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_gfit_chi2_m                .push_back(-1)                                         ; //only exists for muons
+          vec_lep_gfit_validSTAHits_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_numberOfMatchedStations_m  .push_back(-1)                                         ; //only exists for muons
+          vec_lep_pid_PFMuon_m               .push_back(-1)                                         ; //only exists for muons
+          vec_lep_segmCompatibility_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_trkKink_m                  .push_back(-1)                                         ; //only exists for muons
+          vec_lep_validPixelHits_m           .push_back(-1)                                         ; //only exists for muons
 
     		  if (!isData && (cms3.els_mc3dr().at(iEl) < 0.2 && cms3.els_mc3idx().at(iEl) != -9999 && abs(cms3.els_mc3_id().at(iEl)) == 11 )) { // matched to a prunedGenParticle electron?
             int momid =  abs(genPart_motherId[cms3.els_mc3idx().at(iEl)]);
@@ -1282,7 +1345,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
             vec_lep_mcMatchId.push_back (0);
     		  }
     		  
-    		  vec_lep_lostHits.push_back ( cms3.els_exp_innerlayers().at(iEl)); //cms2.els_lost_pixelhits().at(iEl);
+    		  vec_lep_lostHits.push_back ( cms3.els_lostHits().at(iEl)); 
     		  vec_lep_convVeto.push_back ( !cms3.els_conv_vtx_flag().at(iEl));
     		  vec_lep_tightCharge.push_back ( tightChargeEle(iEl));
 
@@ -1477,11 +1540,44 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  // vec_lep_bft_pterrOpt .push_back ( cms3.mus_bfit_qoverpError().at(iMu) / cms3.mus_bfit_qoverp() .at(iMu) );
     		  vec_lep_x2ondof      .push_back ( cms3.mus_chi2()            .at(iMu) / cms3.mus_ndof()        .at(iMu) );
     		  vec_lep_sta_x2ondof  .push_back ( cms3.mus_sta_chi2()        .at(iMu) / cms3.mus_sta_ndof()    .at(iMu) );
-    		  if( currentFileName.Contains("V08-00-1") ){ 
+          if( currentFileName.Contains("V08-00-1") ){ 
             vec_lep_glb_x2ondof  .push_back ( cms3.mus_gfit_chi2()       .at(iMu) / cms3.mus_gfit_ndof()   .at(iMu) );
     		  }
           else{                                                       vec_lep_glb_x2ondof  .push_back ( -1.0                                                                  );}
     		  // vec_lep_bft_x2ondof  .push_back ( cms3.mus_bfit_chi2()       .at(iMu) / cms3.mus_bfit_ndof()   .at(iMu) );
+
+          vec_lep_exp_innerlayers            .push_back(cms3.mus_exp_innerlayers().at(iMu));                   
+          vec_lep_exp_outerlayers            .push_back(cms3.mus_exp_outerlayers().at(iMu));                   
+          vec_lep_nlayers                    .push_back(cms3.mus_nlayers().at(iMu));           
+          vec_lep_type                       .push_back(cms3.mus_type().at(iMu));        
+          vec_lep_validHits                  .push_back(cms3.mus_validHits().at(iMu));             
+
+          vec_lep_dEtaIn_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_dEtaOut_e                  .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_dPhiIn_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalEnergy_e               .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalEnergyError_e          .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalPFClusterIso_e         .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_eOverPIn_e                 .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_hcalPFClusterIso_e         .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_hOverE_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_scSeedEta_e                .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_sigmaIEtaIEta_full5x5_e    .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_tkIso_e                    .push_back(-1) ; //Only Exists for Electrons
+
+          vec_lep_gfit_ndof_m                .push_back(get_mus_gfit_ndof(iMu))                     ; 
+          vec_lep_chi2LocalPosition_m        .push_back(cms3.mus_chi2LocalPosition().at(iMu))       ; 
+          vec_lep_gfit_chi2_m                .push_back(cms3.mus_gfit_chi2().at(iMu))               ;
+          vec_lep_gfit_validSTAHits_m        .push_back(cms3.mus_gfit_validSTAHits().at(iMu))       ;
+          vec_lep_numberOfMatchedStations_m  .push_back(cms3.mus_numberOfMatchedStations().at(iMu)) ;
+          vec_lep_pid_PFMuon_m               .push_back(cms3.mus_pid_PFMuon().at(iMu))              ;
+          vec_lep_segmCompatibility_m        .push_back(cms3.mus_segmCompatibility().at(iMu))       ;
+          vec_lep_trkKink_m                  .push_back(cms3.mus_trkKink().at(iMu))                 ;
+          vec_lep_validPixelHits_m           .push_back(cms3.mus_validPixelHits().at(iMu))          ;
+
+          vec_lep_isGlobal_m                 .push_back( ((( vec_lep_type.back() ) & (1<<1)) != 0) ) ; //Could be calculate on the fly, but here for convenience. 
+          vec_lep_isTracker_m                .push_back( ((( vec_lep_type.back() ) & (1<<2)) != 0) ) ; //Could be calculate on the fly, but here for convenience. 
+          vec_lep_goodGlb_m                  .push_back( vec_lep_isGlobal_m.back() && vec_lep_gfit_chi2_m.back()/vec_lep_gfit_ndof_m.back()<3. && vec_lep_chi2LocalPosition_m.back()<12. && vec_lep_trkKink_m.back()<20.); //Could be calculate on the fly, but here for convenience. 
     		  
     		  if (!isData && (cms3.mus_mc3dr().at(iMu) < 0.2 && cms3.mus_mc3idx().at(iMu) != -9999 && abs(cms3.mus_mc3_id().at(iMu)) == 13 )) { // matched to a prunedGenParticle electron?
             int momid =  abs(genPart_motherId[cms3.mus_mc3idx().at(iMu)]);
@@ -1491,7 +1587,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
             vec_lep_mcMatchId.push_back (0);
           }
 
-    		  vec_lep_lostHits   .push_back ( cms3.mus_exp_innerlayers().at(iMu)); // use defaults as if "good electron"
+    		  vec_lep_lostHits   .push_back ( cms3.mus_lostHits().at(iMu)); // use defaults as if "good electron"
     		  vec_lep_convVeto   .push_back ( 1                                 );// use defaults as if "good electron"
     		  vec_lep_tightCharge.push_back ( tightChargeMuon(iMu)              );
 
@@ -1596,6 +1692,37 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		lep_sta_x2ondof         .push_back( vec_lep_sta_x2ondof         .at(it->first));
     		lep_glb_x2ondof         .push_back( vec_lep_glb_x2ondof         .at(it->first));
     		// lep_bft_x2ondof      .push_back( vec_lep_bft_x2ondof         .at(it->first));
+
+        lep_exp_innerlayers           .push_back( vec_lep_exp_innerlayers            .at(it->first)  ) ;
+        lep_exp_outerlayers           .push_back( vec_lep_exp_outerlayers            .at(it->first)  ) ;
+        lep_nlayers                   .push_back( vec_lep_nlayers                    .at(it->first)  ) ;
+        lep_type                      .push_back( vec_lep_type                       .at(it->first)  ) ;
+        lep_validHits                 .push_back( vec_lep_validHits                  .at(it->first)  ) ;
+
+        lep_dEtaIn_e                  .push_back( vec_lep_dEtaIn_e                   .at(it->first)  ) ;
+        lep_dEtaOut_e                 .push_back( vec_lep_dEtaOut_e                  .at(it->first)  ) ;
+        lep_dPhiIn_e                  .push_back( vec_lep_dPhiIn_e                   .at(it->first)  ) ;
+        lep_ecalEnergy_e              .push_back( vec_lep_ecalEnergy_e               .at(it->first)  ) ;
+        lep_ecalEnergyError_e         .push_back( vec_lep_ecalEnergyError_e          .at(it->first)  ) ;
+        lep_ecalPFClusterIso_e        .push_back( vec_lep_ecalPFClusterIso_e         .at(it->first)  ) ;
+        lep_eOverPIn_e                .push_back( vec_lep_eOverPIn_e                 .at(it->first)  ) ;
+        lep_hcalPFClusterIso_e        .push_back( vec_lep_hcalPFClusterIso_e         .at(it->first)  ) ;
+        lep_hOverE_e                  .push_back( vec_lep_hOverE_e                   .at(it->first)  ) ;
+        lep_scSeedEta_e               .push_back( vec_lep_scSeedEta_e                .at(it->first)  ) ;
+        lep_sigmaIEtaIEta_full5x5_e   .push_back( vec_lep_sigmaIEtaIEta_full5x5_e    .at(it->first)  ) ;
+        lep_tkIso_e                   .push_back( vec_lep_tkIso_e                    .at(it->first)  ) ;
+        lep_goodGlb_m                 .push_back( vec_lep_goodGlb_m                  .at(it->first)  ) ;
+        lep_isGlobal_m                .push_back( vec_lep_isGlobal_m                 .at(it->first)  ) ;
+        lep_isTracker_m               .push_back( vec_lep_isTracker_m                .at(it->first)  ) ;
+        lep_gfit_ndof_m               .push_back( vec_lep_gfit_ndof_m                .at(it->first)  ) ;
+        lep_chi2LocalPosition_m       .push_back( vec_lep_chi2LocalPosition_m        .at(it->first)  ) ;
+        lep_gfit_chi2_m               .push_back( vec_lep_gfit_chi2_m                .at(it->first)  ) ;
+        lep_gfit_validSTAHits_m       .push_back( vec_lep_gfit_validSTAHits_m        .at(it->first)  ) ;
+        lep_numberOfMatchedStations_m .push_back( vec_lep_numberOfMatchedStations_m  .at(it->first)  ) ;
+        lep_pid_PFMuon_m              .push_back( vec_lep_pid_PFMuon_m               .at(it->first)  ) ;
+        lep_segmCompatibility_m       .push_back( vec_lep_segmCompatibility_m        .at(it->first)  ) ;
+        lep_trkKink_m                 .push_back( vec_lep_trkKink_m                  .at(it->first)  ) ;
+        lep_validPixelHits_m          .push_back( vec_lep_validPixelHits_m           .at(it->first)  ) ;
 
         //cout<<__LINE__<<endl;
 
@@ -2864,6 +2991,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("isData", &isData );
   BabyTree_->Branch("evt_passgoodrunlist", &evt_passgoodrunlist);
   BabyTree_->Branch("evt_scale1fb", &evt_scale1fb);
+  BabyTree_->Branch("evt_fixgridfastjet_allcalo_rho", &evt_fixgridfastjet_allcalo_rho );
   BabyTree_->Branch("evt_xsec", &evt_xsec );
   BabyTree_->Branch("evt_kfactor", &evt_kfactor );
   BabyTree_->Branch("evt_filter", &evt_filter );
@@ -3117,6 +3245,41 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_sta_x2ondof"  , &lep_sta_x2ondof   );
   BabyTree_->Branch("lep_glb_x2ondof"  , &lep_glb_x2ondof   );
   // BabyTree_->Branch("lep_bft_x2ondof"  , &lep_bft_x2ondof   );
+
+
+  BabyTree_->Branch("lep_exp_innerlayers"            ,            &lep_exp_innerlayers            );
+  BabyTree_->Branch("lep_exp_outerlayers"            ,            &lep_exp_outerlayers            );
+  BabyTree_->Branch("lep_nlayers"                    ,            &lep_nlayers                    );
+  BabyTree_->Branch("lep_type"                       ,            &lep_type                       );
+  BabyTree_->Branch("lep_validHits"                  ,            &lep_validHits                  );
+
+  BabyTree_->Branch("lep_dEtaIn_e"                   ,            &lep_dEtaIn_e                   );
+  BabyTree_->Branch("lep_dEtaOut_e"                  ,            &lep_dEtaOut_e                  );
+  BabyTree_->Branch("lep_dPhiIn_e"                   ,            &lep_dPhiIn_e                   );
+  BabyTree_->Branch("lep_ecalEnergy_e"               ,            &lep_ecalEnergy_e               );
+  BabyTree_->Branch("lep_ecalEnergyError_e"          ,            &lep_ecalEnergyError_e          );
+  BabyTree_->Branch("lep_ecalPFClusterIso_e"         ,            &lep_ecalPFClusterIso_e         );
+  BabyTree_->Branch("lep_eOverPIn_e"                 ,            &lep_eOverPIn_e                 );
+  BabyTree_->Branch("lep_hcalPFClusterIso_e"         ,            &lep_hcalPFClusterIso_e         );
+  BabyTree_->Branch("lep_hOverE_e"                   ,            &lep_hOverE_e                   );
+  BabyTree_->Branch("lep_scSeedEta_e"                ,            &lep_scSeedEta_e                );
+  BabyTree_->Branch("lep_sigmaIEtaIEta_full5x5_e"    ,            &lep_sigmaIEtaIEta_full5x5_e    );
+  BabyTree_->Branch("lep_tkIso_e"                    ,            &lep_tkIso_e                    );
+  BabyTree_->Branch("lep_goodGlb_m"                  ,            &lep_goodGlb_m                  );
+  BabyTree_->Branch("lep_isGlobal_m"                 ,            &lep_isGlobal_m                 );
+  BabyTree_->Branch("lep_isTracker_m"                ,            &lep_isTracker_m                );
+  BabyTree_->Branch("lep_gfit_ndof_m"                ,            &lep_gfit_ndof_m                );
+  BabyTree_->Branch("lep_chi2LocalPosition_m"        ,            &lep_chi2LocalPosition_m        );
+  BabyTree_->Branch("lep_gfit_chi2_m"                ,            &lep_gfit_chi2_m                );
+  BabyTree_->Branch("lep_gfit_validSTAHits_m"        ,            &lep_gfit_validSTAHits_m        );
+  BabyTree_->Branch("lep_numberOfMatchedStations_m"  ,            &lep_numberOfMatchedStations_m  );
+  BabyTree_->Branch("lep_pid_PFMuon_m"               ,            &lep_pid_PFMuon_m               );
+  BabyTree_->Branch("lep_segmCompatibility_m"        ,            &lep_segmCompatibility_m        );
+  BabyTree_->Branch("lep_trkKink_m"                  ,            &lep_trkKink_m                  );
+  BabyTree_->Branch("lep_validPixelHits_m"           ,            &lep_validPixelHits_m           );
+
+
+
 
   BabyTree_->Branch("nisoTrack_5gev" , &nisoTrack_5gev );
   BabyTree_->Branch("nisoTrack_mt2"  , &nisoTrack_mt2  );
@@ -3408,6 +3571,7 @@ void babyMaker::InitBabyNtuple () {
   isData = -999;
   evt_passgoodrunlist = 1;
   evt_scale1fb = 0;
+  evt_fixgridfastjet_allcalo_rho = 0;
   evt_xsec = -999.0;
   evt_kfactor = -999.0;
   evt_filter = -999.0;
@@ -3665,6 +3829,37 @@ void babyMaker::InitBabyNtuple () {
   lep_sta_x2ondof   .clear();
   lep_glb_x2ondof   .clear();
   // lep_bft_x2ondof   .clear();
+
+  lep_exp_innerlayers           .clear();
+  lep_exp_outerlayers           .clear();
+  lep_nlayers                   .clear();
+  lep_type                      .clear();
+  lep_validHits                 .clear();
+
+  lep_dEtaIn_e                  .clear();
+  lep_dEtaOut_e                 .clear();
+  lep_dPhiIn_e                  .clear();
+  lep_ecalEnergy_e              .clear();
+  lep_ecalEnergyError_e         .clear();
+  lep_ecalPFClusterIso_e        .clear();
+  lep_eOverPIn_e                .clear();
+  lep_hcalPFClusterIso_e        .clear();
+  lep_hOverE_e                  .clear();
+  lep_scSeedEta_e               .clear();
+  lep_sigmaIEtaIEta_full5x5_e   .clear();
+  lep_tkIso_e                   .clear();
+  lep_goodGlb_m                 .clear();
+  lep_isGlobal_m                .clear();
+  lep_isTracker_m               .clear();
+  lep_gfit_ndof_m               .clear();
+  lep_chi2LocalPosition_m       .clear();
+  lep_gfit_chi2_m               .clear();
+  lep_gfit_validSTAHits_m       .clear();
+  lep_numberOfMatchedStations_m .clear();
+  lep_pid_PFMuon_m              .clear();
+  lep_segmCompatibility_m       .clear();
+  lep_trkKink_m                 .clear();
+  lep_validPixelHits_m          .clear();
 
   
   nisoTrack_5gev = -1;
