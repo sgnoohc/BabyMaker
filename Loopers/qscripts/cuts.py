@@ -12,6 +12,7 @@ bkg_types_3L = ["trueWWW", "true3L", "chargeflips", "3lLL", "fakes", "photonfake
 
 #_______________________________________________________________________________________
 def combexpr(exprlist):
+    exprlist = [ expr if len(expr) != 0 else "1" for expr in exprlist ]
     return "({})".format(")*(".join(exprlist))
 
 ########################################################################################
@@ -45,26 +46,28 @@ btagwgt = combexpr(btagwgt_expressions)
 # The following string is used to define the fakerate weight and trigger sf
 preselwgt_ss_expressions = [
 "trigsf",
-"{\"$(path)\"==\"/fake\"?{\"$(variation)\"==\"fakeup\"?ffwgtss+ffwgtss_noerr:{\"$(variation)\"==\"fakedn\"?ffwgtss-ffwgtss_noerr:ffwgtss}}:1}"
+"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgtss+ffwgtss_err:{\"$(variation)\"==\"fakedn\"?ffwgtss-ffwgtss_err:ffwgtss}}:1}",
+#"!(lumiblock_number==26633&&event_number==13527201)",
+#"!(lumiblock_number==24673&&event_number==12531465)",
 ]
 preselwgt_ss_expression = combexpr(preselwgt_ss_expressions)
 
 preselwgt_3l_expressions = [
 "trigsf",
-"{\"$(path)\"==\"/fake\"?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_noerr:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_noerr:ffwgt3l}}:1}"
+"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_noerr:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_noerr:ffwgt3l}}:1}"
 ]
 preselwgt_3l_expression = combexpr(preselwgt_3l_expressions)
 
 # Variations
 commonsystvarwgt = [
-["lepsfup"   , "{\"$(path)\"==\"/fake\"?1:(lepsf+lepsf_err)/lepsf}"],
-["lepsfdn"   , "{\"$(path)\"==\"/fake\"?1:(lepsf-lepsf_err)/lepsf}"], 
-["purewgtup" , "{\"$(path)\"==\"/fake\"?1:purewgt_up/purewgt}"], 
-["purewgtdn" , "{\"$(path)\"==\"/fake\"?1:purewgt_dn/purewgt}"], 
-["btaghfup"  , "{\"$(path)\"==\"/fake\"?1:btagsf_hfup}"], 
-["btaghfdn"  , "{\"$(path)\"==\"/fake\"?1:btagsf_hfdn}"], 
-["btaglfup"  , "{\"$(path)\"==\"/fake\"?1:btagsf_lfup}"], 
-["btaglfdn"  , "{\"$(path)\"==\"/fake\"?1:btagsf_lfdn}"], 
+["lepsfup"   , "{$(usefakeweight)?1:(lepsf+lepsf_err)/lepsf}"],
+["lepsfdn"   , "{$(usefakeweight)?1:(lepsf-lepsf_err)/lepsf}"], 
+["purewgtup" , "{$(usefakeweight)?1:purewgt_up/purewgt}"], 
+["purewgtdn" , "{$(usefakeweight)?1:purewgt_dn/purewgt}"], 
+["btaghfup"  , "{$(usefakeweight)?1:btagsf_hfup}"], 
+["btaghfdn"  , "{$(usefakeweight)?1:btagsf_hfdn}"], 
+["btaglfup"  , "{$(usefakeweight)?1:btagsf_lfup}"], 
+["btaglfdn"  , "{$(usefakeweight)?1:btagsf_lfdn}"], 
 ]
 
 systvarwgtss = commonsystvarwgt
@@ -100,6 +103,10 @@ typebkg_ss_configuration_cuts = [
 "{\"$(path)\"==\"/typebkg/fakes/WZ\"?process_name_ss==\"fakes\":1}",
 "{\"$(path)\"==\"/typebkg/photon/WZ\"?process_name_ss==\"photonfakes\":1}",
 "{\"$(path)\"==\"/typebkg/others/WZ\"?process_name_ss==\"others\":1}",
+"{\"$(path)\"==\"/closure/fake/ttbar\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/fake/W\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/mc/ttbar\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/mc/W\"?process_name_ss==\"fakes\":1}",
 ]
 typebkg_ss_configuration_cut = combexpr(typebkg_ss_configuration_cuts)
 typebkg_3l_configuration_cuts = [
@@ -120,7 +127,7 @@ typebkg_3l_configuration_cut = combexpr(typebkg_3l_configuration_cuts)
 
 # WZCR building off of SS regions.
 # WZCR for SS regions will drop, Mjj window cut and add Z mass window cut + three lepton selection.
-ss_wzcr_z_window_cut = "(nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Mll2SFOS0-91.1876)<10||abs(Mll2SFOS1-91.1876)<10)"
+ss_wzcr_z_window_cut = "(nj30>=2)*((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Mll2SFOS0-91.1876)<10||abs(Mll2SFOS1-91.1876)<10))+(nj30==1)*(MET.pt()<45.)"
 
 ########################################################################################
 #
@@ -131,7 +138,7 @@ ss_wzcr_z_window_cut = "(nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Ml
 ########################################################################################
 
 #_______________________________________________________________________________________
-def addCuts(base, prefix_base, cutdefs, systvarwgts=[]):
+def addCuts(base, prefix_base, cutdefs, systvarwgts=[], doNm1=True):
     cuts = []
     prefix = prefix_base.split("base_")[1]
     for i, cutdef in enumerate(cutdefs):
@@ -150,6 +157,12 @@ def addCuts(base, prefix_base, cutdefs, systvarwgts=[]):
     for i in xrange(len(cuts) - 1):
         cuts[i].addCut(cuts[i+1])
     base.addCut(cuts[0])
+    if doNm1:
+        for i, cutdef in enumerate(cutdefs):
+            nm1cuts = [ cut[0] for j, cut in enumerate(cutdefs) if j!=i]
+            nm1wgts = [ cut[1] for j, cut in enumerate(cutdefs) if j!=i]
+            cutname = "{}_minus_{}".format(prefix, i)
+            base.addCut(TQCut(cutname, cutname, combexpr(nm1cuts), combexpr(nm1wgts)))
 
 #_______________________________________________________________________________________
 def getCuts(prefix, basecut, basewgt, addcutfunc, extracut):
@@ -176,11 +189,37 @@ SSpreselcuts = [
         typebkg_ss_configuration_cut,
         "n_veto_ss_lep==2",
         "vetophotonss==0",
-        "n_tight_ss_lep=={\"$(path)\"==\"/fake\"?1:2}", # Fake estimation specific
-#        "n_loose_ss_lep==2",
+        "n_tight_ss_lep=={$(usefakeweight)?1:2}", # Fake estimation specific
+        "n_loose_ss_lep==2",
         "ntrk==0",
-        "veto_ss_lep0.Pt()>20.",
-        "veto_ss_lep1.Pt()>20.",
+#        "((abs(veto_ss_lep0_pdgid)==11)*(veto_ss_lep0_ptratio)+(abs(veto_ss_lep1_pdgid)==11)*(veto_ss_lep1_ptratio))>0.95"
+#        "veto_ss_lepe_reliso<0.03",
+#        "veto_ss_lepb_reliso<0.03",
+#        "veto_ss_lepb_ptratio>0.82",
+#        "veto_ss_lepe_ptratio>0.82",
+#        "veto_ss_lepb_lostHits>0.82",
+#        "veto_ss_lepe_lostHits>0.82",
+#        "veto_ss_lepb_reliso<0.2",
+#        "veto_ss_lepe_reliso<0.2",
+#        "veto_ss_lep1.Pt()>=20.",
+#        "veto_ss_lep0.Pt()>=20.",
+#        "veto_ss_lep1.Pt()>=20.",
+#        "veto_ss_lep0.Pt()>=25.",
+#        "veto_ss_lep1.Pt()>=25.",
+#        "veto_ss_lep0_ptratio>0.900",
+#        "veto_ss_lep1_ptratio>0.900",
+#        "abs(veto_ss_lep0_ip3d)<0.005",
+#        "abs(veto_ss_lep1_ip3d)<0.005",
+#        "abs(veto_ss_lep0_ip3d)/veto_ss_lep0_ip3derr<4.",
+#        "abs(veto_ss_lep1_ip3d)/veto_ss_lep1_ip3derr<4.",
+#        "veto_ss_lep0_pterr/veto_ss_lep0_trkpt<0.2",
+#        "veto_ss_lep1_pterr/veto_ss_lep1_trkpt<0.2",
+#        "veto_ss_lep0_bdt1>0.955",
+#        "veto_ss_lep1_bdt1>0.955",
+#        "veto_ss_lep0_reliso<=0.06",
+#        "veto_ss_lep1_reliso<=0.06",
+#        "abs(veto_ss_lep0_ip3d)<0.015",
+#        "abs(veto_ss_lep1_ip3d)<0.015",
 #        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
 #        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
         ]
@@ -206,31 +245,51 @@ def addSSeeCuts(base, prefix, preselcut=SSpreselcut + "*(abs(MllSS-91.1876)>10)"
 def addSSemCuts(base, prefix, preselcut=SSpreselcut, preselwgt=SSpreselwgt, doWZCR=False):
     cutdefs = []
     cutdefs.append(           [preselcut           , preselwgt])
-    cutdefs.append(           ["nj30>=2"           , ""       ])
     cutdefs.append(           ["nb==0"             , btagwgt  ])
+    cutdefs.append(           ["nj30>=1"           , ""       ])
     cutdefs.append(           ["MllSS > 30."       , ""       ])
-    cutdefs.append(           ["MET.pt()>40."      , ""       ])
-    cutdefs.append(           ["MTmax>90."         , ""       ])
-    cutdefs.append(           ["MjjL<400."         , ""       ])
-    cutdefs.append(           ["Detajj<1.5"        , ""       ])
-    if doWZCR: cutdefs.append([ss_wzcr_z_window_cut, ""       ])
-    else:      cutdefs.append(["Mjj>60.&&Mjj<100." , ""       ])
+    #cutdefs.append(           ["MET.pt()>40."      , ""       ])
+    #cutdefs.append(           ["MjjL<400."         , ""       ])
+    #cutdefs.append(           ["MTmax>90."         , ""       ])
+    #cutdefs.append(           ["Detajj<1.5"        , ""       ])
+    #if doWZCR: cutdefs.append([ss_wzcr_z_window_cut, ""       ])
+    #else:      cutdefs.append(["Mjj>60.&&Mjj<100." , ""       ])
     if doWZCR: addCuts(base, prefix, cutdefs, systvarwgt3l)
     else:      addCuts(base, prefix, cutdefs, systvarwgtss)
+    #region_name = prefix.split("base_")[1]
+    #base.printCuts()
+    #base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ1".format(region_name),"{}NJ1".format(region_name), "nj30==1"))
+    #base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ2MJJSB".format(region_name),"{}NJ2MJJSB".format(region_name), "(nj30>=2)*(Mjj<60||Mjj>100.)*(MjjL<400.)"))
+    #base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ2MJJWD".format(region_name),"{}NJ2MJJWD".format(region_name), "(nj30>=2)*(Mjj>60&&Mjj<100.)"))
 
 #_______________________________________________________________________________________
-def addSSmmCuts(base, prefix, preselcut=SSpreselcut, preselwgt=SSpreselwgt, doWZCR=False):
+def addSSmmCuts(base, prefix, preselcut=SSpreselcut, preselwgt=SSpreselwgt, doWZCR=False, doBtagCR=False):
     cutdefs = []
     cutdefs.append(           [preselcut           , preselwgt])
-    cutdefs.append(           ["nj30>=2"           , ""       ])
-    cutdefs.append(           ["nb==0"             , btagwgt  ])
+    if doBtagCR:cutdefs.append(["nb>=1"            , btagwgt  ])
+    else:       cutdefs.append(["nb==0"            , btagwgt  ])
     cutdefs.append(           ["MllSS > 40."       , ""       ])
-    cutdefs.append(           ["MjjL<400."         , ""       ])
-    cutdefs.append(           ["Detajj<1.5"        , ""       ])
+    cutdefs.append(           ["nj30>=1"           , ""       ])
+    #cutdefs.append(           ["MjjL<400."         , ""       ])
+    #cutdefs.append(           ["Detajj<1.5"        , ""       ])
     if doWZCR: cutdefs.append([ss_wzcr_z_window_cut, ""       ])
-    else:      cutdefs.append(["Mjj>60.&&Mjj<100." , ""       ])
+    #else:      cutdefs.append(["Mjj>60.&&Mjj<100." , ""       ])
     if doWZCR: addCuts(base, prefix, cutdefs, systvarwgt3l)
     else:      addCuts(base, prefix, cutdefs, systvarwgtss)
+    region_name = prefix.split("base_")[1]
+    base.printCuts()
+    base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ1"     .format(region_name),"{}NJ1".format(region_name), "nj30==1"))
+    base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ2MJJSB".format(region_name),"{}NJ2MJJSB".format(region_name), "(nj30>=2)*(Mjj<60||Mjj>100.)*(MjjL<400.)"))
+    base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ2MJJWD".format(region_name),"{}NJ2MJJWD".format(region_name), "(nj30>=2)*(Mjj>60&&Mjj<100.)"))
+    base.getCut("{}".format(region_name)).addCut(TQCut("{}NJ2".format(region_name),"{}NJ2".format(region_name), "(nj30>=2)*(Mjj>60&&Mjj<100.)||(nj30>=2)*(Mjj<60||Mjj>100.)*(MjjL<400.)"))
+    #for bname in ["nb", "nb25", "nb30", "nbmed20", "nbmed25", "nbmed30", "nbtight20", "nbtight25", "nbtight30"]:
+    #    base.getCut("{}NJ1"     .format(region_name)).addCut(TQCut("{}{}NJ1"     .format(region_name, bname), "{}{}NJ1"     .format(region_name, bname), "{}==0".format(bname), btagwgt))
+    #    base.getCut("{}NJ2MJJSB".format(region_name)).addCut(TQCut("{}{}NJ2MJJSB".format(region_name, bname), "{}{}NJ2MJJSB".format(region_name, bname), "{}==0".format(bname), btagwgt))
+    #    base.getCut("{}NJ2MJJWD".format(region_name)).addCut(TQCut("{}{}NJ2MJJWD".format(region_name, bname), "{}{}NJ2MJJWD".format(region_name, bname), "{}==0".format(bname), btagwgt))
+    #for bname in ["nb20_nonw", "nb25_nonw", "nb30_nonw", "nbmed20_nonw", "nbmed25_nonw", "nbmed30_nonw", "nbtight20_nonw_nonw", "nbtight25_nonw_nonw", "nbtight30_nonw_nonw"]:
+    #    base.getCut("{}NJ1"     .format(region_name)).addCut(TQCut("{}{}NJ1"     .format(region_name, bname), "{}{}NJ1"     .format(region_name, bname), "{}==0".format(bname), btagwgt))
+    #    base.getCut("{}NJ2MJJSB".format(region_name)).addCut(TQCut("{}{}NJ2MJJSB".format(region_name, bname), "{}{}NJ2MJJSB".format(region_name, bname), "{}==0".format(bname), btagwgt))
+    #    base.getCut("{}NJ2MJJWD".format(region_name)).addCut(TQCut("{}{}NJ2MJJWD".format(region_name, bname), "{}{}NJ2MJJWD".format(region_name, bname), "{}==0".format(bname), btagwgt))
 
 ########################################################################################
 #
@@ -247,7 +306,7 @@ TLpreselcuts = [
         #"pass_offline_trig>0",
         "n_veto_3l_lep==3",
         "vetophoton3l==0",
-        "n_tight_3l_lep=={\"$(path)\"==\"/fake\"?2:3}", # Fake estimation specific
+        "n_tight_3l_lep=={$(usefakeweight)?2:3}", # Fake estimation specific
         "n_loose_3l_lep==3",
         "ntrk==0"
         ]
@@ -346,6 +405,135 @@ def addWZCRmmCuts(base, prefix):
 ########################################################################################
 #
 #
+# Same-Sign B-tag Control regions
+#
+#
+########################################################################################
+
+# Common cuts and weights
+SSBtagpreselcuts = [
+        configuration_cut,
+        typebkg_ss_configuration_cut,
+        "n_veto_ss_lep==2",
+        "vetophotonss==0",
+        "n_tight_ss_lep=={$(usefakeweight)?1:2}", # Fake estimation specific
+        "n_loose_ss_lep==2",
+        "ntrk==0",
+        "veto_ss_lep0.Pt()>20.",
+        "veto_ss_lep1.Pt()>20.",
+#        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
+#        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
+        ]
+SSBtagpreselcut = combexpr(SSBtagpreselcuts)
+SSBtagpreselwgt = preselwgt_ss_expression
+
+#_______________________________________________________________________________________
+def addBtagCReeCuts(base, prefix):
+    preselcut = SSBtagpreselcut + "*(abs(MllSS-91.1876)>10)"
+    preselwgt = SSBtagpreselwgt
+    addSSeeCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+#_______________________________________________________________________________________
+def addBtagCRemCuts(base, prefix):
+    preselcut = SSBtagpreselcut
+    preselwgt = SSBtagpreselwgt
+    addSSemCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+#_______________________________________________________________________________________
+def addBtagCRmmCuts(base, prefix):
+    preselcut = SSBtagpreselcut
+    preselwgt = SSBtagpreselwgt
+    addSSmmCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+########################################################################################
+#
+#
+# Same Sign Application Regions
+#
+#
+########################################################################################
+
+# Common cuts and weights
+SSARpreselcuts = [
+        configuration_cut,
+        typebkg_ss_configuration_cut,
+        "n_veto_ss_lep==2",
+        "vetophotonss==0",
+        "n_tight_ss_lep=={$(usefakeweight)?1:1}", # Fake estimation specific
+        "n_loose_ss_lep==2",
+        "ntrk==0",
+        "veto_ss_lep0.Pt()>20.",
+        "veto_ss_lep1.Pt()>20.",
+#        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
+#        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
+        ]
+SSARpreselcut = combexpr(SSARpreselcuts)
+SSARpreselwgt = preselwgt_ss_expression
+
+#_______________________________________________________________________________________
+def addSSAReeCuts(base, prefix):
+    preselcut = SSARpreselcut + "*(abs(MllSS-91.1876)>10)"
+    preselwgt = SSARpreselwgt
+    addSSeeCuts(base, prefix, preselcut, preselwgt)
+
+#_______________________________________________________________________________________
+def addSSARemCuts(base, prefix):
+    preselcut = SSARpreselcut
+    preselwgt = SSARpreselwgt
+    addSSemCuts(base, prefix, preselcut, preselwgt)
+
+#_______________________________________________________________________________________
+def addSSARmmCuts(base, prefix):
+    preselcut = SSARpreselcut
+    preselwgt = SSARpreselwgt
+    addSSmmCuts(base, prefix, preselcut, preselwgt)
+
+########################################################################################
+#
+#
+# Same-Sign B-tag Control Application regions
+#
+#
+########################################################################################
+
+# Common cuts and weights
+SSARBtagpreselcuts = [
+        configuration_cut,
+        typebkg_ss_configuration_cut,
+        "n_veto_ss_lep==2",
+        "vetophotonss==0",
+        "n_tight_ss_lep=={$(usefakeweight)?1:1}", # Fake estimation specific
+        "n_loose_ss_lep==2",
+        "ntrk==0",
+        "veto_ss_lep0.Pt()>20.",
+        "veto_ss_lep1.Pt()>20.",
+#        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
+#        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
+        ]
+SSARBtagpreselcut = combexpr(SSARBtagpreselcuts)
+SSARBtagpreselwgt = preselwgt_ss_expression
+
+#_______________________________________________________________________________________
+def addBtagCRAReeCuts(base, prefix):
+    preselcut = SSARBtagpreselcut + "*(abs(MllSS-91.1876)>10)"
+    preselwgt = SSARBtagpreselwgt
+    addSSeeCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+#_______________________________________________________________________________________
+def addBtagCRARemCuts(base, prefix):
+    preselcut = SSARBtagpreselcut
+    preselwgt = SSARBtagpreselwgt
+    addSSemCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+#_______________________________________________________________________________________
+def addBtagCRARmmCuts(base, prefix):
+    preselcut = SSARBtagpreselcut
+    preselwgt = SSARBtagpreselwgt
+    addSSmmCuts(base, prefix, preselcut, preselwgt, doBtagCR=True)
+
+########################################################################################
+#
+#
 # Three Lepton WZ CR
 #
 #
@@ -358,7 +546,7 @@ TLWZpreselcuts = [
         #"pass_offline_trig>0",
         #"n_veto_3l_lep==3", # Three lepton WZCR drops the veto lepton requirement
         "vetophoton3l==0",
-        "n_tight_3l_lep=={\"$(path)\"==\"/fake\"?2:3}", # Fake estimation specific
+        "n_tight_3l_lep=={$(usefakeweight)?2:3}", # Fake estimation specific
         "n_loose_3l_lep==3",
         "ntrk==0"
         ]
@@ -378,17 +566,21 @@ def addTLWZ2SFOSCuts(base, prefix):
     addTL2SFOSCuts(base, prefix, preselcut, preselwgt, invertZ=True)
 
 #_______________________________________________________________________________________
-def getSSeeCuts     (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==121", weight_expression, addSSeeCuts      , extracut)
-def getSSemCuts     (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==143", weight_expression, addSSemCuts      , extracut)
-def getSSmmCuts     (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addSSmmCuts      , extracut)
-def getWZCReeCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==121", weight_expression, addWZCReeCuts    , extracut)
-def getWZCRemCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==143", weight_expression, addWZCRemCuts    , extracut)
-def getWZCRmmCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==169", weight_expression, addWZCRmmCuts    , extracut)
-def getTL0SFOSCuts  (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==0"             , weight_expression, addTL0SFOSCuts   , extracut)
-def getTL1SFOSCuts  (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==1"             , weight_expression, addTL1SFOSCuts   , extracut)
-def getTL2SFOSCuts  (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==2"             , weight_expression, addTL2SFOSCuts   , extracut)
-def getTLWZ1SFOSCuts(region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==1"             , weight_expression, addTLWZ1SFOSCuts , extracut)
-def getTLWZ2SFOSCuts(region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==2"             , weight_expression, addTLWZ2SFOSCuts , extracut)
+def getSSeeCuts      (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==121", weight_expression, addSSeeCuts      , extracut)
+def getSSemCuts      (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==143", weight_expression, addSSemCuts      , extracut)
+def getSSmmCuts      (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addSSmmCuts      , extracut)
+def getWZCReeCuts    (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==121", weight_expression, addWZCReeCuts    , extracut)
+def getWZCRemCuts    (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==143", weight_expression, addWZCRemCuts    , extracut)
+def getWZCRmmCuts    (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_3l==169", weight_expression, addWZCRmmCuts    , extracut)
+def getTL0SFOSCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==0"             , weight_expression, addTL0SFOSCuts   , extracut)
+def getTL1SFOSCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==1"             , weight_expression, addTL1SFOSCuts   , extracut)
+def getTL2SFOSCuts   (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==2"             , weight_expression, addTL2SFOSCuts   , extracut)
+def getTLWZ1SFOSCuts (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==1"             , weight_expression, addTLWZ1SFOSCuts , extracut)
+def getTLWZ2SFOSCuts (region_prefix, extracut=None): return getCuts(region_prefix, "nSFOS==2"             , weight_expression, addTLWZ2SFOSCuts , extracut)
+def getBtagCRmmCuts  (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addBtagCRmmCuts  , extracut)
+def getSSARmmCuts    (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addSSARmmCuts    , extracut)
+def getBtagCRmmCuts  (region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addBtagCRmmCuts  , extracut)
+def getBtagCRARmmCuts(region_prefix, extracut=None): return getCuts(region_prefix, "lep_flav_prod_ss==169", weight_expression, addBtagCRARmmCuts, extracut)
 
 #_______________________________________________________________________________________
 def addTypeBasedCuts(base, reg, bkg_types, prockey, func):
@@ -399,29 +591,35 @@ def addTypeBasedCuts(base, reg, bkg_types, prockey, func):
     base.addCut(func("{}_Data".format(reg), TQCut("chan_{}_Data".format(reg), "chan_{}_Data".format(reg), "process_name_{}==\"Data\"".format(prockey))))
 
 #_______________________________________________________________________________________
-def addAllSSeeCuts     (base): base.addCut(getSSeeCuts     ("SSee"     ))
-def addAllSSemCuts     (base): base.addCut(getSSemCuts     ("SSem"     ))
-def addAllSSmmCuts     (base): base.addCut(getSSmmCuts     ("SSmm"     ))
-def addAllTL0SFOSCuts  (base): base.addCut(getTL0SFOSCuts  ("TL0SFOS"  ))
-def addAllTL1SFOSCuts  (base): base.addCut(getTL1SFOSCuts  ("TL1SFOS"  ))
-def addAllTL2SFOSCuts  (base): base.addCut(getTL2SFOSCuts  ("TL2SFOS"  ))
-def addAllWZCReeCuts   (base): base.addCut(getWZCReeCuts   ("WZCRee"   ))
-def addAllWZCRemCuts   (base): base.addCut(getWZCRemCuts   ("WZCRem"   ))
-def addAllWZCRmmCuts   (base): base.addCut(getWZCRmmCuts   ("WZCRmm"   ))
-def addAllTLWZ1SFOSCuts(base): base.addCut(getTLWZ1SFOSCuts("TLWZ1SFOS"))
-def addAllTLWZ2SFOSCuts(base): base.addCut(getTLWZ2SFOSCuts("TLWZ2SFOS"))
+def addAllSSeeCuts      (base): base.addCut(getSSeeCuts      ("SSee"     ))
+def addAllSSemCuts      (base): base.addCut(getSSemCuts      ("SSem"     ))
+def addAllSSmmCuts      (base): base.addCut(getSSmmCuts      ("SSmm"     ))
+def addAllTL0SFOSCuts   (base): base.addCut(getTL0SFOSCuts   ("TL0SFOS"  ))
+def addAllTL1SFOSCuts   (base): base.addCut(getTL1SFOSCuts   ("TL1SFOS"  ))
+def addAllTL2SFOSCuts   (base): base.addCut(getTL2SFOSCuts   ("TL2SFOS"  ))
+def addAllWZCReeCuts    (base): base.addCut(getWZCReeCuts    ("WZCRee"   ))
+def addAllWZCRemCuts    (base): base.addCut(getWZCRemCuts    ("WZCRem"   ))
+def addAllWZCRmmCuts    (base): base.addCut(getWZCRmmCuts    ("WZCRmm"   ))
+def addAllTLWZ1SFOSCuts (base): base.addCut(getTLWZ1SFOSCuts ("TLWZ1SFOS"))
+def addAllTLWZ2SFOSCuts (base): base.addCut(getTLWZ2SFOSCuts ("TLWZ2SFOS"))
+def addAllBtagCRmmCuts  (base): base.addCut(getBtagCRmmCuts  ("BtagCRmm" ))
+def addAllSSARmmCuts    (base): base.addCut(getSSARmmCuts    ("SSARmm"   ))
+def addAllBtagCRARmmCuts(base): base.addCut(getBtagCRARmmCuts("BtagCRARmm" ))
 
 #_______________________________________________________________________________________
 def addAllCuts(base):
     #addAllSSeeCuts(base)
-    #addAllSSemCuts(base)
+    addAllSSemCuts(base)
     addAllSSmmCuts(base)
+    #addAllBtagCRmmCuts(base)
+    addAllSSARmmCuts(base)
+    #addAllBtagCRARmmCuts(base)
     #addAllTL0SFOSCuts(base)
     #addAllTL1SFOSCuts(base)
     #addAllTL2SFOSCuts(base)
     #addAllWZCReeCuts(base)
     #addAllWZCRemCuts(base)
-    #addAllWZCRmmCuts(base)
+    addAllWZCRmmCuts(base)
     #addAllTLWZ1SFOSCuts(base)
     #addAllTLWZ2SFOSCuts(base)
 

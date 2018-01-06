@@ -713,73 +713,272 @@ float fakerate_mu_data(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
-    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.18162853637;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.228556342818;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.284501936043;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.0593080016201;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.0812573899031;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.120471940997;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.0502796544514;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.0755524005305;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.102110577821;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0504603068665;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0699800116561;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0699800116561;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.18162853637;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.228556342818;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.284501936043;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.0593080016201;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.0812573899031;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.120471940997;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.0502796544514;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.0755524005305;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.102110577821;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0504603068665;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0699800116561;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0699800116561;
+//    return 1;
+
+    // with IP = 0.005
+    float isyst = 0;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.164197499296 + isyst * 0.00772149638341;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.169895107722 + isyst * 0.00963837328251;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.118817905355 + isyst * 0.0200283251909;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.0458286184414 + isyst * 0.00465072220446;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.0438674965154 + isyst * 0.00607891009141;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0495287361209 + isyst * 0.0137273874208;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.0334256669811 + isyst * 0.00575947103216;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.0226924193643 + isyst * 0.0114808728154;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0168684001559 + isyst * 0.0138428296574;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0246696951776 + isyst * 0.0027478896634;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.0308045533532 + isyst * 0.0037633586469;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0308045533532 + isyst * 0.0037633586469;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.0198433570924 + isyst * 0.0034517853518;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.0226810864321 + isyst * 0.00636619014524;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.0149158194498 + isyst * 0.0106514135446;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.0249182488041 + isyst * 0.0061097844899;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0229335652966 + isyst * 0.0071507658068;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0216936953259 + isyst * 0.0189121795902;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0139982991216 + isyst * 0.010175267303;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.0261810310435 + isyst * 0.0116172247849;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.0261810310435 + isyst * 0.0116172247849;
     return 1;
+
+//    // with IP = 0.015
+//    float isyst = 0;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.242378939399 + isyst * 0.00896660767818;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.242985914537 + isyst * 0.0141188086168;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.211874956474 + isyst * 0.028433926187;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.0625725795312 + isyst * 0.0054311256592;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.056764207103 + isyst * 0.00655739145981;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0772001643779 + isyst * 0.0173964193263;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.0434109031199 + isyst * 0.00697465542734;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.0252574220064 + isyst * 0.0134437157329;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0437829651299 + isyst * 0.0204463265603;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0324737569781 + isyst * 0.0034020377644;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.035948150681 + isyst * 0.00385031250604;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0348389043554 + isyst * 0.0110025435312;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.0257981633317 + isyst * 0.00349405146502;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.0272941027829 + isyst * 0.0065113598058;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.0132639308044 + isyst * 0.0117975482908;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.0320075356655 + isyst * 0.00665029164275;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0261645696706 + isyst * 0.0074889409044;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0203765661848 + isyst * 0.0202492354806;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0124321425639 + isyst * 0.0115919276039;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.00545158714959 + isyst * 0.0119420258428;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.00545158714959 + isyst * 0.0119420258428;
+//    return 1;
+
 }
 float fakerate_mu_data_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
-    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.00419139178595;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.00643408235926;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.0138531422818;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.00429931883058;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.00690133585711;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.0154600921933;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.00337692471616;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.00454099610916;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.0116371933399;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0223031276198;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0249675245212;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0249675245212;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.00419139178595;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.00643408235926;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.0138531422818;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.00429931883058;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.00690133585711;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.0154600921933;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.00337692471616;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.00454099610916;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.0116371933399;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0223031276198;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0249675245212;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0249675245212;
+//    return 0;
+
+    // IP = 0.005
+    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.00772149638341;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.00963837328251;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.0200283251909;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return  0.00465072220446;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return  0.00607891009141;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return  0.0137273874208;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return  0.00575947103216;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return  0.0114808728154;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return  0.0138428296574;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return  0.0027478896634;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return  0.0037633586469;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return  0.0037633586469;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return  0.0034517853518;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return  0.00636619014524;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return  0.0106514135446;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return  0.0061097844899;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return  0.0071507658068;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return  0.0189121795902;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.010175267303;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.0116172247849;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return  0.0466593096594;
     return 0;
+
+//    // IP = 0.015
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.00896660767818;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.0141188086168; 
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.028433926187; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.0054311256592; 
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.00655739145981;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0173964193263; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.00697465542734;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.0134437157329; 
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0204463265603; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0034020377644; 
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.00385031250604;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0110025435312; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.00349405146502;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.0065113598058; 
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.0117975482908; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.00665029164275;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0074889409044; 
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0202492354806; 
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0115919276039; 
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.0119420258428; 
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.0119420258428; 
+//    return 0;
+
 }
 //______________________________________________________________________________________
 float fakerate_mu_qcd(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
-    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.192454320571;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.25212783352;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.299959325364;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.0592032661673;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.109370893274;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.124618041094;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.0455410037998;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.0673590936047;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.067457120855;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0317322626443;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0554220997027;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0583591616584;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.192454320571;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.25212783352;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.299959325364;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.0592032661673;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.109370893274;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.124618041094;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.0455410037998;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.0673590936047;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.067457120855;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.0317322626443;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0554220997027;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0583591616584;
+//    return 1;
+
+//    // IP = 0.005
+//    float isyst = 0;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.169203181313 + isyst * 0.00648185512542;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.174814708855 + isyst * 0.00862309916484;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.133699619429 + isyst * 0.0148773349188;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.0523393795075 + isyst * 0.00429464209253;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.0672158374793 + isyst * 0.0137734141447;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0327191435045 + isyst * 0.00888360604228;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.0352086757902 + isyst * 0.00467916945422;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.0385213915916 + isyst * 0.00656103880731;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0152361318308 + isyst * 0.0056700043623;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0246151039585 + isyst * 0.00544093028691;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.0339180408591 + isyst * 0.00955765869288;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0247862987994 + isyst * 0.0116603078968;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.0187487671622 + isyst * 0.00495467204327;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.0215617197649 + isyst * 0.00739396873561;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.00482115580161 + isyst * 0.00319085071726;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.0220806485137 + isyst * 0.00713619350148;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0332927959343 + isyst * 0.0120603482604;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0276041403428 + isyst * 0.0222572452241;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0118644068462 + isyst * 0.00294564870758;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.0216186167363 + isyst * 0.00512716686001;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.0055069060258 + isyst * 0.00345570195626;
+//    return 1;
+
+    // IP = 0.015
+    float isyst = 0;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.243198463082 + isyst   * 0.00845658131668;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.245890616552 + isyst   * 0.0105101251275;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.236838695251 + isyst   * 0.0217348540632;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.0677592602591 + isyst  * 0.00471404240492;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.0766066327231 + isyst  * 0.0139792868168;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0546992083965 + isyst  * 0.0104677768589;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.0466620190102 + isyst  * 0.00528474169471;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.0456452182164 + isyst  * 0.00730602184855;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0370597826826 + isyst  * 0.0110196707369;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0318201892075 + isyst  * 0.00582874561343;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.0373276970172 + isyst  * 0.00969029198255;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0492805990643 + isyst  * 0.0167674726444;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.0224437404812 + isyst  * 0.00542604695127;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.0258751218774 + isyst  * 0.00797540263028;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.00482115580161 + isyst * 0.00319085071726;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.0285733795847 + isyst  * 0.00832584870496;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0349315258343 + isyst  * 0.0121424947518;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0333245318626 + isyst  * 0.0231554837497;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0172904976157 + isyst * 0.0041110796962;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.0241518898333 + isyst * 0.00534992296193;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.0187503543538 + isyst * 0.0101968650886;
     return 1;
+
 }
 float fakerate_mu_qcd_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
-    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.00435651562103;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.00673523309854;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.0139496576752;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.00397245526891;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.00733365179432;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.0126552722177;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.00546544224618;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.00792283130924;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.0151418937682;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.00831418957152;
-    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0171941451909;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0227115872818;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0 ) return 0.00435651562103;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0 ) return 0.00673523309854;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0 ) return 0.0139496576752;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0 ) return 0.00397245526891;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0 ) return 0.00733365179432;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0 ) return 0.0126552722177;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 50.0 ) return 0.00546544224618;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 50.0 ) return 0.00792283130924;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 50.0 ) return 0.0151418937682;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 10000) return 0.00831418957152;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 10000) return 0.0171941451909;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0227115872818;
+//    return 0;
+
+//    // IP = 0.005
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0)  return 0.00648185512542;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0)  return 0.00862309916484;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0)  return 0.0148773349188;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0)  return  0.00429464209253;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0)  return  0.0137734141447;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0)  return  0.00888360604228;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0)  return  0.00467916945422;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0)  return  0.00656103880731;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0)  return  0.0056700043623;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0)  return  0.00544093028691;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0)  return  0.00955765869288;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0)  return  0.0116603078968;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0)  return  0.00495467204327;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0)  return  0.00739396873561;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0)  return  0.00319085071726;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0)  return  0.00713619350148;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0)  return  0.0120603482604;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0)  return  0.0222572452241;
+//    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return  0.00294564870758;
+//    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return  0.00512716686001;
+//    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return  0.00345570195626;
+//    return 0;
+
+    // IP = 0.015
+    if (fabs(eta) < 1.2 && (conecorrpt) < 15.0) return 0.00845658131668;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 15.0) return 0.0105101251275; 
+    if (fabs(eta) < 2.4 && (conecorrpt) < 15.0) return 0.0217348540632; 
+    if (fabs(eta) < 1.2 && (conecorrpt) < 20.0) return 0.00471404240492;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 20.0) return 0.0139792868168; 
+    if (fabs(eta) < 2.4 && (conecorrpt) < 20.0) return 0.0104677768589; 
+    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.00528474169471;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 25.0) return 0.00730602184855;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.0110196707369; 
+    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.00582874561343;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 30.0) return 0.00969029198255;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.0167674726444; 
+    if (fabs(eta) < 1.2 && (conecorrpt) < 35.0) return 0.00542604695127;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 35.0) return 0.00797540263028;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 35.0) return 0.00319085071726;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.00832584870496;
+    if (fabs(eta) < 2.1 && (conecorrpt) < 40.0) return 0.0121424947518; 
+    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0231554837497; 
+    if (fabs(eta) < 1.2 && (conecorrpt) < 120.0) return 0.0041110796962; 
+    if (fabs(eta) < 2.1 && (conecorrpt) < 120.0) return 0.00534992296193;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 120.0) return 0.0101968650886; 
     return 0;
 }
 

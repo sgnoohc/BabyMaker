@@ -13,7 +13,13 @@ ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 #samples.getSampleFolder("/samples/bkg/mm/ttV").printContents("trd")
 printer = TQEventlistPrinter(samples)
-printer.addCut("WZCRmm")
-printer.addProcess("/bkg/VV/WZ")
+printer.addCut("SSmmNJ2MJJWD")
+printer.addCut("SSmmNJ2MJJSB")
+printer.addCut("SSmmNJ1")
+#printer.addProcess("/sig")
+printer.addProcess("/typebkg/photon")
+#printer.addProcess("/typebkg/fakes")
+#printer.addProcess("/typebkg/[fakes+photon]")
 #printer.addProcess("/typebkg")
-printer.writeEventlists("evtlist", "eventlists", "verbose=true");
+printer.writeEventlists("evtlist", "eventlists", "format.nSignificantDigits=5");
+#printer.writeEventlists("lepton", "eventlists", "format.nSignificantDigits=20");

@@ -14,7 +14,7 @@
 #include "rooutil/draw.h"
 #include "rooutil/ana.h"
 
-#include "CMS3_WWW0117.h"
+#include "CMS3_WWW0118.h"
 #include "Functions.h"
 
 #include "Math/VectorUtil.h"
@@ -95,6 +95,14 @@ public:
     IdxList list_incl_veto_ss_lep_idx;  // veto
     IdxList list_incl_veto_3l_lep_idx;  // veto
 
+    // Electron indices
+    int el_idx_b;
+    int el_idx_e;
+
+    // Jet indices
+    IdxList list_good_central_jet_idx; // central jet index
+    IdxList list_good_jet_idx; // central jet index
+
     // lepton flavor product
     int lep_flav_prod_ss;
     int lep_flav_prod_3l;
@@ -131,7 +139,29 @@ public:
     float MjjL_dn; // Mjj with two leading jets.
     float Detajj_dn; // Detajj with two leading jets.
 
+    int nb25; // Number of b-tagged jets.
+    int nb30; // Number of b-tagged jets.
+    int nbmed20; // Number of b-tagged jets.
+    int nbmed25; // Number of b-tagged jets.
+    int nbmed30; // Number of b-tagged jets.
+    int nbtight20; // Number of b-tagged jets.
+    int nbtight25; // Number of b-tagged jets.
+    int nbtight30; // Number of b-tagged jets.
+
+    int nb20_nonw;
+    int nb25_nonw;
+    int nb30_nonw;
+    int nbmed20_nonw;
+    int nbmed25_nonw;
+    int nbmed30_nonw;
+    int nbtight20_nonw;
+    int nbtight25_nonw;
+    int nbtight30_nonw;
+
     // Lepton + MET variables
+    float MTmin;
+    float MTmin_up;
+    float MTmin_dn;
     float MTmax;
     float MTmax_up;
     float MTmax_dn;
@@ -237,6 +267,7 @@ public:
     void sandbox();
 
     bool getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l);
+    void getallbtagnumbers();
 };
 
 //#################################################################################################
@@ -270,9 +301,9 @@ int main(int argc, char* argv[])
         // Declare the analysis module
         WWWAnalysis wwwanalysis;
 
-        // Default configuration file
-        ifstream default_config(".wwwana.json");
-        default_config >> wwwanalysis._j;
+//        // Default configuration file
+//        ifstream default_config(".wwwana.json");
+//        default_config >> wwwanalysis._j;
 
         // If no babydir option is given, take the default one
         if (!options.count("babydir") && !options.count("input"))
@@ -392,6 +423,8 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<LV>("veto_ss_lep0");
     t.createBranch<LV>("veto_ss_lep1");
 
+    t.createBranch<LV>("jet0");
+
     t.createBranch<LV>("veto_3l_lep0");
     t.createBranch<LV>("veto_3l_lep1");
     t.createBranch<LV>("veto_3l_lep2");
@@ -429,6 +462,9 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<float>("veto_ss_lep0_ip3derr");
     t.createBranch<float>("veto_ss_lep1_ip3derr");
 
+    t.createBranch<float>("veto_ss_lep0_conecorrpt");
+    t.createBranch<float>("veto_ss_lep1_conecorrpt");
+
     t.createBranch<int>("veto_ss_lep0_motheridss");
     t.createBranch<int>("veto_ss_lep1_motheridss");
 
@@ -440,6 +476,116 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
 
     t.createBranch<bool>("veto_ss_lep0_tight");
     t.createBranch<bool>("veto_ss_lep1_tight");
+
+    t.createBranch<int>("veto_ss_lep0_trigsafenoiso_v1");
+    t.createBranch<int>("veto_ss_lep1_trigsafenoiso_v1");
+
+    t.createBranch<int>("veto_ss_lep0_trigsafenoiso_v2");
+    t.createBranch<int>("veto_ss_lep1_trigsafenoiso_v2");
+
+    t.createBranch<int>("veto_ss_lep0_trigsafe_v1");
+    t.createBranch<int>("veto_ss_lep1_trigsafe_v1");
+
+    t.createBranch<int>("veto_ss_lep0_trigsafe_v2");
+    t.createBranch<int>("veto_ss_lep1_trigsafe_v2");
+
+    // Electron ID ---------
+    t.createBranch<float>("veto_ss_lepb_pt");
+    t.createBranch<float>("veto_ss_lepe_pt");
+
+    t.createBranch<float>("veto_ss_lepb_eta");
+    t.createBranch<float>("veto_ss_lepe_eta");
+
+    t.createBranch<float>("veto_ss_lepb_etaSC");
+    t.createBranch<float>("veto_ss_lepe_etaSC");
+
+    t.createBranch<float>("veto_ss_lepb_dEtaIn");
+    t.createBranch<float>("veto_ss_lepe_dEtaIn");
+
+    t.createBranch<float>("veto_ss_lepb_dEtaOut");
+    t.createBranch<float>("veto_ss_lepe_dEtaOut");
+
+    t.createBranch<float>("veto_ss_lepb_scSeedEta");
+    t.createBranch<float>("veto_ss_lepe_scSeedEta");
+
+    t.createBranch<float>("veto_ss_lepb_dEtaInSeed");
+    t.createBranch<float>("veto_ss_lepe_dEtaInSeed");
+
+    t.createBranch<float>("veto_ss_lepb_dPhiIn");
+    t.createBranch<float>("veto_ss_lepe_dPhiIn");
+
+    t.createBranch<float>("veto_ss_lepb_sIEtaIEta");
+    t.createBranch<float>("veto_ss_lepe_sIEtaIEta");
+
+    t.createBranch<float>("veto_ss_lepb_hOverE");
+    t.createBranch<float>("veto_ss_lepe_hOverE");
+
+    t.createBranch<float>("veto_ss_lepb_ecalEnergy");
+    t.createBranch<float>("veto_ss_lepe_ecalEnergy");
+
+    t.createBranch<float>("veto_ss_lepb_ecalEnergyError");
+    t.createBranch<float>("veto_ss_lepe_ecalEnergyError");
+
+    t.createBranch<float>("veto_ss_lepb_eOverPIn");
+    t.createBranch<float>("veto_ss_lepe_eOverPIn");
+
+    t.createBranch<float>("veto_ss_lepb_ooEmooP");
+    t.createBranch<float>("veto_ss_lepe_ooEmooP");
+
+    t.createBranch<int>("veto_ss_lepb_lostHits");
+    t.createBranch<int>("veto_ss_lepe_lostHits");
+
+    t.createBranch<bool>("veto_ss_lepb_convVeto");
+    t.createBranch<bool>("veto_ss_lepe_convVeto");
+
+    t.createBranch<int>("veto_ss_lepb_tightCharge");
+    t.createBranch<int>("veto_ss_lepe_tightCharge");
+
+    t.createBranch<float>("veto_ss_lepb_ecalPFClusterIso");
+    t.createBranch<float>("veto_ss_lepe_ecalPFClusterIso");
+
+    t.createBranch<float>("veto_ss_lepb_hcalPFClusterIso");
+    t.createBranch<float>("veto_ss_lepe_hcalPFClusterIso");
+
+    t.createBranch<float>("veto_ss_lepb_tkIso");
+    t.createBranch<float>("veto_ss_lepe_tkIso");
+
+    t.createBranch<float>("veto_ss_lepb_reliso");
+    t.createBranch<float>("veto_ss_lepe_reliso");
+
+    t.createBranch<float>("veto_ss_lepb_ptratio");
+    t.createBranch<float>("veto_ss_lepe_ptratio");
+
+    t.createBranch<float>("veto_ss_lepb_ptrel");
+    t.createBranch<float>("veto_ss_lepe_ptrel");
+
+    t.createBranch<float>("veto_ss_lepb_mva");
+    t.createBranch<float>("veto_ss_lepe_mva");
+
+    t.createBranch<int>("veto_ss_lepb_motheridss");
+    t.createBranch<int>("veto_ss_lepe_motheridss");
+
+    t.createBranch<float>("veto_ss_lepb_ip3d");
+    t.createBranch<float>("veto_ss_lepe_ip3d");
+
+    t.createBranch<float>("veto_ss_lepb_ip3derr");
+    t.createBranch<float>("veto_ss_lepe_ip3derr");
+
+    t.createBranch<float>("veto_ss_lepb_sip3d");
+    t.createBranch<float>("veto_ss_lepe_sip3d");
+
+    t.createBranch<int>("veto_ss_lepb_trigsafenoiso_v1");
+    t.createBranch<int>("veto_ss_lepe_trigsafenoiso_v1");
+
+    t.createBranch<int>("veto_ss_lepb_trigsafenoiso_v2");
+    t.createBranch<int>("veto_ss_lepe_trigsafenoiso_v2");
+
+    t.createBranch<int>("veto_ss_lepb_trigsafe_v1");
+    t.createBranch<int>("veto_ss_lepe_trigsafe_v1");
+
+    t.createBranch<int>("veto_ss_lepb_trigsafe_v2");
+    t.createBranch<int>("veto_ss_lepe_trigsafe_v2");
+    // ------------------------
 
     t.createBranch<int>("veto_3l_lep0_pdgid");
     t.createBranch<int>("veto_3l_lep1_pdgid");
@@ -484,6 +630,28 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<float>("MjjL_dn");
     t.createBranch<float>("Detajj_dn");
 
+    t.createBranch<int>("nb25");
+    t.createBranch<int>("nb30");
+    t.createBranch<int>("nbmed20");
+    t.createBranch<int>("nbmed25");
+    t.createBranch<int>("nbmed30");
+    t.createBranch<int>("nbtight20");
+    t.createBranch<int>("nbtight25");
+    t.createBranch<int>("nbtight30");
+
+    t.createBranch<int>("nb20_nonw");
+    t.createBranch<int>("nb25_nonw");
+    t.createBranch<int>("nb30_nonw");
+    t.createBranch<int>("nbmed20_nonw");
+    t.createBranch<int>("nbmed25_nonw");
+    t.createBranch<int>("nbmed30_nonw");
+    t.createBranch<int>("nbtight20_nonw_nonw");
+    t.createBranch<int>("nbtight25_nonw_nonw");
+    t.createBranch<int>("nbtight30_nonw_nonw");
+
+    t.createBranch<float>("MTmin");
+    t.createBranch<float>("MTmin_up");
+    t.createBranch<float>("MTmin_dn");
     t.createBranch<float>("MTmax");
     t.createBranch<float>("MTmax_up");
     t.createBranch<float>("MTmax_dn");
@@ -652,6 +820,7 @@ bool WWWAnalysis::calcStdVariables()
     if (list_tight_3l_lep_idx.size() < 1) { return false; }
     if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false; }
     if (list_incl_veto_3l_lep_idx.size() != 2 && list_incl_veto_3l_lep_idx.size() != 3) { return false; }
+    //if (list_incl_veto_3l_lep_idx.size() < 2) { return false; }
     int totalcharge = 0;
     for (auto& idx : list_incl_veto_3l_lep_idx)
     {
@@ -661,6 +830,7 @@ bool WWWAnalysis::calcStdVariables()
             totalcharge++;
     }
     if (list_incl_veto_3l_lep_idx.size() == 3 && abs(totalcharge) != 1) { return false; }
+    if (lep_p4()[list_incl_veto_3l_lep_idx[0]].pt() < 20.) { return false; }
 
     // Sample names and types
     sample_name = "";
@@ -723,6 +893,75 @@ bool WWWAnalysis::calcStdVariables()
     getMjjAndDeta(Mjj, MjjL, Detajj);
     getMjjAndDeta(Mjj_up, MjjL_up, Detajj_up, 1);
     getMjjAndDeta(Mjj_dn, MjjL_dn, Detajj_dn, -1);
+    getallbtagnumbers();
+
+    list_good_central_jet_idx.clear();
+    list_good_jet_idx.clear();
+    for (unsigned int n = 0; n < jets_csv().size(); ++n)
+    {
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.5)
+        {
+            list_good_central_jet_idx.push_back(n);
+        }
+        if (jets_p4()[n].Pt() >= 30)
+        {
+            list_good_jet_idx.push_back(n);
+        }
+    }
+
+//    float Massjj     = -1;
+//    float MassjjL    = -1;
+//    float Deltaetajj = -1;
+    float minDR = 999.;
+    int jDR1(-1), jDR2(-1);
+    for (unsigned int j1 = 0; j1 < jets_p4().size(); ++j1)
+    {
+        if (fabs(jets_p4()[j1].Eta()) > 2.5) { continue; }
+        if (jets_p4()[j1].Pt()  < 30.) { continue; }
+        for (unsigned int j2 = j1 + 1; j2 < jets_p4().size(); ++j2)
+        {
+            if (fabs(jets_p4()[j2].Eta()) > 2.5) { continue; }
+            if (jets_p4()[j2].Pt()  < 30.) { continue; }
+//            if (MassjjL < 0)
+//            {
+//                MassjjL    = (jets_p4()[j1] + jets_p4()[j2]).M();
+//                Deltaetajj = dEta(jets_p4()[j1], jets_p4()[j2]);
+//            }
+            if (dR(jets_p4()[j1], jets_p4()[j2]) < minDR)
+            {
+                minDR = dR(jets_p4()[j1], jets_p4()[j2]);
+                jDR1 = j1;
+                jDR2 = j2;
+            }
+        }
+    }
+    //if (jDR1 >= 0 && jDR2 >= 0) { Massjj = (jets_p4()[jDR1] + jets_p4()[jDR2]).M(); }
+
+    nb20_nonw = 0;
+    nb25_nonw = 0;
+    nb30_nonw = 0;
+    nbmed20_nonw = 0;
+    nbmed25_nonw = 0;
+    nbmed30_nonw = 0;
+    nbtight20_nonw = 0;
+    nbtight25_nonw = 0;
+    nbtight30_nonw = 0;
+    for (int n = 0; n < (int) jets_csv().size(); ++n)
+    {
+        if (jDR1 >= 0 && jDR2 >= 0)
+        {
+            if (n == jDR1 || n == jDR2) { continue; }
+        }
+        if (jets_p4()[n].Pt() >= 20 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.5426) { nb20_nonw++; }
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.5426) { nb25_nonw++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.5426) { nb30_nonw++; }
+        if (jets_p4()[n].Pt() >= 20 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed20_nonw++; }
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed25_nonw++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed30_nonw++; }
+        if (jets_p4()[n].Pt() >= 20 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight20_nonw++; }
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight25_nonw++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight30_nonw++; }
+    }
 
     // Set base weights
     weight = isData() ? 1 : evt_scale1fb() * 35.9; // Base weight
@@ -930,6 +1169,27 @@ void WWWAnalysis::processLeptonIndices()
     sort(list_incl_loose_3l_lep_idx.begin(), list_incl_loose_3l_lep_idx.end(), sortPt);
     sort(list_incl_veto_ss_lep_idx.begin(), list_incl_veto_ss_lep_idx.end(), sortPt);
     sort(list_incl_veto_3l_lep_idx.begin(), list_incl_veto_3l_lep_idx.end(), sortPt);
+
+    // If emu channel make lep0 = electron lep1 = muon
+    el_idx_b = -1;
+    el_idx_e = -1;
+    if (list_incl_veto_ss_lep_idx.size() == 2)
+    {
+        int pdgid0 = tas::lep_pdgId()[list_incl_veto_ss_lep_idx[0]];
+        int pdgid1 = tas::lep_pdgId()[list_incl_veto_ss_lep_idx[1]];
+        if (pdgid0 * pdgid1 == 143)
+        {
+            int idx0 = list_incl_veto_ss_lep_idx[0];
+            int idx1 = list_incl_veto_ss_lep_idx[1];
+            int idxe = abs(tas::lep_pdgId()[idx0]) == 11 ? idx0 : idx1;
+            int idxm = abs(tas::lep_pdgId()[idx0]) == 11 ? idx1 : idx0;
+            list_incl_veto_ss_lep_idx.clear();
+            list_incl_veto_ss_lep_idx.push_back(idxe);
+            list_incl_veto_ss_lep_idx.push_back(idxm);
+            if (fabs(tas::lep_etaSC()[idxe]) <= 1.479) el_idx_b = idxe;
+            if (fabs(tas::lep_etaSC()[idxe]) >  1.479) el_idx_e = idxe;
+        }
+    }
 }
 
 
@@ -940,6 +1200,8 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     using namespace tas;
     t.setBranch<LV>("veto_ss_lep0" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_p4()[list_incl_veto_ss_lep_idx[0]] : LV());
     t.setBranch<LV>("veto_ss_lep1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_p4()[list_incl_veto_ss_lep_idx[1]] : LV());
+
+    t.setBranch<LV>("jet0" , list_good_central_jet_idx.size() > 0 ? jets_p4()[list_good_central_jet_idx[0]] : LV());
 
     t.setBranch<LV>("veto_3l_lep0" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_p4()[list_incl_veto_3l_lep_idx[0]] : LV());
     t.setBranch<LV>("veto_3l_lep1" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_p4()[list_incl_veto_3l_lep_idx[1]] : LV());
@@ -978,6 +1240,9 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<float>("veto_ss_lep0_ip3derr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<float>("veto_ss_lep1_ip3derr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[1]] : -999);
 
+    t.setBranch<float>("veto_ss_lep0_conecorrpt", list_incl_veto_ss_lep_idx.size() > 0 ? coneCorrPt(list_incl_veto_ss_lep_idx[0]) : -999);
+    t.setBranch<float>("veto_ss_lep1_conecorrpt", list_incl_veto_ss_lep_idx.size() > 1 ? coneCorrPt(list_incl_veto_ss_lep_idx[1]) : -999);
+
     t.setBranch<int>("veto_ss_lep0_motheridss", list_incl_veto_ss_lep_idx.size() > 0 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<int>("veto_ss_lep1_motheridss", list_incl_veto_ss_lep_idx.size() > 1 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[1]] : -999);
 
@@ -989,6 +1254,88 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
 
     t.setBranch<bool>("veto_ss_lep0_tight", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
     t.setBranch<bool>("veto_ss_lep1_tight", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<int>("veto_ss_lep0_trigsafenoiso_v1" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_isTriggerSafenoIso_v1()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<int>("veto_ss_lep1_trigsafenoiso_v1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_isTriggerSafenoIso_v1()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<int>("veto_ss_lep0_trigsafenoiso_v2" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_isTriggerSafenoIso_v2()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<int>("veto_ss_lep1_trigsafenoiso_v2" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_isTriggerSafenoIso_v2()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<int>("veto_ss_lep0_trigsafe_v1" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_isTriggerSafe_v1()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<int>("veto_ss_lep1_trigsafe_v1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_isTriggerSafe_v1()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    t.setBranch<int>("veto_ss_lep0_trigsafe_v2" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_isTriggerSafe_v2()[list_incl_veto_ss_lep_idx[0]] : 0);
+    t.setBranch<int>("veto_ss_lep1_trigsafe_v2" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_isTriggerSafe_v2()[list_incl_veto_ss_lep_idx[1]] : 0);
+
+    // Electron ID ---------
+
+    t.setBranch<float>("veto_ss_lepb_pt"              , el_idx_b > 0 ? lep_p4()[el_idx_b].Pt()                                                                             :  999 ); 
+    t.setBranch<float>("veto_ss_lepb_eta"             , el_idx_b > 0 ? abs(lep_p4()[el_idx_b].Eta())                                                                       :    0 ); 
+    t.setBranch<float>("veto_ss_lepb_etaSC"           , el_idx_b > 0 ? abs(lep_etaSC()[el_idx_b])                                                                          :    0 ); 
+    t.setBranch<float>("veto_ss_lepb_dEtaIn"          , el_idx_b > 0 ? lep_dEtaIn_e()[el_idx_b]                                                                            :    0 ); 
+    t.setBranch<float>("veto_ss_lepb_dEtaOut"         , el_idx_b > 0 ? lep_dEtaOut_e()[el_idx_b]                                                                           :    0 ); 
+    t.setBranch<float>("veto_ss_lepb_scSeedEta"       , el_idx_b > 0 ? lep_scSeedEta_e()[el_idx_b]                                                                         :    0 ); 
+    t.setBranch<float>("veto_ss_lepb_dEtaInSeed"      , el_idx_b > 0 ? abs(lep_dEtaIn_e()[el_idx_b] - lep_etaSC()[el_idx_b] + lep_scSeedEta_e()[el_idx_b])                 :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_dPhiIn"          , el_idx_b > 0 ? abs(lep_dPhiIn_e()[el_idx_b])                                                                       :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_sIEtaIEta"       , el_idx_b > 0 ? lep_sigmaIEtaIEta_full5x5_e()[el_idx_b]                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_hOverE"          , el_idx_b > 0 ? lep_hOverE_e()[el_idx_b]                                                                            :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_ecalEnergy"      , el_idx_b > 0 ? lep_ecalEnergy_e()[el_idx_b]                                                                        : -999 ); 
+    t.setBranch<float>("veto_ss_lepb_ecalEnergyError" , el_idx_b > 0 ? lep_ecalEnergyError_e()[el_idx_b]                                                                   : -999 ); 
+    t.setBranch<float>("veto_ss_lepb_eOverPIn"        , el_idx_b > 0 ? lep_eOverPIn_e()[el_idx_b]                                                                          : -999 ); 
+    t.setBranch<float>("veto_ss_lepb_ooEmooP"         , el_idx_b > 0 ? abs((1.0/lep_ecalEnergy_e()[el_idx_b]) - (lep_eOverPIn_e()[el_idx_b]/lep_ecalEnergy_e()[el_idx_b])) :   -1 ); 
+    t.setBranch<int>("veto_ss_lepb_lostHits"          , el_idx_b > 0 ? lep_lostHits()[el_idx_b]                                                                            :   -1 ); 
+    t.setBranch<bool>("veto_ss_lepb_convVeto"         , el_idx_b > 0 ? lep_convVeto()[el_idx_b]                                                                            :    1 ); 
+    t.setBranch<int> ("veto_ss_lepb_tightCharge"      , el_idx_b > 0 ? lep_tightCharge()[el_idx_b]                                                                         :    3 ); 
+    t.setBranch<float>("veto_ss_lepb_ecalPFClusterIso", el_idx_b > 0 ? lep_ecalPFClusterIso_e()[el_idx_b]                                                                  :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_hcalPFClusterIso", el_idx_b > 0 ? lep_hcalPFClusterIso_e()[el_idx_b]                                                                  :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_tkIso"           , el_idx_b > 0 ? lep_tkIso_e()[el_idx_b]                                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_reliso"          , el_idx_b > 0 ? lep_relIso03EAv2()[el_idx_b]                                                                        :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_ptratio"         , el_idx_b > 0 ? lep_ptRatio()[el_idx_b]                                                                             :    2 ); 
+    t.setBranch<float>("veto_ss_lepb_ptrel"           , el_idx_b > 0 ? lep_ptRel()[el_idx_b]                                                                               :  999 ); 
+    t.setBranch<float>("veto_ss_lepb_mva"             , el_idx_b > 0 ? lep_MVA()[el_idx_b]                                                                                 :  999 ); 
+    t.setBranch<int>("veto_ss_lepb_motheridss"        , el_idx_b > 0 ? lep_motherIdSS()[el_idx_b]                                                                          : -999 ); 
+    t.setBranch<float>("veto_ss_lepb_ip3d"            , el_idx_b > 0 ? abs(lep_ip3d()[el_idx_b])                                                                           :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_ip3derr"         , el_idx_b > 0 ? lep_ip3derr()[el_idx_b]                                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepb_sip3d"           , el_idx_b > 0 ? abs(lep_ip3d()[el_idx_b]) / lep_ip3derr()[el_idx_b]                                                 :   -1 ); 
+    t.setBranch<int>("veto_ss_lepb_trigsafenoiso_v1"  , el_idx_b > 0 ? lep_isTriggerSafenoIso_v1()[el_idx_b]                                                               :    1 ); 
+    t.setBranch<int>("veto_ss_lepb_trigsafenoiso_v2"  , el_idx_b > 0 ? lep_isTriggerSafenoIso_v2()[el_idx_b]                                                               :    1 ); 
+    t.setBranch<int>("veto_ss_lepb_trigsafe_v1"       , el_idx_b > 0 ? lep_isTriggerSafe_v1()[el_idx_b]                                                                    :    1 ); 
+    t.setBranch<int>("veto_ss_lepb_trigsafe_v2"       , el_idx_b > 0 ? lep_isTriggerSafe_v2()[el_idx_b]                                                                    :    1 ); 
+
+    t.setBranch<float>("veto_ss_lepe_pt"              , el_idx_e > 0 ? lep_p4()[el_idx_e].Pt()                                                                             :  999 ); 
+    t.setBranch<float>("veto_ss_lepe_eta"             , el_idx_e > 0 ? abs(lep_p4()[el_idx_e].Eta())                                                                       :    0 ); 
+    t.setBranch<float>("veto_ss_lepe_etaSC"           , el_idx_e > 0 ? abs(lep_etaSC()[el_idx_e])                                                                          :    0 ); 
+    t.setBranch<float>("veto_ss_lepe_dEtaIn"          , el_idx_e > 0 ? lep_dEtaIn_e()[el_idx_e]                                                                            :    0 ); 
+    t.setBranch<float>("veto_ss_lepe_dEtaOut"         , el_idx_e > 0 ? lep_dEtaOut_e()[el_idx_e]                                                                           :    0 ); 
+    t.setBranch<float>("veto_ss_lepe_scSeedEta"       , el_idx_e > 0 ? lep_scSeedEta_e()[el_idx_e]                                                                         :    0 ); 
+    t.setBranch<float>("veto_ss_lepe_dEtaInSeed"      , el_idx_e > 0 ? abs(lep_dEtaIn_e()[el_idx_e] - lep_etaSC()[el_idx_e] + lep_scSeedEta_e()[el_idx_e])                 :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_dPhiIn"          , el_idx_e > 0 ? abs(lep_dPhiIn_e()[el_idx_e])                                                                       :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_sIEtaIEta"       , el_idx_e > 0 ? lep_sigmaIEtaIEta_full5x5_e()[el_idx_e]                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_hOverE"          , el_idx_e > 0 ? lep_hOverE_e()[el_idx_e]                                                                            :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_ecalEnergy"      , el_idx_e > 0 ? lep_ecalEnergy_e()[el_idx_e]                                                                        : -999 ); 
+    t.setBranch<float>("veto_ss_lepe_ecalEnergyError" , el_idx_e > 0 ? lep_ecalEnergyError_e()[el_idx_e]                                                                   : -999 ); 
+    t.setBranch<float>("veto_ss_lepe_eOverPIn"        , el_idx_e > 0 ? lep_eOverPIn_e()[el_idx_e]                                                                          : -999 ); 
+    t.setBranch<float>("veto_ss_lepe_ooEmooP"         , el_idx_e > 0 ? abs((1.0/lep_ecalEnergy_e()[el_idx_e]) - (lep_eOverPIn_e()[el_idx_e]/lep_ecalEnergy_e()[el_idx_e])) :   -1 ); 
+    t.setBranch<int>("veto_ss_lepe_lostHits"          , el_idx_e > 0 ? lep_lostHits()[el_idx_e]                                                                            :   -1 ); 
+    t.setBranch<bool>("veto_ss_lepe_convVeto"         , el_idx_e > 0 ? lep_convVeto()[el_idx_e]                                                                            :    1 ); 
+    t.setBranch<int> ("veto_ss_lepe_tightCharge"      , el_idx_e > 0 ? lep_tightCharge()[el_idx_e]                                                                         :    3 ); 
+    t.setBranch<float>("veto_ss_lepe_ecalPFClusterIso", el_idx_e > 0 ? lep_ecalPFClusterIso_e()[el_idx_e]                                                                  :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_hcalPFClusterIso", el_idx_e > 0 ? lep_hcalPFClusterIso_e()[el_idx_e]                                                                  :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_tkIso"           , el_idx_e > 0 ? lep_tkIso_e()[el_idx_e]                                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_reliso"          , el_idx_e > 0 ? lep_relIso03EAv2()[el_idx_e]                                                                        :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_ptratio"         , el_idx_e > 0 ? lep_ptRatio()[el_idx_e]                                                                             :    2 ); 
+    t.setBranch<float>("veto_ss_lepe_ptrel"           , el_idx_e > 0 ? lep_ptRel()[el_idx_e]                                                                               :  999 ); 
+    t.setBranch<float>("veto_ss_lepe_mva"             , el_idx_e > 0 ? lep_MVA()[el_idx_e]                                                                                 :  999 ); 
+    t.setBranch<int>("veto_ss_lepe_motheridss"        , el_idx_e > 0 ? lep_motherIdSS()[el_idx_e]                                                                          : -999 ); 
+    t.setBranch<float>("veto_ss_lepe_ip3d"            , el_idx_e > 0 ? abs(lep_ip3d()[el_idx_e])                                                                           :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_ip3derr"         , el_idx_e > 0 ? lep_ip3derr()[el_idx_e]                                                                             :   -1 ); 
+    t.setBranch<float>("veto_ss_lepe_sip3d"           , el_idx_e > 0 ? abs(lep_ip3d()[el_idx_e]) / lep_ip3derr()[el_idx_e]                                                 :   -1 ); 
+    t.setBranch<int>("veto_ss_lepe_trigsafenoiso_v1"  , el_idx_e > 0 ? lep_isTriggerSafenoIso_v1()[el_idx_e]                                                               :    1 ); 
+    t.setBranch<int>("veto_ss_lepe_trigsafenoiso_v2"  , el_idx_e > 0 ? lep_isTriggerSafenoIso_v2()[el_idx_e]                                                               :    1 ); 
+    t.setBranch<int>("veto_ss_lepe_trigsafe_v1"       , el_idx_e > 0 ? lep_isTriggerSafe_v1()[el_idx_e]                                                                    :    1 ); 
+    t.setBranch<int>("veto_ss_lepe_trigsafe_v2"       , el_idx_e > 0 ? lep_isTriggerSafe_v2()[el_idx_e]                                                                    :    1 ); 
+
+    // ------------------------
 
     t.setBranch<int>("veto_3l_lep0_pdgid" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_3l_lep_idx[0]] : 0);
     t.setBranch<int>("veto_3l_lep1_pdgid" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_3l_lep_idx[1]] : 0);
@@ -1033,6 +1380,28 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<float>("MjjL_dn", MjjL_dn);
     t.setBranch<float>("Detajj_dn", Detajj_dn);
 
+    t.setBranch<int>("nb25", nb25);
+    t.setBranch<int>("nb30", nb30);
+    t.setBranch<int>("nbmed20", nbmed20);
+    t.setBranch<int>("nbmed25", nbmed25);
+    t.setBranch<int>("nbmed30", nbmed30);
+    t.setBranch<int>("nbtight20", nbtight20);
+    t.setBranch<int>("nbtight25", nbtight25);
+    t.setBranch<int>("nbtight30", nbtight30);
+
+    t.setBranch<int>("nb20_nonw", nb20_nonw);
+    t.setBranch<int>("nb25_nonw", nb25_nonw);
+    t.setBranch<int>("nb30_nonw", nb30_nonw);
+    t.setBranch<int>("nbmed20_nonw", nbmed20_nonw);
+    t.setBranch<int>("nbmed25_nonw", nbmed25_nonw);
+    t.setBranch<int>("nbmed30_nonw", nbmed30_nonw);
+    t.setBranch<int>("nbtight20_nonw", nbtight20_nonw);
+    t.setBranch<int>("nbtight25_nonw", nbtight25_nonw);
+    t.setBranch<int>("nbtight30_nonw", nbtight30_nonw);
+
+    t.setBranch<float>("MTmin", MTmin);
+    t.setBranch<float>("MTmin_up", MTmin_up);
+    t.setBranch<float>("MTmin_dn", MTmin_dn);
     t.setBranch<float>("MTmax", MTmax);
     t.setBranch<float>("MTmax_up", MTmax_up);
     t.setBranch<float>("MTmax_dn", MTmax_dn);
@@ -1301,6 +1670,7 @@ TString WWWAnalysis::getSampleNameFromFileName(TString filename)
 // Get lepton indices for lepton optimization
 bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l)
 {
+    using namespace tas;
     // Fills in the lepton indicies for the all the different classes of lepton ID
     // But uses the BDT based isolation variables instead of relIso.
     iSS.clear();
@@ -1324,13 +1694,16 @@ bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, ve
         if (abs(lep_pdgId()[i]) == 11)
         {
             //tight ID
-            if (lep_isTriggerSafe_v1()[i] && lep_pass_VVV_cutbased_tight()[i] && lep_lostHits()[i] == 0 && lep_tightCharge()[i] == 2)
+            if (lep_pass_VVV_cutbased_tight()[i] && lep_tightCharge()[i] == 2 && fabs(lep_ip3d()[i]) < 0.015 && lep_lostHits()[i] == 0 && lep_isTriggerSafe_v1()[i])
+            //if (lep_pass_VVV_cutbased_fo_noiso()[i] && lep_tightCharge()[i] == 2)
+            //if (lep_pass_VVV_cutbased_veto()[i])
             {
                 if (lep_p4()[i].Pt() > 20) { i3l.push_back(i); is3l = true; }
                 if (lep_p4()[i].Pt() > 30) { iSS.push_back(i); isSS = true; }
             }
             //loose ID
-            if (lep_pass_VVV_cutbased_fo()[i] && lep_isTriggerSafe_v1()[i] && lep_lostHits()[i] == 0 && lep_tightCharge()[i] == 2)
+            if (lep_pass_VVV_cutbased_fo_noiso()[i] && lep_relIso03EAv2()[i] <= 0.2 && lep_tightCharge()[i] == 2 && fabs(lep_ip3d()[i]) < 0.015 && lep_lostHits()[i] == 0 && lep_isTriggerSafe_v1()[i])
+            //if (lep_pass_VVV_cutbased_veto()[i])
             {
                 if (!is3l && lep_p4()[i].Pt() > 20) { ia3l.push_back(i); isa3l = true; }
                 if (!isSS && lep_p4()[i].Pt() > 30) { iaSS.push_back(i); isaSS = true; }
@@ -1346,20 +1719,42 @@ bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, ve
         }
         else if (abs(lep_pdgId()[i]) == 13)
         {
+            //bool passveto = (lep_pass_VVV_cutbased_veto_noiso()[i] && fabs(lep_p4()[i].Eta()) < 2.4 && lep_relIso03EAv2()[i] <= 0.4);
+            bool passveto = (lep_pass_VVV_cutbased_veto_noiso()[i] && fabs(lep_p4()[i].Eta()) < 2.4 && lep_ptRatio()[i] > 0.65);
             //tight ID
-            if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            //if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            //if (passveto && lep_pass_POG_medium_noiso()[i])
+            if (passveto
+                    && lep_pass_VVV_cutbased_fo_noiso()[i]
+                    && abs(lep_dxy()[i]) <= 0.05
+                    && abs(lep_dz()[i]) <= 0.1
+                    && abs(lep_ip3d()[i]) < 0.005
+                    && lep_ptRatio()[i] > 0.9
+               )
             {
-                if (lep_p4()[i].Pt() > 20) { i3l.push_back(i); is3l = true; }
-                if (lep_p4()[i].Pt() > 20) { iSS.push_back(i); isSS = true; }
+                if (lep_p4()[i].Pt() > 25) { i3l.push_back(i); is3l = true; }
+                if (lep_p4()[i].Pt() > 25) { iSS.push_back(i); isSS = true; }
+                //if (lep_p4()[i].Pt() > 10) { i3l.push_back(i); is3l = true; }
+                //if (lep_p4()[i].Pt() > 10) { iSS.push_back(i); isSS = true; }
             }
             //loose ID
-            if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            //if (lep_pass_VVV_cutbased_veto()[i] && lep_pterr()[i] / lep_trk_pt()[i] < 0.2 && lep_pass_POG_medium_noiso()[i])
+            //if (passveto && lep_pass_VVV_cutbased_fo_noiso()[i] && lep_relIso03EAv2()[i] <= 0.4 && abs(lep_ip3d()[i]) < 0.015)
+            if (passveto
+                    && lep_pass_VVV_cutbased_fo_noiso()[i]
+                    && abs(lep_dxy()[i]) <= 0.05
+                    && abs(lep_dz()[i]) <= 0.1
+                    && abs(lep_ip3d()[i]) < 0.015
+                    && lep_ptRatio()[i] > 0.65
+               )
             {
-                if (!is3l && lep_p4()[i].Pt() > 20) { ia3l.push_back(i); isa3l = true; }
-                if (!isSS && lep_p4()[i].Pt() > 20) { iaSS.push_back(i); isaSS = true; }
+                if (!is3l && lep_p4()[i].Pt() > 25) { ia3l.push_back(i); isa3l = true; }
+                if (!isSS && lep_p4()[i].Pt() > 25) { iaSS.push_back(i); isaSS = true; }
+                //if (!is3l && lep_p4()[i].Pt() > 10) { ia3l.push_back(i); isa3l = true; }
+                //if (!isSS && lep_p4()[i].Pt() > 10) { iaSS.push_back(i); isaSS = true; }
             }
             //vetoID
-            if (lep_pass_VVV_cutbased_veto()[i])
+            if (passveto)
             {
                 if (!isSS &&           lep_p4()[i].Pt() > 10) { vSS  .push_back(i); }
                 if (!is3l &&           lep_p4()[i].Pt() > 10) { v3l  .push_back(i); }
@@ -1370,5 +1765,32 @@ bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, ve
     }
     return true;
 }
+
+//#################################################################################################
+// Get lepton indices for lepton optimization
+void WWWAnalysis::getallbtagnumbers()
+{
+    using namespace tas;
+    nb25 = 0; // Number of b-tagged jets.
+    nb30 = 0; // Number of b-tagged jets.
+    nbmed20 = 0; // Number of b-tagged jets.
+    nbmed25 = 0; // Number of b-tagged jets.
+    nbmed30 = 0; // Number of b-tagged jets.
+    nbtight20 = 0; // Number of b-tagged jets.
+    nbtight25 = 0; // Number of b-tagged jets.
+    nbtight30 = 0; // Number of b-tagged jets.
+    for (unsigned int n = 0; n < jets_csv().size(); ++n)
+    {
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.5426) { nb25++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.5426) { nb30++; }
+        if (jets_p4()[n].Pt() >= 20 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed20++; }
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed25++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.8484) { nbmed30++; }
+        if (jets_p4()[n].Pt() >= 20 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight20++; }
+        if (jets_p4()[n].Pt() >= 25 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight25++; }
+        if (jets_p4()[n].Pt() >= 30 && fabs(jets_p4()[n].Eta()) <= 2.4 && jets_csv()[n] >= 0.9535) { nbtight30++; }
+    }
+}
+
 
 //eof

@@ -25,6 +25,11 @@ eventlistjob.importJobsFromTextFiles("eventlist.cfg", allcuts, "*", True)
 # setup a visitor
 vis = TQAnalysisSampleVisitor(allcuts,True)
 
-samples.visitSampleFolders(vis)
+#samples.visitSampleFolders(vis)
+samples.visitSampleFolders(vis, "/sig")
+samples.visitSampleFolders(vis, "/typebkg")
+samples.visitSampleFolders(vis, "/fake")
+samples.visitSampleFolders(vis, "/data")
+#samples.visitSampleFolders(vis, "/closure")
 
 samples.writeToFile("output.root", True)

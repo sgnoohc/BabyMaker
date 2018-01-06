@@ -316,7 +316,8 @@ float coneCorrPt(int lepi){
     if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
     else                                       coneptcorr = std::max( 0., relIso - 0.0571 );
   }
-  if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
+  //if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
+  if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = max(double(0.), ((0.9/lep_ptRatio()[lepi]) - 1.));
 
   return coneptcorr;
 }
