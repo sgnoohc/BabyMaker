@@ -14,6 +14,8 @@ from cuts import *
 
 import re
 
+from pytable import *
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -34,17 +36,20 @@ except:
 
 #_______________________________________________________________________________
 def getWZNF(cutname):
-    sig  = samples.getCounter("/sig/www", cutname)
+    #sig  = samples.getCounter("/sig/www", cutname)
+    sig  = samples.getCounter("/sig", cutname)
     #bkg  = samples.getCounter("/bkg", cutname)
     #wz   = samples.getCounter("/bkg/VV/WZ", cutname)
-    bkg  = samples.getCounter("/typebkg", cutname)
+    bkg  = samples.getCounter("/typebkg/?/bkg", cutname)
     wz   = samples.getCounter("/typebkg/?/WZ", cutname)
     data = samples.getCounter("/data", cutname)
-    nf = TQCounter()
-    nf.add(data)
-    nf.add(wz)
-    nf.subtract(bkg)
-    nf.subtract(sig)
+    #print sig.getCounter(), wz.getCounter(), bkg.getCounter(), data.getCounter()
+    nf = samples.getCounter("/data-typebkg/?/bkg-sig", cutname)
+    #nf = TQCounter()
+    #nf.add(data)
+    #nf.add(wz)
+    #nf.subtract(bkg)
+    #nf.subtract(sig)
     nf.divide(wz)
     print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
     return nf.getCounter(), nf.getError()
@@ -58,6 +63,12 @@ def applyWZNF():
     nf_mmnj2, nferr_mmnj2 = getWZNF("WZCRmmNJ2")
     nf_mmnj2sb, nferr_mmnj2sb = getWZNF("WZCRmmNJ2MJJSB")
     nf_mmnj2wd, nferr_mmnj2wd = getWZNF("WZCRmmNJ2MJJWD")
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ1").getCounter()
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJSB").getCounter()
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJWD").getCounter()
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ1").getCounter()      / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ1").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ1").getCounter(),
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJSB").getCounter() / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ2MJJSB").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ2MJJSB").getCounter()
+    print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJWD").getCounter() / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ2MJJWD").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ2MJJWD").getCounter()
     #nf_1SFOS, nferr_1SFOS = getWZNF("TLWZ1SFOS")
     #nf_2SFOS, nferr_2SFOS = getWZNF("TLWZ2SFOS")
     #samples.setScaleFactor("SSee", nf_ee, nferr_ee, "/bkg/VV/WZ")
@@ -74,6 +85,16 @@ def applyWZNF():
     samples.setScaleFactor("SSmmNJ2", nf_mmnj2, nferr_mmnj2, "/typebkg/?/WZ")
     samples.setScaleFactor("SSmmNJ2MJJSB", nf_mmnj2sb, nferr_mmnj2sb, "/typebkg/?/WZ")
     samples.setScaleFactor("SSmmNJ2MJJWD", nf_mmnj2wd, nferr_mmnj2wd, "/typebkg/?/WZ")
+
+#_______________________________________________________________________________
+def blind():
+    cutnames = []
+    for i in samples.getListOfCounterNames():
+        cutnames.append(str(i))
+    cutnames.sort(key=natural_keys)
+    for cutname in cutnames:
+        if cutname.find("WZCR") == -1:
+            samples.setScaleFactor(cutname, 0, 0, "/data")
 
 #_______________________________________________________________________________
 def addProcesses(printer, showdata):
@@ -95,10 +116,12 @@ def addProcesses(printer, showdata):
 #    printer.addCutflowProcess("/bkg/W", "W")
 #    printer.addCutflowProcess("/bkg/Z", "Z")
 #    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/typebkg/prompt", "prompt")
-    printer.addCutflowProcess("/typebkg/qflip", "qflip")
-    printer.addCutflowProcess("/typebkg/photon", "photon")
-    printer.addCutflowProcess("/typebkg/lostlep", "lostlep")
+#    printer.addCutflowProcess("/typebkg/prompt", "prompt")
+    printer.addCutflowProcess("/typebkg/prompt+typebkg/lostlep/bkg", "prompt")
+    printer.addCutflowProcess("/typebkg/qflip/bkg", "qflip")
+    printer.addCutflowProcess("/typebkg/photon/bkg", "photon")
+#    printer.addCutflowProcess("/typebkg/lostlep", "lostlep")
+    printer.addCutflowProcess("/typebkg/?/WZ", "WZ")
 #    printer.addCutflowProcess("/typebkg/fakes", "fakes (MC)")
 #    printer.addCutflowProcess("/typebkg/photon", "photon")
 #    printer.addCutflowProcess("/typebkg/[fakes+photon]", "fakes (MC)")
@@ -216,7 +239,8 @@ def printAllCutflow(output_name="allcutflow"):
         if cutname.find("cut0_") != -1:
             printer.addCutflowCut("|", "|")
         printer.addCutflowCut(cutname, cutname + cutexpr)
-    addProcesses(printer, showdata=False)
+    #addProcesses(printer, showdata=False)
+    addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")
     table.writeCSV("cutflows/{}.csv".format(output_name))
     table.writeHTML("cutflows/{}.html".format(output_name))
@@ -245,8 +269,123 @@ def printCutflow(region_prefix, ncut, output_name, showdata=False):
     table.writeLaTeX("cutflows/{}.tex".format(output_name))
     table.writePlain("cutflows/{}.txt".format(output_name))
 
+#_______________________________________________________________________________
+def addCountersToStatCardData(categ, cut, data):
+    if categ == "sig": proc = "/sig"
+    if categ == "fake": proc = "/fake"
+    if categ == "photon": proc = "/typebkg/photon/bkg"
+    if categ == "ss3l": proc = "/typebkg/prompt/bkg"
+    if categ == "qflip": proc = "/typebkg/qflip/bkg"
+    if categ == "wz": proc = "/typebkg/?/WZ"
+    cnt = samples.getCounter(proc, cut).getCounter()
+    err = samples.getCounter(proc, cut).getError()
+    data["{}".format(categ)] = "{:.3f}".format(cnt) if cnt > 0 else "1e-06"
+    data["{}err".format(categ)] = "{:.3f}".format(err / cnt + 1) if cnt > 0 else "1.99"
+
+#_______________________________________________________________________________
+# Printing stat card
+def getStatCardStringNotUsed(cutname):
+    data = {}
+    addCountersToStatCardData("sig", cutname, data)
+    addCountersToStatCardData("fake", cutname, data)
+    addCountersToStatCardData("photon", cutname, data)
+    addCountersToStatCardData("ss3l", cutname, data)
+    addCountersToStatCardData("qflip", cutname, data)
+    addCountersToStatCardData("wz", cutname, data)
+    data["wzcr"] = "{:.3f}".format(samples.getCounter("/data-typebkg/?/bkg-sig", cutname.replace("SSmm", "WZCRmm")).getCounter())
+    data["wzalpha"] = "{:.3f}".format(samples.getCounter("/typebkg/?/WZ", cutname, "scaleScheme=.nosf").getCounter() / samples.getCounter("/typebkg/?/WZ", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf").getCounter())
+    cardstring = """imax 1 number of bins
+jmax 5 number of processes minus 1
+kmax 18 number of nuisance parameters
+----------------------------------------------------------------------------------------------------------------------------------
+shapes *    ch1  FAKE
+----------------------------------------------------------------------------------------------------------------------------------
+bin          ch1
+observation  0.0
+----------------------------------------------------------------------------------------------------------------------------------
+bin                                ch1          ch1          ch1          ch1          ch1          ch1
+process                            sig          Fake         photon       SS3l         chargeflip   WZ
+process                            0            1            2            3            4            5
+rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}{qflip:<13s}{wz:<13s}
+----------------------------------------------------------------------------------------------------------------------------------
+SigStat3                lnN        {sigerr:<13s}-            -            -            -            -
+FakeStat3               lnN        -            {fakeerr:<13s}-            -            -            -
+PhoStat3                lnN        -            -            {photonerr:<13s}-            -            -
+SS3lStat3               lnN        -            -            -            {ss3lerr:<13s}-            -
+ChFlstat3               lnN        -            -            -            -            {qfliperr:<13s}-
+WZStat3                 lnN        -            -            -            -            -            {wzerr:<13s}
+FakeSyst                lnN        -            1.50         -            -            -            -
+SSSyst                  lnN        -            -            -            1.10         -            -
+WZNorm                  gmN {wzcr:<6s} -            -            -            -            -            {wzalpha:<13s}
+JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
+LepSF                   lnN        1.001        -            -            1.001        -            -
+LumSyst                 lnN        1.025        -            1.025        1.025        1.025        -
+PU                      lnN        1.02         -            -            1.001        -            -
+SigPDF                  lnN        0.990/1.010  -            -            -            -            -
+SigQsq                  lnN        1.010/0.990  -            -            -            -            -
+TrigSyst                lnN        1.01         -            1.01         1.01         1.01         -
+XSec                    lnN        1.06         -            -            -            -            -
+bSF                     lnN        1.03         -            -            1.04         -            - """.format(**data)
+    return cardstring
+
+#_______________________________________________________________________________
+# Printing stat card
+def getStatCardString(cutname, index):
+    data = {}
+    addCountersToStatCardData("sig", cutname, data)
+    addCountersToStatCardData("fake", cutname, data)
+    addCountersToStatCardData("photon", cutname, data)
+    addCountersToStatCardData("ss3l", cutname, data)
+    addCountersToStatCardData("qflip", cutname, data)
+    addCountersToStatCardData("wz", cutname, data)
+    nf, nf_err = getWZNF(cutname.replace("SSmm", "WZCRmm"))
+    data["wzalpha"] = "{:.3f}".format(nf_err / nf + 1)
+    data["I"] = index
+    cardstring = """imax 1 number of bins
+jmax 5 number of processes minus 1
+kmax 18 number of nuisance parameters
+----------------------------------------------------------------------------------------------------------------------------------
+shapes *    ch1  FAKE
+----------------------------------------------------------------------------------------------------------------------------------
+bin          ch1
+observation  0.0
+----------------------------------------------------------------------------------------------------------------------------------
+bin                                ch1          ch1          ch1          ch1          ch1          ch1
+process                            sig          Fake         photon       SS3l         chargeflip   WZ
+process                            0            1            2            3            4            5
+rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}{qflip:<13s}{wz:<13s}
+----------------------------------------------------------------------------------------------------------------------------------
+{I}aSigStat             lnN        {sigerr:<13s}-            -            -            -            -
+{I}bFakeStat            lnN        -            {fakeerr:<13s}-            -            -            -
+{I}cPhoStat             lnN        -            -            {photonerr:<13s}-            -            -
+{I}dSS3lStat            lnN        -            -            -            {ss3lerr:<13s}-            -
+{I}eChFlstat            lnN        -            -            -            -            {qfliperr:<13s}-
+{I}fWZStat              lnN        -            -            -            -            -            {wzerr:<13s}
+{I}gWZNorm              lnN        -            -            -            -            -            {wzalpha:<13s}
+FakeSyst                lnN        -            1.50         -            -            -            -
+SSSyst                  lnN        -            -            -            1.10         -            -
+JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
+LepSF                   lnN        1.001        -            -            1.001        -            -
+LumSyst                 lnN        1.025        -            1.025        1.025        1.025        -
+PU                      lnN        1.02         -            -            1.001        -            -
+SigPDF                  lnN        0.990/1.010  -            -            -            -            -
+SigQsq                  lnN        1.010/0.990  -            -            -            -            -
+TrigSyst                lnN        1.01         -            1.01         1.01         1.01         -
+XSec                    lnN        1.06         -            -            -            -            -
+bSF                     lnN        1.03         -            -            1.04         -            - """.format(**data)
+    return cardstring
+
+
+
 applyWZNF()
+blind()
 printAllCutflow()
+f = open("nj2wd.txt", "write")
+f.write(getStatCardString("SSmmNJ2MJJWD", "001"))
+f = open("nj2sb.txt", "write")
+f.write(getStatCardString("SSmmNJ2MJJSB", "002"))
+f = open("nj1.txt", "write")
+f.write(getStatCardString("SSmmNJ1", "003"))
 #printSR()
 #printCR()
 #printCutflow("SSmm", 11, "SSmm")

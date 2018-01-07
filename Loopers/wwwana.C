@@ -1728,7 +1728,7 @@ bool WWWAnalysis::getleptonindices_lepopt(vector<int> &iSS, vector<int> &i3l, ve
                     && lep_pass_VVV_cutbased_fo_noiso()[i]
                     && abs(lep_dxy()[i]) <= 0.05
                     && abs(lep_dz()[i]) <= 0.1
-                    && abs(lep_ip3d()[i]) < 0.005
+                    && abs(lep_ip3d()[i]) < 0.015
                     && lep_ptRatio()[i] > 0.9
                )
             {
