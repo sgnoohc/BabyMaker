@@ -6,7 +6,7 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v30"
+job_tag = "minibaby_v32"
 input_tag = "18"
 input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
 
@@ -61,12 +61,12 @@ while True:
     wwwsample = DirectorySample(dataset="/WWW_v0_1_18",
                                 location=input_location,
                                 globber="*.root")
-    #wwwsample.get_files()
-    #new_list_files = []
-    #for i in wwwsample.info["files"]:
-    #    if i.get_name().find("vh") != -1 or i.get_name().find("www") != -1:
-    #        new_list_files.append(i)
-    #wwwsample.info["files"] = new_list_files
+    wwwsample.get_files()
+    new_list_files = []
+    for i in wwwsample.info["files"]:
+        if i.get_name().find("wgjets") != -1:
+            new_list_files.append(i)
+    wwwsample.info["files"] = new_list_files
 
     # define the task
     task = CondorTask(

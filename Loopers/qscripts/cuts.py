@@ -54,7 +54,7 @@ preselwgt_ss_expression = combexpr(preselwgt_ss_expressions)
 
 preselwgt_3l_expressions = [
 "trigsf",
-"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_noerr:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_noerr:ffwgt3l}}:1}"
+"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_err:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_err:ffwgt3l}}:1}"
 ]
 preselwgt_3l_expression = combexpr(preselwgt_3l_expressions)
 

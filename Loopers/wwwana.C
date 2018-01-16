@@ -246,6 +246,14 @@ public:
     float gen_DEtajj;
     float gen_DRjj;
 
+    // gamma muon gen indices list
+    IdxList list_gen_lep_gamma_indices;
+    int index_gen_gam;
+    int gammaflav;
+
+    float mgamma;
+    float mgammagen;
+
     //---------------------------------------------------------------------------------------------
     // Functions
     //---------------------------------------------------------------------------------------------
@@ -703,6 +711,20 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
     t.createBranch<float>("qcdffwgtss_closerr");
     t.createBranch<float>("qcdffwgt3l_closerr");
 
+    t.createBranch<float>("weight_fr_r1_f1");
+    t.createBranch<float>("weight_fr_r1_f2");
+    t.createBranch<float>("weight_fr_r1_f0p5");
+    t.createBranch<float>("weight_fr_r2_f1");
+    t.createBranch<float>("weight_fr_r2_f2");
+    t.createBranch<float>("weight_fr_r2_f0p5");
+    t.createBranch<float>("weight_fr_r0p5_f1");
+    t.createBranch<float>("weight_fr_r0p5_f2");
+    t.createBranch<float>("weight_fr_r0p5_f0p5");
+    t.createBranch<float>("weight_pdf_up");
+    t.createBranch<float>("weight_pdf_down");
+    t.createBranch<float>("weight_alphas_down");
+    t.createBranch<float>("weight_alphas_up");
+
     t.createBranch<bool>("pass_offline_trig");
     t.createBranch<bool>("pass_online_trig");
     t.createBranch<bool>("pass_filters");
@@ -726,6 +748,15 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
 
     t.createBranch<LV>("gen_quark0");
     t.createBranch<LV>("gen_quark1");
+
+    t.createBranch<LV>("lep_gamma0");
+    t.createBranch<LV>("lep_gamma1");
+    t.createBranch<LV>("gammagen");
+    t.createBranch<LV>("gamma");
+
+    t.createBranch<int>("gammaflav");
+    t.createBranch<float>("mgamma");
+    t.createBranch<float>("mgammagen");
 }
 
 //#################################################################################################
@@ -795,6 +826,33 @@ void WWWAnalysis::run()
 }
 
 //#################################################################################################
+// Compute mgammapt
+float gammapt()
+{
+    using namespace tas;
+
+    // Compute mgammapt
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+        if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_status()[igen]) == 23)
+        {
+            return genPart_p4()[igen].pt();
+        }
+    }
+
+    // If no gamma found try finding a status 1 with 24 as mother
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+        if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_motherId()[igen]) == 24 && abs(genPart_status()[igen]) == 1)
+        {
+            return genPart_p4()[igen].pt();
+        }
+    }
+    return -999;
+}
+
+
+//#################################################################################################
 // Sets standard variables and returns false if fails preselection.
 bool WWWAnalysis::calcStdVariables()
 {
@@ -817,6 +875,7 @@ bool WWWAnalysis::calcStdVariables()
     if (nVert() < 0)              { return false; }
     if (looper.getCurrentFileName().Contains("wjets_incl_mgmlm_")  && gen_ht() > 100) { return false; }
     if (looper.getCurrentFileName().Contains("dy_m50_mgmlm_ext1_") && gen_ht() > 100) { return false; }
+    if (looper.getCurrentFileName().Contains("wgjets_incl") && gammapt() > 40) { return false; }
     if (list_tight_3l_lep_idx.size() < 1) { return false; }
     if (list_tight_3l_lep_idx.size() + list_loose_3l_lep_idx.size() < 2) { return false; }
     if (list_incl_veto_3l_lep_idx.size() != 2 && list_incl_veto_3l_lep_idx.size() != 3) { return false; }
@@ -1130,6 +1189,61 @@ bool WWWAnalysis::calcStdVariables()
             gen_DRjj = ROOT::Math::VectorUtil::DeltaR(genPart_p4()[list_gen_quarks[0]], genPart_p4()[list_gen_quarks[1]]);
         }
     }
+
+    // loop over genparticle for photons
+    int nlep_from_photon = 0;
+    list_gen_lep_gamma_indices.clear();
+    index_gen_gam = -1;
+    mgammagen = -999;
+    gammaflav = 0;
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+        if ((abs(genPart_pdgId()[igen]) == 13 || abs(genPart_pdgId()[igen]) == 11) && abs(genPart_motherId()[igen]) == 22)
+        {
+            if (gammaflav != 0)
+            {
+                if (abs(genPart_pdgId()[igen]) != gammaflav)
+                    continue;
+            }
+            gammaflav = abs(genPart_pdgId()[igen]);
+            nlep_from_photon++;
+            list_gen_lep_gamma_indices.push_back(igen);
+        }
+        if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_status()[igen]) == 23 && index_gen_gam == -1)
+        {
+            mgammagen = genPart_p4()[igen].mass();
+            index_gen_gam = igen;
+        }
+    }
+
+    // If no gamma found try finding a status 1 with 24 as mother
+    if (index_gen_gam == -1)
+    {
+        for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+        {
+            if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_motherId()[igen]) == 24 && abs(genPart_status()[igen]) == 1)
+            {
+                index_gen_gam = igen;
+            }
+        }
+    }
+
+    // If no gamma found print the event number to investigate
+    if (index_gen_gam == -1)
+    {
+        std::cout << std::endl;
+        std::cout << "Did not find photon                                " << evt() << std::endl;
+    }
+
+    mgamma = -999;
+    if (isphotonSS)
+    {
+        if (nlep_from_photon == 2)
+        {
+            mgamma = (genPart_p4()[list_gen_lep_gamma_indices[0]] + genPart_p4()[list_gen_lep_gamma_indices[1]]).mass();
+        }
+    }
+    if (looper.getCurrentFileName().Contains("wgjets_ptg") && mgamma > 4) { return false; }
 
     return true;
 }
@@ -1453,6 +1567,19 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<float>("qcdffwgtss_closerr", qcdffwgtss_closerr);
     t.setBranch<float>("qcdffwgt3l_closerr", qcdffwgt3l_closerr);
 
+    t.setBranch<float>("weight_fr_r1_f1", weight_fr_r1_f1());
+    t.setBranch<float>("weight_fr_r1_f2", weight_fr_r1_f2());
+    t.setBranch<float>("weight_fr_r1_f0p5", weight_fr_r1_f0p5());
+    t.setBranch<float>("weight_fr_r2_f1", weight_fr_r2_f1());
+    t.setBranch<float>("weight_fr_r2_f2", weight_fr_r2_f2());
+    t.setBranch<float>("weight_fr_r2_f0p5", weight_fr_r2_f0p5());
+    t.setBranch<float>("weight_fr_r0p5_f1", weight_fr_r0p5_f1());
+    t.setBranch<float>("weight_fr_r0p5_f2", weight_fr_r0p5_f2());
+    t.setBranch<float>("weight_fr_r0p5_f0p5", weight_fr_r0p5_f0p5());
+    t.setBranch<float>("weight_pdf_up", weight_pdf_up());
+    t.setBranch<float>("weight_pdf_down", weight_pdf_down());
+    t.setBranch<float>("weight_alphas_down", weight_alphas_down());
+    t.setBranch<float>("weight_alphas_up", weight_alphas_up());
 
     t.setBranch<bool>("pass_offline_trig", pass_offline_trig);
     t.setBranch<bool>("pass_online_trig", pass_online_trig);
@@ -1477,6 +1604,15 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
 
     t.setBranch<LV>("gen_quark0", list_gen_quarks.size() > 0 ? genPart_p4()[list_gen_quarks[0]] : LV());
     t.setBranch<LV>("gen_quark1", list_gen_quarks.size() > 1 ? genPart_p4()[list_gen_quarks[1]] : LV());
+
+    t.setBranch<LV>("lep_gamma0", list_gen_lep_gamma_indices.size() > 0 ? genPart_p4()[list_gen_lep_gamma_indices[0]] : LV());
+    t.setBranch<LV>("lep_gamma1", list_gen_lep_gamma_indices.size() > 1 ? genPart_p4()[list_gen_lep_gamma_indices[1]] : LV());
+    t.setBranch<LV>("gammagen", index_gen_gam >= 0 ? genPart_p4()[index_gen_gam] : LV());
+    t.setBranch<LV>("gamma", list_gen_lep_gamma_indices.size() > 1 ? (genPart_p4()[list_gen_lep_gamma_indices[0]] + genPart_p4()[list_gen_lep_gamma_indices[1]]) : LV());
+
+    t.setBranch<int>("gammaflav", gammaflav);
+    t.setBranch<float>("mgamma", mgamma);
+    t.setBranch<float>("mgammagen", mgammagen);
 }
 
 //#################################################################################################
@@ -1634,6 +1770,8 @@ void WWWAnalysis::setDatasetMap()
     datasetMap["ZZ"].push_back("zz_4l_powheg*.root");
 
     datasetMap["WG"].push_back("wgjets_incl_mgmlm*.root");
+    datasetMap["WG"].push_back("wgjets_pt*.root");
+    datasetMap["WG"].push_back("wgjets_pt*.root");
 
     datasetMap["ZG"].push_back("zgamma_2lG_amc*.root");
 

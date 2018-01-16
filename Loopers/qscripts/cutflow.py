@@ -116,12 +116,16 @@ def addProcesses(printer, showdata):
 #    printer.addCutflowProcess("/bkg/W", "W")
 #    printer.addCutflowProcess("/bkg/Z", "Z")
 #    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/typebkg/prompt", "prompt")
-    printer.addCutflowProcess("/typebkg/prompt+typebkg/lostlep/bkg", "prompt")
+    printer.addCutflowProcess("/typebkg/prompt", "justprompt")
+    printer.addCutflowProcess("/typebkg/prompt/bkg+typebkg/lostlep/bkg", "prompt")
     printer.addCutflowProcess("/typebkg/qflip/bkg", "qflip")
     printer.addCutflowProcess("/typebkg/photon/bkg", "photon")
-#    printer.addCutflowProcess("/typebkg/lostlep", "lostlep")
+    printer.addCutflowProcess("/typebkg/lostlep", "lostleponly")
+    printer.addCutflowProcess("/typebkg/qflip", "qfliponly")
+    printer.addCutflowProcess("/typebkg/photon", "photononly")
     printer.addCutflowProcess("/typebkg/?/WZ", "WZ")
+    printer.addCutflowProcess("/typebkg/lostlep+typebkg/qflip+typebkg/photon+typebkg/prompt", "allbkg1")
+    printer.addCutflowProcess("/typebkg/lostlep/bkg+typebkg/qflip/bkg+typebkg/photon/bkg+typebkg/prompt/bkg+typebkg/[prompt+lostlep+photon+qflip]/WZ", "allbkg2")
 #    printer.addCutflowProcess("/typebkg/fakes", "fakes (MC)")
 #    printer.addCutflowProcess("/typebkg/photon", "photon")
 #    printer.addCutflowProcess("/typebkg/[fakes+photon]", "fakes (MC)")
@@ -135,7 +139,7 @@ def addProcesses(printer, showdata):
     printer.addCutflowProcess("/typebkg/photon", "photon")
 #    printer.addCutflowProcess("/typebkg/others", "others")
 #    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/bkg", "Tot. MC")
+    printer.addCutflowProcess("/bkg", "Tot. MC")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg", "Bkg. (MC)")
     printer.addCutflowProcess("|", "|")
@@ -270,21 +274,32 @@ def printCutflow(region_prefix, ncut, output_name, showdata=False):
     table.writePlain("cutflows/{}.txt".format(output_name))
 
 #_______________________________________________________________________________
-def addCountersToStatCardData(categ, cut, data):
+def addCountersToStatCardData(categ, cut, data, zero=False):
     if categ == "sig": proc = "/sig"
     if categ == "fake": proc = "/fake"
     if categ == "photon": proc = "/typebkg/photon/bkg"
-    if categ == "ss3l": proc = "/typebkg/prompt/bkg"
+    if categ == "ss3l": proc = "/typebkg/prompt/bkg+typebkg/lostlep/bkg"
     if categ == "qflip": proc = "/typebkg/qflip/bkg"
     if categ == "wz": proc = "/typebkg/?/WZ"
     cnt = samples.getCounter(proc, cut).getCounter()
     err = samples.getCounter(proc, cut).getError()
     data["{}".format(categ)] = "{:.3f}".format(cnt) if cnt > 0 else "1e-06"
     data["{}err".format(categ)] = "{:.3f}".format(err / cnt + 1) if cnt > 0 else "1.99"
+    if zero:
+        data["{}".format(categ)] = "1e-06"
+        data["{}err".format(categ)] = "1.99"
+
+#_______________________________________________________________________________
+def addFakeRateSystCountersToStatCardData(categ, cut, data):
+    if categ == "fakeup": proc = "/fakeup"
+    cnt = samples.getCounter(proc, cut).getCounter()
+    nomcnt = samples.getCounter("/fake", cut).getCounter()
+    data["{}".format(categ)] = "{:.3f}".format(cnt) if cnt > 0 else "1e-06"
+    data["{}err".format(categ)] = "{:.3f}".format(cnt / nomcnt) if cnt > 0 else "1.99"
 
 #_______________________________________________________________________________
 # Printing stat card
-def getStatCardStringNotUsed(cutname):
+def getStatCardStringWithGmN(cutname, index):
     data = {}
     addCountersToStatCardData("sig", cutname, data)
     addCountersToStatCardData("fake", cutname, data)
@@ -292,11 +307,28 @@ def getStatCardStringNotUsed(cutname):
     addCountersToStatCardData("ss3l", cutname, data)
     addCountersToStatCardData("qflip", cutname, data)
     addCountersToStatCardData("wz", cutname, data)
-    data["wzcr"] = "{:.3f}".format(samples.getCounter("/data-typebkg/?/bkg-sig", cutname.replace("SSmm", "WZCRmm")).getCounter())
-    data["wzalpha"] = "{:.3f}".format(samples.getCounter("/typebkg/?/WZ", cutname, "scaleScheme=.nosf").getCounter() / samples.getCounter("/typebkg/?/WZ", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf").getCounter())
+    addFakeRateSystCountersToStatCardData("fakeup", cutname, data)
+    wzcr = samples.getCounter("/typebkg/?/WZ", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf")
+    bgcr = samples.getCounter("/typebkg+sig", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf")
+    nzcr = samples.getCounter("/typebkg/?/bkg+sig", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf")
+    wzsr = samples.getCounter("/typebkg/?/WZ", cutname, "scaleScheme=.nosf")
+    wzdd = samples.getCounter("/data-typebkg/?/bkg-sig", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf")
+    crdd = samples.getCounter("/data", cutname.replace("SSmm", "WZCRmm"), "scaleScheme=.nosf")
+    alpha = TQCounter()
+    wzpurity = TQCounter()
+    alpha.add(wzsr)
+    alpha.divide(wzcr)
+    alpha.multiply(wzdd)
+    alpha.divide(crdd)
+    wzpurity.add(wzdd)
+    wzpurity.divide(crdd)
+    data["wzcr"] = "{:d}".format(int(samples.getCounter("/data", cutname.replace("SSmm", "WZCRmm")).getCounter()))
+    data["wzalpha"] = "{:.5f}".format(alpha.getCounter())
+    data["wzpurity"] = "{:.3f}".format(wzpurity.getError() + 1)
+    data["I"] = index
     cardstring = """imax 1 number of bins
 jmax 5 number of processes minus 1
-kmax 18 number of nuisance parameters
+kmax 20 number of nuisance parameters
 ----------------------------------------------------------------------------------------------------------------------------------
 shapes *    ch1  FAKE
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -308,15 +340,17 @@ process                            sig          Fake         photon       SS3l  
 process                            0            1            2            3            4            5
 rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}{qflip:<13s}{wz:<13s}
 ----------------------------------------------------------------------------------------------------------------------------------
-SigStat3                lnN        {sigerr:<13s}-            -            -            -            -
-FakeStat3               lnN        -            {fakeerr:<13s}-            -            -            -
-PhoStat3                lnN        -            -            {photonerr:<13s}-            -            -
-SS3lStat3               lnN        -            -            -            {ss3lerr:<13s}-            -
-ChFlstat3               lnN        -            -            -            -            {qfliperr:<13s}-
-WZStat3                 lnN        -            -            -            -            -            {wzerr:<13s}
+{I}aSigStat             lnN        {sigerr:<13s}-            -            -            -            -
+{I}bFakeStat            lnN        -            {fakeerr:<13s}-            -            -            -
+{I}cPhoStat             lnN        -            -            {photonerr:<13s}-            -            -
+{I}dSStat3              lnN        -            -            -            {ss3lerr:<13s}-            -
+{I}eChFlstat            lnN        -            -            -            -            {qfliperr:<13s}-
+{I}fWZStat              lnN        -            -            -            -            -            {wzerr:<13s}
+{I}gWZNorm              gmN {wzcr:<6s} -            -            -            -            -            {wzalpha:<13s}
+{I}hWZPurity            lnN        -            -            -            -            -            {wzpurity:<13s}
 FakeSyst                lnN        -            1.50         -            -            -            -
-SSSyst                  lnN        -            -            -            1.10         -            -
-WZNorm                  gmN {wzcr:<6s} -            -            -            -            -            {wzalpha:<13s}
+FakeRate                lnN        -            {fakeuperr:<13s}-            -            -            -
+SSSyst                  lnN        -            -            -            1.15         -            -
 JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
 LepSF                   lnN        1.001        -            -            1.001        -            -
 LumSyst                 lnN        1.025        -            1.025        1.025        1.025        -
@@ -376,16 +410,17 @@ bSF                     lnN        1.03         -            -            1.04  
     return cardstring
 
 
+#printAllCutflow()
 
 applyWZNF()
 blind()
 printAllCutflow()
 f = open("nj2wd.txt", "write")
-f.write(getStatCardString("SSmmNJ2MJJWD", "001"))
+f.write(getStatCardStringWithGmN("SSmmNJ2MJJWD", "001"))
 f = open("nj2sb.txt", "write")
-f.write(getStatCardString("SSmmNJ2MJJSB", "002"))
+f.write(getStatCardStringWithGmN("SSmmNJ2MJJSB", "002"))
 f = open("nj1.txt", "write")
-f.write(getStatCardString("SSmmNJ1", "003"))
+f.write(getStatCardStringWithGmN("SSmmNJ1", "003"))
 #printSR()
 #printCR()
 #printCutflow("SSmm", 11, "SSmm")
