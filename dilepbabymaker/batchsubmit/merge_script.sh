@@ -16,7 +16,7 @@ echo "[wrapper] setting env"
 export SCRAM_ARCH=slc6_amd64_gcc530
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 OLDDIR=`pwd`
-cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_8_0_5/src
+cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_9_2_0/src
 #cmsenv
 eval `scramv1 runtime -sh`
 cd $OLDDIR
