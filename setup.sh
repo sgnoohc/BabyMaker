@@ -7,9 +7,9 @@
 echo "Grabbing Dependancies..."
 
 git clone git@github.com:cmstas/CORE.git
-cd CORE/
-git checkout CMS3_archive
-cd ..
+#cd CORE/
+#git checkout CMS3_archive
+#cd ..
 git clone git@github.com:cmstas/NtupleTools.git
 git clone git@github.com:cmstas/Software.git
 cd Software/
@@ -18,12 +18,14 @@ cd ..
 
 echo "Setting up ROOT"
 
-CMSSW_VERSION=CMSSW_8_0_5
+export CMSSW_VERSION=CMSSW_9_2_0
 export SCRAM_ARCH=slc6_amd64_gcc530
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
 eval `scramv1 runtime -sh`
-cd -
+cd - > /dev/null
+
+export LD_LIBRARY_PATH=$PWD/rooutil:$LD_LIBRARY_PATH
 
 echo "Building CORE, this might take a few minutes..."
 cd dilepbabymaker/
