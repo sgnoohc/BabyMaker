@@ -20,6 +20,8 @@ endif
 #	ROOFITINCLUDE = $(shell scramv1 tool info roofitcore | grep INCLUDE | sed 's/^INCLUDE=/-I/')
 #endif
 
+PACKAGES = rooutil
+
 CC = g++
 CMSROOT = ./
 INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE
@@ -58,7 +60,7 @@ LIBS = $(LIB) $(CORELIB) $(TOOLSLIB) $(FWLIB)
 
 EXE = processBaby
 
-.PHONY: all help compile clean cms2env
+.PHONY: all help compile clean cms2env $(PACKAGES)
 
 #
 # how to make it
@@ -94,6 +96,10 @@ $(LIB):	$(DICT) $(OBJECTS)
 	echo "$(LINKER) -shared -o $@ $(OBJECTS) $(DICT) $(LINKERFLAGS)"; \
 	$(LINKER) -shared -o $@ $(OBJECTS) $(DICT) $(LINKERFLAGS)
 
+$(PACKAGES):
+	make -j 15 -C $@
+	cp $@/lib$@.so .
+
 # $(FWLIB):
 # 	echo "making MiniFWLite"; \
 #         cd ../Software/MiniFWLite; \
@@ -128,10 +134,10 @@ LinkDef_out.cxx: LinkDef.h
 # .PHONY: clean
 
 # the option "-Wl,-rpath,./" adds ./ to the runtime search path for libraries
-$(EXE):  $(LIBS)
+$(EXE): $(PACKAGES) $(LIBS)
 	$(QUIET) echo "Building $@"; \
-	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./"; \
-	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ 
+	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))"; \
+	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./  $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))
 
 %.o: 	%.cc %.h
 	$(QUIET) echo "Compiling $<"; \

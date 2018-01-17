@@ -16,6 +16,9 @@ cd Software/
 git checkout root6
 cd ..
 
+echo "git checkout submodules"
+git submodule update --init --recursive
+
 echo "Setting up ROOT"
 
 export CMSSW_VERSION=CMSSW_9_2_0

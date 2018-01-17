@@ -10,3 +10,6 @@
 	path = Loopers/plottery
 	url = git@github.com:aminnj/plottery.git
 	ignore = untracked
+[submodule "dilepbabymaker/rooutil"]
+	path = dilepbabymaker/rooutil
+	url = git@github.com:sgnoohc/rooutil.git

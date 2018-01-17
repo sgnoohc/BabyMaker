@@ -3,7 +3,7 @@
 #include "TSystem.h"
 #include "TString.h"
 
-#include "ScanChain.h"
+#include "ScanChain_v2.h"
 
 #include <iostream>
 
@@ -205,7 +205,9 @@ int main(int argc, char **argv)
     //--------------------------------
     // run
     //--------------------------------
-    babyMaker *looper = new babyMaker();
-    looper->ScanChain(chain, sample, max_events);
+//    babyMaker *looper = new babyMaker();
+//    looper->ScanChain(chain, sample, max_events);
+    babyMaker_v2 *looper = new babyMaker_v2();
+    looper->ScanChain_v2(chain, sample, max_events);
     return 0;
 }
