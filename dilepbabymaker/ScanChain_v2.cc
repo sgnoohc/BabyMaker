@@ -87,7 +87,6 @@ public:
     void ConfigureBtagging();
 };
 
-
 // RooUtil
 #include "rooutil/looper.h"
 
