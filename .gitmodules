@@ -13,3 +13,6 @@
 [submodule "dilepbabymaker/rooutil"]
 	path = dilepbabymaker/rooutil
 	url = git@github.com:sgnoohc/rooutil.git
+[submodule "dilepbabymaker/coreutil"]
+	path = dilepbabymaker/coreutil
+	url = git@github.com:sgnoohc/coreutil.git
