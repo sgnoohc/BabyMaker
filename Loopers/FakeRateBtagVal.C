@@ -201,17 +201,18 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       float MTmax3l = calcMTmax(i3l,MET,true);
 
       int SRSS[4]; bool selects3l[4];
-      int SR3l[4]; bool btag = true;
+      int SR3l[4]; bool btag = false;
+      bool mjjside = true;
       for(int i = 0; i<4; ++i) { SRSS[i] = -1; SR3l[i] = -1; selects3l[i] = false; }
       //SS
       //0: SR
-      SRSS[0] = isSRSS(iSS,      vSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag);
+      SRSS[0] = isSRSS(iSS,      vSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag,mjjside);
       //1: SR preselect
-      SRSS[1] = isSRSS(iSS,      vSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag);
+      SRSS[1] = isSRSS(iSS,      vSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag,mjjside);
       //2: AR
-      SRSS[2] = isARSS(iSS,iaSS,vaSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0, btag);
+      SRSS[2] = isARSS(iSS,iaSS,vaSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0, btag,mjjside);
       //3: AR preselect
-      SRSS[3] = isARSS(iSS,iaSS,vaSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag);
+      SRSS[3] = isARSS(iSS,iaSS,vaSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj, MET,0,btag,mjjside);
       //3l
       //0: SR
       SR3l[0] = isSR3l(i3l,     false,nj,nb,MET,0,btag);
@@ -259,7 +260,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
        
 	float Mll = -999;
    if(SRSS[ 0]>=0){
-  Mll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
+      Mll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
 	histos["Mjj_SRSS_btag_"+     sn]->Fill(Mjj,      weight);
 	histos["njets_SRSS_btag_"+     sn]->Fill(nj30,      weight);
 	histos["nbjets_SRSS_btag_"+     sn]->Fill(nb,      weight);
