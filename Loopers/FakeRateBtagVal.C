@@ -32,7 +32,7 @@ using namespace std;
 using namespace tas;
 //using namespace mt2_bisect;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   bool blindSR = false;
   bool btagreweighting = true;
@@ -62,8 +62,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("FakeEstimationFRdn");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosureup");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosuredn");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
-  histonames.push_back("njets_SRSS_btag");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
-  histonames.push_back("nbjets_SRSS_btag");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("njets_SRSS_btag");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("nbjets_SRSS_btag");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("pTl1_SRSS_btag");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("pTl2_SRSS_btag");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("Mjj_SRSS_btag");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
@@ -174,23 +174,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(!passonlineTrigger) continue;
       }
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");   
-      bool isfakeSS = (temp =="fakes");
-      bool isfake3l = (temp2=="fakes");
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      bool isfakeSS   = (sn =="fakes");
+      bool isfake3l   = (sn2=="fakes");
       int subtract = 1;
       if( !isData()&&(!isfakeSS&&!isfake3l)) subtract = -1;
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("FakeRate")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("FakeRate")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
-      if(isData()) {sn = "Data";sn2= "Data";}
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
 
       float MTmax = -1;
       if(iSS.size()==2) MTmax = calcMTmax(iSS,MET);
@@ -248,16 +241,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
 
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",           sn, sn2, SRSS[ 0], SR3l[ 0], weight, weight);
+	fillSRhisto(histos, "SRyield",                         sample, sn, sn2, SRSS[ 0], SR3l[ 0], weight,                     weight);
       }
-
-      fillSRhisto(histos, "ARyield",                           sn, sn2, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "FakeEstimation",                    sn, sn2, SRSS[ 2], SR3l[ 2], weight*SFSS, weight*SF3l);
-      fillSRhisto(histos, "FakeEstimationFRup",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr), weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",                sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
-      fillSRhisto(histos, "FakeEstimationClosureup",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
-      fillSRhisto(histos, "FakeEstimationClosuredn",           sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
+      fillSRhisto(histos, "ARyield",                           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight,                     weight);
+      fillSRhisto(histos, "FakeEstimation",                    sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight* SFSS,               weight* SF3l);
+      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr));
+      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr));
+      fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
+      fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, sn2, SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
        
+<<<<<<< HEAD
 	float Mll = -999;
    if(SRSS[ 0]>=0){
       Mll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
@@ -290,7 +283,35 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(histos, "FakeEstimationFRdn",                "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr), weight*(SF3l-SF3lerr));
       fillSRhisto(histos, "FakeEstimationClosureup",           "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
       fillSRhisto(histos, "FakeEstimationClosuredn",           "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
+=======
+      float Mll = -999;
+      if(SRSS[ 0]>=0){
+	fillhisto(histos, "Mjj_SRSS_btag",    sample, sn, Mjj,                                       weight);
+	fillhisto(histos, "njets_SRSS_btag",  sample, sn, nj30,                                      weight);
+	fillhisto(histos, "nbjets_SRSS_btag", sample, sn, nb,                                        weight);
+	fillhisto(histos, "pTl1_SRSS_btag",   sample, sn, lep_p4()[iSS[0] ].pt(),                    weight);
+	fillhisto(histos, "pTl2_SRSS_btag",   sample, sn, lep_p4()[iSS[1] ].pt(),                    weight);
+	fillhisto(histos, "Mll_SRSS_btag",    sample, sn, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
+	fillhisto(histos, "MTmax_SRSS_btag",  sample, sn, MTmax,                                     weight);
+	fillhisto(histos, "MET_SRSS_btag",    sample, sn, met_pt(),                                  weight);
+>>>>>>> 098bfe59c52ca31f810416cc9c3e00958fdc8a79
       }
+      if(isfakeSS||isfake3l||sample.find("WWW")!=string::npos)  continue; //skip fakes when filling in fake estimations from data
+	fillSRhisto(histos, "SRyield",                           sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight* SFSS,               weight* SF3l,               false);
+	fillSRhisto(histos, "FakeEstimationFRup",                sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr),      false);
+	fillSRhisto(histos, "FakeEstimationFRdn",                sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr),      false);
+	fillSRhisto(histos, "FakeEstimationClosureup",           sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr), false);
+	fillSRhisto(histos, "FakeEstimationClosuredn",           sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr), false);
+	if(SRSS[2]>=0) {
+	  fillhisto(histos, "Mjj_SRSS_btag",    sample, "fakesPred", Mjj,                                        weight);
+	  fillhisto(histos, "njets_SRSS_btag",  sample, "fakesPred", nj30,                                       weight);
+	  fillhisto(histos, "nbjets_SRSS_btag", sample, "fakesPred", nb,                                         weight);
+	  fillhisto(histos, "pTl1_SRSS_btag",   sample, "fakesPred", lep_p4()[iSS[0] ].pt(),                     weight);
+	  fillhisto(histos, "pTl2_SRSS_btag",   sample, "fakesPred", lep_p4()[iSS[1] ].pt(),                     weight);
+	  fillhisto(histos, "Mll_SRSS_btag",    sample, "fakesPred", (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight);
+	  fillhisto(histos, "MTmax_SRSS_btag",  sample, "fakesPred", MTmax,                                      weight);
+	  fillhisto(histos, "MET_SRSS_btag",    sample, "fakesPred", met_pt(),                                   weight);
+	}
     }//event loop
   
     // Clean Up
@@ -302,7 +323,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cout << Form( "ERROR: number of events from files (%d) is not equal to total number of events (%d)", nEventsChain, nEventsTotal ) << endl;
   }
 
-  SaveHistosToFile("rootfiles/FakeRateHistograms.root",histos,true,true);
+  SaveHistosToFile("rootfiles/FakeRateBtagValidationHistograms.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
 
   // return
   bmark->Stop("benchmark");

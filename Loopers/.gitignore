@@ -7,3 +7,13 @@
 data
 rootfiles
 plots
+wwwana
+*.root
+qscripts/*.root
+qscripts/*.pyc
+qscripts/cutflows
+qscripts/eventlists
+*.swp
+.tags
+.nfs*
+rename

@@ -22,7 +22,7 @@
 
 // CMS3
 #include "Functions.h"
-#include "CMS3_WWW0116.cc"
+#include "CMS3_WWW0117.cc"
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -31,7 +31,7 @@
 using namespace std;
 using namespace tas;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   vector<myevt> e;
   addeventtocheck(e,1, 2842, 1443084);
@@ -44,6 +44,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool applylepSF      = true;
   bool applytrigSF     = true;
   bool applyPUrewgt    = true;
+  bool getJECunc       = true;
   
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -118,6 +119,17 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("WZControlRegionPresel");               hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("ApplicationRegionPreselPrecleaning");  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("WZControlRegionPreselPrecleaning");    hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+
+  histonames.push_back("SignalRegion_JECup");                  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_JECdn");                  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_lepSFup");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_lepSFdn");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_bHFSFup");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_bHFSFdn");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_bLFSFup");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_bLFSFdn");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_PUup");                   hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegion_PUdn");                   hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
 
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
@@ -194,6 +206,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	break;
       }
       LorentzVector MET; MET.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+      LorentzVector MET_up; MET_up.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*TMath::Cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*TMath::Sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+      LorentzVector MET_dn; MET_dn.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
+
       int nj(0), nb(0), nj30(0);
       getalljetnumbers(nj,nj30,nb);
       float Mjj = -1;
@@ -208,9 +223,22 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	}
       }
 
+      int nj_up(0), nb_up(0), nj30_up(0);
+      if(getJECunc) getalljetnumbers(nj_up,nj30_up,nb_up,1);
+      float Mjj_up = -1;
+      float MjjL_up = -1; float Detajj_up = -1;
+      if(getJECunc) getMjjAndDeta(Mjj_up,MjjL_up,Detajj_up,1);
+
+      int nj_dn(0), nb_dn(0), nj30_dn(0);
+      if(getJECunc) getalljetnumbers(nj_dn,nj30_dn,nb_dn,-1);
+      float Mjj_dn = -1;
+      float MjjL_dn = -1; float Detajj_dn = -1;
+      if(getJECunc) getMjjAndDeta(Mjj_dn,MjjL_dn,Detajj_dn,-1);
+
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
+      getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
+      //getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
@@ -220,6 +248,28 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(applytrigSF&&!isData()){
 	trigSF    = getTriggerWeightandError(trigSFerr, i3l,ia3l);
 	weight *= trigSF;
+      }
+      float weight_lepSFup = weight;
+      float weight_lepSFdn = weight;
+      float weight_PUup    = weight;
+      float weight_PUdn    = weight;
+      float weight_bHFSFup = weight;
+      float weight_bHFSFdn = weight;
+      float weight_bLFSFup = weight;
+      float weight_bLFSFdn = weight;
+      if(!isData()&&btagreweighting&&weight_btagsf()!=0){
+	weight_bHFSFup *= weight_btagsf_heavy_UP()/weight_btagsf();
+	weight_bHFSFdn *= weight_btagsf_heavy_DN()/weight_btagsf();
+	weight_bLFSFup *= weight_btagsf_light_UP()/weight_btagsf();
+	weight_bLFSFdn *= weight_btagsf_light_DN()/weight_btagsf();
+      }
+      if(applyPUrewgt&&!isData()&&PUweight!=0){
+	weight_PUup *= PUweightup/PUweight;
+	weight_PUdn *= PUweightdn/PUweight;
+      }
+      if(applylepSF&&!isData()&&lepSF!=0){
+	weight_lepSFup *= (lepSF+lepSFerr)/lepSF;
+	weight_lepSFdn *= (lepSF-lepSFerr)/lepSF;
       }
       if(checkevent) cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << PUweight << " trig " << trigSF << " lep " << lepSF << endl;
 
@@ -259,18 +309,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       if(checkevent) cout << "pass online" << endl;
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
+      
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
 
 
       float MTmax = -1;
@@ -281,10 +326,18 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       float MTmax3l = calcMTmax(i3l,MET,true);
       if(checkevent) cout << "MET " << MET.Pt() << " MTmax " << MTmax << " MTmax3l " << MTmax3l << endl;
+      float MTmax_up(-1), MTmax_dn(-1), MTmax3l_up(-1), MTmax3l_dn(-1);
+      if(getJECunc) {
+	MTmax_up   = calcMTmax(iSS,MET_up);
+	//MTmax3l_up = calcMTmax(i3l,MET_up,true);
+	MTmax_dn   = calcMTmax(iSS,MET_dn);
+	//MTmax3l_dn = calcMTmax(i3l,MET_dn,true);
+      }
+      
+      int SRSS[8]; bool selects3l[8];
+      int SR3l[8];
+      for(int i = 0; i<8; ++i) { SRSS[i] = -1; SR3l[i] = -1; selects3l[i] = false; }
 
-      int SRSS[6]; bool selects3l[6];
-      int SR3l[6];
-      for(int i = 0; i<6; ++i) { SRSS[i] = -1; SR3l[i] = -1; selects3l[i] = false; }
       //SS
       //0: SR
       SRSS[0] = isSRSS(iSS,      vSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
@@ -298,6 +351,10 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       SRSS[4] = isCRSS(iSS,i3l,  v3l,false,MTmax3l,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
       //5: CR preselect
       SRSS[5] = isCRSS(iSS,i3l,  v3l,true ,MTmax3l,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
+      //6: SR JEC up
+      if(getJECunc) SRSS[6] = isSRSS(iSS, vSS,false,MTmax_up, nj30_up,nb_up,Mjj_up,MjjL_up,Detajj_up,MET_up,1);
+      //7: SR JEC dn
+      if(getJECunc) SRSS[7]= isSRSS(iSS, vSS,false,MTmax_dn, nj30_dn,nb_dn,Mjj_dn,MjjL_dn,Detajj_dn,MET_dn,-1);
       selects3l[4] = true; selects3l[5] = true;
       //3l
       //0: SR, 4: CR
@@ -308,20 +365,25 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       SR3l[2] = isAR3l(i3l,ia3l,false,nj,nb);
       //3: AR preselect
       SR3l[3] = isAR3l(i3l,ia3l,true ,nj,nb);
+      //6: SR JEC up
+      if(getJECunc) SR3l[6] = isSR3l(i3l,false,nj_up,nb_up,MET_up,1);
+      //7: SR JEC dn
+      if(getJECunc) SR3l[7] = isSR3l(i3l,false,nj_dn,nb_dn,MET_dn,-1);
+      
 
       if(!isData()||!blindSR){//SR is blinded
-	fillSRhisto(histos, "SignalRegionPrecleaning",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
-	fillSRhisto(histos, "SignalRegionPreselPrecleaning", sn, sn2, SRSS[1], SR3l[1], weight, weight);
+	fillSRhisto(histos, "SignalRegionPrecleaning",            sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
+	fillSRhisto(histos, "SignalRegionPreselPrecleaning",      sample, sn, sn2, SRSS[1], SR3l[1], weight, weight);
       }
-      fillSRhisto(histos, "ApplicationRegionPrecleaning",       sn, sn2, SRSS[2], SR3l[2], weight, weight);
-      fillSRhisto(histos, "ApplicationRegionPreselPrecleaning", sn, sn2, SRSS[3], SR3l[3], weight, weight);
-      fillSRhisto(histos, "WZControlRegionPrecleaning",         sn2,sn2, SRSS[4], SR3l[4], weight, weight);
-      fillSRhisto(histos, "WZControlRegionPreselPrecleaning",   sn2,sn2, SRSS[5], SR3l[5], weight, weight);
+      fillSRhisto(  histos, "ApplicationRegionPrecleaning",       sample, sn, sn2, SRSS[2], SR3l[2], weight, weight);
+      fillSRhisto(  histos, "ApplicationRegionPreselPrecleaning", sample, sn, sn2, SRSS[3], SR3l[3], weight, weight);
+      fillSRhisto(  histos, "WZControlRegionPrecleaning",         sample, sn2,sn2, SRSS[4], SR3l[4], weight, weight);
+      fillSRhisto(  histos, "WZControlRegionPreselPrecleaning",   sample, sn2,sn2, SRSS[5], SR3l[5], weight, weight);
 
 
       if(checkevent) cout << "passed       SRSS " << SRSS[0] << " SR3l " << SR3l[0] << " ARSS " << SRSS[2] << " AR3l " << SR3l[2] << " CRSS " << SRSS[4] << " CR3l " << SR3l[4] << endl;
       //if(SRSS[2]==0) cout << __LINE__ << endl;
-      for(int i = 0; i<6; ++i) {
+      for(int i = 0; i<8; ++i) {
 	if(!selects3l[i]){
 	  if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
 	}
@@ -332,22 +394,33 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
 
       if(!isData()||!blindSR){//SR is blinded
-	fillSRhisto(histos, "SignalRegion",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
-	fillSRhisto(histos, "SignalRegionPresel", sn, sn2, SRSS[1], SR3l[1], weight, weight);
+	fillSRhisto(histos, "SignalRegion",               sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
+	fillSRhisto(histos, "SignalRegionPresel",         sample, sn, sn2, SRSS[1], SR3l[1], weight, weight);
+	fillSRhisto(histos, "SignalRegion_JECup",         sample, sn, sn2, SRSS[6], SR3l[6], weight,         weight);
+	fillSRhisto(histos, "SignalRegion_JECdn",         sample, sn, sn2, SRSS[7], SR3l[7], weight,         weight);
+	fillSRhisto(histos, "SignalRegion_lepSFup",       sample, sn, sn2, SRSS[0], SR3l[0], weight_lepSFup, weight_lepSFup);
+	fillSRhisto(histos, "SignalRegion_lepSFdn",       sample, sn, sn2, SRSS[0], SR3l[0], weight_lepSFdn, weight_lepSFdn);
+	fillSRhisto(histos, "SignalRegion_bHFSFup",       sample, sn, sn2, SRSS[0], SR3l[0], weight_bHFSFup, weight_bHFSFup);
+	fillSRhisto(histos, "SignalRegion_bHFSFdn",       sample, sn, sn2, SRSS[0], SR3l[0], weight_bHFSFdn, weight_bHFSFdn);
+	fillSRhisto(histos, "SignalRegion_bLFSFup",       sample, sn, sn2, SRSS[0], SR3l[0], weight_bLFSFup, weight_bLFSFup);
+	fillSRhisto(histos, "SignalRegion_bLFSFdn",       sample, sn, sn2, SRSS[0], SR3l[0], weight_bLFSFdn, weight_bLFSFdn);
+	fillSRhisto(histos, "SignalRegion_PUup",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUup,    weight_PUup);
+	fillSRhisto(histos, "SignalRegion_PUdn",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUdn,    weight_PUdn);
+	
       }
-      fillSRhisto(histos, "ApplicationRegion",       sn, sn2, SRSS[2], SR3l[2], weight, weight);
-      fillSRhisto(histos, "ApplicationRegionPresel", sn, sn2, SRSS[3], SR3l[3], weight, weight);
-      fillSRhisto(histos, "WZControlRegion",         sn2,sn2, SRSS[4], SR3l[4], weight, weight);
-      fillSRhisto(histos, "WZControlRegionPresel",   sn2,sn2, SRSS[5], SR3l[5], weight, weight);
+      fillSRhisto(  histos, "ApplicationRegion",          sample, sn, sn2, SRSS[2], SR3l[2], weight, weight);
+      fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, sn2, SRSS[3], SR3l[3], weight, weight);
+      fillSRhisto(  histos, "WZControlRegion",            sample, sn2,sn2, SRSS[4], SR3l[4], weight, weight);
+      fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn2,sn2, SRSS[5], SR3l[5], weight, weight);
 
       if(!isData()||!blindSR){//SR is blinded
-	fillSRhisto(histos, "RawSignalRegion",       sn, sn2, SRSS[0], SR3l[0], 1., 1.);
-	fillSRhisto(histos, "RawSignalRegionPresel", sn, sn2, SRSS[1], SR3l[1], 1., 1.);
+	fillSRhisto(histos, "RawSignalRegion",            sample, sn, sn2, SRSS[0], SR3l[0], 1., 1.);
+	fillSRhisto(histos, "RawSignalRegionPresel",      sample, sn, sn2, SRSS[1], SR3l[1], 1., 1.);
       }
-      fillSRhisto(histos, "RawApplicationRegion",       sn, sn2, SRSS[2], SR3l[2], 1., 1.);
-      fillSRhisto(histos, "RawApplicationRegionPresel", sn, sn2, SRSS[3], SR3l[3], 1., 1.);
-      fillSRhisto(histos, "RawWZControlRegion",         sn2,sn2, SRSS[4], SR3l[4], 1., 1.);
-      fillSRhisto(histos, "RawWZControlRegionPresel",   sn2,sn2, SRSS[5], SR3l[5], 1., 1.);
+      fillSRhisto(  histos, "RawApplicationRegion",       sample, sn, sn2, SRSS[2], SR3l[2], 1., 1.);
+      fillSRhisto(  histos, "RawApplicationRegionPresel", sample, sn, sn2, SRSS[3], SR3l[3], 1., 1.);
+      fillSRhisto(  histos, "RawWZControlRegion",         sample, sn2,sn2, SRSS[4], SR3l[4], 1., 1.);
+      fillSRhisto(  histos, "RawWZControlRegionPresel",   sample, sn2,sn2, SRSS[5], SR3l[5], 1., 1.);
 
       if(storeeventnumbers){
 	addeventtolist(SRSS[0], SR3l[0], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
@@ -375,7 +448,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     storeeventlist("data/CR", skimFilePrefix, CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
   }
   
-  SaveHistosToFile("rootfiles/SRLooper.root",histos,true,true);
+  SaveHistosToFile("rootfiles/SRLooper.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
 
   // return
   bmark->Stop("benchmark");

@@ -12,6 +12,7 @@
 #include "TTree.h"
 #include "TH2.h"
 #include "TString.h"
+#include "TMVA/Reader.h"
 
 #include "Math/LorentzVector.h"
 #include "Math/GenVector/LorentzVector.h"
@@ -85,6 +86,23 @@ private:
   float getBtagEffFromFile(float pt, float eta, int mcFlavour, bool isFastsim);
   float get_sum_mlb();
   void load_leptonSF_files();
+  //Start BDT Variables----------------------------------------------------------------------  
+  Float_t lepton_eta        ;
+  Float_t lepton_phi        ;
+  Float_t lepton_pt         ;
+  Float_t lepton_relIso03EA ;
+  Float_t lepton_chiso      ;
+  Float_t lepton_nhiso      ;
+  Float_t lepton_emiso      ;
+  Float_t lepton_ncorriso   ;
+  Float_t lepton_dxy        ;
+  Float_t lepton_dz         ;
+  Float_t lepton_ip3d       ;
+  
+  TMVA::Reader* reader1     ;
+  TMVA::Reader* reader2     ;
+  TMVA::Reader* reader3     ;
+  //End BDT Variables----------------------------------------------------------------------
 
   // for btag SFs
   BTagCalibration* calib;
@@ -117,6 +135,7 @@ private:
 
   Bool_t          evt_passgoodrunlist;
   Float_t         evt_scale1fb;
+  Float_t         evt_fixgridfastjet_allcalo_rho;
   Float_t         evt_xsec;
   Float_t         evt_kfactor;
   Float_t         evt_filter;
@@ -280,11 +299,16 @@ private:
   Int_t           nVetoMu_relIso03EAless04;
   
   std::vector <LorentzVector> lep_p4;
-  std::vector <Float_t> lep_pt           ;   //[nlep]
-  std::vector <Float_t> lep_eta          ;   //[nlep]
-  std::vector <Float_t> lep_phi          ;   //[nlep]
-  std::vector <Float_t> lep_mass         ;   //[nlep]
-  std::vector <Int_t  > lep_charge       ;   //[nlep]
+  std::vector <Float_t> lep_pt           ;  
+  std::vector <Float_t> lep_eta          ;  
+  std::vector <Float_t> lep_phi          ;  
+  std::vector <Float_t> lep_mass         ;  
+  std::vector <Int_t  > lep_charge       ;
+
+  //BDT Per Lepton Variables
+  std::vector <Float_t> lep_bdt1         ;  
+  std::vector <Float_t> lep_bdt2         ;  
+  std::vector <Float_t> lep_bdt3         ;  
   
   std::vector <Bool_t >  lep_3ch_agree             ;
   std::vector <Bool_t  > lep_isFromW               ;
@@ -329,6 +353,9 @@ private:
   std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight_noiso           ;
   std::vector <Bool_t >  lep_pass_VVV_MVAbased_tight                 ;
   std::vector <Bool_t >  lep_pass_VVV_baseline                       ;
+  std::vector <Bool_t >  lep_pass_POG_loose_noiso                    ;
+  std::vector <Bool_t >  lep_pass_POG_medium_noiso                   ;
+  std::vector <Bool_t >  lep_pass_POG_tight_noiso                    ;
 
   //Lepton ID Counters:
   Int_t  nlep_VVV_cutbased_veto                       ;
@@ -361,6 +388,7 @@ private:
   std::vector <Float_t> lep_MVA          ;   //[nlep]
   std::vector <Float_t> lep_validfraction;   //[nlep]
   std::vector <Float_t> lep_pterr        ;   //[nlep]
+  std::vector <Float_t> lep_trk_pt       ;   //[nlep]
   std::vector <Float_t> lep_sta_pterrOpt ;   //[nlep]
   std::vector <Float_t> lep_glb_pterrOpt ;   //[nlep]
   // std::vector <Float_t> lep_bft_pterrOpt ;   //[nlep]
@@ -368,6 +396,43 @@ private:
   std::vector <Float_t> lep_sta_x2ondof  ;   //[nlep]
   std::vector <Float_t> lep_glb_x2ondof  ;   //[nlep]
   // std::vector <Float_t> lep_bft_x2ondof  ;   //[nlep]
+
+  //----Variables for custom ID:
+  std::vector <Float_t> lep_exp_innerlayers                   ;
+  std::vector <Float_t> lep_exp_outerlayers                   ;
+  std::vector <Int_t  > lep_nlayers                           ;
+  std::vector <Int_t  > lep_type                              ;
+  std::vector <Int_t  > lep_validHits                         ;
+
+  //---Electron Only:
+  std::vector <Float_t> lep_dEtaIn_e                          ;
+  std::vector <Float_t> lep_dEtaOut_e                         ;
+  std::vector <Float_t> lep_dPhiIn_e                          ;
+  std::vector <Float_t> lep_ecalEnergy_e                      ;
+  std::vector <Float_t> lep_ecalEnergyError_e                 ;
+  std::vector <Float_t> lep_ecalPFClusterIso_e                ;
+  std::vector <Float_t> lep_eOverPIn_e                        ;
+  std::vector <Float_t> lep_hcalPFClusterIso_e                ;
+  std::vector <Float_t> lep_hOverE_e                          ;
+  std::vector <Float_t> lep_scSeedEta_e                       ;
+  std::vector <Float_t> lep_sigmaIEtaIEta_full5x5_e           ;
+  std::vector <Float_t> lep_tkIso_e                           ;
+
+  //---Muon Only:
+  std::vector <Bool_t > lep_goodGlb_m                         ;
+  std::vector <Bool_t > lep_isGlobal_m                        ;
+  std::vector <Bool_t > lep_isTracker_m                       ;
+  std::vector <Int_t  > lep_gfit_ndof_m                       ;
+  std::vector <Float_t> lep_chi2LocalPosition_m               ;
+  std::vector <Float_t> lep_gfit_chi2_m                       ;
+  std::vector <Int_t  > lep_gfit_validSTAHits_m               ;
+  std::vector <Int_t  > lep_numberOfMatchedStations_m         ;
+  std::vector <Int_t  > lep_pid_PFMuon_m                      ;
+  std::vector <Float_t> lep_segmCompatibility_m               ;
+  std::vector <Float_t> lep_trkKink_m                         ;
+  std::vector <Int_t  > lep_validPixelHits_m                  ;
+  
+  
   
   Int_t nisoTrack_5gev;
   Int_t nisoTrack_stop;

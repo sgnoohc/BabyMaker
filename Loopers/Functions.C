@@ -123,6 +123,9 @@ bool sortMSFOS(float M1, float M2){
 bool sortPt(int i1, int i2){
   return lep_p4()[i1].Pt()>=lep_p4()[i2].Pt();
 }
+bool sortDecreasing(double i1, double i2){
+  return i1>=i2;
+}
 
 int numJ(float jetpt, float jeteta, float csv, int jec){
   int num = 0;
@@ -224,6 +227,75 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
       } else if(abs(lep_pdgId()[i])==13&&lep_relIso03EAv2()[i]<0.4){
 	if(  !is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
 	if(  !isSS&&lep_p4()[i].Pt()>30) { iaSS.push_back(i); isaSS = true; }
+      }
+    }
+    //vetoID
+    if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_relIso03EAv2()[i]<=0.4) {
+      if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
+      if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
+      if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
+      if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
+    }
+  }
+  return true;
+}
+
+bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int bdtnum/* = 1*/, float bdt_wp/* = 0.85*/){
+  // Fills in the lepton indicies for the all the different classes of lepton ID
+  // But uses the BDT based isolation variables instead of relIso.
+  iSS.clear();
+  i3l.clear();
+  iaSS.clear();
+  ia3l.clear();
+  vSS.clear();
+  v3l.clear();
+  vaSS.clear();
+  va3l.clear();
+
+  vector<float> bdtvals;
+
+  if      (bdtnum == 1) bdtvals = lep_bdt1();
+  else if (bdtnum == 2) bdtvals = lep_bdt2();
+  else                  bdtvals = lep_bdt3();
+
+  for(unsigned int i = 0; i<lep_pdgId().size();++i){
+    bool isSS    = false; bool is3l    = false;
+    bool isaSS   = false; bool isa3l   = false;
+    //tight ID
+    if(abs(lep_pdgId()[i])==11){ //Electrons
+      if(lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
+        if(lep_lostHits()[i]==0&&lep_tightCharge()[i]==2){
+          if(fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.0588){
+            if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+            if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+          }
+          else if(fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.0571){
+            if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+            if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+          }
+        } 
+      }
+    }
+    else if(abs(lep_pdgId()[i])==13){ //Muons
+      if(lep_pass_POG_medium_noiso()[i]&&bdtvals[i]>bdt_wp&&fabs(lep_p4()[i].Eta())<2.4&&(lep_pterr()[i]/lep_trk_pt()[i])<0.2){
+        if(  lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
+        if(  lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
+      }
+    }
+  
+  //loose ID
+  if(lep_pass_VVV_cutbased_fo_noiso()[i]   &&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
+      if(abs(lep_pdgId()[i])==11&&lep_lostHits()[i]==0&&lep_tightCharge()[i]==2){
+  if(fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.2){
+    if(!is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
+    if(!isSS&&lep_p4()[i].Pt()>30) { iaSS.push_back(i); isaSS = true; }
+  } else if(fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.2){
+    if(!is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
+    if(!isSS&&lep_p4()[i].Pt()>30) { iaSS.push_back(i); isaSS = true; }
+  }
+      } else if(abs(lep_pdgId()[i])==13&&lep_relIso03EAv2()[i]<0.4){
+  if(  !is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
+  if(  !isSS&&lep_p4()[i].Pt()>30) { iaSS.push_back(i); isaSS = true; }
       }
     }
     //vetoID
@@ -572,10 +644,11 @@ bool splitVH(string filename){
 }
 
 string process(string filename, bool SS, vector<int> tightlep, vector<int> looselep){
-  if(splitVH(filename))                               return "WHtoWWW";//be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("www_2l_")         !=string::npos) return "WWW";    //be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("www_incl_amcnlo_")!=string::npos) return "WWWv2";  //be careful not to double-count (for Hannsjoerg only)
-  if(filename.find("data_")           !=string::npos) return "Data";  //be careful not to double-count (for Hannsjoerg only)
+  if(isData())                                        return "Data";
+  if(splitVH(filename))                               return "WHtoWWW";
+  if(filename.find("www_2l_")         !=string::npos) return "WWW";
+  if(filename.find("www_incl_amcnlo_")!=string::npos) return "WWWv2";
+  if(filename.find("data_")           !=string::npos) return "Data"; 
   if(SS){
     if((tightlep.size()+looselep.size())<2)           return "not2l";
     int l1, l2;
@@ -1033,95 +1106,54 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
   if(histonames.size()!=hup.size()) return histos;
   for(unsigned int i = 0; i<histonames.size(); ++i){
     string mapname = histonames[i];
+    mapname = histonames[i] + "_"+samplename;
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_fakesPred";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_Other";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_WHtoWWW";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_trueSS";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_chargeflips";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_SSLL";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_fakes";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_photonfakes";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_others";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_trueWWW";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_3lLL";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_true3L";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     if(splitWW==1){
-      if(samplename=="WW"){
-	mapname = histonames[i] + "_WWRest";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_otherWWSS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWVBS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWDPS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-      if(samplename.find("ttV")!=string::npos){
-	mapname = histonames[i] + "_ttVSS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_OtherttV";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_ttV3l";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
+      mapname = histonames[i] + "_WWRest";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_otherWWSS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_WWVBS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_WWDPS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_ttVSS";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_OtherttV";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+      mapname = histonames[i] + "_ttV3l";
+      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     }
     else if(splitWW==2){
-      if(samplename=="WW"){
-	//mapname = histonames[i] + "_WW";//loaded later
-	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_WWVBS";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-      if(samplename.find("ttV")!=string::npos){
-	mapname = histonames[i] + "_ttW";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	mapname = histonames[i] + "_ttZ";
-	if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-	//mapname = histonames[i] + "_ttV";//loaded later
-	//if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      }
-    }
-    if(samplename.find("Other")!=string::npos){
-      mapname = histonames[i] + "_Other";
+      mapname = histonames[i] + "_WWVBS";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_WHtoWWW";
+      mapname = histonames[i] + "_ttW";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    }
-    else if(samplename.find("FakeRate")!=string::npos){
-      mapname = histonames[i] + "_fakesPred";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_Data";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueSS";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_chargeflips";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_SSLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakes";//jetfakes
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_photonfakes";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_others";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueWWW";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_3lLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_true3L";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    }
-    else if(samplename.find("Background")!=string::npos){
-      mapname = histonames[i] + "_trueSS";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_chargeflips";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_SSLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakes";//jetfakes
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_photonfakes";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_others";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_trueWWW";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_3lLL";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_true3L";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-      mapname = histonames[i] + "_fakesPred";
-      if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    } else {
-      mapname = histonames[i] + "_"+samplename;
+      mapname = histonames[i] + "_ttZ";
       if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     }
   }
@@ -1131,20 +1163,44 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
   return histos;
 }
 
-bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l){
+bool deleteHistograms(map<string, TH1D*> histos){
+  for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h) delete h->second;
+  return true;
+}
+
+bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l, bool fillsample){
   float weight2 = weight3l;
   if(weight3l<-1e6) weight2 = weight;
-  if(SRSS==0) histos[histoname+"_"+sn ]->Fill(0.,weight);
-  if(SRSS==1) histos[histoname+"_"+sn ]->Fill(1.,weight);
-  if(SRSS==2) histos[histoname+"_"+sn ]->Fill(2.,weight);
-  if(SR3l==0) histos[histoname+"_"+sn2]->Fill(3.,weight2);
-  if(SR3l==1) histos[histoname+"_"+sn2]->Fill(4.,weight2);
-  if(SR3l==2) histos[histoname+"_"+sn2]->Fill(5.,weight2);
+  if(fillsample){
+    if(SRSS==0)   histos[histoname+"_"+sample]->Fill(0.,weight);
+    if(SRSS==1)   histos[histoname+"_"+sample]->Fill(1.,weight);
+    if(SRSS==2)   histos[histoname+"_"+sample]->Fill(2.,weight);
+    if(SR3l==0)   histos[histoname+"_"+sample]->Fill(3.,weight2);
+    if(SR3l==1)   histos[histoname+"_"+sample]->Fill(4.,weight2);
+    if(SR3l==2)   histos[histoname+"_"+sample]->Fill(5.,weight2);
+  }
+  if(sample!=sn){
+    if(SRSS==0) histos[histoname+"_"+sn    ]->Fill(0.,weight);
+    if(SRSS==1) histos[histoname+"_"+sn    ]->Fill(1.,weight);
+    if(SRSS==2) histos[histoname+"_"+sn    ]->Fill(2.,weight);
+  }
+  if(sample!=sn2){
+    if(SR3l==0) histos[histoname+"_"+sn2   ]->Fill(3.,weight2);
+    if(SR3l==1) histos[histoname+"_"+sn2   ]->Fill(4.,weight2);
+    if(SR3l==2) histos[histoname+"_"+sn2   ]->Fill(5.,weight2);
+  }
   if(SRSS>=0||SR3l>=0) return true;
   else return false;
 }
 
-bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow, bool addoverflow){
+bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample){
+  if(fillsample) histos[  histoname+"_"+sample]->Fill(value,weight);
+  if(sample!=sn)
+    histos[histoname+"_"+sn    ]->Fill(value,weight);
+  return true;
+}
+
+bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow, bool addoverflow, bool deletefile){
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
     //add overflow
     if(addoverflow){
@@ -1158,13 +1214,25 @@ bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderf
     }
   }
   
-  TFile *f = new TFile(filename.c_str(),"UPDATE");
+  TFile *f;
+  if(deletefile) f = new TFile(filename.c_str(),"RECREATE");
+  else           f = new TFile(filename.c_str(),"UPDATE");
   f->cd();
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
-    h->second->Write(h->first.c_str(),TObject::kOverwrite);
+    if(f->GetListOfKeys()->Contains(h->first.c_str())){
+      h->second->SetName((h->first+"new").c_str());
+      TH1D *hold = (TH1D*)f->Get(h->first.c_str());
+      hold->SetName((h->first+"old").c_str());
+      TH1D *hnew = (TH1D*)hold->Clone(h->first.c_str());
+      hnew->Add(h->second);
+      hnew->Write(h->first.c_str(),TObject::kOverwrite);
+    }
+    else
+      h->second->Write(h->first.c_str(),TObject::kOverwrite);
   }
   f->Close();
   cout << "Saved histos in " << f->GetName() << endl;
+  delete f;
   return true;
 }
 
@@ -1529,3 +1597,208 @@ void storeeventlist(string output, string sample, std::ostringstream *&streamEE,
   delete stream1SFOS;
   delete stream2SFOS;
 }
+
+int calcNSFOS(std::vector<int> tightlep)
+{
+  bool OS01 = (lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ]<0); bool SF01 = (abs(lep_pdgId()[tightlep[0] ])==abs(lep_pdgId()[tightlep[1] ]));
+  bool OS02 = (lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[2] ]<0); bool SF02 = (abs(lep_pdgId()[tightlep[0] ])==abs(lep_pdgId()[tightlep[2] ]));
+  bool OS12 = (lep_pdgId()[tightlep[1] ]*lep_pdgId()[tightlep[2] ]<0); bool SF12 = (abs(lep_pdgId()[tightlep[1] ])==abs(lep_pdgId()[tightlep[2] ]));
+  int SFOScounter = 0;
+  if(OS01&&SF01) ++SFOScounter;
+  if(OS02&&SF02) ++SFOScounter;
+  if(OS12&&SF12) ++SFOScounter;
+  if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<20.) SFOScounter = -1;
+  if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<20.) SFOScounter = -1;
+  if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<20.) SFOScounter = -1;
+  if(abs(lep_charge()[tightlep[0] ]+lep_charge()[tightlep[1] ]+lep_charge()[tightlep[2] ])==3) SFOScounter = -1;
+  return SFOScounter;
+}
+
+float get0SFOSMll(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
+    if (pdgid0 == pdgid1)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == pdgid2)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == pdgid2)
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get0SFOSMee(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
+    if (pdgid0 == pdgid1 && abs(pdgid0) == 11)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == pdgid2 && abs(pdgid0) == 11)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == pdgid2 && abs(pdgid1) == 11)
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    return -999;
+}
+
+float get1SFOSMll(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
+    if (pdgid0 == -pdgid1)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get2SFOSMll0(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
+    if (pdgid0 == -pdgid1)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+float get2SFOSMll1(std::vector<int> lepidx)
+{
+    if (lepidx.size() != 3)
+    { return -999; }
+    int pdgid0 = tas::lep_pdgId()[lepidx[0]];
+    int pdgid1 = tas::lep_pdgId()[lepidx[1]];
+    int pdgid2 = tas::lep_pdgId()[lepidx[2]];
+    if (pdgid2 == -pdgid1)
+        return (tas::lep_p4()[lepidx[1]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[2]]).mass();
+    else if (pdgid1 == -pdgid0)
+        return (tas::lep_p4()[lepidx[0]]
+                + tas::lep_p4()[lepidx[1]]).mass();
+    std::cout <<
+              "Warning: Shouldn't be here if function call are at the right places."
+              << std::endl;
+    return -999;
+}
+
+// returns if the given igen'th gen particle is a W to be considered.
+bool isW(int igen)
+{
+    if (!(abs(tas::genPart_pdgId()[igen]) == 24)) return false;
+    if (!(abs(tas::genPart_status()[igen]) == 62)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
+bool isParentW(int igen)
+{
+    if (!(abs(tas::genPart_motherId()[igen]) == 24)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) != 24)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a desecendent of W. (The fermions from W boson)
+bool isParentTau(int igen)
+{
+    if (!(abs(tas::genPart_motherId()[igen]) == 15)) return false;
+    if (!(abs(tas::genPart_pdgId()[igen]) != 15)) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isLepton(int igen)
+{
+    if (!(abs(tas::genPart_pdgId()[igen]) == 11 ||
+          abs(tas::genPart_pdgId()[igen]) == 13 ||
+          abs(tas::genPart_pdgId()[igen]) == 15 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isQuark(int igen)
+{
+    if (!(abs(tas::genPart_pdgId()[igen]) <= 5 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isLightLepton(int igen)
+{
+    if (!(abs(tas::genPart_pdgId()[igen]) == 11 ||
+          abs(tas::genPart_pdgId()[igen]) == 13 )) return false;
+    return true;
+}
+
+// returns if the given igen'th gen particle is a lepton.
+bool isTau(int igen)
+{
+    if (!(abs(tas::genPart_pdgId()[igen]) == 15)) return false;
+    return true;
+}
+
+// Loops over gen particles and returns W and W's desecendents
+std::tuple<vIdx, vIdx> getGenIndices()
+{
+//    vIdx iws;
+//    vIdx ifs;
+//    vIdx ils;
+    vIdx iqs;
+//    vIdx ills;
+//    vIdx ilts;
+//    vIdx its;
+    vIdx ifls;
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+//        /* W bosons */ if (isW(igen)) iws.push_back(igen);
+//        /* Fermions */ if (isParentW(igen)) ifs.push_back(igen);
+//        /* Leptons  */ if (isParentW(igen) && isLepton(igen)) ils.push_back(igen);
+        /* Quarks   */ if (isParentW(igen) && isQuark(igen)) iqs.push_back(igen);
+//        /* e, muons */ if (isParentW(igen) && isLightLepton(igen)) ills.push_back(igen);
+//        /* taus     */ if (isParentW(igen) && isTau(igen)) its.push_back(igen);
+//        /* e,m <- t */ if (isParentTau(igen) && isLepton(igen)) ilts.push_back(igen);
+        /* e, muons */ if ((isParentTau(igen) && isLepton(igen)) || (isParentW(igen) && isLightLepton(igen))) ifls.push_back(igen);
+    }
+//    return std::make_tuple(iws, ifs, ils, iqs, ills, ilts, its, ifls);
+    return std::make_tuple(iqs, ifls);
+}
+

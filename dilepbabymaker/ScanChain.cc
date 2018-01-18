@@ -168,6 +168,38 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 	} // if (isFastsim)
   }
   
+  // Isolation BDT
+  reader1 = new TMVA::Reader("!Color:!Silent");
+  reader2 = new TMVA::Reader("!Color:!Silent");
+  reader3 = new TMVA::Reader("!Color:!Silent");
+  reader1->AddVariable("lepton_eta", &lepton_eta);
+  reader1->AddVariable("lepton_phi", &lepton_phi);
+  reader1->AddVariable("lepton_pt", &lepton_pt);
+  reader1->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader1->AddVariable("lepton_chiso", &lepton_chiso);
+  reader1->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader1->AddVariable("lepton_emiso", &lepton_emiso);
+  reader1->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader1->AddVariable("lepton_dxy", &lepton_dxy);
+  reader1->AddVariable("lepton_dz", &lepton_dz);
+  reader1->AddVariable("lepton_ip3d", &lepton_ip3d);
+  reader1->BookMVA("BDT1", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.2__preliminary_11lepvec_1Msig_100Kbkg_events/TMVA_BDT.weights.xml");
+  reader2->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader2->AddVariable("lepton_chiso", &lepton_chiso);
+  reader2->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader2->AddVariable("lepton_emiso", &lepton_emiso);
+  reader2->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader2->AddVariable("lepton_dxy", &lepton_dxy);
+  reader2->AddVariable("lepton_dz", &lepton_dz);
+  reader2->AddVariable("lepton_ip3d", &lepton_ip3d);
+  reader2->BookMVA("BDT2", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.4__nolepp4/TMVA_BDT.weights.xml");
+  reader3->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
+  reader3->AddVariable("lepton_chiso", &lepton_chiso);
+  reader3->AddVariable("lepton_nhiso", &lepton_nhiso);
+  reader3->AddVariable("lepton_emiso", &lepton_emiso);
+  reader3->AddVariable("lepton_ncorriso", &lepton_ncorriso);
+  reader3->BookMVA("BDT3", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.5__nop4noip/TMVA_BDT.weights.xml");
+  
   TDirectory *rootdir = gDirectory->GetDirectory("Rint:");
 
 
@@ -573,6 +605,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   		}
 
   		evt_scale1fb = evt_xsec*1000/evt_nEvts;
+      evt_fixgridfastjet_allcalo_rho = cms3.evt_fixgridfastjet_allcalo_rho();
 
   		LorentzVector isrSystem_p4;
   		for( size_t genind = 0; genind < cms3.genps_p4().size(); genind++ ){
@@ -962,12 +995,15 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
   	  }
       //cout<<__LINE__<<endl;
       //LEPTONS
-  	  std::vector<std::pair<int, float> > lep_pt_ordering;
-  	  vector<float>vec_lep_pt;
-      vector<float>vec_lep_eta;
-      vector<float>vec_lep_phi;
-      vector<float>vec_lep_mass;
-      vector<float>vec_lep_charge;
+      std::vector<std::pair<int, float> > lep_pt_ordering;
+      vector<float> vec_lep_bdt1;
+      vector<float> vec_lep_bdt2;
+      vector<float> vec_lep_bdt3;
+      vector<float> vec_lep_pt;
+      vector<float> vec_lep_eta;
+      vector<float> vec_lep_phi;
+      vector<float> vec_lep_mass;
+      vector<float> vec_lep_charge;
       
       //for WWW
       vector< bool >    vec_lep_3ch_agree;
@@ -1000,14 +1036,49 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector< bool >   vec_lep_isTriggerSafe_v2;
 
 
-      vector<int>  vec_lep_pdgId;
-      vector<int>  vec_lep_mc_Id;
-      vector<float>vec_lep_dxy;
-      vector<float>vec_lep_ip3d;
-      vector<float>vec_lep_ip3derr;
-      vector<float>vec_lep_dz;
-      vector<int>  vec_lep_tightId;
+      vector<int>     vec_lep_pdgId;
+      vector<int>     vec_lep_mc_Id;
+      vector<float>   vec_lep_dxy;
+      vector<float>   vec_lep_ip3d;
+      vector<float>   vec_lep_ip3derr;
+      vector<float>   vec_lep_dz;
+      vector<int>     vec_lep_tightId;
 
+      vector <float> vec_lep_exp_innerlayers;
+      vector <float> vec_lep_exp_outerlayers;
+      vector <int>   vec_lep_nlayers;
+      vector <int>   vec_lep_type;
+      vector <int>   vec_lep_validHits;
+
+      vector <float> vec_lep_dEtaIn_e;
+      vector <float> vec_lep_dEtaOut_e;
+      vector <float> vec_lep_dPhiIn_e;
+      vector <float> vec_lep_ecalEnergy_e;
+      vector <float> vec_lep_ecalEnergyError_e;
+      vector <float> vec_lep_ecalPFClusterIso_e;
+      vector <float> vec_lep_eOverPIn_e;
+      vector <float> vec_lep_hcalPFClusterIso_e;
+      vector <float> vec_lep_hOverE_e;
+      vector <float> vec_lep_scSeedEta_e;
+      vector <float> vec_lep_sigmaIEtaIEta_full5x5_e;
+      vector <float> vec_lep_tkIso_e;
+      vector <bool>  vec_lep_goodGlb_m;
+      vector <bool>  vec_lep_isGlobal_m;
+      vector <bool>  vec_lep_isTracker_m;
+      vector <int>   vec_lep_gfit_ndof_m;
+      vector <float> vec_lep_chi2LocalPosition_m; 
+      vector <float> vec_lep_gfit_chi2_m;
+      vector <int>   vec_lep_gfit_validSTAHits_m;
+      vector <int>   vec_lep_numberOfMatchedStations_m;
+      vector <int>   vec_lep_pid_PFMuon_m;
+      vector <float> vec_lep_segmCompatibility_m;
+      vector <float> vec_lep_trkKink_m;
+      vector <int>   vec_lep_validPixelHits_m;
+      
+
+      vector< bool >   vec_lep_pass_POG_loose_noiso;
+      vector< bool >   vec_lep_pass_POG_medium_noiso;
+      vector< bool >   vec_lep_pass_POG_tight_noiso;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto_noiso;
       vector< bool >   vec_lep_pass_VVV_cutbased_veto_noiso_noip;
@@ -1030,6 +1101,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       vector<float>vec_lep_etaSC;
       vector<float>vec_lep_validfraction;
       vector<float>vec_lep_ptErr;
+      vector<float>vec_lep_trk_pt;
       vector<float>vec_lep_r9;
 
       //cout<<__LINE__<<endl;
@@ -1077,7 +1149,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
 
   	  for(unsigned int iEl = 0; iEl < cms3.els_p4().size(); iEl++){
    	  	//cout<<"checking electrons"<<endl;
-        if( !(passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso_noip ) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
+        if( !(isVetoElectronPOGspring16noIso_v1(iEl) || passElectronSelection_VVV( iEl, VVV_MVAbased_tight_noiso )) ) {
           /*cout<<"Electron did not pass analysis selection, checking veto selection"<<endl;
           cout<<"etaSC: "<<fabs(els_etaSC().at(iEl))<<" ";
           cout<<"conv_vtx: "<<els_conv_vtx_flag().at(iEl)<<" ";
@@ -1108,6 +1180,24 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           nElectrons10++;
 
     		if( cms3.els_p4().at(iEl).pt() > 10.0 ){
+          //Start BDT Variables----------------------------------------------------------------------
+          lepton_eta = cms3.els_p4()[iEl].eta();
+          lepton_phi = cms3.els_p4()[iEl].phi();
+          lepton_pt = cms3.els_p4()[iEl].pt();
+          lepton_relIso03EA = eleRelIso03EA(iEl, 2);;
+          lepton_chiso = els_pfChargedHadronIso()[iEl];
+          lepton_nhiso = els_pfNeutralHadronIso()[iEl];
+          lepton_emiso = els_pfPhotonIso()[iEl];
+          lepton_ncorriso = lepton_nhiso + lepton_emiso - evt_fixgridfastjet_all_rho() * elEA03(iEl, 2);
+          lepton_dxy = cms3.els_dxyPV()[iEl];
+          lepton_dz = cms3.els_dzPV()[iEl];
+          lepton_ip3d = cms3.els_ip3d()[iEl];
+          vec_lep_bdt1         .push_back( reader1->EvaluateMVA("BDT1")     );
+          vec_lep_bdt2         .push_back( reader2->EvaluateMVA("BDT2")     );
+          vec_lep_bdt3         .push_back( reader3->EvaluateMVA("BDT3")     );
+          //End BDT Variables----------------------------------------------------------------------
+
+
     		  lep_pt_ordering	   .push_back( std::pair<int, float>(nlep, cms3.els_p4().at(iEl).pt()));
     		  vec_lep_p4s          .push_back( cms3.els_p4().at(iEl)           );
     		  vec_lep_pt           .push_back( cms3.els_p4().at(iEl).pt()      );
@@ -1140,6 +1230,10 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_isTriggerSafe_v1     .push_back(isTriggerSafe_v1(iEl)     );
           vec_lep_isTriggerSafe_v2     .push_back(isTriggerSafe_v2(iEl)     );
 
+          
+          vec_lep_pass_POG_loose_noiso                   .push_back( isLooseElectronPOGspring16noIso_v1(iEl)                         ); 
+          vec_lep_pass_POG_medium_noiso                  .push_back( isMediumElectronPOGspring16noIso_v1(iEl)                        ); 
+          vec_lep_pass_POG_tight_noiso                   .push_back( isTightElectronPOGspring16noIso_v1(iEl)                         ); 
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto             ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso       ) );
           vec_lep_pass_VVV_cutbased_veto_noiso_noip      .push_back( passElectronSelection_VVV( iEl, VVV_cutbased_veto_noiso_noip  ) );
@@ -1203,13 +1297,45 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_MVA          .push_back( getMVAoutput(iEl)               );
     		  vec_lep_validfraction.push_back( -1                              );
     		  vec_lep_ptErr        .push_back( cms3.els_ptErr() .at(iEl)       );
-    		  vec_lep_sta_pterrOpt .push_back ( -1                             );
-    		  vec_lep_glb_pterrOpt .push_back ( -1                             );
+          vec_lep_trk_pt       .push_back ( cms3.els_trk_p4().at(iEl).pt() );
+          vec_lep_sta_pterrOpt .push_back ( -1                             );
+          vec_lep_glb_pterrOpt .push_back ( -1                             );
     		  // vec_lep_bft_pterrOpt .push_back ( cms3.els_bfit_qoverpError().at(iEl) / cms3.els_bfit_qoverp() .at(iEl) );
     		  vec_lep_x2ondof      .push_back ( cms3.els_chi2()            .at(iEl) / cms3.els_ndof()        .at(iEl) );
     		  vec_lep_sta_x2ondof  .push_back ( -1                             );
     		  vec_lep_glb_x2ondof  .push_back ( -1                             );
     		  // vec_lep_bft_x2ondof  .push_back ( cms3.els_bfit_chi2()       .at(iEl) / cms3.els_bfit_ndof()   .at(iEl) );
+          
+          vec_lep_exp_innerlayers            .push_back(cms3.els_exp_innerlayers().at(iEl));
+          vec_lep_exp_outerlayers            .push_back(cms3.els_exp_outerlayers().at(iEl));
+          vec_lep_nlayers                    .push_back(cms3.els_nlayers().at(iEl));
+          vec_lep_type                       .push_back(cms3.els_type().at(iEl));
+          vec_lep_validHits                  .push_back(cms3.els_validHits().at(iEl));
+
+          vec_lep_dEtaIn_e                   .push_back(cms3.els_dEtaIn().at(iEl))                  ;
+          vec_lep_dEtaOut_e                  .push_back(cms3.els_dEtaOut().at(iEl))                 ;
+          vec_lep_dPhiIn_e                   .push_back(cms3.els_dPhiIn().at(iEl))                  ;
+          vec_lep_ecalEnergy_e               .push_back(cms3.els_ecalEnergy().at(iEl))              ;
+          vec_lep_ecalEnergyError_e          .push_back(cms3.els_ecalEnergyError().at(iEl))         ;
+          vec_lep_ecalPFClusterIso_e         .push_back(cms3.els_ecalPFClusterIso().at(iEl))        ;
+          vec_lep_eOverPIn_e                 .push_back(cms3.els_eOverPIn().at(iEl))                ;
+          vec_lep_hcalPFClusterIso_e         .push_back(cms3.els_hcalPFClusterIso().at(iEl))        ;
+          vec_lep_hOverE_e                   .push_back(cms3.els_hOverE().at(iEl))                  ;
+          vec_lep_scSeedEta_e                .push_back(cms3.els_scSeedEta().at(iEl))               ;
+          vec_lep_sigmaIEtaIEta_full5x5_e    .push_back(cms3.els_sigmaIEtaIEta_full5x5().at(iEl))   ;
+          vec_lep_tkIso_e                    .push_back(cms3.els_tkIso().at(iEl))                   ;
+          vec_lep_goodGlb_m                  .push_back(true)                                       ; //always true for electrons
+          vec_lep_isGlobal_m                 .push_back(true)                                       ; //always true for electrons
+          vec_lep_isTracker_m                .push_back(true)                                       ; //always true for electrons
+          vec_lep_gfit_ndof_m                .push_back(-1)                                         ; //only exists for muons
+          vec_lep_chi2LocalPosition_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_gfit_chi2_m                .push_back(-1)                                         ; //only exists for muons
+          vec_lep_gfit_validSTAHits_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_numberOfMatchedStations_m  .push_back(-1)                                         ; //only exists for muons
+          vec_lep_pid_PFMuon_m               .push_back(-1)                                         ; //only exists for muons
+          vec_lep_segmCompatibility_m        .push_back(-1)                                         ; //only exists for muons
+          vec_lep_trkKink_m                  .push_back(-1)                                         ; //only exists for muons
+          vec_lep_validPixelHits_m           .push_back(-1)                                         ; //only exists for muons
 
     		  if (!isData && (cms3.els_mc3dr().at(iEl) < 0.2 && cms3.els_mc3idx().at(iEl) != -9999 && abs(cms3.els_mc3_id().at(iEl)) == 11 )) { // matched to a prunedGenParticle electron?
             int momid =  abs(genPart_motherId[cms3.els_mc3idx().at(iEl)]);
@@ -1219,7 +1345,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
             vec_lep_mcMatchId.push_back (0);
     		  }
     		  
-    		  vec_lep_lostHits.push_back ( cms3.els_exp_innerlayers().at(iEl)); //cms2.els_lost_pixelhits().at(iEl);
+    		  vec_lep_lostHits.push_back ( cms3.els_lostHits().at(iEl)); 
     		  vec_lep_convVeto.push_back ( !cms3.els_conv_vtx_flag().at(iEl));
     		  vec_lep_tightCharge.push_back ( tightChargeEle(iEl));
 
@@ -1251,7 +1377,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         if (recent_cms3_version) {
           if (cms3.mus_p4().at(iMu).pt() > 20.0 && isBadGlobalMuon(iMu)) ++nBadMuons20;
         }
-   	  	if( !passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso_noip ) ){
+   	  	if( ! isLooseMuonPOG(iMu) ){
           /*cout<<"Muon did not pass analysis selection, checking veto selection"<<endl;
           cout<<"dxy: "<<fabs(mus_dxyPV().at(iMu))<<" ";
           cout<<"dz: "<<fabs(mus_dzPV().at(iMu))<<" ";
@@ -1288,6 +1414,23 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         //cout<<__LINE__<<endl;  
         
     		if( cms3.mus_p4().at(iMu).pt() > 10.0 ){
+          //Start BDT Variables----------------------------------------------------------------------
+          lepton_eta = cms3.mus_p4()[iMu].eta();
+          lepton_phi = cms3.mus_p4()[iMu].phi();
+          lepton_pt = cms3.mus_p4()[iMu].pt();
+          lepton_relIso03EA = muRelIso03EA(iMu, 2);;
+          lepton_chiso = mus_isoR03_pf_ChargedHadronPt()[iMu];
+          lepton_nhiso = mus_isoR03_pf_NeutralHadronEt()[iMu];
+          lepton_emiso = mus_isoR03_pf_PhotonEt()[iMu];
+          lepton_ncorriso = lepton_nhiso + lepton_emiso - evt_fixgridfastjet_all_rho() * muEA03(iMu, 2);
+          lepton_dxy = cms3.mus_dxyPV()[iMu];
+          lepton_dz = cms3.mus_dzPV()[iMu];
+          lepton_ip3d = cms3.mus_ip3d()[iMu];
+          vec_lep_bdt1         .push_back ( reader1->EvaluateMVA("BDT1")     );
+          vec_lep_bdt2         .push_back ( reader2->EvaluateMVA("BDT2")     );
+          vec_lep_bdt3         .push_back ( reader3->EvaluateMVA("BDT3")     );
+          //End BDT Variables----------------------------------------------------------------------
+
      		  lep_pt_ordering	   .push_back ( std::pair<int, float>(nlep, cms3.mus_p4().at(iMu).pt()));
     		  vec_lep_p4s          .push_back ( cms3.mus_p4()     .at(iMu)       );
     		  vec_lep_pt           .push_back ( cms3.mus_p4()     .at(iMu).pt()  );
@@ -1320,6 +1463,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
           vec_lep_isTriggerSafe_v1     .push_back(true); //Muons always pass
           vec_lep_isTriggerSafe_v2     .push_back(true); //Muons always pass
 
+          vec_lep_pass_POG_loose_noiso                   .push_back( isLooseMuonPOG(iMu)                                          );
+          vec_lep_pass_POG_medium_noiso                  .push_back( isMediumMuonPOG(iMu)                                         );
+          vec_lep_pass_POG_tight_noiso                   .push_back( isTightMuonPOG(iMu)                                          );
           vec_lep_pass_VVV_cutbased_veto                 .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto              ) );
           vec_lep_pass_VVV_cutbased_veto_noiso           .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso        ) );
           vec_lep_pass_VVV_cutbased_veto_noiso_noip      .push_back( passMuonSelection_VVV( iMu, VVV_cutbased_veto_noiso_noip   ) );
@@ -1385,6 +1531,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  vec_lep_MVA          .push_back ( -99                              );
     		  vec_lep_validfraction.push_back ( validFraction                    );
     		  vec_lep_ptErr        .push_back ( cms3.mus_ptErr() .at(iMu)        );
+          vec_lep_trk_pt       .push_back ( cms3.mus_trk_p4().at(iMu).pt()   );
 
           //cout<<__LINE__<<endl;  
           
@@ -1393,11 +1540,44 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		  // vec_lep_bft_pterrOpt .push_back ( cms3.mus_bfit_qoverpError().at(iMu) / cms3.mus_bfit_qoverp() .at(iMu) );
     		  vec_lep_x2ondof      .push_back ( cms3.mus_chi2()            .at(iMu) / cms3.mus_ndof()        .at(iMu) );
     		  vec_lep_sta_x2ondof  .push_back ( cms3.mus_sta_chi2()        .at(iMu) / cms3.mus_sta_ndof()    .at(iMu) );
-    		  if( currentFileName.Contains("V08-00-1") ){ 
+          if( currentFileName.Contains("V08-00-1") ){ 
             vec_lep_glb_x2ondof  .push_back ( cms3.mus_gfit_chi2()       .at(iMu) / cms3.mus_gfit_ndof()   .at(iMu) );
     		  }
           else{                                                       vec_lep_glb_x2ondof  .push_back ( -1.0                                                                  );}
     		  // vec_lep_bft_x2ondof  .push_back ( cms3.mus_bfit_chi2()       .at(iMu) / cms3.mus_bfit_ndof()   .at(iMu) );
+
+          vec_lep_exp_innerlayers            .push_back(cms3.mus_exp_innerlayers().at(iMu));                   
+          vec_lep_exp_outerlayers            .push_back(cms3.mus_exp_outerlayers().at(iMu));                   
+          vec_lep_nlayers                    .push_back(cms3.mus_nlayers().at(iMu));           
+          vec_lep_type                       .push_back(cms3.mus_type().at(iMu));        
+          vec_lep_validHits                  .push_back(cms3.mus_validHits().at(iMu));             
+
+          vec_lep_dEtaIn_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_dEtaOut_e                  .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_dPhiIn_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalEnergy_e               .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalEnergyError_e          .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_ecalPFClusterIso_e         .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_eOverPIn_e                 .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_hcalPFClusterIso_e         .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_hOverE_e                   .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_scSeedEta_e                .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_sigmaIEtaIEta_full5x5_e    .push_back(-1) ; //Only Exists for Electrons
+          vec_lep_tkIso_e                    .push_back(-1) ; //Only Exists for Electrons
+
+          vec_lep_gfit_ndof_m                .push_back(get_mus_gfit_ndof(iMu))                     ; 
+          vec_lep_chi2LocalPosition_m        .push_back(cms3.mus_chi2LocalPosition().at(iMu))       ; 
+          vec_lep_gfit_chi2_m                .push_back(cms3.mus_gfit_chi2().at(iMu))               ;
+          vec_lep_gfit_validSTAHits_m        .push_back(cms3.mus_gfit_validSTAHits().at(iMu))       ;
+          vec_lep_numberOfMatchedStations_m  .push_back(cms3.mus_numberOfMatchedStations().at(iMu)) ;
+          vec_lep_pid_PFMuon_m               .push_back(cms3.mus_pid_PFMuon().at(iMu))              ;
+          vec_lep_segmCompatibility_m        .push_back(cms3.mus_segmCompatibility().at(iMu))       ;
+          vec_lep_trkKink_m                  .push_back(cms3.mus_trkKink().at(iMu))                 ;
+          vec_lep_validPixelHits_m           .push_back(cms3.mus_validPixelHits().at(iMu))          ;
+
+          vec_lep_isGlobal_m                 .push_back( ((( vec_lep_type.back() ) & (1<<1)) != 0) ) ; //Could be calculate on the fly, but here for convenience. 
+          vec_lep_isTracker_m                .push_back( ((( vec_lep_type.back() ) & (1<<2)) != 0) ) ; //Could be calculate on the fly, but here for convenience. 
+          vec_lep_goodGlb_m                  .push_back( vec_lep_isGlobal_m.back() && vec_lep_gfit_chi2_m.back()/vec_lep_gfit_ndof_m.back()<3. && vec_lep_chi2LocalPosition_m.back()<12. && vec_lep_trkKink_m.back()<20.); //Could be calculate on the fly, but here for convenience. 
     		  
     		  if (!isData && (cms3.mus_mc3dr().at(iMu) < 0.2 && cms3.mus_mc3idx().at(iMu) != -9999 && abs(cms3.mus_mc3_id().at(iMu)) == 13 )) { // matched to a prunedGenParticle electron?
             int momid =  abs(genPart_motherId[cms3.mus_mc3idx().at(iMu)]);
@@ -1407,7 +1587,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
             vec_lep_mcMatchId.push_back (0);
           }
 
-    		  vec_lep_lostHits   .push_back ( cms3.mus_exp_innerlayers().at(iMu)); // use defaults as if "good electron"
+    		  vec_lep_lostHits   .push_back ( cms3.mus_lostHits().at(iMu)); // use defaults as if "good electron"
     		  vec_lep_convVeto   .push_back ( 1                                 );// use defaults as if "good electron"
     		  vec_lep_tightCharge.push_back ( tightChargeMuon(iMu)              );
 
@@ -1431,6 +1611,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
       for(std::vector<std::pair<int, float> >::iterator it = lep_pt_ordering.begin(); it!= lep_pt_ordering.end(); ++it){
     		lep_p4                  .push_back( vec_lep_p4s                 .at(it->first));
     		lep_pt                  .push_back( vec_lep_pt                  .at(it->first));
+        lep_bdt1                .push_back( vec_lep_bdt1                .at(it->first));
+        lep_bdt2                .push_back( vec_lep_bdt2                .at(it->first));
+        lep_bdt3                .push_back( vec_lep_bdt3                .at(it->first));
     		lep_eta                 .push_back( vec_lep_eta                 .at(it->first));
     		lep_phi                 .push_back( vec_lep_phi                 .at(it->first));
     		lep_mass                .push_back( vec_lep_mass                .at(it->first));
@@ -1475,6 +1658,9 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
         lep_isTriggerSafe_v1      .push_back( vec_lep_isTriggerSafe_v1       .at(it->first));
         lep_isTriggerSafe_v2      .push_back( vec_lep_isTriggerSafe_v2       .at(it->first));
 
+        lep_pass_POG_loose_noiso                    .push_back( vec_lep_pass_POG_loose_noiso                     .at(it->first));
+        lep_pass_POG_medium_noiso                   .push_back( vec_lep_pass_POG_medium_noiso                    .at(it->first));
+        lep_pass_POG_tight_noiso                    .push_back( vec_lep_pass_POG_tight_noiso                     .at(it->first));
         lep_pass_VVV_cutbased_veto                  .push_back( vec_lep_pass_VVV_cutbased_veto                   .at(it->first));
         lep_pass_VVV_cutbased_veto_noiso            .push_back( vec_lep_pass_VVV_cutbased_veto_noiso             .at(it->first));
         lep_pass_VVV_cutbased_veto_noiso_noip       .push_back( vec_lep_pass_VVV_cutbased_veto_noiso_noip        .at(it->first));
@@ -1498,6 +1684,7 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		lep_MVA                 .push_back( vec_lep_MVA                 .at(it->first));
     		lep_validfraction       .push_back( vec_lep_validfraction       .at(it->first));
     		lep_pterr               .push_back( vec_lep_ptErr               .at(it->first));
+        lep_trk_pt              .push_back( vec_lep_trk_pt              .at(it->first));
     		lep_sta_pterrOpt        .push_back( vec_lep_sta_pterrOpt        .at(it->first));
     		lep_glb_pterrOpt        .push_back( vec_lep_glb_pterrOpt        .at(it->first));
     		// lep_bft_pterrOpt     .push_back( vec_lep_bft_pterrOpt        .at(it->first));
@@ -1505,6 +1692,37 @@ void babyMaker::ScanChain(TChain* chain, std::string baby_name, int max_events){
     		lep_sta_x2ondof         .push_back( vec_lep_sta_x2ondof         .at(it->first));
     		lep_glb_x2ondof         .push_back( vec_lep_glb_x2ondof         .at(it->first));
     		// lep_bft_x2ondof      .push_back( vec_lep_bft_x2ondof         .at(it->first));
+
+        lep_exp_innerlayers           .push_back( vec_lep_exp_innerlayers            .at(it->first)  ) ;
+        lep_exp_outerlayers           .push_back( vec_lep_exp_outerlayers            .at(it->first)  ) ;
+        lep_nlayers                   .push_back( vec_lep_nlayers                    .at(it->first)  ) ;
+        lep_type                      .push_back( vec_lep_type                       .at(it->first)  ) ;
+        lep_validHits                 .push_back( vec_lep_validHits                  .at(it->first)  ) ;
+
+        lep_dEtaIn_e                  .push_back( vec_lep_dEtaIn_e                   .at(it->first)  ) ;
+        lep_dEtaOut_e                 .push_back( vec_lep_dEtaOut_e                  .at(it->first)  ) ;
+        lep_dPhiIn_e                  .push_back( vec_lep_dPhiIn_e                   .at(it->first)  ) ;
+        lep_ecalEnergy_e              .push_back( vec_lep_ecalEnergy_e               .at(it->first)  ) ;
+        lep_ecalEnergyError_e         .push_back( vec_lep_ecalEnergyError_e          .at(it->first)  ) ;
+        lep_ecalPFClusterIso_e        .push_back( vec_lep_ecalPFClusterIso_e         .at(it->first)  ) ;
+        lep_eOverPIn_e                .push_back( vec_lep_eOverPIn_e                 .at(it->first)  ) ;
+        lep_hcalPFClusterIso_e        .push_back( vec_lep_hcalPFClusterIso_e         .at(it->first)  ) ;
+        lep_hOverE_e                  .push_back( vec_lep_hOverE_e                   .at(it->first)  ) ;
+        lep_scSeedEta_e               .push_back( vec_lep_scSeedEta_e                .at(it->first)  ) ;
+        lep_sigmaIEtaIEta_full5x5_e   .push_back( vec_lep_sigmaIEtaIEta_full5x5_e    .at(it->first)  ) ;
+        lep_tkIso_e                   .push_back( vec_lep_tkIso_e                    .at(it->first)  ) ;
+        lep_goodGlb_m                 .push_back( vec_lep_goodGlb_m                  .at(it->first)  ) ;
+        lep_isGlobal_m                .push_back( vec_lep_isGlobal_m                 .at(it->first)  ) ;
+        lep_isTracker_m               .push_back( vec_lep_isTracker_m                .at(it->first)  ) ;
+        lep_gfit_ndof_m               .push_back( vec_lep_gfit_ndof_m                .at(it->first)  ) ;
+        lep_chi2LocalPosition_m       .push_back( vec_lep_chi2LocalPosition_m        .at(it->first)  ) ;
+        lep_gfit_chi2_m               .push_back( vec_lep_gfit_chi2_m                .at(it->first)  ) ;
+        lep_gfit_validSTAHits_m       .push_back( vec_lep_gfit_validSTAHits_m        .at(it->first)  ) ;
+        lep_numberOfMatchedStations_m .push_back( vec_lep_numberOfMatchedStations_m  .at(it->first)  ) ;
+        lep_pid_PFMuon_m              .push_back( vec_lep_pid_PFMuon_m               .at(it->first)  ) ;
+        lep_segmCompatibility_m       .push_back( vec_lep_segmCompatibility_m        .at(it->first)  ) ;
+        lep_trkKink_m                 .push_back( vec_lep_trkKink_m                  .at(it->first)  ) ;
+        lep_validPixelHits_m          .push_back( vec_lep_validPixelHits_m           .at(it->first)  ) ;
 
         //cout<<__LINE__<<endl;
 
@@ -2773,6 +2991,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("isData", &isData );
   BabyTree_->Branch("evt_passgoodrunlist", &evt_passgoodrunlist);
   BabyTree_->Branch("evt_scale1fb", &evt_scale1fb);
+  BabyTree_->Branch("evt_fixgridfastjet_allcalo_rho", &evt_fixgridfastjet_allcalo_rho );
   BabyTree_->Branch("evt_xsec", &evt_xsec );
   BabyTree_->Branch("evt_kfactor", &evt_kfactor );
   BabyTree_->Branch("evt_filter", &evt_filter );
@@ -2937,6 +3156,9 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_phi"          , "std::vector< Float_t >"       , &lep_phi        );
   BabyTree_->Branch("lep_mass"         , "std::vector< Float_t >"       , &lep_mass       );
   BabyTree_->Branch("lep_charge"       , "std::vector< Int_t >"         , &lep_charge     );
+  BabyTree_->Branch("lep_bdt1"         , "std::vector< Float_t >"       , &lep_bdt1    );
+  BabyTree_->Branch("lep_bdt2"         , "std::vector< Float_t >"       , &lep_bdt2    );
+  BabyTree_->Branch("lep_bdt3"         , "std::vector< Float_t >"       , &lep_bdt3    );
   
   //New vars for testing WWW
   BabyTree_->Branch("lep_3ch_agree"            , "std::vector< Bool_t  > " , &lep_3ch_agree             );
@@ -2968,6 +3190,9 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_isTriggerSafe_v1"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v1             );
   BabyTree_->Branch("lep_isTriggerSafe_v2"            , "std::vector< Bool_t  > " , &lep_isTriggerSafe_v2             );
 
+  BabyTree_->Branch("lep_pass_POG_loose_noiso"                     , "std::vector< Bool_t  > " , &lep_pass_POG_loose_noiso                    );
+  BabyTree_->Branch("lep_pass_POG_medium_noiso"                    , "std::vector< Bool_t  > " , &lep_pass_POG_medium_noiso                   );
+  BabyTree_->Branch("lep_pass_POG_tight_noiso"                     , "std::vector< Bool_t  > " , &lep_pass_POG_tight_noiso                    );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto"                   , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto                  );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso"             , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso            );
   BabyTree_->Branch("lep_pass_VVV_cutbased_veto_noiso_noip"        , "std::vector< Bool_t  > " , &lep_pass_VVV_cutbased_veto_noiso_noip       );
@@ -3012,6 +3237,7 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_MVA"          , "std::vector< Float_t >"       , &lep_MVA        );
   BabyTree_->Branch("lep_validfraction", &lep_validfraction );
   BabyTree_->Branch("lep_pterr"        , &lep_pterr         );
+  BabyTree_->Branch("lep_trk_pt"       , &lep_trk_pt        );
   BabyTree_->Branch("lep_sta_pterrOpt" , &lep_sta_pterrOpt  );
   BabyTree_->Branch("lep_glb_pterrOpt" , &lep_glb_pterrOpt  );
   // BabyTree_->Branch("lep_bft_pterrOpt" , &lep_bft_pterrOpt  );
@@ -3019,6 +3245,41 @@ void babyMaker::MakeBabyNtuple(const char *BabyFilename){
   BabyTree_->Branch("lep_sta_x2ondof"  , &lep_sta_x2ondof   );
   BabyTree_->Branch("lep_glb_x2ondof"  , &lep_glb_x2ondof   );
   // BabyTree_->Branch("lep_bft_x2ondof"  , &lep_bft_x2ondof   );
+
+
+  BabyTree_->Branch("lep_exp_innerlayers"            ,            &lep_exp_innerlayers            );
+  BabyTree_->Branch("lep_exp_outerlayers"            ,            &lep_exp_outerlayers            );
+  BabyTree_->Branch("lep_nlayers"                    ,            &lep_nlayers                    );
+  BabyTree_->Branch("lep_type"                       ,            &lep_type                       );
+  BabyTree_->Branch("lep_validHits"                  ,            &lep_validHits                  );
+
+  BabyTree_->Branch("lep_dEtaIn_e"                   ,            &lep_dEtaIn_e                   );
+  BabyTree_->Branch("lep_dEtaOut_e"                  ,            &lep_dEtaOut_e                  );
+  BabyTree_->Branch("lep_dPhiIn_e"                   ,            &lep_dPhiIn_e                   );
+  BabyTree_->Branch("lep_ecalEnergy_e"               ,            &lep_ecalEnergy_e               );
+  BabyTree_->Branch("lep_ecalEnergyError_e"          ,            &lep_ecalEnergyError_e          );
+  BabyTree_->Branch("lep_ecalPFClusterIso_e"         ,            &lep_ecalPFClusterIso_e         );
+  BabyTree_->Branch("lep_eOverPIn_e"                 ,            &lep_eOverPIn_e                 );
+  BabyTree_->Branch("lep_hcalPFClusterIso_e"         ,            &lep_hcalPFClusterIso_e         );
+  BabyTree_->Branch("lep_hOverE_e"                   ,            &lep_hOverE_e                   );
+  BabyTree_->Branch("lep_scSeedEta_e"                ,            &lep_scSeedEta_e                );
+  BabyTree_->Branch("lep_sigmaIEtaIEta_full5x5_e"    ,            &lep_sigmaIEtaIEta_full5x5_e    );
+  BabyTree_->Branch("lep_tkIso_e"                    ,            &lep_tkIso_e                    );
+  BabyTree_->Branch("lep_goodGlb_m"                  ,            &lep_goodGlb_m                  );
+  BabyTree_->Branch("lep_isGlobal_m"                 ,            &lep_isGlobal_m                 );
+  BabyTree_->Branch("lep_isTracker_m"                ,            &lep_isTracker_m                );
+  BabyTree_->Branch("lep_gfit_ndof_m"                ,            &lep_gfit_ndof_m                );
+  BabyTree_->Branch("lep_chi2LocalPosition_m"        ,            &lep_chi2LocalPosition_m        );
+  BabyTree_->Branch("lep_gfit_chi2_m"                ,            &lep_gfit_chi2_m                );
+  BabyTree_->Branch("lep_gfit_validSTAHits_m"        ,            &lep_gfit_validSTAHits_m        );
+  BabyTree_->Branch("lep_numberOfMatchedStations_m"  ,            &lep_numberOfMatchedStations_m  );
+  BabyTree_->Branch("lep_pid_PFMuon_m"               ,            &lep_pid_PFMuon_m               );
+  BabyTree_->Branch("lep_segmCompatibility_m"        ,            &lep_segmCompatibility_m        );
+  BabyTree_->Branch("lep_trkKink_m"                  ,            &lep_trkKink_m                  );
+  BabyTree_->Branch("lep_validPixelHits_m"           ,            &lep_validPixelHits_m           );
+
+
+
 
   BabyTree_->Branch("nisoTrack_5gev" , &nisoTrack_5gev );
   BabyTree_->Branch("nisoTrack_mt2"  , &nisoTrack_mt2  );
@@ -3310,6 +3571,7 @@ void babyMaker::InitBabyNtuple () {
   isData = -999;
   evt_passgoodrunlist = 1;
   evt_scale1fb = 0;
+  evt_fixgridfastjet_allcalo_rho = 0;
   evt_xsec = -999.0;
   evt_kfactor = -999.0;
   evt_filter = -999.0;
@@ -3471,6 +3733,10 @@ void babyMaker::InitBabyNtuple () {
   nVetoMu_relIso03EAless03 = -999;
   nVetoMu_relIso03EAless04 = -999;
 
+  lep_bdt1.clear();
+  lep_bdt2.clear();
+  lep_bdt3.clear();
+
   lep_p4            .clear();
   lep_pt            .clear();
   lep_eta           .clear();
@@ -3507,6 +3773,9 @@ void babyMaker::InitBabyNtuple () {
   lep_isTriggerSafe_v1      .clear();
   lep_isTriggerSafe_v2      .clear();
 
+  lep_pass_POG_loose_noiso                    .clear();
+  lep_pass_POG_medium_noiso                   .clear();
+  lep_pass_POG_tight_noiso                    .clear();
   lep_pass_VVV_cutbased_veto                  .clear();
   lep_pass_VVV_cutbased_veto_noiso            .clear();
   lep_pass_VVV_cutbased_veto_noiso_noip       .clear();
@@ -3552,6 +3821,7 @@ void babyMaker::InitBabyNtuple () {
   lep_MVA           .clear();
   lep_validfraction .clear();
   lep_pterr         .clear();
+  lep_trk_pt        .clear();
   lep_sta_pterrOpt  .clear();
   lep_glb_pterrOpt  .clear();
   // lep_bft_pterrOpt  .clear();
@@ -3559,6 +3829,37 @@ void babyMaker::InitBabyNtuple () {
   lep_sta_x2ondof   .clear();
   lep_glb_x2ondof   .clear();
   // lep_bft_x2ondof   .clear();
+
+  lep_exp_innerlayers           .clear();
+  lep_exp_outerlayers           .clear();
+  lep_nlayers                   .clear();
+  lep_type                      .clear();
+  lep_validHits                 .clear();
+
+  lep_dEtaIn_e                  .clear();
+  lep_dEtaOut_e                 .clear();
+  lep_dPhiIn_e                  .clear();
+  lep_ecalEnergy_e              .clear();
+  lep_ecalEnergyError_e         .clear();
+  lep_ecalPFClusterIso_e        .clear();
+  lep_eOverPIn_e                .clear();
+  lep_hcalPFClusterIso_e        .clear();
+  lep_hOverE_e                  .clear();
+  lep_scSeedEta_e               .clear();
+  lep_sigmaIEtaIEta_full5x5_e   .clear();
+  lep_tkIso_e                   .clear();
+  lep_goodGlb_m                 .clear();
+  lep_isGlobal_m                .clear();
+  lep_isTracker_m               .clear();
+  lep_gfit_ndof_m               .clear();
+  lep_chi2LocalPosition_m       .clear();
+  lep_gfit_chi2_m               .clear();
+  lep_gfit_validSTAHits_m       .clear();
+  lep_numberOfMatchedStations_m .clear();
+  lep_pid_PFMuon_m              .clear();
+  lep_segmCompatibility_m       .clear();
+  lep_trkKink_m                 .clear();
+  lep_validPixelHits_m          .clear();
 
   
   nisoTrack_5gev = -1;

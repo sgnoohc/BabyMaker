@@ -22,10 +22,10 @@ histonames = ["SignalRegion",  "WZControlRegion",                      "Applicat
 axisnames  = ["signal regions","lost-lepton/3l-with-Z control regions","application regions"]
 SSorSFOS   = [ 0,               0,                                      0]
 
-samples  = ["WWW","others","photonfakes"         ,"chargeflips","fakes"    ,"3lLL",       "SSLL"       ,"true3L",          "trueSS"                 ,"trueWWW"]
-legnames = ["WWW","Other" ,"#gamma #rightarrow l","charge flip","jet fakes","lost lepton","lost lepton","three lepton"    ,"W^{#pm}W^{#pm}(W^{#mp})","W^{#pm}W^{#pm}(W^{#mp})"]
-colors   = [ 632,  2012,    920,                   2007,         2005,       2011,         2003,         2003,    2001,                     2001]  
-isSS3l   = [ -1,    -1,      0,                     0,            0,          2,            1,            2,       1,                        2]  
+samples  = ["WWW","others","photonfakes"         ,"chargeflips","fakes"    ,"3lLL",       "SSLL"       ,"true3L",          "trueSS"     ,"trueWWW"]
+legnames = ["WWW","Other" ,"#gamma #rightarrow l","charge flip","jet fakes","lost lepton","lost lepton","three lepton"    ,"irreducible","irreducible"]
+colors   = [ 632,  2012,    920,                   2007,         2005,       2011,         2003,         2003,               2001,         2001]  
+isSS3l   = [ -1,    -1,      0,                     0,            0,          2,            1,            2,                 1,            2]  
 if twosig :
     samples.insert(1,"WHtoWWW")
     legnames.insert(1,"WH#rightarrowWWW")

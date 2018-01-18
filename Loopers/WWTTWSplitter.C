@@ -31,7 +31,7 @@
 using namespace std;
 using namespace tas;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   vector<myevt> e;
   addeventtocheck(e,1,36545,5920176);
@@ -166,20 +166,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(!passonlineTrigger) continue;
       }
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");
-      bool trueSS = (temp =="trueSS");
-      bool true3l = (temp2=="true3l"||temp2=="trueWWW");
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
 
 
       float MTmax = -1;
@@ -226,19 +218,23 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
 
-      bool anySS = (iSS.size()>=2);
-      bool any3l = (i3l.size()>=3);
-      if(     anySS&(skimFilePrefix=="WW")&&(fname.find("wpwpjj")!=string::npos)  &&trueSS){ sn = "WWVBS";     sn2 = "WWRest"; }
-      else if(anySS&(skimFilePrefix=="WW")&&(fname.find("dbl_scat")!=string::npos)&&trueSS){ sn = "WWDPS";     sn2 = "WWRest"; }
-      else if(anySS&(skimFilePrefix=="WW")                                        &&trueSS){ sn = "otherWWSS"; sn2 = "WWRest"; }
-      else if(       skimFilePrefix=="WW")                                                 { sn = "WWRest";    sn2 = "WWRest"; }
-      if(     anySS&&(skimFilePrefix=="ttV")&&trueSS){ sn  = "ttVSS";                 sn2 = "OtherttV"; }
-      else if(any3l&&(skimFilePrefix=="ttV")&&true3l){ sn2 = "ttV3l"; if(sn!="ttVSS") sn  = "OtherttV"; }
-      else if(       (skimFilePrefix=="ttV")        ){ sn  = "OtherttV";              sn2 = "OtherttV"; }
+      bool anySS  = (iSS.size()>=2);
+      bool any3l  = (i3l.size()>=3);
+      bool trueSS = (sn =="trueSS");
+      bool true3l = (sn2=="true3l"||sn2=="trueWWW");      
+      bool isWWnotVBSDPS = (fname.find("ww_2l2nu_powheg")  !=string::npos)||(fname.find("ww_2l2nu_powheg")  !=string::npos);
+      bool isTTX = (fname.find("ttg_")  !=string::npos)||(fname.find("tth_")  !=string::npos)||(fname.find("ttw_")  !=string::npos)||(fname.find("ttz_")  !=string::npos);
+      if(     anySS&&(fname.find("wpwpjj_ewk-")      !=string::npos)&&trueSS){ sn = "WWVBS";     sn2 = "WWRest"; }
+      else if(anySS&&(fname.find("ww_2l2nu_dbl_scat")!=string::npos)&&trueSS){ sn = "WWDPS";     sn2 = "WWRest"; }
+      else if(anySS&&isWWnotVBSDPS&&                                  trueSS){ sn = "otherWWSS"; sn2 = "WWRest"; }
+      else if(       isWWnotVBSDPS                                          ){ sn = "WWRest";    sn2 = "WWRest"; }
+      if(     anySS&&isTTX&&trueSS){ sn  = "ttVSS";                 sn2 = "OtherttV"; }
+      else if(any3l&&isTTX&&true3l){ sn2 = "ttV3l"; if(sn!="ttVSS") sn  = "OtherttV"; }
+      else if(       isTTX        ){ sn  = "OtherttV";              sn2 = "OtherttV"; }
 
 
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",       sn, sn2, SRSS[0], SR3l[0], weight, weight);
+	fillSRhisto(histos, "SRyield",       sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
       }
       
     }//event loop
@@ -252,7 +248,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cout << Form( "ERROR: number of events from files (%d) is not equal to total number of events (%d)", nEventsChain, nEventsTotal ) << endl;
   }
 
-  SaveHistosToFile("rootfiles/WWTTWSplitted.root",histos,true,true);
+  SaveHistosToFile("rootfiles/WWTTWSplitted.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
 
   // return
   bmark->Stop("benchmark");

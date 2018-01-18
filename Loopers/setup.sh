@@ -9,6 +9,8 @@ echo "mkdir plots"
 mkdir plots
 echo "mkdir rootfiles"
 mkdir rootfiles
+echo "mkdir logs"
+mkdir logs
 
 #echo "Copy rootfiles for scale factors and fake rates (partially still to be updated)"
 #echo "cp /nfs-7/userdata/haweber/VVVhelperfiles/*.root rootfiles/."

@@ -1,0 +1,12 @@
+[submodule "Loopers/rooutil"]
+	path = Loopers/rooutil
+	url = git@github.com:sgnoohc/rooutil.git
+	ignore = untracked
+[submodule "Loopers/ProjectMetis"]
+	path = Loopers/ProjectMetis
+	url = git@github.com:aminnj/ProjectMetis.git
+	ignore = untracked
+[submodule "Loopers/plottery"]
+	path = Loopers/plottery
+	url = git@github.com:aminnj/plottery.git
+	ignore = untracked

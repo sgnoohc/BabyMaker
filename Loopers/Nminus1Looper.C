@@ -31,7 +31,7 @@
 using namespace std;
 using namespace tas;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test") {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
   bool blindSR = true;
   bool btagreweighting = true;
@@ -187,19 +187,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(!passonlineTrigger) continue;
       }
 
-      string sn = skimFilePrefix;
-      string sn2 = skimFilePrefix;
-      string temp = process(fname,true ,iSS,iaSS);
-      string temp2 = process(fname,false,i3l,ia3l);
-      bool isphotonSS = (temp =="photonfakes");
-      bool isphoton3l = (temp2=="photonfakes");
-      if(sn.find("Other")!=string::npos&&splitVH(fname)){ sn = "WHtoWWW"; sn2 = sn; }
-      else if(sn.find("Background")!=string::npos&&splitVH(fname)) continue;
-      else if(sn.find("Background")!=string::npos&&!splitVH(fname)){
-	sn  = temp;
-	sn2 = temp2;
-      }
-
+      string sample   = skimFilePrefix;
+      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      bool isphotonSS = (sn =="photonfakes");
+      bool isphoton3l = (sn2=="photonfakes");
+      if(splitVH(fname)){ sample = "WHtoWWW"; }
 
       float MTmax = -1;
       if(iSS.size()==2) MTmax = calcMTmax(iSS,MET);
@@ -223,14 +216,14 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(SRSSpresel>=0){
 	float Mll  = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M();
 	float pTll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).Pt();
-	histos["Mjj_SRSS_presel_"+     sn]->Fill(Mjj,      weight);
-	histos["Mll_SRSS_presel_"+     sn]->Fill(Mll,      weight);
-	histos["pTll_SRSS_presel_"+    sn]->Fill(pTll,     weight);
-	histos["MET_SRSS_presel_"+     sn]->Fill(met_pt(), weight);
-	histos["MjjL_SRSS_presel_"+    sn]->Fill(MjjL,     weight);
-	histos["DetajjL_SRSS_presel_"+ sn]->Fill(Detajj,   weight);
+	fillhisto(histos, "Mjj_SRSS_presel",     sample, sn, Mjj,      weight);
+	fillhisto(histos, "Mll_SRSS_presel",     sample, sn, Mll,      weight);
+	fillhisto(histos, "pTll_SRSS_presel",    sample, sn, pTll,     weight);
+	fillhisto(histos, "MET_SRSS_presel",     sample, sn, met_pt(), weight);
+	fillhisto(histos, "MjjL_SRSS_presel",    sample, sn, MjjL,     weight);
+	fillhisto(histos, "DetajjL_SRSS_presel", sample, sn, Detajj,   weight);
 	if(SRSSpresel==1){
-	  histos["MTmax_SRSS_presel_"+ sn]->Fill(MTmax,    weight);
+	fillhisto(histos, "MTmax_SRSS_presel",   sample, sn, MTmax,    weight);
 	}
 	if(!isData()||!blindSR){
 	  bool passMjj  = fabs(Mjj-80.)<20.;
@@ -239,14 +232,14 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  bool passMll  = ((SRSSpresel==1) ? ((lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()>30.) : ((lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M()>40.));
 	  bool passMET  = ((SRSSpresel==2) ? (true) : (met_pt()>40.));
 	  bool passMT   = ((SRSSpresel==1) ? (MTmax>90.) : (true));
-	  if(         passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["Mjj_SRSS_NmO_"+     sn]->Fill(Mjj,      weight);
-	  if(passMjj&&passMjjL&&passDeta         &&passMET&&passMT) histos["Mll_SRSS_NmO_"+     sn]->Fill(Mll,      weight);
-	  if(passMjj&&passMjjL&&passDeta&&passMll&&passMET&&passMT) histos["pTll_SRSS_NmO_"+    sn]->Fill(pTll,     weight);
-	  if(passMjj&&passMjjL&&passDeta&&passMll         &&passMT) histos["MET_SRSS_NmO_"+     sn]->Fill(met_pt(), weight);
-	  if(passMjj          &&passDeta&&passMll&&passMET&&passMT) histos["MjjL_SRSS_NmO_"+    sn]->Fill(MjjL,     weight);
-	  if(passMjj&&passMjjL          &&passMll&&passMET&&passMT) histos["DetajjL_SRSS_NmO_"+ sn]->Fill(Detajj,   weight);
+	  if(         passMjjL&&passDeta&&passMll&&passMET&&passMT) fillhisto(histos, "Mjj_SRSS_NmO",     sample, sn, Mjj,      weight);
+	  if(passMjj&&passMjjL&&passDeta         &&passMET&&passMT) fillhisto(histos, "Mll_SRSS_NmO",     sample, sn, Mll,      weight);
+	  if(passMjj&&passMjjL&&passDeta&&passMll&&passMET&&passMT) fillhisto(histos, "pTll_SRSS_NmO",    sample, sn, pTll,     weight);
+	  if(passMjj&&passMjjL&&passDeta&&passMll         &&passMT) fillhisto(histos, "MET_SRSS_NmO",     sample, sn, met_pt(), weight);
+	  if(passMjj          &&passDeta&&passMll&&passMET&&passMT) fillhisto(histos, "MjjL_SRSS_NmO",    sample, sn, MjjL,     weight);
+	  if(passMjj&&passMjjL          &&passMll&&passMET&&passMT) fillhisto(histos, "DetajjL_SRSS_NmO", sample, sn, Detajj,   weight);
 	  if(SRSSpresel==1){
-	    if(passMjj&&passMjjL&&passDeta&&passMll&&passMET      ) histos["MTmax_SRSS_NmO_"+   sn]->Fill(MTmax,      weight);
+	    if(passMjj&&passMjjL&&passDeta&&passMll&&passMET      ) fillhisto(histos, "MTmax_SRSS_NmO",   sample, sn, MTmax,    weight);
 	  }
 	}
       }
@@ -267,19 +260,19 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  float DPhilllMET = dPhi(lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ],MET);
 	  float pTlll      = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
 	  float Mlll       = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M();
-	  histos["DPhilllMET_SR3l_presel_"+   sn2]->Fill(DPhilllMET, weight);
-	  histos["PTlll_SR3l_presel_"+        sn2]->Fill(pTlll,      weight);
-	  histos["Mlll_SR3l_presel_"+         sn2]->Fill(Mlll,       weight);
-	  histos["MET_SR3l_presel_"+          sn2]->Fill(met_pt(),   weight);
+	  fillhisto(histos, "DPhilllMET_SR3l_presel", sample, sn2, DPhilllMET, weight);
+	  fillhisto(histos, "PTlll_SR3l_presel",      sample, sn2, pTlll,      weight);
+	  fillhisto(histos, "Mlll_SR3l_presel",       sample, sn2, Mlll,       weight);
+	  fillhisto(histos, "MET_SR3l_presel",        sample, sn2, met_pt(),   weight);
 	  if(!isData()||!blindSR){
 	    bool passMET   = true; if(SR3lpresel==1) passMET = (met_pt()>45.); if(SR3lpresel==2) passMET = (met_pt()>55.);
 	    bool passDPhi  = ((SR3lpresel==0) ? (DPhilllMET>2.7) : (DPhilllMET>2.5));
 	    bool passpTlll = (pTlll>60.);
 	    bool passMlll  = ((SR3lpresel>=1) ? (fabs(Mlll-MZ)>10.) : (true));
-	    if(passMET          &&passpTlll&&passMlll) histos["DPhilllMET_SR3l_NmO_"+   sn2]->Fill(DPhilllMET, weight);
-	    if(passMET&&passDPhi           &&passMlll) histos["PTlll_SR3l_NmO_"+        sn2]->Fill(pTlll,      weight);
-	    if(passMET&&passDPhi&&passpTlll          ) histos["Mlll_SR3l_NmO_"+         sn2]->Fill(Mlll,       weight);
-	    if(         passDPhi&&passpTlll&&passMlll) histos["MET_SR3l_NmO_"+          sn2]->Fill(met_pt(),   weight);
+	    if(passMET          &&passpTlll&&passMlll) fillhisto(histos, "DPhilllMET_SR3l_NmO", sample, sn2, DPhilllMET, weight);
+	    if(passMET&&passDPhi           &&passMlll) fillhisto(histos, "PTlll_SR3l_NmO",      sample, sn2, pTlll,      weight);
+	    if(passMET&&passDPhi&&passpTlll          ) fillhisto(histos, "Mlll_SR3l_NmO",       sample, sn2, Mlll,       weight);
+	    if(         passDPhi&&passpTlll&&passMlll) fillhisto(histos, "MET_SR3l_NmO",        sample, sn2, met_pt(),   weight);
 	  }
 	}
       }
@@ -293,8 +286,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	bool passDPhi  = ((SR3lpresel==0) ? (DPhilllMET>2.7) : (DPhilllMET>2.5));
 	bool passpTlll = (pTlll>60.);
 	bool passMlll  = ((SR3lpresel>=1) ? (fabs(Mlll-MZ)>10.) : (true));
-	histos["MSFOSZlike_SR3l_presel_"+ sn2]->Fill(MSFOSZ,     weight);
-	if(!isData()||!blindSR) { if(passMET&&passDPhi&&passpTlll&&passMlll) histos["MSFOSZlike_SR3l_NmO_"+ sn2]->Fill(MSFOSZ,     weight); }
+	fillhisto(histos, "MSFOSZlike_SR3l_presel", sample, sn2, MSFOSZ, weight);
+	if(!isData()||!blindSR) { if(passMET&&passDPhi&&passpTlll&&passMlll) fillhisto(histos, "MSFOSZlike_SR3l_NmO", sample, sn2, MSFOSZ, weight); }
       }
 
  
@@ -309,7 +302,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cout << Form( "ERROR: number of events from files (%d) is not equal to total number of events (%d)", nEventsChain, nEventsTotal ) << endl;
   }
   
-  SaveHistosToFile("rootfiles/NminusOnePlots.root",histos,true,true);
+  SaveHistosToFile("rootfiles/NminusOnePlots.root",histos,true,true,(chainnumber==0));
+  deleteHistograms(histos);
 
   // return
   bmark->Stop("benchmark");
