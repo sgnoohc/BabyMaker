@@ -21,6 +21,14 @@ vector<string> split(string mystring, string c) {
   return v;
 }
 
+string leptype(unsigned lep_index){
+  if( lep_motherIdSS().at(lep_index) ==1 ) return "real";
+  else if( lep_motherIdSS().at(lep_index) ==2 ) return "chargeflip";
+  else if( lep_motherIdSS().at(lep_index) ==-1)  return "bfake";
+  else if( lep_motherIdSS().at(lep_index) ==-2)  return "cfake";
+  else if(lep_motherIdSS().at(lep_index) ==0)    return "lightfake";
+  else return "unknown";
+}
 int gentype_v2(unsigned lep1_index,unsigned lep2_index, int lep3_index){
   bool gammafake = false;
   bool jetfake   = false;
@@ -194,9 +202,11 @@ bool istightlepton(int i, int version){
       bool isgoodelectron = abs(lep_pdgId()[i])==11&&lep_lostHits()[i]==0&&lep_tightCharge()[i]==2 &&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.0588) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.0571) );
       istight = abs(lep_pdgId()[i])==13 &&lep_relIso03EAv2()[i]<0.06 ? true : isgoodelectron;
    }
-     return istight;
   }
+     return istight;
+
 }
+
 bool islooselepton(int i, int version){
    bool isloose = false;
    if(version ==0){

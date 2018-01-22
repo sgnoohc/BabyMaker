@@ -38,6 +38,7 @@ struct myevt{
 #define MZ 91.1876
 
 vector<string> split(string mystring, string c="/");
+string leptype(unsigned lep_index);
 int gentype_v2(unsigned lep1_index=0,unsigned lep2_index=1, int lep3_index=-1);
 float dR(LorentzVector vec1,LorentzVector vec2 );
 float dEta(LorentzVector vec1,LorentzVector vec2 );

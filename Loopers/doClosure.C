@@ -1,16 +1,7 @@
 {
-
   gROOT->ProcessLine(".L Functions.C+"); 
-
-  //gROOT->ProcessLine(".L Skimmer.C+");
-  //gROOT->ProcessLine(".L SRLooper.C+");
-  //gROOT->ProcessLine(".L Nminus1Looper.C+");
-  gROOT->ProcessLine(".L FakeRateMethod.C+");
-  //gROOT->ProcessLine(".L FakeRateBtagVal.C+");
-  //gROOT->ProcessLine(".L Check3lWZCR.C+");
-  //gROOT->ProcessLine(".L WWTTWSplitter.C+");
-  //gROOT->ProcessLine(".L ValidationLooper.C+");
-  const unsigned int chainsize = 17;
+  gROOT->ProcessLine(".L FakeRateClosure.C+");
+  const unsigned int chainsize = 2;
   TChain *ch[chainsize];
   string dataset[chainsize];
 
