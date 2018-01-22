@@ -62,15 +62,23 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("FakeEstimationFRdn");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosureup");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosuredn");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
-  histonames.push_back("njets_SRSS");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
-  histonames.push_back("nbjets_SRSS");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
-  histonames.push_back("pTl1_SRSS");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
-  histonames.push_back("pTl2_SRSS");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
-  histonames.push_back("Mjj_SRSS");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
-  histonames.push_back("Mll_SRSS");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
-  histonames.push_back("MET_SRSS");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
-  histonames.push_back("MTmax_SRSS");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
-  map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
+  histonames.push_back("njets");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("nbjets");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("pTl1");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("pTl2");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("Mjj");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Mll");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MET");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("MTmax");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("njets_fakesPred");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("nbjets_fakesPred");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("pTl1_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("pTl2_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("Mjj_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Mll_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MET_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("MTmax_fakesPred");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  map<string, TH1D*> histos =  bookhistclosure(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
 
   unsigned int nEventsRunning = 0;
@@ -175,8 +183,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
 
       string sample   = skimFilePrefix;
-      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
-      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      //string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
+      string sn       = iSS.size() >=2  ? leptype(iSS[0]) : string("not2l");
+      string sn2      = iSS.size() >=2  ? leptype(iSS[1]) : string("not2l");
+      string sn3      = iaSS.size() >0  ? leptype(iaSS[0]): string("not2l");
+      //string sn2       = ((iSS.size()+iaSS.size())>=2 && iSS.size()>0) ? leptype(iSS[0]) : string("not2l");
+//      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
       bool isphotonSS = (sn =="photonfakes");
       bool isphoton3l = (sn2=="photonfakes");
       bool isfakeSS   = (sn =="fakes");
@@ -215,9 +227,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //3: AR preselect
       SR3l[3] = isAR3l(i3l,ia3l,true ,nj,nb,MET,0,btag);
 
+      cout<<__LINE__<<endl;
       // skip event if it's not preselection SS
       if(!SRSS[1] && !SRSS[3]) continue;      
  
+      cout<<__LINE__<<endl;
       for(int i = 0; i<4; ++i) {
         if(!selects3l[i]){
           if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
@@ -225,6 +239,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         else if(vetophotonprocess(fname,isphoton3l)){ SRSS[i] = -1; }
         if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
+      cout<<__LINE__<<endl;
 
       float closureSSerr = 0.;
       float closure3lerr = 0.;
@@ -241,43 +256,46 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	SF3l       = getlepFRWeightandError(SF3lerr,      ia3l[0],!closuretest) * subtract;
 	noconeSF3l = getlepFRWeightandError(noconeSF3lerr,ia3l[0],!closuretest,false)* subtract;
       }
+      cout<<__LINE__<<endl;
       
-      if(!(blindSR&&isData())){
+/*      if(!(blindSR&&isData())){
 	fillSRhisto(histos, "SRyield",                         sample, sn, sn2, SRSS[ 1], SR3l[ 1], weight,                     weight);
       }
-      fillSRhisto(histos, "ARyield",                           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight,                     weight);
+     fillSRhisto(histos, "ARyield",                           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight,                     weight);
       fillSRhisto(histos, "FakeEstimation",                    sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight* SFSS,               weight* SF3l);
       fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr));
       fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr));
       fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
       fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
-       
+  */     
+      cout<<__LINE__<<":"<< sn<<endl;
       float Mll = -999;
       if(SRSS[ 1]>=0){
-	fillhisto(histos, "Mjj_SRSS",    sample, sn, Mjj,                                       weight);
-	fillhisto(histos, "njets_SRSS",  sample, sn, nj30,                                      weight);
-	fillhisto(histos, "nbjets_SRSS", sample, sn, nb,                                        weight);
-	fillhisto(histos, "pTl1_SRSS",   sample, sn, lep_p4()[iSS[0] ].pt(),                    weight);
-	fillhisto(histos, "pTl2_SRSS",   sample, sn, lep_p4()[iSS[1] ].pt(),                    weight);
-	fillhisto(histos, "Mll_SRSS",    sample, sn, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
-	fillhisto(histos, "MTmax_SRSS",  sample, sn, MTmax,                                     weight);
-	fillhisto(histos, "MET_SRSS",    sample, sn, met_pt(),                                  weight);
+	fillhisto(histos, "Mjj",    sample, sn, Mjj,                                       weight);
+	fillhisto(histos, "njets",  sample, sn, nj30,                                      weight);
+	fillhisto(histos, "nbjets", sample, sn, nb,                                        weight);
+	fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                    weight);
+	fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                    weight);
+	fillhisto(histos, "Mll",    sample, sn, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
+	fillhisto(histos, "MTmax",  sample, sn, MTmax,                                     weight);
+	fillhisto(histos, "MET",    sample, sn, met_pt(),                                  weight);
       }
-      if(isfakeSS||isfake3l||sample.find("WWW")!=string::npos)  continue; //skip fakes when filling in fake estimations from data
+/*        if(isfakeSS||isfake3l||sample.find("WWW")!=string::npos)  continue; //skip fakes when filling in fake estimations from data
 	fillSRhisto(histos, "SRyield",                           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight* SFSS,               weight* SF3l,               false);
 	fillSRhisto(histos, "FakeEstimationFRup",                sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr),      false);
 	fillSRhisto(histos, "FakeEstimationFRdn",                sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr),      false);
 	fillSRhisto(histos, "FakeEstimationClosureup",           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr), false);
 	fillSRhisto(histos, "FakeEstimationClosuredn",           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr), false);
+*/
 	if(SRSS[3]>=0) {
-	  fillhisto(histos, "Mjj_SRSS",    sample, "fakesPred", Mjj,                                        weight);
-	  fillhisto(histos, "njets_SRSS",  sample, "fakesPred", nj30,                                       weight);
-	  fillhisto(histos, "nbjets_SRSS", sample, "fakesPred", nb,                                         weight);
-	  fillhisto(histos, "pTl1_SRSS",   sample, "fakesPred", lep_p4()[iSS[0] ].pt(),                     weight);
-	  fillhisto(histos, "pTl2_SRSS",   sample, "fakesPred", lep_p4()[iSS[1] ].pt(),                     weight);
-	  fillhisto(histos, "Mll_SRSS",    sample, "fakesPred", (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight);
-	  fillhisto(histos, "MTmax_SRSS",  sample, "fakesPred", MTmax,                                      weight);
-	  fillhisto(histos, "MET_SRSS",    sample, "fakesPred", met_pt(),                                   weight);
+	  fillhisto(histos, "Mjj_fakesPred",    sample, sn3, Mjj,                                        weight);
+	  fillhisto(histos, "njets_fakesPred",  sample, sn3, nj30,                                       weight);
+	  fillhisto(histos, "nbjets_fakesPred", sample, sn3, nb,                                         weight);
+	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight);
+	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight);
+	  fillhisto(histos, "Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight);
+	  fillhisto(histos, "MTmax_fakesPred",  sample, sn3, MTmax,                                      weight);
+	  fillhisto(histos, "MET_fakesPred",    sample, sn3, met_pt(),                                   weight);
 	}
     }//event loop
   

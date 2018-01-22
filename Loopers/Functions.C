@@ -26,9 +26,11 @@ string leptype(unsigned lep_index){
   else if( lep_motherIdSS().at(lep_index) ==2 ) return "chargeflip";
   else if( lep_motherIdSS().at(lep_index) ==-1)  return "bfake";
   else if( lep_motherIdSS().at(lep_index) ==-2)  return "cfake";
+  else if( lep_motherIdSS().at(lep_index) ==-3)  return "gammafake";
   else if(lep_motherIdSS().at(lep_index) ==0)    return "lightfake";
   else return "unknown";
 }
+
 int gentype_v2(unsigned lep1_index,unsigned lep2_index, int lep3_index){
   bool gammafake = false;
   bool jetfake   = false;
@@ -1105,6 +1107,36 @@ vector<float> allMSFOS(vector<int> tightlep, vector<int> looselep){
   }
   sort(MSFOS.begin(),MSFOS.end(),sortMSFOS);
   return MSFOS;
+}
+
+map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir){
+  map<string, TH1D*> histos;
+  if(histonames.size()!=hbins.size()) return histos;
+  if(histonames.size()!=hlow.size()) return histos;
+  if(histonames.size()!=hup.size()) return histos;
+  for(unsigned int i = 0; i<histonames.size(); ++i){
+    string mapname = histonames[i];
+    mapname = histonames[i] + "_"+samplename;
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_bfake";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_cfake";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_lightfake";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_gammafake";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_real";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_chargeflip";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+    mapname = histonames[i] + "_unknown";
+    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
+  }
+  for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
+    h->second->Sumw2(); h->second->SetDirectory(rootdir);
+  }
+  return histos;
 }
 
 map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir, int splitWW){
