@@ -31,8 +31,8 @@
   myhelper = babylocation + "wjets_ht800_mgmlm_ext1*.root";             ch[1]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht1200_mgmlm_nonext*.root";          ch[1]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht2500_mgmlm_ext1*.root";            ch[1]->Add(myhelper.c_str());
-  myhelper = babylocation + "Wpjj_lnu_madgraph*.root";                  ch[1]->Add(myhelper.c_str());
-  myhelper = babylocation + "Wmjj_lnu_madgraph*.root";                  ch[1]->Add(myhelper.c_str());
+//  myhelper = babylocation + "Wpjj_lnu_madgraph*.root";                  ch[1]->Add(myhelper.c_str());
+//  myhelper = babylocation + "Wmjj_lnu_madgraph*.root";                  ch[1]->Add(myhelper.c_str());
 
   int j = 0;
   for(int i = 0; i<chainsize; ++i){

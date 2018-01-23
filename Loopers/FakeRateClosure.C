@@ -39,7 +39,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   bool applylepSF      = true;
   bool applytrigSF     = true;
   bool applyPUrewgt    = true;
-  bool closuretest     = false;//if true use QCD fake rate
+  bool closuretest     = true;//if true use QCD fake rate
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
 
@@ -169,7 +169,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       int naSS = iaSS.size();
       int na3l = ia3l.size();
       
-      if((n3l+na3l)<2) continue;
       bool passofflineforTrigger = passofflineTriggers(i3l, ia3l);
       if(!passofflineforTrigger) continue;
       
@@ -183,12 +182,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
 
       string sample   = skimFilePrefix;
-      //string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
-      string sn       = iSS.size() >=2  ? leptype(iSS[0]) : string("not2l");
-      string sn2      = iSS.size() >=2  ? leptype(iSS[1]) : string("not2l");
-      string sn3      = iaSS.size() >0  ? leptype(iaSS[0]): string("not2l");
-      //string sn2       = ((iSS.size()+iaSS.size())>=2 && iSS.size()>0) ? leptype(iSS[0]) : string("not2l");
-//      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
+      string sn       = iSS.size() >=2  ? leptype(iSS[0]) : string("unknown");
+      string sn2      = iSS.size() >=2  ? leptype(iSS[1]) : string("unknown");
+      string sn3      = iaSS.size() >0  ? leptype(iaSS[0]): string("unknown");
+      //cout << __LINE__<<":"<<iaSS.size()<<sn3<<endl;
+      if(!TString(sn).Contains("fake") && !TString(sn2).Contains("fake") && !TString(sn3).Contains("fake")) continue;//none of selected leptons are fakes
+      string sn_event = TString(sn).Contains("fake") ? sn : sn2;
+
       bool isphotonSS = (sn =="photonfakes");
       bool isphoton3l = (sn2=="photonfakes");
       bool isfakeSS   = (sn =="fakes");
@@ -227,11 +227,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //3: AR preselect
       SR3l[3] = isAR3l(i3l,ia3l,true ,nj,nb,MET,0,btag);
 
-      cout<<__LINE__<<endl;
-      // skip event if it's not preselection SS
-      if(!SRSS[1] && !SRSS[3]) continue;      
+      // skip event if it's not preselection SS SR or AR
+      if(SRSS[1]<0 && SRSS[3]<0) continue;      
  
-      cout<<__LINE__<<endl;
       for(int i = 0; i<4; ++i) {
         if(!selects3l[i]){
           if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
@@ -239,12 +237,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         else if(vetophotonprocess(fname,isphoton3l)){ SRSS[i] = -1; }
         if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
-      cout<<__LINE__<<endl;
 
       float closureSSerr = 0.;
-      float closure3lerr = 0.;
       if(iaSS.size()>0) closureSSerr = getlepFRClosureError(iaSS[0],!closuretest,true) * subtract;
-      if(ia3l.size()>0) closure3lerr = getlepFRClosureError(ia3l[0],!closuretest,true) * subtract;
       
       float SFSS(0.), SFSSerr(0.), SF3l(0.), SF3lerr(0.);
       float noconeSFSS(0.), noconeSFSSerr(0.), noconeSF3l(0.), noconeSF3lerr(0.);
@@ -252,50 +247,29 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	SFSS       = getlepFRWeightandError(SFSSerr,      iaSS[0],!closuretest) * subtract;
 	noconeSFSS = getlepFRWeightandError(noconeSFSSerr,iaSS[0],!closuretest,false)* subtract;
       }
-      if(SR3l[3]>=0){
-	SF3l       = getlepFRWeightandError(SF3lerr,      ia3l[0],!closuretest) * subtract;
-	noconeSF3l = getlepFRWeightandError(noconeSF3lerr,ia3l[0],!closuretest,false)* subtract;
-      }
-      cout<<__LINE__<<endl;
       
-/*      if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",                         sample, sn, sn2, SRSS[ 1], SR3l[ 1], weight,                     weight);
-      }
-     fillSRhisto(histos, "ARyield",                           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight,                     weight);
-      fillSRhisto(histos, "FakeEstimation",                    sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight* SFSS,               weight* SF3l);
-      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr));
-      fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr));
-      fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, sn2, SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr));
-  */     
-      cout<<__LINE__<<":"<< sn<<endl;
-      float Mll = -999;
+      cout<<__LINE__<<":"<< sn3<<endl;
+      float Mll = -999; 
+      // fill in fake leptons in the SR
       if(SRSS[ 1]>=0){
-	fillhisto(histos, "Mjj",    sample, sn, Mjj,                                       weight);
-	fillhisto(histos, "njets",  sample, sn, nj30,                                      weight);
-	fillhisto(histos, "nbjets", sample, sn, nb,                                        weight);
-	fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                    weight);
-	fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                    weight);
-	fillhisto(histos, "Mll",    sample, sn, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
-	fillhisto(histos, "MTmax",  sample, sn, MTmax,                                     weight);
-	fillhisto(histos, "MET",    sample, sn, met_pt(),                                  weight);
+	fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
+	fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
+	fillhisto(histos, "Mjj",    sample, sn_event, Mjj,                                       weight);
+	fillhisto(histos, "njets",  sample, sn_event, nj30,                                      weight);
+	fillhisto(histos, "nbjets", sample, sn_event, nb,                                        weight);
+	fillhisto(histos, "Mll",    sample, sn_event, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
+	fillhisto(histos, "MTmax",  sample, sn_event, MTmax,                                     weight);
+	fillhisto(histos, "MET",    sample, sn_event, met_pt(),                                  weight);
       }
-/*        if(isfakeSS||isfake3l||sample.find("WWW")!=string::npos)  continue; //skip fakes when filling in fake estimations from data
-	fillSRhisto(histos, "SRyield",                           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight* SFSS,               weight* SF3l,               false);
-	fillSRhisto(histos, "FakeEstimationFRup",                sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS+SFSSerr),      weight*(SF3l+SF3lerr),      false);
-	fillSRhisto(histos, "FakeEstimationFRdn",                sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS-SFSSerr),      weight*(SF3l-SF3lerr),      false);
-	fillSRhisto(histos, "FakeEstimationClosureup",           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS+closureSSerr), weight*(SF3l+closure3lerr), false);
-	fillSRhisto(histos, "FakeEstimationClosuredn",           sample, "fakesPred", "fakesPred", SRSS[ 3], SR3l[ 3], weight*(SFSS-closureSSerr), weight*(SF3l-closure3lerr), false);
-*/
 	if(SRSS[3]>=0) {
-	  fillhisto(histos, "Mjj_fakesPred",    sample, sn3, Mjj,                                        weight);
-	  fillhisto(histos, "njets_fakesPred",  sample, sn3, nj30,                                       weight);
-	  fillhisto(histos, "nbjets_fakesPred", sample, sn3, nb,                                         weight);
-	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight);
-	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight);
-	  fillhisto(histos, "Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight);
-	  fillhisto(histos, "MTmax_fakesPred",  sample, sn3, MTmax,                                      weight);
-	  fillhisto(histos, "MET_fakesPred",    sample, sn3, met_pt(),                                   weight);
+	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  fillhisto(histos, "Mjj_fakesPred",    sample, sn3, Mjj,                                        weight*SFSS);
+	  fillhisto(histos, "njets_fakesPred",  sample, sn3, nj30,                                       weight*SFSS);
+	  fillhisto(histos, "nbjets_fakesPred", sample, sn3, nb,                                         weight*SFSS);
+	  fillhisto(histos, "Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight*SFSS);
+	  fillhisto(histos, "MTmax_fakesPred",  sample, sn3, MTmax,                                      weight*SFSS);
+	  fillhisto(histos, "MET_fakesPred",    sample, sn3, met_pt(),                                   weight*SFSS);
 	}
     }//event loop
   
