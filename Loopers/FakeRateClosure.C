@@ -62,6 +62,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("FakeEstimationFRdn");                           hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosureup");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("FakeEstimationClosuredn");                      hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+
   histonames.push_back("njets");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("nbjets");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("pTl1");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
@@ -78,6 +79,40 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("Mll_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("MET_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
   histonames.push_back("MTmax_fakesPred");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+
+  histonames.push_back("el_njets");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("el_nbjets");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("el_pTl1");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_pTl2");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_Mjj");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("el_Mll");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_MET");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("el_MTmax");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_njets_fakesPred");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("el_nbjets_fakesPred");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("el_pTl1_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_pTl2_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_Mjj_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("el_Mll_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("el_MET_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("el_MTmax_fakesPred");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+
+  histonames.push_back("mu_njets");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("mu_nbjets");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("mu_pTl1");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_pTl2");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_Mjj");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("mu_Mll");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_MET");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("mu_MTmax");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_njets_fakesPred");                              hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("mu_nbjets_fakesPred");                             hbins.push_back( 6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("mu_pTl1_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_pTl2_fakesPred");                               hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_Mjj_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("mu_Mll_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("mu_MET_fakesPred");                                hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("mu_MTmax_fakesPred");                              hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
   map<string, TH1D*> histos =  bookhistclosure(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
 
@@ -185,7 +220,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       string sn       = iSS.size() >=2  ? leptype(iSS[0]) : string("unknown");
       string sn2      = iSS.size() >=2  ? leptype(iSS[1]) : string("unknown");
       string sn3      = iaSS.size() >0  ? leptype(iaSS[0]): string("unknown");
-      //cout << __LINE__<<":"<<iaSS.size()<<sn3<<endl;
       if(!TString(sn).Contains("fake") && !TString(sn2).Contains("fake") && !TString(sn3).Contains("fake")) continue;//none of selected leptons are fakes
       string sn_event = TString(sn).Contains("fake") ? sn : sn2;
 
@@ -248,19 +282,39 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	noconeSFSS = getlepFRWeightandError(noconeSFSSerr,iaSS[0],!closuretest,false)* subtract;
       }
       
-      cout<<__LINE__<<":"<< sn3<<endl;
       float Mll = -999; 
       // fill in fake leptons in the SR
+      int fakelep =  TString(sn).Contains("fake") ? 0:1;
       if(SRSS[ 1]>=0){
-	fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
-	fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
+	if( TString(sn).Contains("fake"))  fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
+        if( TString(sn2).Contains("fake")) fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
 	fillhisto(histos, "Mjj",    sample, sn_event, Mjj,                                       weight);
 	fillhisto(histos, "njets",  sample, sn_event, nj30,                                      weight);
 	fillhisto(histos, "nbjets", sample, sn_event, nb,                                        weight);
 	fillhisto(histos, "Mll",    sample, sn_event, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
 	fillhisto(histos, "MTmax",  sample, sn_event, MTmax,                                     weight);
 	fillhisto(histos, "MET",    sample, sn_event, met_pt(),                                  weight);
-      }
+      if(abs(lep_pdgId().at(iSS[fakelep])) == 11) { 
+	if( TString(sn).Contains("fake")) fillhisto(histos, "el_pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
+        if( TString(sn2).Contains("fake"))fillhisto(histos, "el_pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
+	fillhisto(histos, "el_Mjj",    sample, sn_event, Mjj,                                       weight);
+	fillhisto(histos, "el_njets",  sample, sn_event, nj30,                                      weight);
+	fillhisto(histos, "el_nbjets", sample, sn_event, nb,                                        weight);
+	fillhisto(histos, "el_Mll",    sample, sn_event, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
+	fillhisto(histos, "el_MTmax",  sample, sn_event, MTmax,                                     weight);
+	fillhisto(histos, "el_MET",    sample, sn_event, met_pt(),                                  weight);
+         }   
+      if(abs(lep_pdgId().at(iSS[fakelep])) == 13) {
+	if( TString(sn).Contains("fake")) fillhisto(histos, "mu_pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
+        if( TString(sn2).Contains("fake"))fillhisto(histos, "mu_pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
+	fillhisto(histos, "mu_Mjj",    sample, sn_event, Mjj,                                       weight);
+	fillhisto(histos, "mu_njets",  sample, sn_event, nj30,                                      weight);
+	fillhisto(histos, "mu_nbjets", sample, sn_event, nb,                                        weight);
+	fillhisto(histos, "mu_Mll",    sample, sn_event, (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).M(), weight);
+	fillhisto(histos, "mu_MTmax",  sample, sn_event, MTmax,                                     weight);
+	fillhisto(histos, "mu_MET",    sample, sn_event, met_pt(),                                  weight);
+        }
+        }
 	if(SRSS[3]>=0) {
 	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
 	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
@@ -270,6 +324,27 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  fillhisto(histos, "Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight*SFSS);
 	  fillhisto(histos, "MTmax_fakesPred",  sample, sn3, MTmax,                                      weight*SFSS);
 	  fillhisto(histos, "MET_fakesPred",    sample, sn3, met_pt(),                                   weight*SFSS);
+
+          if(abs(lep_pdgId().at(iaSS[0])) == 11){
+	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "el_pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "el_pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  fillhisto(histos, "el_Mjj_fakesPred",    sample, sn3, Mjj,                                        weight*SFSS);
+	  fillhisto(histos, "el_njets_fakesPred",  sample, sn3, nj30,                                       weight*SFSS);
+	  fillhisto(histos, "el_nbjets_fakesPred", sample, sn3, nb,                                         weight*SFSS);
+	  fillhisto(histos, "el_Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight*SFSS);
+	  fillhisto(histos, "el_MTmax_fakesPred",  sample, sn3, MTmax,                                      weight*SFSS);
+	  fillhisto(histos, "el_MET_fakesPred",    sample, sn3, met_pt(),                                   weight*SFSS);
+          }
+          if(abs(lep_pdgId().at(iaSS[0])) == 13){
+	  if(lep_p4()[iSS[0] ].pt()>lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "mu_pTl2_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  if(lep_p4()[iSS[0] ].pt()<lep_p4()[iaSS[0] ].pt() ) fillhisto(histos, "mu_pTl1_fakesPred",   sample, sn3, lep_p4()[iaSS[0] ].pt(),                     weight*SFSS);
+	  fillhisto(histos, "mu_Mjj_fakesPred",    sample, sn3, Mjj,                                        weight*SFSS);
+	  fillhisto(histos, "mu_njets_fakesPred",  sample, sn3, nj30,                                       weight*SFSS);
+	  fillhisto(histos, "mu_nbjets_fakesPred", sample, sn3, nb,                                         weight*SFSS);
+	  fillhisto(histos, "mu_Mll_fakesPred",    sample, sn3, (lep_p4()[iSS[0] ]+lep_p4()[iaSS[0] ]).M(), weight*SFSS);
+	  fillhisto(histos, "mu_MTmax_fakesPred",  sample, sn3, MTmax,                                      weight*SFSS);
+	  fillhisto(histos, "mu_MET_fakesPred",    sample, sn3, met_pt(),                                   weight*SFSS);
+          }
 	}
     }//event loop
   
