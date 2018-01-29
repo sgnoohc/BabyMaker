@@ -286,6 +286,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       // fill in fake leptons in the SR
       int fakelep =  TString(sn).Contains("fake") ? 0:1;
       if(SRSS[ 1]>=0){
+        // it always fill the histogram with _sample. this is ok?
 	if( TString(sn).Contains("fake"))  fillhisto(histos, "pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
         if( TString(sn2).Contains("fake")) fillhisto(histos, "pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
 	fillhisto(histos, "Mjj",    sample, sn_event, Mjj,                                       weight);
