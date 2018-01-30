@@ -726,7 +726,13 @@ int isSRSS(vector<int> tightlep, vector<int> vetolep,  bool preselect, float max
   if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                     return -1;
   if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ])<0)                          return -1;
   bool ee = false; bool em = false; bool mm = false;
-  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10.) ee = true;
+LorentzVector met = LorentzVector(0,0,0,0);
+  if(MET.Pt()>0)     met = MET;
+  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
+  else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
+ 
+  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10. && met.Pt()>40.) ee = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==143)  em = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==169)  mm = true;
   if(preselect){
@@ -735,12 +741,7 @@ int isSRSS(vector<int> tightlep, vector<int> vetolep,  bool preselect, float max
     if(mm) return 2;
     return -1;
   }
-  LorentzVector met = LorentzVector(0,0,0,0);
-  if(MET.Pt()>0)     met = MET;
-  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
-  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
-  else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
-  if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
+   if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
   if(mm&&              (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
   if(em&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
     if(      maxMT>90.) return 1;
@@ -759,8 +760,13 @@ int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  boo
   if(vetolep.size()!=0)                                                                return -1;
   if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                     return -1;
   if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[looselep[0] ])<0)                          return -1;
+   LorentzVector met = LorentzVector(0,0,0,0);
+  if(MET.Pt()>0)     met = MET;
+  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
+  else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
   bool ee = false; bool em = false; bool mm = false;
-  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)>10.) ee = true;
+  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)>10. && met.pt()>40) ee = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==143)  em = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==169)  mm = true;
   if(preselect){
@@ -769,12 +775,7 @@ int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  boo
     if(mm) return 2;
     return -1;
   }
-  LorentzVector met = LorentzVector(0,0,0,0);
-  if(MET.Pt()>0)     met = MET;
-  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
-  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
-  else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
-  if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 0;
+ if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 0;
   if(mm&&              (lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 2;
   if(em&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>30.) {
     if(      maxMT>90.) return 1;

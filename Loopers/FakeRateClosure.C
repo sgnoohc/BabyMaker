@@ -228,7 +228,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       bool isfakeSS   = (sn =="fakes");
       bool isfake3l   = (sn2=="fakes");
       int subtract = 1;
-      if( !isData()&&(!isfakeSS&&!isfake3l)) subtract = -1;
+      //if( !isData()&&(!isfakeSS&&!isfake3l)) subtract = -1;
       if(splitVH(fname)){ sample = "WHtoWWW"; }
 
       float MTmax = -1;
@@ -306,8 +306,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	fillhisto(histos, "el_MET",    sample, sn_event, met_pt(),                                  weight);
          }   
       if(abs(lep_pdgId().at(iSS[fakelep])) == 13) {
-	if( TString(sn).Contains("fake")) fillhisto(histos, "mu_pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
-        if( TString(sn2).Contains("fake"))fillhisto(histos, "mu_pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
+	if( TString(sn).Contains("fake"))  fillhisto(histos, "mu_pTl1",   sample, sn, lep_p4()[iSS[0] ].pt(),                          weight);
+        if( TString(sn2).Contains("fake")) fillhisto(histos, "mu_pTl2",   sample, sn2, lep_p4()[iSS[1] ].pt(),                         weight);
 	fillhisto(histos, "mu_Mjj",    sample, sn_event, Mjj,                                       weight);
 	fillhisto(histos, "mu_njets",  sample, sn_event, nj30,                                      weight);
 	fillhisto(histos, "mu_nbjets", sample, sn_event, nb,                                        weight);
@@ -348,7 +348,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
           }
 	}
     }//event loop
-  
     // Clean Up
     delete tree;
     file->Close();

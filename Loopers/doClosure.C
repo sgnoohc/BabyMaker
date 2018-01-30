@@ -23,7 +23,7 @@
 
   dataset[1] = "Wjets";
   ch[1] = new TChain("t");
-  myhelper = babylocation + "wjets_incl_mgmlm*.root";                   ch[1]->Add(myhelper.c_str());
+//  myhelper = babylocation + "wjets_incl_mgmlm*.root";                   ch[1]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht100_mgmlm_ext1*.root";             ch[1]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht200_mgmlm_ext1*.root";             ch[1]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht400_mgmlm_ext1*.root";             ch[1]->Add(myhelper.c_str());
