@@ -26,7 +26,7 @@ string leptype(unsigned lep_index){
   else if( lep_motherIdSS().at(lep_index) ==2 ) return "chargeflip";
   else if( lep_motherIdSS().at(lep_index) ==-1)  return "bfake";
   else if( lep_motherIdSS().at(lep_index) ==-2)  return "cfake";
-  else if( lep_motherIdSS().at(lep_index) ==-3)  return "gammafake";
+  else if( lep_motherIdSS().at(lep_index) ==-3)  return "gamma";
   else if(lep_motherIdSS().at(lep_index) ==0)    return "lightfake";
   else return "unknown";
 }
@@ -1125,7 +1125,7 @@ map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames,
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     mapname = histonames[i] + "_lightfake";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    mapname = histonames[i] + "_gammafake";
+    mapname = histonames[i] + "_gamma";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     mapname = histonames[i] + "_real";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
