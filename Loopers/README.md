@@ -83,3 +83,12 @@ There is one table maker file (`makeBigTable.C`) which created table 7 of AN.
 This script runs using the same `Functions.C` and creates a minibaby.  
 Then the scripts in the `qscripts/` is used to run `QFramework` on it.
 
+## wwwana
+
+    make
+
+## rename
+
+    make rename
+
+
