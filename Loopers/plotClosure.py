@@ -7,10 +7,15 @@ def makeDivCan():
     """returns a divided canvas for ratios"""
     Rcanv = ROOT.TCanvas("Rcanv","Rcanv",1500,1200)
     Rcanv.cd()
-    pad1 = ROOT.TPad("pad1","pad1",0,0.3,1,1)
+    pad1 = ROOT.TPad("pad1","pad1",0,0.2,1,1)
     pad1.SetNumber(1)
-    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.3)
+    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.2)
+    pad2.SetBottomMargin(0.4)
+    #pad2.SetRightMargin(0.07)
+    pad2.SetTopMargin(0.01)
+    #pad2.SetLeftMargin(0.18)
     pad2.SetNumber(2)
+    pad2.SetGridy()
     pad1.Draw()
     pad2.Draw()
     Rcanv.cd()
@@ -53,32 +58,70 @@ def makeRatio(hist1,hist2,ymax=False,ymin=False,norm=False,xtitle=''):
     if ymax or ymin:
         retH.GetYaxis().SetRangeUser(ymin,ymax)
         retH.SetLineColor(hist2.GetLineColor())
-    retH.GetYaxis().SetTitle("W#gamma QCD unfiltered/filtered")
+    retH.GetYaxis().SetTitle("Prediction/MC")
+    retH.GetYaxis().SetTitleSize(0.15)
+    retH.GetXaxis().SetTitleSize(0.15)
     retH.GetXaxis().SetTitle(xtitle)
+    retH.GetXaxis().SetLabelSize(0.15)
+    retH.GetYaxis().SetLabelSize(0.15)
+    retH.GetYaxis().SetNdivisions(5)
     ROOT.SetOwnership(retH,0)
     return retH
 
+def summaryplots(lepptname,fZee):
+        ptl1_el = fZee.Get('el_pTl1_Wjets').Clone()
+        ptl1_el.Add(fZee.Get('el_pTl1_tt1l'))
+        ptl1_el_pred = fZee.Get('el_pTl1_fakesPred_Wjets').Clone()
+        ptl1_el_pred.Add(fZee.Get('el_pTl1_fakesPred_tt1l'))
+        ptl1_el_closure = makeRatio(ptl1_el_pred,ptl1_el,ymin=0,ymax=2.,xtitle='Leading electron Pt[GeV]')
+        pad1=c.GetPad(1)
+        pad2=c.GetPad(2)
+        pad1.cd()
+        ptl1_el_pred.Draw()
+        ptl1_el.Draw("same")
+        pad2.cd()
+        ptl1_el_closure.Draw()
+        c.Update()
+        c.SaveAs(lepptname+".pdf") 
+
 def main():
 	fZee = TFile("rootfiles/FakeRateClosureHistograms.root")
-
-#	c = TCanvas("c", "c")
-#	c.SetWindowSize(800, 600)
         c=makeDivCan()
 
-	l = TLegend(.85, .7, .95, .9)
-        fakePred = ['pTl1_fakesPred_bfake', 'pTl2_fakesPred_bfake', 'el_pTl1_fakesPred_bfake','mu_pTl1_fakesPred_bfake', 'el_pTl2_fakesPred_bfake','mu_pTl2_fakesPred_bfake', 'pTl1_fakesPred_Wjets','pTl2_fakesPred_Wjets','pTl1_fakesPred_tt1l','pTl2_fakesPred_tt1l', 'el_pTl1_fakesPred_Wjets','el_pTl2_fakesPred_Wjets','mu_pTl1_fakesPred_tt1l','mu_pTl2_fakesPred_tt1l', 'el_pTl1_fakesPred_tt1l','el_pTl2_fakesPred_tt1l','mu_pTl1_fakesPred_Wjets','mu_pTl2_fakesPred_Wjets'] 
+	l = TLegend(.75, .7, .95, .9)
+        fakePred = ['pTl1_fakesPred_bfake', 'pTl2_fakesPred_bfake', 
+                    'pTl1_fakesPred_Wjets','pTl2_fakesPred_Wjets',
+                    'pTl1_fakesPred_tt1l','pTl2_fakesPred_tt1l', 
+                    'el_pTl1_fakesPred_Wjets','mu_pTl1_fakesPred_Wjets',
+                    'el_pTl2_fakesPred_Wjets','mu_pTl2_fakesPred_Wjets',
+                    'el_pTl1_fakesPred_bfake','mu_pTl1_fakesPred_bfake',
+                    'el_pTl2_fakesPred_bfake','mu_pTl2_fakesPred_bfake', 
+                    'el_pTl1_fakesPred_tt1l','mu_pTl1_fakesPred_tt1l',
+                    'el_pTl2_fakesPred_tt1l','mu_pTl2_fakesPred_tt1l'] 
+
         fakefrommc = [x.replace('_fakesPred',"") for x in fakePred]
-        
+
+        ptl1_el = fZee.Get('el_pTl1_Wjets').Clone("ptl1_el")
+        ptl1_el.Add(fZee.Get('el_pTl1_tt1l'))
+        ptl1_el_pred = fZee.Get('el_pTl1_fakesPred_Wjets').Clone("ptl1_el_pred")
+        ptl1_el_pred.Add(fZee.Get('el_pTl1_fakesPred_tt1l'))
+        ptl1_el_closure = makeRatio(ptl1_el_pred,ptl1_el,ymin=0,ymax=2.,xtitle='Leading electron Pt[GeV]') 
+        pad1=c.GetPad(1)
+        pad2=c.GetPad(2)
+        pad1.cd()
+        ptl1_el_pred.Draw()
+        ptl1_el.Draw("same")
+        pad2.cd()
+        ptl1_el_closure.Draw()   
+	c.Update()
+	c.SaveAs("el_pTl1.pdf")
+   
 	for i,k in enumerate(fakefrommc):
-	#    if k.GetName is not "noMET_genz_pt_ttzjets":continue
 	    hZee = fZee.Get(k)
 	    hWgamma = fZee.Get(fakePred[i])
 	    
 	    if not hZee.InheritsFrom("TH1") or not hWgamma.InheritsFrom("TH1"):
 		continue
-
-	    #if(hZee.Integral()): hZee.Scale(1/hZee.Integral())
-	    #if(hWgamma.Integral()): hWgamma.Scale(1/hWgamma.Integral())
 
 	    hZee.SetLineColor(kBlue)
 	    hZee.SetMarkerColor(kBlue)
@@ -90,8 +133,9 @@ def main():
 	    hZee.SetTitle("from MC")
 	    hWgamma.SetTitle("Prediction")
 
-            h_ratio = makeRatio(hWgamma,hZee,ymin=0,ymax=2.)
-#            h_ratio.SetMarkerColor(KBlack0)
+            xaxislabel = k.replace('l1','LeadLep')
+            xaxislabel = k.replace('l2','SubLeadLep')
+            h_ratio = makeRatio(hWgamma,hZee,ymin=0,ymax=2.,xtitle=xaxislabel +' [GeV]')
             h_ratio.SetStats(kFALSE)
 	    s = THStack(hZee.GetName(), hZee.GetTitle())
 	    s.Add(hZee)
@@ -100,8 +144,9 @@ def main():
             pad2=c.GetPad(2)
             pad1.cd()
 	    s.Draw("nostack")
-	    s.GetXaxis().SetTitle(k)
-
+#	    s.GetXaxis().SetTitle(k +' [GeV]')
+            s.GetXaxis().SetLabelSize(0)
+            s.SetTitle("Closure test")
 	    l.Clear()
 	    l.AddEntry(hZee)
 	    l.AddEntry(hWgamma)
@@ -109,9 +154,7 @@ def main():
 
             pad2.cd()
             h_ratio.Draw()
-
 	    c.Update()
-#	    pad1.SetLogy()
 	    c.SaveAs("~/public_html/ttz_z_comp/"+k.replace("_ttzjets_reco", "") + ".pdf")
 
 if __name__ == "__main__":
