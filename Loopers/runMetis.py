@@ -6,8 +6,9 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v10"
-input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.17/skim/"
+job_tag = "minibaby_v1.1"
+input_tag = "18"
+input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
 
 ###################################################################################################################
 ###################################################################################################################
@@ -57,10 +58,19 @@ os.chdir(metis_path)
 # Loop over datasets to submit
 total_summary = {}
 while True:
+    wwwsample = DirectorySample(dataset="/WWW_v0_1_18",
+                                location=input_location,
+                                globber="*.root")
+    #wwwsample.get_files()
+    #new_list_files = []
+    #for i in wwwsample.info["files"]:
+    #    if i.get_name().find("wgjets") != -1:
+    #        new_list_files.append(i)
+    #wwwsample.info["files"] = new_list_files
 
     # define the task
     task = CondorTask(
-            sample               = DirectorySample(dataset="/WWW_v0_1_17",
+            sample               = DirectorySample(dataset="/WWW_v0_1_{}".format(input_tag),
                                                    location=input_location,
                                                    globber="*.root"),
             tag                  = job_tag,
@@ -104,4 +114,7 @@ while True:
         raw_input("Press Enter to force update, or Ctrl-C to quit.")
         print "Force updating..."
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+print "./rename \<\(sh map.sh ProjectMetis/tasks/CondorTask_WWW_v0_1_{}_{}/logs/std_logs/ | grep hadoop\) /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag, input_tag, job_tag)
+print "sh merge.sh /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag)
 #eof

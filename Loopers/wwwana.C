@@ -12,9 +12,8 @@
 #include "rooutil/ttreex.h"
 #include "rooutil/json.h"
 #include "rooutil/draw.h"
-#include "rooutil/ana.h"
 
-#include "CMS3_WWW0117.h"
+#include "CMS3_WWW0118.h"
 #include "Functions.h"
 
 #include "Math/VectorUtil.h"
@@ -25,6 +24,8 @@
 
 using json = nlohmann::json;
 using namespace RooUtil::StringUtil;
+
+using namespace tas;
 
 //#################################################################################################
 int main(int argc, char* argv[]);
@@ -270,9 +271,9 @@ int main(int argc, char* argv[])
         // Declare the analysis module
         WWWAnalysis wwwanalysis;
 
-        // Default configuration file
-        ifstream default_config(".wwwana.json");
-        default_config >> wwwanalysis._j;
+//        // Default configuration file
+//        ifstream default_config(".wwwana.json");
+//        default_config >> wwwanalysis._j;
 
         // If no babydir option is given, take the default one
         if (!options.count("babydir") && !options.count("input"))
@@ -428,6 +429,9 @@ void WWWAnalysis::createBranches(RooUtil::TTreeX& t)
 
     t.createBranch<float>("veto_ss_lep0_ip3derr");
     t.createBranch<float>("veto_ss_lep1_ip3derr");
+
+    t.createBranch<float>("veto_ss_lep0_conecorrpt");
+    t.createBranch<float>("veto_ss_lep1_conecorrpt");
 
     t.createBranch<int>("veto_ss_lep0_motheridss");
     t.createBranch<int>("veto_ss_lep1_motheridss");
@@ -627,6 +631,33 @@ void WWWAnalysis::run()
 }
 
 //#################################################################################################
+// Compute mgammapt
+float gammapt()
+{
+    using namespace tas;
+
+    // Compute mgammapt
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+        if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_status()[igen]) == 23)
+        {
+            return genPart_p4()[igen].pt();
+        }
+    }
+
+    // If no gamma found try finding a status 1 with 24 as mother
+    for (unsigned int igen = 0; igen < tas::genPart_pdgId().size(); ++igen)
+    {
+        if (abs(genPart_pdgId()[igen]) == 22 && abs(genPart_motherId()[igen]) == 24 && abs(genPart_status()[igen]) == 1)
+        {
+            return genPart_p4()[igen].pt();
+        }
+    }
+    return -999;
+}
+
+
+//#################################################################################################
 // Sets standard variables and returns false if fails preselection.
 bool WWWAnalysis::calcStdVariables()
 {
@@ -638,8 +669,8 @@ bool WWWAnalysis::calcStdVariables()
     event_number = tas::evt();
 
     // Get all the lepton indices
-    //getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
-    getleptonindices_lepopt(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    //getleptonindices_lepopt(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
 
     // I like to keep the lepton indices to be more about what they actually mean.
     processLeptonIndices();
@@ -978,6 +1009,9 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<float>("veto_ss_lep0_ip3derr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<float>("veto_ss_lep1_ip3derr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[1]] : -999);
 
+    t.setBranch<float>("veto_ss_lep0_conecorrpt", list_incl_veto_ss_lep_idx.size() > 0 ? coneCorrPt(list_incl_veto_ss_lep_idx[0]) : -999);
+    t.setBranch<float>("veto_ss_lep1_conecorrpt", list_incl_veto_ss_lep_idx.size() > 1 ? coneCorrPt(list_incl_veto_ss_lep_idx[1]) : -999);
+
     t.setBranch<int>("veto_ss_lep0_motheridss", list_incl_veto_ss_lep_idx.size() > 0 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<int>("veto_ss_lep1_motheridss", list_incl_veto_ss_lep_idx.size() > 1 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[1]] : -999);
 
@@ -1265,6 +1299,8 @@ void WWWAnalysis::setDatasetMap()
     datasetMap["ZZ"].push_back("zz_4l_powheg*.root");
 
     datasetMap["WG"].push_back("wgjets_incl_mgmlm*.root");
+    datasetMap["WG"].push_back("wgjets_pt*.root");
+    datasetMap["WG"].push_back("wgjets_pt*.root");
 
     datasetMap["ZG"].push_back("zgamma_2lG_amc*.root");
 
