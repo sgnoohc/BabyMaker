@@ -198,14 +198,24 @@ bool getalljetnumbers(int &nj, int &nj30, int &nb, int jec){
 }
 
 bool istightlepton(int i, int version){
-    bool istight = false;
-    if(version==0) {
-     if(lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
+  bool istight = false;
+  if(version==0) {
+    if(lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i]) {
       bool isgoodelectron = abs(lep_pdgId()[i])==11&&lep_lostHits()[i]==0&&lep_tightCharge()[i]==2 &&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso03EAv2()[i]<0.0588) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso03EAv2()[i]<0.0571) );
       istight = abs(lep_pdgId()[i])==13 &&lep_relIso03EAv2()[i]<0.06 ? true : isgoodelectron;
-   }
+    }
   }
-     return istight;
+  if(version==1) {
+    bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.05&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.07&&lep_MVA()[i]>0.925) );
+    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.9;
+    istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
+  }
+  if(version==-1) {
+    bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.015&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.920) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.880) );
+    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.9;
+    istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
+  }
+  return istight;
 
 }
 
@@ -217,7 +227,7 @@ bool islooselepton(int i, int version){
 return isloose;
 }
 
-bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l){
+bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version, float pTSS, float pT3l){
   iSS.clear();
   i3l.clear();
   iaSS.clear();
@@ -230,15 +240,11 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
     bool isSS    = false; bool is3l    = false;
     bool isaSS   = false; bool isa3l   = false;
     //tight ID
-        if( istightlepton(i,0)){
-	  if(lep_p4()[i].Pt()>20) { i3l.push_back(i); is3l = true; }
-	  if(lep_p4()[i].Pt()>30) { iSS.push_back(i); isSS = true; }
-         }
+    if(istightlepton(i,-1*version)&&lep_p4()[i].Pt()>pT3l) { i3l.push_back(i); is3l = true; }
+    if(istightlepton(i,   version)&&lep_p4()[i].Pt()>pTSS) { iSS.push_back(i); isSS = true; }
    //loose ID
-        if( islooselepton(i,0)){
-	  if(!is3l&&lep_p4()[i].Pt()>20) { ia3l.push_back(i); isa3l = true; }
-	  if(!isSS&&lep_p4()[i].Pt()>30) { iaSS.push_back(i); isaSS = true; }
-        }
+    if(istightlepton(i,-1*version)&&!is3l&&lep_p4()[i].Pt()>pT3l) { ia3l.push_back(i); isa3l = true; }
+    if(istightlepton(i,   version)&&!isSS&&lep_p4()[i].Pt()>pTSS) { iaSS.push_back(i); isaSS = true; }
     //vetoID --simple, leave it here.
     if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_relIso03EAv2()[i]<=0.4) {
       if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);

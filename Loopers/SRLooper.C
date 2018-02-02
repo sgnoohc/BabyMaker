@@ -237,8 +237,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
-      //getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
+      //getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
+      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
