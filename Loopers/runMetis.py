@@ -89,7 +89,7 @@ while True:
     task.process()
 
     # save some information for the dashboard
-    total_summary["WWW_v0_1_17"] = task.get_task_summary()
+    total_summary["WWW_v0_1_{}".format(input_tag)] = task.get_task_summary()
 
     # parse the total summary and write out the dashboard
     StatsParser(data=total_summary, webdir=metis_dashboard_path).do()
