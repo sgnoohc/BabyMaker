@@ -212,7 +212,7 @@ bool istightlepton(int i, int version){
   }
   if(version==-1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.015&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.920) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.880) );
-    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.9;
+    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.84; // 0.84 cut point is when we keep the fake rate same
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   return istight;
