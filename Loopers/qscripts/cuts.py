@@ -187,8 +187,8 @@ SSpreselcuts = [
         typebkg_ss_configuration_cut,
         "n_veto_ss_lep==2",
         "vetophotonss==0",
-#        "n_tight_ss_lep=={$(usefakeweight)?1:2}", # Fake estimation specific
-#        "n_loose_ss_lep==2",
+        "n_tight_ss_lep=={$(usefakeweight)?1:2}", # Fake estimation specific
+        "n_loose_ss_lep==2",
         "ntrk==0",
         "veto_ss_lep0.Pt()>20.",
         "veto_ss_lep1.Pt()>20.",
