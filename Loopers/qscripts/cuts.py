@@ -430,9 +430,9 @@ def addAllCuts(base):
     #addAllTL0SFOSCuts(base)
     #addAllTL1SFOSCuts(base)
     #addAllTL2SFOSCuts(base)
-    #addAllWZCReeCuts(base)
-    #addAllWZCRemCuts(base)
-    #addAllWZCRmmCuts(base)
+    addAllWZCReeCuts(base)
+    addAllWZCRemCuts(base)
+    addAllWZCRmmCuts(base)
     #addAllTLWZ1SFOSCuts(base)
     #addAllTLWZ2SFOSCuts(base)
 
