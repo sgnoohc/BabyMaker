@@ -243,8 +243,8 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
     if(istightlepton(i,-1*version)&&lep_p4()[i].Pt()>pT3l) { i3l.push_back(i); is3l = true; }
     if(istightlepton(i,   version)&&lep_p4()[i].Pt()>pTSS) { iSS.push_back(i); isSS = true; }
    //loose ID
-    if(istightlepton(i,-1*version)&&!is3l&&lep_p4()[i].Pt()>pT3l) { ia3l.push_back(i); isa3l = true; }
-    if(istightlepton(i,   version)&&!isSS&&lep_p4()[i].Pt()>pTSS) { iaSS.push_back(i); isaSS = true; }
+    if(islooselepton(i,-1*version)&&!is3l&&lep_p4()[i].Pt()>pT3l) { ia3l.push_back(i); isa3l = true; }
+    if(islooselepton(i,   version)&&!isSS&&lep_p4()[i].Pt()>pTSS) { iaSS.push_back(i); isaSS = true; }
     //vetoID --simple, leave it here.
     if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_relIso03EAv2()[i]<=0.4) {
       if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
