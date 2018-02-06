@@ -115,6 +115,6 @@ while True:
         print "Force updating..."
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-print "./rename \<\(sh map.sh ProjectMetis/tasks/CondorTask_WWW_v0_1_{}_{}/logs/std_logs/ | grep hadoop\) /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag, input_tag, job_tag)
+print "./rename <(sh map.sh ProjectMetis/tasks/CondorTask_WWW_v0_1_{}_{}/logs/std_logs/ | grep hadoop) /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag, input_tag, job_tag)
 print "sh merge.sh /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag)
 #eof

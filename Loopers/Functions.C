@@ -1496,7 +1496,7 @@ float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> l
   return eff1*eff2;
 }
 
-float getlepFakeRateandError(float &error, int index, bool data, bool conecorr){
+float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, bool is3l){
   error = 0;
   if(index<0) return 0;
   if(index>=(int)lep_pdgId().size()) return 0;
