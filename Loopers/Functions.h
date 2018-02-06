@@ -95,9 +95,9 @@ bool fileexists(string filename);
 float getlepSFandError(float &error, int index);//so far assumes tight ID as only those SF are implemented.
 float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
 float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});
-float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, bool is3l=false);
-float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false);
-float getlepFRClosureError(int index, bool data=true, bool conecorr=true);
+float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, bool is3l=false, int version=0);
+float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false, int version=0);
+float getlepFRClosureError(int index, bool data=true, bool conecorr=true, int version=0);
 
 float getPUWeight(int variation=0);
 float getPUWeightAndError(float &errorup, float &errordown);

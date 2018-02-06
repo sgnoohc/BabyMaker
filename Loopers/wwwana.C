@@ -669,7 +669,7 @@ bool WWWAnalysis::calcStdVariables()
     event_number = tas::evt();
 
     // Get all the lepton indices
-    getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
+    getleptonindices(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx, 1, 25., 20.);
     //getleptonindices_lepopt(list_tight_ss_lep_idx, list_tight_3l_lep_idx, list_loose_ss_lep_idx, list_loose_3l_lep_idx, list_veto_ss_lep_idx, list_veto_3l_lep_idx, list_looseveto_ss_lep_idx, list_looseveto_3l_lep_idx);
 
     // I like to keep the lepton indices to be more about what they actually mean.
@@ -799,21 +799,21 @@ bool WWWAnalysis::calcStdVariables()
 
     if (list_loose_ss_lep_idx.size() > 0)
     {
-        ffwgtss_closerr    = getlepFRClosureError(list_loose_ss_lep_idx[0], true, true);
-        qcdffwgtss_closerr = getlepFRClosureError(list_loose_ss_lep_idx[0], false, true);
-        ffwgtss            = getlepFRWeightandError(ffwgtss_err,        list_loose_ss_lep_idx[0], true);
-        ffwgtss_nocone     = getlepFRWeightandError(ffwgtss_nocone_err, list_loose_ss_lep_idx[0], true, false);
-        qcdffwgtss         = getlepFRWeightandError(qcdffwgtss_err,        list_loose_ss_lep_idx[0], false);
-        qcdffwgtss_nocone  = getlepFRWeightandError(qcdffwgtss_nocone_err, list_loose_ss_lep_idx[0], false, false);
+        ffwgtss_closerr    = getlepFRClosureError(list_loose_ss_lep_idx[0], true, true, 1);
+        qcdffwgtss_closerr = getlepFRClosureError(list_loose_ss_lep_idx[0], false, true, 1);
+        ffwgtss            = getlepFRWeightandError(ffwgtss_err,        list_loose_ss_lep_idx[0], true, 1);
+        ffwgtss_nocone     = getlepFRWeightandError(ffwgtss_nocone_err, list_loose_ss_lep_idx[0], true, false, 1);
+        qcdffwgtss         = getlepFRWeightandError(qcdffwgtss_err,        list_loose_ss_lep_idx[0], false, 1);
+        qcdffwgtss_nocone  = getlepFRWeightandError(qcdffwgtss_nocone_err, list_loose_ss_lep_idx[0], false, false, 1);
     }
     if (list_loose_3l_lep_idx.size() > 0)
     {
-        ffwgt3l_closerr    = getlepFRClosureError(list_loose_3l_lep_idx[0], true, true);
-        qcdffwgt3l_closerr = getlepFRClosureError(list_loose_3l_lep_idx[0], false, true);
-        ffwgt3l            = getlepFRWeightandError(ffwgt3l_err,        list_loose_3l_lep_idx[0], true);
-        ffwgt3l_nocone     = getlepFRWeightandError(ffwgt3l_nocone_err, list_loose_3l_lep_idx[0], true, false);
-        qcdffwgt3l         = getlepFRWeightandError(qcdffwgt3l_err,        list_loose_3l_lep_idx[0], false);
-        qcdffwgt3l_nocone  = getlepFRWeightandError(qcdffwgt3l_nocone_err, list_loose_3l_lep_idx[0], false, false);
+        ffwgt3l_closerr    = getlepFRClosureError(list_loose_3l_lep_idx[0], true, true, -1);
+        qcdffwgt3l_closerr = getlepFRClosureError(list_loose_3l_lep_idx[0], false, true, -1);
+        ffwgt3l            = getlepFRWeightandError(ffwgt3l_err,        list_loose_3l_lep_idx[0], true, -1);
+        ffwgt3l_nocone     = getlepFRWeightandError(ffwgt3l_nocone_err, list_loose_3l_lep_idx[0], true, false, -1);
+        qcdffwgt3l         = getlepFRWeightandError(qcdffwgt3l_err,        list_loose_3l_lep_idx[0], false, -1);
+        qcdffwgt3l_nocone  = getlepFRWeightandError(qcdffwgt3l_nocone_err, list_loose_3l_lep_idx[0], false, false, -1);
     }
 
     // Offline trigger requirement (To stay on plateau)

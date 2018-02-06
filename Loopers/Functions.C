@@ -1496,7 +1496,7 @@ float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> l
   return eff1*eff2;
 }
 
-float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, bool is3l){
+float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, bool is3l, int version){
   error = 0;
   if(index<0) return 0;
   if(index>=(int)lep_pdgId().size()) return 0;
@@ -1505,32 +1505,32 @@ float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, 
   float conept = correction*lep_p4()[index].Pt();
   if(data){
     if(abs(lep_pdgId()[index])==11) {
-      error = fakerate_el_data_unc(lep_p4()[index].Eta(),conept);
-      return  fakerate_el_data(    lep_p4()[index].Eta(),conept);
+      error = fakerate_el_data_unc(lep_p4()[index].Eta(),conept,version);
+      return  fakerate_el_data(    lep_p4()[index].Eta(),conept,version);
     }
     else {
-      error = fakerate_mu_data_unc(lep_p4()[index].Eta(),conept);
-      return  fakerate_mu_data(    lep_p4()[index].Eta(),conept);
+      error = fakerate_mu_data_unc(lep_p4()[index].Eta(),conept,version);
+      return  fakerate_mu_data(    lep_p4()[index].Eta(),conept,version);
     }
   }
   else {
     if(abs(lep_pdgId()[index])==11) {
-      error = fakerate_el_qcd_unc(lep_p4()[index].Eta(),conept);
-      return  fakerate_el_qcd(    lep_p4()[index].Eta(),conept);
+      error = fakerate_el_qcd_unc(lep_p4()[index].Eta(),conept,version);
+      return  fakerate_el_qcd(    lep_p4()[index].Eta(),conept,version);
     }
     else {
-      error = fakerate_mu_qcd_unc(lep_p4()[index].Eta(),conept);
-      return  fakerate_mu_qcd(    lep_p4()[index].Eta(),conept);
+      error = fakerate_mu_qcd_unc(lep_p4()[index].Eta(),conept,version);
+      return  fakerate_mu_qcd(    lep_p4()[index].Eta(),conept,version);
     }
   }
 }
 
-float getlepFRWeightandError(float &error, int index, bool data, bool conecorr, bool addclosureunc){
+float getlepFRWeightandError(float &error, int index, bool data, bool conecorr, bool addclosureunc, int version){
   error = 0;
   if(index<0) return 0;
   if(index>=(int)lep_pdgId().size()) return 0;
   float err = 0;
-  float FR = getlepFakeRateandError(err, index, data, conecorr);
+  float FR = getlepFakeRateandError(err, index, data, conecorr, version);
   if(FR>=1.){
     error = 0;
     return 0;
@@ -1544,11 +1544,11 @@ float getlepFRWeightandError(float &error, int index, bool data, bool conecorr, 
   return FR/(1.-FR);
 }
 
-float getlepFRClosureError(int index, bool data, bool conecorr){
+float getlepFRClosureError(int index, bool data, bool conecorr, int version){
   if(index<0) return 0;
   if(index>=(int)lep_pdgId().size()) return 0;
   float err = 0;
-  float FR = getlepFakeRateandError(err, index, data, conecorr);
+  float FR = getlepFakeRateandError(err, index, data, conecorr, version);
   if(abs(lep_pdgId()[index])==11) return 0.17*FR/(1.-FR);
   else                            return 0.31*FR/(1.-FR);
 }
