@@ -2,14 +2,14 @@ float fakerate_mu_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
         printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
-    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.323906732418 + isyst * 0.00837977835873;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.319393460305 + isyst * 0.00996120546857;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0946133552592 + isyst * 0.00550791112222;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.111499863092 + isyst * 0.00770750533532;
-    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.083248031153 + isyst * 0.00701383762705;
-    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0866929794202 + isyst * 0.00873836828406;
-    if (fabs(eta) < 1.2) return 0.0677759608883 + isyst * 0.0290759672496;
-    if (fabs(eta) < 2.4) return 0.0730187386593 + isyst * 0.0421267416634;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.324047628701 + isyst * 0.00837943479841;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.319529012011 + isyst * 0.00996091486103;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0952495474335 + isyst * 0.0054944929123;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 30.0) return 0.112222821695 + isyst * 0.00769795251827;
+    if (fabs(eta) < 1.2 && (conecorrpt) < 40.0) return 0.0846421803647 + isyst * 0.00692791252437;
+    if (fabs(eta) < 2.4 && (conecorrpt) < 40.0) return 0.0882777428896 + isyst * 0.00864205524405;
+    if (fabs(eta) < 1.2) return 0.0745120541402 + isyst * 0.0285694058155;
+    if (fabs(eta) < 2.4) return 0.0826718258491 + isyst * 0.041394674211;
     printf("WARNING in fakerate_mu_data_baseline_v2_3l(): the given phase-space (%f, %f) did not fall under any range!\n", eta, conecorrpt); 
     return 1;
 }
@@ -18,18 +18,18 @@ float fakerate_el_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
         printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
-    if (fabs(eta) < 0.8 && (conecorrpt) < 25.0) return 0.377894893801 + isyst * 0.0226609961302;
-    if (fabs(eta) < 1.479 && (conecorrpt) < 25.0) return 0.424194309171 + isyst * 0.0305959368193;
-    if (fabs(eta) < 2.5 && (conecorrpt) < 25.0) return 0.586787954077 + isyst * 0.0605554477024;
-    if (fabs(eta) < 0.8 && (conecorrpt) < 30.0) return 0.225331615233 + isyst * 0.0305284229283;
-    if (fabs(eta) < 1.479 && (conecorrpt) < 30.0) return 0.309940498858 + isyst * 0.0364835263746;
-    if (fabs(eta) < 2.5 && (conecorrpt) < 30.0) return 0.445674865083 + isyst * 0.0580132756063;
-    if (fabs(eta) < 0.8 && (conecorrpt) < 40.0) return 0.131255244752 + isyst * 0.0504067100128;
-    if (fabs(eta) < 1.479 && (conecorrpt) < 40.0) return 0.183965283611 + isyst * 0.0433384920434;
-    if (fabs(eta) < 2.5 && (conecorrpt) < 40.0) return 0.395380950603 + isyst * 0.0626923579681;
-    if (fabs(eta) < 0.8) return 0.0532971908429 + isyst * 0.114366304455;
-    if (fabs(eta) < 1.479) return 0.0127463335785 + isyst * 0.12755451683;
-    if (fabs(eta) < 2.5) return 0.242250091146 + isyst * 0.18845961152;
+    if (fabs(eta) < 0.8 && (conecorrpt) < 25.0) return 0.383420614729 + isyst * 0.0226666133554;
+    if (fabs(eta) < 1.479 && (conecorrpt) < 25.0) return 0.42925092722 + isyst * 0.0306380050719;
+    if (fabs(eta) < 2.5 && (conecorrpt) < 25.0) return 0.595922430404 + isyst * 0.0607061729882;
+    if (fabs(eta) < 0.8 && (conecorrpt) < 30.0) return 0.253318378478 + isyst * 0.0305868506882;
+    if (fabs(eta) < 1.479 && (conecorrpt) < 30.0) return 0.329026167996 + isyst * 0.0371028330186;
+    if (fabs(eta) < 2.5 && (conecorrpt) < 30.0) return 0.471736113972 + isyst * 0.0592605226349;
+    if (fabs(eta) < 0.8 && (conecorrpt) < 40.0) return 0.205792766212 + isyst * 0.0462275167487;
+    if (fabs(eta) < 1.479 && (conecorrpt) < 40.0) return 0.242735219177 + isyst * 0.0406829712023;
+    if (fabs(eta) < 2.5 && (conecorrpt) < 40.0) return 0.468858090895 + isyst * 0.0602136273864;
+    if (fabs(eta) < 0.8) return 0.248739410514 + isyst * 0.103623990547;
+    if (fabs(eta) < 1.479) return 0.227044157577 + isyst * 0.115852910409;
+    if (fabs(eta) < 2.5) return 0.545261343018 + isyst * 0.171732019571;
     printf("WARNING in fakerate_el_data_baseline_v2_3l(): the given phase-space (%f, %f) did not fall under any range!\n", eta, conecorrpt); 
     return 1;
 }

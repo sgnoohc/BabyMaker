@@ -6,7 +6,7 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v1.7"
+job_tag = "minibaby_v2.0"
 input_tag = "18"
 input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
 #input_location = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.{}/skim/".format(input_tag)
