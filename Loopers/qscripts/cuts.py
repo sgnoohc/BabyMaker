@@ -192,6 +192,7 @@ SSpreselcuts = [
         "ntrk==0",
         "veto_ss_lep0.Pt()>20.",
         "veto_ss_lep1.Pt()>20.",
+        "(abs(veto_ss_lep1_pdgid)==13)*(veto_ss_lep1_ptratio>0.9)+(abs(veto_ss_lep1_pdgid)!=13)*(1)",
 #        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
 #        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
         ]

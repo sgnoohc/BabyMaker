@@ -207,7 +207,7 @@ bool istightlepton(int i, int version){
   }
   if(version==1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.05&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.07&&lep_MVA()[i]>0.925) );
-    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.9;
+    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.855;
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   if(version==-1) {
@@ -224,7 +224,12 @@ bool islooselepton(int i, int version){
    if(version ==0){
      isloose = abs(lep_pdgId()[i])==13 ? lep_pass_VVV_cutbased_fo_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i] && lep_relIso03EAv2()[i]<0.4 :  lep_pass_VVV_cutbased_fo_noiso()[i]   &&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i] && lep_lostHits()[i]==0&&lep_tightCharge()[i]==2 && lep_relIso03EAv2()[i]<0.2;
    }   
-return isloose;
+   if(abs(version) ==1){
+     bool isloosemuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.65;
+     bool islooseelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.925) );
+     isloose = abs(lep_pdgId()[i])==13 ? isloosemuon : islooseelectron;
+   }   
+   return isloose;
 }
 
 bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version, float pTSS, float pT3l){
