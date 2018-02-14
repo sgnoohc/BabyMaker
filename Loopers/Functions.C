@@ -207,7 +207,7 @@ bool istightlepton(int i, int version){
   }
   if(version==1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.05&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.07&&lep_MVA()[i]>0.925) );
-    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.855;
+    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.9;
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   if(version==-1) {
@@ -743,7 +743,7 @@ LorentzVector met = LorentzVector(0,0,0,0);
   else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
  
-  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10. && met.Pt()>40.) ee = true;
+  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10.) ee = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==143)  em = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==169)  mm = true;
   if(preselect){
