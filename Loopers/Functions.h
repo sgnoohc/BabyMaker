@@ -54,7 +54,7 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
 bool istightlepton(int i, int version);
 bool islooselepton(int i, int version);
 bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int bdtnum = 1, float bdt_wp = 0.85);
-float coneCorrPt(int lepi);//apply only to loose but not tight leptons
+float coneCorrPt(int lepi, int version=0);//apply only to loose but not tight leptons
 //float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin=10.1, float muFRptmax=119.9, float muFRetamin=0.01, float muFRetamax=2.39, float elFRptmin=10.1, float elFRptmax=119.9, float elFRetamin=0.01, float elFRetamax=2.49, bool conecorrected=true);
 float calcMjj(bool closestDR=true, int jec=0);//Mjj or MjjL
 float Detajj(int jec=0);
@@ -95,7 +95,7 @@ bool fileexists(string filename);
 float getlepSFandError(float &error, int index);//so far assumes tight ID as only those SF are implemented.
 float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
 float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});
-float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, bool is3l=false, int version=0);
+float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, int version=0);
 float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false, int version=0);
 float getlepFRClosureError(int index, bool data=true, bool conecorr=true, int version=0);
 

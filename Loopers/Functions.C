@@ -330,14 +330,32 @@ bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS,
   return true;
 }
 
-float coneCorrPt(int lepi){
+float coneCorrPt(int lepi, int version){
   float coneptcorr = 0;
   float relIso = lep_relIso03EAv2().at(lepi);
-  if(   abs(lep_pdgId().at(lepi)) == 11) {
-    if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
-    else                                       coneptcorr = std::max( 0., relIso - 0.0571 );
+  float relIso04 = lep_relIso04EAv2().at(lepi);
+  float ptratio = lep_ptRatio().at(lepi);
+  if (version == 0)
+  {
+      if(   abs(lep_pdgId().at(lepi)) == 11) {
+          if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
+          else                                       coneptcorr = std::max( 0., relIso - 0.0571 );
+      }
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
   }
-  if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
+  else if (version == 1)
+  {
+      if(   abs(lep_pdgId().at(lepi)) == 11) {
+          if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso04 - 0.05 );
+          else                                       coneptcorr = std::max( 0., relIso04 - 0.07 );
+      }
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., 0.9/ptratio - 1.   );
+  }
+  else if (version == -1)
+  {
+      if(   abs(lep_pdgId().at(lepi)) == 11)       coneptcorr = std::max( 0., relIso04 - 0.1   );
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., 0.84/ptratio - 1.);
+  }
 
   return coneptcorr;
 }
@@ -1501,12 +1519,12 @@ float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> l
   return eff1*eff2;
 }
 
-float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, bool is3l, int version){
+float getlepFakeRateandError(float &error, int index, bool data, bool conecorr, int version){
   error = 0;
   if(index<0) return 0;
   if(index>=(int)lep_pdgId().size()) return 0;
   float correction = 1.;
-  if(conecorr) correction = 1.+coneCorrPt(index);
+  if(conecorr) correction = 1.+coneCorrPt(index, version);
   float conept = correction*lep_p4()[index].Pt();
   if(data){
     if(abs(lep_pdgId()[index])==11) {
