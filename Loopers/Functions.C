@@ -810,9 +810,9 @@ int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  boo
   }
   float metcut = 40.;
   if(abs(version)==1) metcut = 60.;
-  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
-  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
-  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
+  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 0;
+  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 2;
+  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>30.) {
     if(      maxMT>90.) return 1;
     else if(maxMT<0){
       float tempmaxMT = calcMTmax(tightlep[0],looselep[0],met);
