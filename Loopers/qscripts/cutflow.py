@@ -16,6 +16,8 @@ import re
 
 from pytable import *
 
+import math
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -38,19 +40,29 @@ except:
 def getWZNF(cutname):
     wz   = samples.getCounter("/typebkg/lostlep", cutname)
     nf = samples.getCounter("/data-typebkg/[qflip+photon+prompt+fakes]-sig", cutname)
-    print wz.getCounter(), nf.getCounter()
+    #print wz.getCounter(), nf.getCounter()
     nf.divide(wz)
-    print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
+    #print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
     return nf.getCounter(), nf.getError()
 
 #_______________________________________________________________________________
 def getWZNF3L(cutname):
     wz   = samples.getCounter("/typebkg/prompt", cutname)
     nf = samples.getCounter("/data-typebkg/[qflip+photon+lostlep+fakes]-sig", cutname)
-    print wz.getCounter(), nf.getCounter()
+    #print wz.getCounter(), nf.getCounter()
     nf.divide(wz)
-    print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
+    #print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
     return nf.getCounter(), nf.getError()
+
+#_______________________________________________________________________________
+def getFakeError(cutname):
+    fake = samples.getCounter("/fake", cutname)
+    fakesyst = samples.getCounter("/fakeup-fake", cutname)
+    frerror = fakesyst.getCounter() / fake.getCounter()
+    frclosuresyst = 0.30
+    frerror = math.sqrt(frerror**2 + frclosuresyst**2)
+    print 1.0, frerror
+    return 1.0, frerror
 
 #_______________________________________________________________________________
 def applyWZNF():
@@ -86,6 +98,32 @@ def applyWZNF():
     #samples.setScaleFactor("SSmmNJ2", nf_mmnj2, nferr_mmnj2, "/typebkg/?/WZ")
     #samples.setScaleFactor("SSmmNJ2MJJSB", nf_mmnj2sb, nferr_mmnj2sb, "/typebkg/?/WZ")
     #samples.setScaleFactor("SSmmNJ2MJJWD", nf_mmnj2wd, nferr_mmnj2wd, "/typebkg/?/WZ")
+
+#_______________________________________________________________________________
+def applyFakeError():
+    nf_ee, nferr_ee = getFakeError("SSee")
+    nf_em, nferr_em = getFakeError("SSem")
+    nf_mm, nferr_mm = getFakeError("SSmm")
+    nf_0SFOS, nferr_0SFOS = getFakeError("TL0SFOS")
+    nf_1SFOS, nferr_1SFOS = getFakeError("TL1SFOS")
+    nf_2SFOS, nferr_2SFOS = getFakeError("TL2SFOS")
+    #samples.getCounter("/fake", "SSee").setError(100)
+    #samples.getCounter("/fake", "SSee").setCounter(100)
+    samples.setScaleFactor("SSee", nf_ee, nferr_ee, "/fake")
+    samples.setScaleFactor("SSem", nf_em, nferr_em, "/fake")
+    samples.setScaleFactor("SSmm", nf_mm, nferr_mm, "/fake")
+    samples.setScaleFactor("TL0SFOS", nf_1SFOS, nferr_1SFOS, "/fake")
+    samples.setScaleFactor("TL1SFOS", nf_1SFOS, nferr_1SFOS, "/fake")
+    samples.setScaleFactor("TL2SFOS", nf_2SFOS, nferr_2SFOS, "/fake")
+
+#_______________________________________________________________________________
+def applyPromptBkgSyst():
+    samples.setScaleFactor("SSee"    , 1.0    , 0.15    , "/typebkg/prompt")
+    samples.setScaleFactor("SSem"    , 1.0    , 0.15    , "/typebkg/prompt")
+    samples.setScaleFactor("SSmm"    , 1.0    , 0.15    , "/typebkg/prompt")
+    #samples.setScaleFactor("TL0SFOS" , nf_1SFOS , nferr_1SFOS , "/typebkg/lostlep")
+    #samples.setScaleFactor("TL1SFOS" , nf_1SFOS , nferr_1SFOS , "/typebkg/lostlep")
+    #samples.setScaleFactor("TL2SFOS" , nf_2SFOS , nferr_2SFOS , "/typebkg/lostlep")
 
 #_______________________________________________________________________________
 def blind():
@@ -432,7 +470,7 @@ bSF                     lnN        1.03         -            -            1.04  
 
 #_______________________________________________________________________________
 # Printing stat card
-def getStatCardString(cutname, index):
+def getStatCardString(cutname, index, version="ss"):
     data = {}
     addCountersToStatCardData("sig", cutname, data)
     addCountersToStatCardData("fake", cutname, data)
@@ -440,12 +478,19 @@ def getStatCardString(cutname, index):
     addCountersToStatCardData("ss3l", cutname, data)
     addCountersToStatCardData("qflip", cutname, data)
     addCountersToStatCardData("wz", cutname, data)
-    nf, nf_err = getWZNF(cutname.replace("SSmm", "WZCRmm"))
+    addFakeRateSystCountersToStatCardData("fakeup", cutname, data)
+    if version == "ss":
+        nf, nf_err = getWZNF(cutname.replace("SS", "WZCR"))
+    elif version == "3l":
+        if cutname.find("TL0SFOS") != -1: nm = cutname.replace("TL0SFOS", "TLWZ1SFOS")
+        if cutname.find("TL1SFOS") != -1: nm = cutname.replace("TL1SFOS", "TLWZ1SFOS")
+        if cutname.find("TL2SFOS") != -1: nm = cutname.replace("TL2SFOS", "TLWZ2SFOS")
+        nf, nf_err = getWZNF3L(nm)
     data["wzalpha"] = "{:.3f}".format(nf_err / nf + 1)
     data["I"] = index
     cardstring = """imax 1 number of bins
 jmax 5 number of processes minus 1
-kmax 18 number of nuisance parameters
+kmax 19 number of nuisance parameters
 ----------------------------------------------------------------------------------------------------------------------------------
 shapes *    ch1  FAKE
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -465,6 +510,7 @@ rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}
 {I}fWZStat              lnN        -            -            -            -            -            {wzerr:<13s}
 {I}gWZNorm              lnN        -            -            -            -            -            {wzalpha:<13s}
 FakeSyst                lnN        -            1.50         -            -            -            -
+FakeRate                lnN        -            {fakeuperr:<13s}-            -            -            -
 SSSyst                  lnN        -            -            -            1.10         -            -
 JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
 LepSF                   lnN        1.001        -            -            1.001        -            -
@@ -481,20 +527,17 @@ bSF                     lnN        1.03         -            -            1.04  
 #printAllCutflow()
 
 applyWZNF()
+applyFakeError()
+applyPromptBkgSyst()
 blind()
 printSummaryCutflow()
-f = open("SSee.txt", "write")
-f.write(getStatCardStringWithGmN("SSee", "001"))
-f = open("SSem.txt", "write")
-f.write(getStatCardStringWithGmN("SSem", "002"))
-f = open("SSmm.txt", "write")
-f.write(getStatCardStringWithGmN("SSmm", "003"))
-f = open("TL0SFOS.txt", "write")
-f.write(getStatCardStringWithGmN("TL0SFOS", "004", "3l"))
-f = open("TL1SFOS.txt", "write")
-f.write(getStatCardStringWithGmN("TL1SFOS", "005", "3l"))
-f = open("TL2SFOS.txt", "write")
-f.write(getStatCardStringWithGmN("TL2SFOS", "006", "3l"))
+statcardfunc = getStatCardString
+f = open("SSee.txt", "write"); f.write(statcardfunc("SSee", "001"))
+f = open("SSem.txt", "write"); f.write(statcardfunc("SSem", "002"))
+f = open("SSmm.txt", "write"); f.write(statcardfunc("SSmm", "003"))
+f = open("TL0SFOS.txt", "write"); f.write(statcardfunc("TL0SFOS", "004", "3l"))
+f = open("TL1SFOS.txt", "write"); f.write(statcardfunc("TL1SFOS", "005", "3l"))
+f = open("TL2SFOS.txt", "write"); f.write(statcardfunc("TL2SFOS", "006", "3l"))
 #printAllCutflow()
 #f = open("nj2wd.txt", "write")
 #f.write(getStatCardStringWithGmN("SSmmNJ2MJJWD", "001"))

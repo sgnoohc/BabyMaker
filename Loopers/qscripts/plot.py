@@ -11,7 +11,11 @@ from cuts import bkg_types_3L
 
 ROOT.gROOT.SetBatch(True)
 
-samples = TQSampleFolder.loadSampleFolder("output.root:samples")
+#samples = TQSampleFolder.loadSampleFolder("output.root:samples")
+
+from cutflow import samples
+from cutflow import *
+
 count = 0
 #for i in samples.getListOfHistogramNames(): count+=1
 #print count
@@ -121,20 +125,51 @@ def plotFig4ByTypeFakeEst():
     # Options
     alloptions= {
                 "ratio_range":[0,2],
-                "output_name": "plots/fig4bytypefakeest.png"
+                "output_name": "plots/fig4bytypefakeest.png",
+                "legend_scalex": 1.8,
+                "legend_scaley": 1.1,
+                "no_ratio":True,
                 }
     histname = "{SSee, SSem, SSmm, TL0SFOS, TL1SFOS, TL2SFOS}"
     sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
-    bgs  = [ samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
-             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flips"),
-             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lepton"),
-             samples.getHistogram("/fake/", histname).Clone("fakes"),
-             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
-             samples.getHistogram("/typebkg/others", histname).Clone("Others")
+    bgs  = [ samples.getHistogram("/typebkg/prompt" , histname).Clone("Prompt")             , 
+             samples.getHistogram("/typebkg/qflip"  , histname).Clone("Q-flips")            , 
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lepton")        , 
+             samples.getHistogram("/fake"           , histname).Clone("fakes")              , 
+             samples.getHistogram("/typebkg/photon" , histname).Clone("#gamma#rightarrowl") , 
+             samples.getHistogram("/typebkg/others" , histname).Clone("Others")
             ]
     colors = [ 2001, 2007, 2003, 2005, 920, 2012 ]
-   #data = samples.getHistogram("/samples/data/mm", histname).Clone("Data")
-    data = None
+    data = samples.getHistogram("/data", histname).Clone("Data")
+    #data = None
+    p.plot_hist(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plotFig5ByTypeFakeEst():
+    # Options
+    alloptions= {
+                "ratio_range":[0,2],
+                "output_name": "plots/fig5bytypefakeest.png",
+                "legend_scalex": 1.8,
+                "legend_scaley": 1.1,
+                }
+    histname = "{WZCRee, WZCRem, WZCRmm, TLWZ1SFOS, TLWZ2SFOS}"
+    sigs = [ samples.getHistogram("/sig"            , histname).Clone("WWW") ]
+    bgs  = [ samples.getHistogram("/typebkg/prompt" , histname).Clone("Prompt")             , 
+             samples.getHistogram("/typebkg/qflip"  , histname).Clone("Q-flips")            , 
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lepton")        , 
+             samples.getHistogram("/fake"           , histname).Clone("fakes")              , 
+             samples.getHistogram("/typebkg/photon" , histname).Clone("#gamma#rightarrowl") , 
+             samples.getHistogram("/typebkg/others" , histname).Clone("Others")
+            ]
+    colors = [ 2001, 2007, 2003, 2005, 920, 2012 ]
+    data = samples.getHistogram("/data", histname).Clone("Data")
+    #data = None
     p.plot_hist(
             sigs = sigs,
             bgs  = bgs,
@@ -180,6 +215,15 @@ def plot_2d_bdt_bkg_scan():
     f = ROOT.TFile("ofile.root")
     ply.plot_hist_2d(f.Get("bkg"), {"output_name": "bkg.png"})
 
+
+if __name__ == "__main__":
+    applyWZNF()
+    applyFakeError()
+    applyPromptBkgSyst()
+    blind()
+    plotFig4ByTypeFakeEst()
+    plotFig5ByTypeFakeEst()
+
 #plotFig4()
 #plotFig4a()
 #plotFig5()
@@ -187,5 +231,5 @@ def plot_2d_bdt_bkg_scan():
 #plotFig4ByTypeFakeEst()
 #plotByProc("cut0_SSmm/lepRelIso0", "lepRelIso0")
 #plotByProc("cut0_SSmm/lepRelIso1", "lepRelIso1")
-plotByProc("WZCRmm/Mjj", "Mjj")
+#plotByProc("WZCRmm/Mjj", "Mjj")
 #plotByProc("WZCRee/Mjj", "WZCReeMjj")
