@@ -727,7 +727,7 @@ bool vetophotonprocess(string filename, bool process){
   return false;
 }
 
-bool passJetSSstate(bool preselect, int nj, int nb, float Mjj, float MjjL, float Detajj, bool is3lCR, int jec, bool btag, bool Mjjside){
+bool passJetSSstate(bool preselect, int nj, int nb, float Mjj, float MjjL, float Detajj, bool is3lCR, int jec, bool btag, bool Mjjside, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -740,20 +740,22 @@ bool passJetSSstate(bool preselect, int nj, int nb, float Mjj, float MjjL, float
   float MassjjL = MjjL;
   float Deta    = Detajj;
   if(Mjj<0||MjjL<0||Detajj<0) getMjjAndDeta(Massjj,MassjjL,Deta,jec);
-  if(fabs(Deta)>1.5)                  return false;
-  if(fabs(MassjjL)>400.)              return false;
-  if(is3lCR)                          return true;
-  if( Mjjside&&fabs(Massjj-80.)<20.)  return false;
-  if(!Mjjside&&fabs(Massjj-80.)>=20.) return false;
+  if(fabs(Deta)>1.5)                         return false;
+  if(fabs(MassjjL)>400.)                     return false;
+  if(is3lCR)                                 return true;
+  float masswindow = 20.;
+  if(abs(version)==1) masswindow = 15.;
+  if( Mjjside&&fabs(Massjj-80.) <masswindow) return false;
+  if(!Mjjside&&fabs(Massjj-80.)>=masswindow) return false;
   return true;
 }
       
-int isSRSS(vector<int> tightlep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside){
-  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside)) return -1;
-  if(tightlep.size()!=2)                                                               return -1;
-  if(vetolep.size()!=0)                                                                return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                     return -1;
-  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ])<0)                          return -1;
+int isSRSS(vector<int> tightlep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()!=2)                                                                       return -1;
+  if(vetolep.size()!=0)                                                                        return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                             return -1;
+  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ])<0)                                  return -1;
   bool ee = false; bool em = false; bool mm = false;
 LorentzVector met = LorentzVector(0,0,0,0);
   if(MET.Pt()>0)     met = MET;
@@ -770,9 +772,11 @@ LorentzVector met = LorentzVector(0,0,0,0);
     if(mm) return 2;
     return -1;
   }
-   if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
-  if(mm&&              (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
-  if(em&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
+  float metcut = 40.;
+  if(abs(version)==1) metcut = 60.;
+  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
+  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
+  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
     if(      maxMT>90.) return 1;
     else if(maxMT<0){
       float tempmaxMT = calcMTmax(tightlep[0],tightlep[1],met);
@@ -782,20 +786,20 @@ LorentzVector met = LorentzVector(0,0,0,0);
   return -1;
 }
 
-int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside){
-  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside)) return -1;
-  if(tightlep.size()!=1)                                                               return -1;
-  if(looselep.size()!=1)                                                               return -1;
-  if(vetolep.size()!=0)                                                                return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                     return -1;
-  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[looselep[0] ])<0)                          return -1;
+int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()!=1)                                                                       return -1;
+  if(looselep.size()!=1)                                                                       return -1;
+  if(vetolep.size()!=0)                                                                        return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                             return -1;
+  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[looselep[0] ])<0)                                  return -1;
    LorentzVector met = LorentzVector(0,0,0,0);
   if(MET.Pt()>0)     met = MET;
   else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
   else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
   bool ee = false; bool em = false; bool mm = false;
-  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)>10. && met.pt()>40) ee = true;
+  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)>10.) ee = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==143)  em = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==169)  mm = true;
   if(preselect){
@@ -804,9 +808,11 @@ int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  boo
     if(mm) return 2;
     return -1;
   }
- if(ee&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 0;
-  if(mm&&              (lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 2;
-  if(em&&met.Pt()>40.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>30.) {
+  float metcut = 40.;
+  if(abs(version)==1) metcut = 60.;
+  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 0;
+  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>40.) return 2;
+  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>30.) {
     if(      maxMT>90.) return 1;
     else if(maxMT<0){
       float tempmaxMT = calcMTmax(tightlep[0],looselep[0],met);
@@ -816,12 +822,12 @@ int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  boo
   return -1;
 }
 
-int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool noZ, bool btag, bool Mjjside){
-  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, true, jec, btag, Mjjside)) return -1;
-  if(tightlep.size()  <2)                                                             return -1;
-  if(selectlep.size()!=3)                                                             return -1;
-  if(vetolep.size()!=0)                                                               return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                    return -1;
+int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool noZ, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, true, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()  <2)                                                                     return -1;
+  if(selectlep.size()!=3)                                                                     return -1;
+  if(vetolep.size()!=0)                                                                       return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                            return -1;
   //SS is just tighter pt, so can loop over i3l
   bool isSS = false;
   int lep3 = -1; int SS1 = -1; int SS2 = -1;
@@ -855,9 +861,11 @@ int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, boo
   else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
   else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
-  if(ee&&met.Pt()>40.&&(lep_p4()[selectlep[0] ]+lep_p4()[selectlep[1] ]).M()>40.) return 0;
-  if(mm&&              (lep_p4()[selectlep[0] ]+lep_p4()[selectlep[1] ]).M()>40.) return 2;
-  if(em&&met.Pt()>40.&&(lep_p4()[selectlep[0] ]+lep_p4()[selectlep[1] ]).M()>30.) {
+  float metcut = 40.;
+  if(abs(version)==1) metcut = 60.;
+  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
+  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
+  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
     if(      maxMT>90.) return 1;
     else if(maxMT<0){
       float tempmaxMT = calcMTmax(SS1,SS2,met);
@@ -867,7 +875,7 @@ int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, boo
   return -1;
 }
 		      
-int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag){
+int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -877,6 +885,7 @@ int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
   if(!btag&&numb!=0)     return -1;
   if(tightlep.size()!=3) return -1;
   float DPhilllMET = -1;
+  float pTlll = -1;
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
@@ -884,7 +893,8 @@ int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
     else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return -1;
-    if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
+    pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
   else DPhilllMET = 3.2;//pass DPhilllMET if preselect
@@ -908,17 +918,39 @@ int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
     if(SF01&&abs(lep_pdgId()[tightlep[0] ])==11&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<15.) { pass0 = false; }
     if(SF02&&abs(lep_pdgId()[tightlep[0] ])==11&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<15.) { pass0 = false; }
     if(SF12&&abs(lep_pdgId()[tightlep[1] ])==11&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<15.) { pass0 = false; }
+    if(version==0){
+      if(!preselect&&pTlll<60.) return -1;
+    }
+    if(abs(version)==1){
+      if(!preselect&&met.Pt()<30) return -1;
+    }
   }
   if(SFOScounter==1){
+    if(!preselect&&pTlll<60.) return -1;
     pass1 = true;
-    if(!preselect&&met.Pt()<45) { pass1=false; }
-    if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; }
-    if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; }
-    if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; }
+    float metcut = 45.;
+    if(abs(version)==1) metcut = 40.;
+    if(!preselect&&met.Pt()<metcut) return -1;
+    if(version==0){
+      if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; }
+      if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; }
+      if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; }
+    }
+    if(abs(version)==1){
+      int thirdlep = -1;
+      if(OS01&&SF01) thirdlep = tightlep[2];
+      if(OS02&&SF02) thirdlep = tightlep[1];
+      if(OS12&&SF12) thirdlep = tightlep[0];
+      if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { pass1 = false; }
+      if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass1 = false; }
+      if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass1 = false; }
+      if(!preselect&&thirdlep>=0&&mT(lep_p4()[thirdlep],met)<90.) return -1;
+    }
   }
   if(SFOScounter==2){
+    if(!preselect&&pTlll<60.) return -1;
     pass2 = true;
-    if(!preselect&&met.Pt()<55) { pass2=false; }
+    if(!preselect&&met.Pt()<55) return -1;
     if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass2 = false; }
@@ -929,7 +961,7 @@ int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
   return -1;
 }
 
-int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag){
+int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -940,6 +972,7 @@ int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, i
   if(tightlep.size()!=2) return -1;
   if(looselep.size()!=1) return -1;
   float DPhilllMET = -1;
+  float pTlll = -1;
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
@@ -947,7 +980,8 @@ int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, i
     else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<10.) return -1;
-    if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Pt()   <60.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Pt()   <60.) return -1;
+    pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Phi(),met.Phi());
   }
   else DPhilllMET = 3.2;//pass DPhilllMET if preselect
@@ -971,17 +1005,39 @@ int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, i
     if(SF01&&abs(lep_pdgId()[tightlep[0] ])==11&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<15.) { pass0 = false; }
     if(SF02&&abs(lep_pdgId()[tightlep[0] ])==11&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)<15.) { pass0 = false; }
     if(SF12&&abs(lep_pdgId()[tightlep[1] ])==11&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<15.) { pass0 = false; }
+    if(version==0){
+      if(!preselect&&pTlll<60.) return -1;
+    }
+    if(abs(version)==1){
+      if(!preselect&&met.Pt()<30) return -1;
+    }
   }
   if(SFOScounter==1){
+    if(!preselect&&pTlll<60.) return -1;
     pass1 = true;
-    if(!preselect&&met.Pt()<45) { pass1=false; }
-    if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; }
-    if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()<110.) { pass1 = false; }
-    if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()<110.) { pass1 = false; }
+    float metcut = 45.;
+    if(abs(version)==1) metcut = 40.;
+    if(!preselect&&met.Pt()<metcut) return -1;
+    if(version==0){
+      if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; }
+      if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()<110.) { pass1 = false; }
+      if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()<110.) { pass1 = false; }
+    }
+    if(abs(version)==1){
+      int thirdlep = -1;
+      if(OS01&&SF01) thirdlep = looselep[0];
+      if(OS02&&SF02) thirdlep = tightlep[1];
+      if(OS12&&SF12) thirdlep = tightlep[0];
+      if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { pass1 = false; }
+      if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass1 = false; }
+      if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass1 = false; }
+      if(!preselect&&thirdlep>=0&&mT(lep_p4()[thirdlep],met)<90.) return -1;
+   }
   }
   if(SFOScounter==2){
+    if(!preselect&&pTlll<60.) return -1;
     pass2 = true;
-    if(!preselect&&met.Pt()<55) { pass2=false; }
+    if(!preselect&&met.Pt()<55) return -1;
     if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass2 = false; }
@@ -992,7 +1048,7 @@ int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, i
   return -1;
 }
 
-int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag){
+int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -1002,6 +1058,7 @@ int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
   if(!btag&&numb!=0)     return -1;
   if(tightlep.size()!=3) return -1;
   float DPhilllMET = -1;
+  float pTlll = -1;
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
@@ -1009,7 +1066,8 @@ int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
     else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return -1;
-    if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
+    pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
   else DPhilllMET = 3.2;//pass DPhilllMET if preselect
@@ -1027,15 +1085,31 @@ int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
   if(abs(lep_charge()[tightlep[0] ]+lep_charge()[tightlep[1] ]+lep_charge()[tightlep[2] ])==3) SFOScounter = -1;
   //SFOScounter==0 has no CR
   if(SFOScounter==1){
+    if(!preselect&&pTlll<60.) return -1;
     pass1X = true;
-    if(!preselect&&met.Pt()<45) { pass1X=false; }
+    float metcut = 45.;
+    if(abs(version)==1) metcut = 40.;
+    if(!preselect&&met.Pt()<metcut) return -1;
     bool atleastoneSFOSZ = false;
-    if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { atleastoneSFOSZ = true; }
-    if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { atleastoneSFOSZ = true; }
-    if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { atleastoneSFOSZ = true; }
+    if(version==0){
+      if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { atleastoneSFOSZ = true; }
+      if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { atleastoneSFOSZ = true; }
+      if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { atleastoneSFOSZ = true; }
+    }
+    if(abs(version)==1){
+      int thirdlep = -1;
+      if(OS01&&SF01) thirdlep = tightlep[2];
+      if(OS02&&SF02) thirdlep = tightlep[1];
+      if(OS12&&SF12) thirdlep = tightlep[0];
+      if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { atleastoneSFOSZ = true; }
+      if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { atleastoneSFOSZ = true; }
+      if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { atleastoneSFOSZ = true; }
+      if(!preselect&&thirdlep>=0&&mT(lep_p4()[thirdlep],met)<90.) return -1;
+    }
     if(!atleastoneSFOSZ) pass1X = false;
   }
   if(SFOScounter==2){
+    if(!preselect&&pTlll<60.) return -1;
     pass2X = true;
     if(!preselect&&met.Pt()<55) { pass2X=false; }
     bool atleastoneSFOSZ = false;
@@ -1050,7 +1124,7 @@ int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector M
   return -1;
 }
 
-bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag){
+bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   isSR3l = -1; isCR3l = -1;//assume no match
   int numj = nj;
   int numb = nb;
@@ -1061,6 +1135,7 @@ bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool presel
   if(!btag&&numb!=0)     return true;
   if(tightlep.size()!=3) return true;
   float DPhilllMET = -1;
+  float pTlll = -1;
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
@@ -1068,7 +1143,8 @@ bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool presel
     else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return true;
-    if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return true;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return true;
+    pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
   else DPhilllMET = 3.2;//pass DPhilllMET if preselect
@@ -1095,17 +1171,39 @@ bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool presel
     if(SF02&&abs(lep_pdgId()[tightlep[0] ])==11&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<15.) { pass0 = false; if(OS02) atleastoneSFOSZ = true; }
     if(SF12&&abs(lep_pdgId()[tightlep[1] ])==11&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<15.) { pass0 = false; if(OS12) atleastoneSFOSZ = true; }
     if(!atleastoneSFOSZ) pass0X = false;//this is always false :)
+    if(version==0){
+      if(!preselect&&pTlll<60.) return false;
+    }
+    if(abs(version)==1){
+      if(!preselect&&met.Pt()<30) return false;
+    }
   }
   if(SFOScounter==1){
+    if(!preselect&&pTlll<60.) return false;
+    float metcut = 45.;
+    if(abs(version)==1) metcut = 40.;
+    if(!preselect&&met.Pt()<metcut) return false;
     pass1 = true; pass1X = true;
-    if(!preselect&&met.Pt()<45) { pass1=false; pass1X=false; }
     bool atleastoneSFOSZ = false;
-    if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
-    if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
-    if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
+    if(version==0){
+      if(OS01&&SF01&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
+      if(OS02&&SF02&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
+      if(OS12&&SF12&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()>55.&&(lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()<110.) { pass1 = false; atleastoneSFOSZ = true; }
+    }
+    if(abs(version)==1){
+      int thirdlep = -1;
+      if(OS01&&SF01) thirdlep = tightlep[2];
+      if(OS02&&SF02) thirdlep = tightlep[1];
+      if(OS12&&SF12) thirdlep = tightlep[0];
+      if(OS01&&SF01&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)<20.) { pass1 = false; atleastoneSFOSZ = true; }
+      if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass1 = false; atleastoneSFOSZ = true; }
+      if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass1 = false; atleastoneSFOSZ = true; }
+      if(!preselect&&thirdlep>=0&&mT(lep_p4()[thirdlep],met)<90.) return -1;
+    }
     if(!atleastoneSFOSZ) pass1X = false;
   }
   if(SFOScounter==2){
+    if(!preselect&&pTlll<60.) return false;
     pass2 = true; pass2X = true;
     if(!preselect&&met.Pt()<55) { pass2=false; pass2X=false; }
     bool atleastoneSFOSZ = false;
