@@ -1,7 +1,7 @@
 float fakerate_mu_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.244734516779 + isyst * 0.00646433745585;
     if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.242147987689 + isyst * 0.00834303100214;
     if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0868480104583 + isyst * 0.00499342559764;
@@ -17,7 +17,7 @@ float fakerate_mu_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 float fakerate_el_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (conecorrpt) < 25.0) return 0.27489101456 + isyst * 0.0146378225502;
     if (fabs(eta) < 1.479 && (conecorrpt) < 25.0) return 0.300329454357 + isyst * 0.0190002720764;
     if (fabs(eta) < 2.5 && (conecorrpt) < 25.0) return 0.371137244748 + isyst * 0.0321761639034;
@@ -37,7 +37,7 @@ float fakerate_el_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 float fakerate_mu_qcd_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 1.2 && (conecorrpt) < 25.0) return 0.249061139432 + isyst * 0.00583624110216;
     if (fabs(eta) < 2.4 && (conecorrpt) < 25.0) return 0.251866015147 + isyst * 0.00799145824242;
     if (fabs(eta) < 1.2 && (conecorrpt) < 30.0) return 0.0860040773907 + isyst * 0.00992035063957;
@@ -53,7 +53,7 @@ float fakerate_mu_qcd_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 float fakerate_el_qcd_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (conecorrpt) < 25.0) return 0.284553304702 + isyst * 0.0190702988419;
     if (fabs(eta) < 1.479 && (conecorrpt) < 25.0) return 0.321108009434 + isyst * 0.0444281950532;
     if (fabs(eta) < 2.5 && (conecorrpt) < 25.0) return 0.387823007969 + isyst * 0.047962516899;
