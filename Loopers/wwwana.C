@@ -801,19 +801,19 @@ bool WWWAnalysis::calcStdVariables()
     {
         ffwgtss_closerr    = getlepFRClosureError(list_loose_ss_lep_idx[0], true, true, 1);
         qcdffwgtss_closerr = getlepFRClosureError(list_loose_ss_lep_idx[0], false, true, 1);
-        ffwgtss            = getlepFRWeightandError(ffwgtss_err,        list_loose_ss_lep_idx[0], true, 1);
-        ffwgtss_nocone     = getlepFRWeightandError(ffwgtss_nocone_err, list_loose_ss_lep_idx[0], true, false, 1);
-        qcdffwgtss         = getlepFRWeightandError(qcdffwgtss_err,        list_loose_ss_lep_idx[0], false, 1);
-        qcdffwgtss_nocone  = getlepFRWeightandError(qcdffwgtss_nocone_err, list_loose_ss_lep_idx[0], false, false, 1);
+        ffwgtss            = getlepFRWeightandError(ffwgtss_err,        list_loose_ss_lep_idx[0], true,  true, false, 1);
+        ffwgtss_nocone     = getlepFRWeightandError(ffwgtss_nocone_err, list_loose_ss_lep_idx[0], true, false, false, 1);
+        qcdffwgtss         = getlepFRWeightandError(qcdffwgtss_err,        list_loose_ss_lep_idx[0], false, true, false, 1);
+        qcdffwgtss_nocone  = getlepFRWeightandError(qcdffwgtss_nocone_err, list_loose_ss_lep_idx[0], false, false, false, 1);
     }
     if (list_loose_3l_lep_idx.size() > 0)
     {
         ffwgt3l_closerr    = getlepFRClosureError(list_loose_3l_lep_idx[0], true, true, -1);
         qcdffwgt3l_closerr = getlepFRClosureError(list_loose_3l_lep_idx[0], false, true, -1);
-        ffwgt3l            = getlepFRWeightandError(ffwgt3l_err,        list_loose_3l_lep_idx[0], true, -1);
-        ffwgt3l_nocone     = getlepFRWeightandError(ffwgt3l_nocone_err, list_loose_3l_lep_idx[0], true, false, -1);
-        qcdffwgt3l         = getlepFRWeightandError(qcdffwgt3l_err,        list_loose_3l_lep_idx[0], false, -1);
-        qcdffwgt3l_nocone  = getlepFRWeightandError(qcdffwgt3l_nocone_err, list_loose_3l_lep_idx[0], false, false, -1);
+        ffwgt3l            = getlepFRWeightandError(ffwgt3l_err,        list_loose_3l_lep_idx[0], true,  true, false, -1);
+        ffwgt3l_nocone     = getlepFRWeightandError(ffwgt3l_nocone_err, list_loose_3l_lep_idx[0], true, false, false, -1);
+        qcdffwgt3l         = getlepFRWeightandError(qcdffwgt3l_err,        list_loose_3l_lep_idx[0], false,  true, false, -1);
+        qcdffwgt3l_nocone  = getlepFRWeightandError(qcdffwgt3l_nocone_err, list_loose_3l_lep_idx[0], false, false, false, -1);
     }
 
     // Offline trigger requirement (To stay on plateau)
