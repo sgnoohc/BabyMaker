@@ -27,7 +27,8 @@ addSampleFolderFromXSecParser(samples)
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.4/", 1) # Same as v1.3. loose done. ptratio changed to 0.88
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.5/", 1) # Same as v1.4. loose done. ptratio changed to 0.84 for tight but, one ttbar missing
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.6/", 1) # Reproducing old numbers with new Functions.h
-init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.7/", 1) # After hadoop 25% loss try again
+#init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.7/", 1) # After hadoop 25% loss try again
+init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v2.0/", 1) # After hadoop 25% loss try again
 samples.visitMe(init)
 
 samples.printContents("rtd")
