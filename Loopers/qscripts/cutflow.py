@@ -38,6 +38,16 @@ except:
 def getWZNF(cutname):
     wz   = samples.getCounter("/typebkg/lostlep", cutname)
     nf = samples.getCounter("/data-typebkg/[qflip+photon+prompt+fakes]-sig", cutname)
+    print wz.getCounter(), nf.getCounter()
+    nf.divide(wz)
+    print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
+    return nf.getCounter(), nf.getError()
+
+#_______________________________________________________________________________
+def getWZNF3L(cutname):
+    wz   = samples.getCounter("/typebkg/prompt", cutname)
+    nf = samples.getCounter("/data-typebkg/[qflip+photon+lostlep+fakes]-sig", cutname)
+    print wz.getCounter(), nf.getCounter()
     nf.divide(wz)
     print nf.getCounter(), nf.getError(), nf.getError() / nf.getCounter()
     return nf.getCounter(), nf.getError()
@@ -57,14 +67,17 @@ def applyWZNF():
     #print samples.getCounter("/typebkg/?/WZ", "SSmmNJ1").getCounter()      / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ1").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ1").getCounter(),
     #print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJSB").getCounter() / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ2MJJSB").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ2MJJSB").getCounter()
     #print samples.getCounter("/typebkg/?/WZ", "SSmmNJ2MJJWD").getCounter() / samples.getCounter("/typebkg/?/WZ", "WZCRmmNJ2MJJWD").getCounter(), samples.getCounter("/data-typebkg/?/bkg-sig", "WZCRmmNJ2MJJWD").getCounter()
-    #nf_1SFOS, nferr_1SFOS = getWZNF("TLWZ1SFOS")
-    #nf_2SFOS, nferr_2SFOS = getWZNF("TLWZ2SFOS")
+    nf_1SFOS, nferr_1SFOS = getWZNF3L("TLWZ1SFOS")
+    nf_2SFOS, nferr_2SFOS = getWZNF3L("TLWZ2SFOS")
     #samples.setScaleFactor("SSee", nf_ee, nferr_ee, "/bkg/VV/WZ")
     #samples.setScaleFactor("SSem", nf_em, nferr_em, "/bkg/VV/WZ")
     #samples.setScaleFactor("SSmm", nf_mm, nferr_mm, "/bkg/VV/WZ")
     samples.setScaleFactor("SSee", nf_ee, nferr_ee, "/typebkg/lostlep")
     samples.setScaleFactor("SSem", nf_em, nferr_em, "/typebkg/lostlep")
     samples.setScaleFactor("SSmm", nf_mm, nferr_mm, "/typebkg/lostlep")
+    samples.setScaleFactor("TL0SFOS", nf_1SFOS, nferr_1SFOS, "/typebkg/prompt")
+    samples.setScaleFactor("TL1SFOS", nf_1SFOS, nferr_1SFOS, "/typebkg/prompt")
+    samples.setScaleFactor("TL2SFOS", nf_2SFOS, nferr_2SFOS, "/typebkg/prompt")
     #samples.setScaleFactor("TL1SFOS", nf_1SFOS, nferr_1SFOS, "/bkg/VV/WZ")
     #samples.setScaleFactor("TL2SFOS", nf_2SFOS, nferr_2SFOS, "/bkg/VV/WZ")
     #samples.setScaleFactor("TL1SFOS", nf_1SFOS, nferr_1SFOS, "/typebkg/?/WZ")
@@ -81,7 +94,7 @@ def blind():
         cutnames.append(str(i))
     cutnames.sort(key=natural_keys)
     for cutname in cutnames:
-        if cutname.find("WZCR") == -1:
+        if cutname.find("WZCR") == -1 and cutname.find("TLWZ") == -1:
             samples.setScaleFactor(cutname, 0, 0, "/data")
 
 #_______________________________________________________________________________
@@ -150,11 +163,11 @@ def addProcesses(printer, showdata, prettyversion=True):
         printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
         printer.addCutflowProcess("/typebkg/photon", "Photon")
         printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
-        printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
-        printer.addCutflowProcess("|", "|")
-        printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
-        printer.addCutflowProcess("|", "|")
+        #printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
         printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
+        #printer.addCutflowProcess("|", "|")
+        #printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
+        printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
         printer.addCutflowProcess("|", "|")
         #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
@@ -270,10 +283,15 @@ def printSummaryCutflow(output_name="srcutflow"):
     printer.addCutflowCut("SSee", "SSee", True)
     printer.addCutflowCut("SSem", "SSem", True)
     printer.addCutflowCut("SSmm", "SSmm", True)
-    #printer.addCutflowCut("WZCRee", "WZCRee")
-    #printer.addCutflowCut("WZCRem", "WZCRem")
-    #printer.addCutflowCut("WZCRmm", "WZCRmm")
-    addProcesses(printer, showdata=False)
+    printer.addCutflowCut("TL0SFOS", "TL0SFOS", True)
+    printer.addCutflowCut("TL1SFOS", "TL1SFOS", True)
+    printer.addCutflowCut("TL2SFOS", "TL2SFOS", True)
+    printer.addCutflowCut("WZCRee", "WZCRee")
+    printer.addCutflowCut("WZCRem", "WZCRem")
+    printer.addCutflowCut("WZCRmm", "WZCRmm")
+    printer.addCutflowCut("TLWZ1SFOS", "TLWZ1SFOS")
+    printer.addCutflowCut("TLWZ2SFOS", "TLWZ2SFOS")
+    addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")
     table.writeCSV("cutflows/{}.csv".format(output_name))
     table.writeHTML("cutflows/{}.html".format(output_name))
@@ -310,6 +328,11 @@ def addCountersToStatCardData(categ, cut, data, zero=False):
     if categ == "ss3l": proc = "/typebkg/prompt"
     if categ == "qflip": proc = "/typebkg/qflip"
     if categ == "wz": proc = "/typebkg/lostlep"
+
+    if cut.find("TL") != -1:
+        if categ == "ss3l": proc = "/typebkg/lostlep"
+        if categ == "wz": proc = "/typebkg/prompt"
+
     cnt = samples.getCounter(proc, cut).getCounter()
     err = samples.getCounter(proc, cut).getError()
     data["{}".format(categ)] = "{:.3f}".format(cnt) if cnt > 0 else "1e-06"
@@ -328,7 +351,7 @@ def addFakeRateSystCountersToStatCardData(categ, cut, data):
 
 #_______________________________________________________________________________
 # Printing stat card
-def getStatCardStringWithGmN(cutname, index):
+def getStatCardStringWithGmN(cutname, index, version="ss"):
     data = {}
     addCountersToStatCardData("sig", cutname, data)
     addCountersToStatCardData("fake", cutname, data)
@@ -337,11 +360,22 @@ def getStatCardStringWithGmN(cutname, index):
     addCountersToStatCardData("qflip", cutname, data)
     addCountersToStatCardData("wz", cutname, data)
     addFakeRateSystCountersToStatCardData("fakeup", cutname, data)
-    wzcr = samples.getCounter("/typebkg/lostlep", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
-    nzcr = samples.getCounter("/typebkg/[qflip+photon+prompt+fakes]+sig", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
-    wzsr = samples.getCounter("/typebkg/lostlep", cutname, "scaleScheme=.nosf")
-    wzdd = samples.getCounter("/data-typebkg/[qflip+photon+prompt+fakes]-sig", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
-    crdd = samples.getCounter("/data", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
+    if version == "ss":
+        wzcr = samples.getCounter("/typebkg/lostlep", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
+        nzcr = samples.getCounter("/typebkg/[qflip+photon+prompt+fakes]+sig", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
+        wzsr = samples.getCounter("/typebkg/lostlep", cutname, "scaleScheme=.nosf")
+        wzdd = samples.getCounter("/data-typebkg/[qflip+photon+prompt+fakes]-sig", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
+        crdd = samples.getCounter("/data", cutname.replace("SS", "WZCR"), "scaleScheme=.nosf")
+    elif version == "3l":
+        if cutname.find("TL0SFOS") != -1: nm = cutname.replace("TL0SFOS", "TLWZ1SFOS")
+        if cutname.find("TL1SFOS") != -1: nm = cutname.replace("TL1SFOS", "TLWZ1SFOS")
+        if cutname.find("TL2SFOS") != -1: nm = cutname.replace("TL2SFOS", "TLWZ2SFOS")
+        print nm
+        wzcr = samples.getCounter("/typebkg/prompt", nm, "scaleScheme=.nosf")
+        nzcr = samples.getCounter("/typebkg/[qflip+photon+lostlep+fakes]+sig", nm, "scaleScheme=.nosf")
+        wzsr = samples.getCounter("/typebkg/prompt", cutname, "scaleScheme=.nosf")
+        wzdd = samples.getCounter("/data-typebkg/[qflip+photon+lostlep+fakes]-sig", nm, "scaleScheme=.nosf")
+        crdd = samples.getCounter("/data", nm, "scaleScheme=.nosf")
     alpha = TQCounter()
     wzpurity = TQCounter()
     alpha.add(wzsr)
@@ -350,7 +384,13 @@ def getStatCardStringWithGmN(cutname, index):
     alpha.divide(crdd)
     wzpurity.add(wzdd)
     wzpurity.divide(crdd)
-    data["wzcr"] = "{:d}".format(int(samples.getCounter("/data", cutname.replace("SS", "WZCR")).getCounter()))
+    if version == "ss":
+        nm = cutname.replace("SS", "WZCR")
+    elif version == "3l":
+        if cutname.find("TL0SFOS") != -1: nm = cutname.replace("TL0SFOS", "TLWZ1SFOS")
+        if cutname.find("TL1SFOS") != -1: nm = cutname.replace("TL1SFOS", "TLWZ1SFOS")
+        if cutname.find("TL2SFOS") != -1: nm = cutname.replace("TL2SFOS", "TLWZ2SFOS")
+    data["wzcr"] = "{:d}".format(int(samples.getCounter("/data", nm).getCounter()))
     data["wzalpha"] = "{:.5f}".format(alpha.getCounter())
     data["wzpurity"] = "{:.3f}".format(wzpurity.getError() + 1)
     data["I"] = index
@@ -449,6 +489,12 @@ f = open("SSem.txt", "write")
 f.write(getStatCardStringWithGmN("SSem", "002"))
 f = open("SSmm.txt", "write")
 f.write(getStatCardStringWithGmN("SSmm", "003"))
+f = open("TL0SFOS.txt", "write")
+f.write(getStatCardStringWithGmN("TL0SFOS", "004", "3l"))
+f = open("TL1SFOS.txt", "write")
+f.write(getStatCardStringWithGmN("TL1SFOS", "005", "3l"))
+f = open("TL2SFOS.txt", "write")
+f.write(getStatCardStringWithGmN("TL2SFOS", "006", "3l"))
 #printAllCutflow()
 #f = open("nj2wd.txt", "write")
 #f.write(getStatCardStringWithGmN("SSmmNJ2MJJWD", "001"))

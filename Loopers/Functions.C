@@ -761,7 +761,7 @@ LorentzVector met = LorentzVector(0,0,0,0);
   else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
  
-  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10. && met.Pt()>40.) ee = true;
+  if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10.) ee = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==143)  em = true;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==169)  mm = true;
   if(preselect){

@@ -147,7 +147,7 @@ def plotByProc(histname, output_name):
     # Options
     alloptions= {
                 "ratio_range":[0,2],
-                "nbins": 36,
+                "nbins": 9,
                 "output_name": "plots/{}.png".format(output_name)
                 }
     sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
@@ -166,8 +166,8 @@ def plotByProc(histname, output_name):
     #         samples.getHistogram("/bkg/Z", histname).Clone("Z") ]
     colors = [ 2001, 2007, 2003, 2005, 920, 2012 ]
     data = samples.getHistogram("/data", histname).Clone("Data")
-    data = None
-    sigs[0].Scale(100)
+    #data = None
+    #sigs[0].Scale(100)
     p.plot_hist(
             sigs = sigs,
             bgs  = bgs,
@@ -185,5 +185,7 @@ def plot_2d_bdt_bkg_scan():
 #plotFig5()
 #plotFig4ByType()
 #plotFig4ByTypeFakeEst()
-plotByProc("cut0_SSmm/lepRelIso0", "lepRelIso0")
-plotByProc("cut0_SSmm/lepRelIso1", "lepRelIso1")
+#plotByProc("cut0_SSmm/lepRelIso0", "lepRelIso0")
+#plotByProc("cut0_SSmm/lepRelIso1", "lepRelIso1")
+plotByProc("WZCRmm/Mjj", "Mjj")
+#plotByProc("WZCRee/Mjj", "WZCReeMjj")
