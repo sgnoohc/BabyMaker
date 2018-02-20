@@ -120,6 +120,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("ApplicationRegionPreselPrecleaning");  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("WZControlRegionPreselPrecleaning");    hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
 
+  histonames.push_back("SignalRegionNew");                     hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("ApplicationRegionNew");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("WZControlRegionNew");                  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("SignalRegionPreselNew");               hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("ApplicationRegionPreselNew");          hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  histonames.push_back("WZControlRegionPreselNew");            hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
+  
   histonames.push_back("SignalRegion_JECup");                  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("SignalRegion_JECdn");                  hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
   histonames.push_back("SignalRegion_lepSFup");                hbins.push_back(6); hlow.push_back(    0); hup.push_back(6);
@@ -237,8 +244,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
-      //getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
+      //getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
+      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
@@ -334,9 +341,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	//MTmax3l_dn = calcMTmax(i3l,MET_dn,true);
       }
       
-      int SRSS[8]; bool selects3l[8];
-      int SR3l[8];
-      for(int i = 0; i<8; ++i) { SRSS[i] = -1; SR3l[i] = -1; selects3l[i] = false; }
+      int SRSS[20]; bool selects3l[20];
+      int SR3l[20];
+      for(int i = 0; i<20; ++i) { SRSS[i] = -1; SR3l[i] = -1; selects3l[i] = false; }
 
       //SS
       //0: SR
@@ -369,8 +376,29 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(getJECunc) SR3l[6] = isSR3l(i3l,false,nj_up,nb_up,MET_up,1);
       //7: SR JEC dn
       if(getJECunc) SR3l[7] = isSR3l(i3l,false,nj_dn,nb_dn,MET_dn,-1);
-      
 
+      
+      //10: SR
+      SRSS[10] = isSRSS(iSS,      vSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,1);//enter variables for quicker calculation
+      //11: SR preselect
+      SRSS[11] = isSRSS(iSS,      vSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,1);//enter variables for quicker calculation
+      //12: AR
+      SRSS[12] = isARSS(iSS,iaSS,vaSS,false,MTmax,  nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,1);//enter variables for quicker calculation
+      //13: AR preselect
+      SRSS[13] = isARSS(iSS,iaSS,vaSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,1);//enter variables for quicker calculation
+      //14: CR
+      SRSS[14] = isCRSS(iSS,i3l,  v3l,false,MTmax3l,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
+      //15: CR preselect
+      SRSS[15] = isCRSS(iSS,i3l,  v3l,true ,MTmax3l,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
+      //10: SR, 14: CR
+      checkbothSRCR3l(SR3l[10],SR3l[14],i3l,false,nj,nb,MET,0,false,1);
+      //11: SR preselect, 15: CR preselect
+      checkbothSRCR3l(SR3l[11],SR3l[15],i3l,true ,nj,nb,MET,0,false,1);
+      //12: AR
+      SR3l[12] = isAR3l(i3l,ia3l,false,nj,nb,MET,0,false,1);
+      //13: AR preselect
+      SR3l[13] = isAR3l(i3l,ia3l,true ,nj,nb,MET,0,false,1);
+      
       if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "SignalRegionPrecleaning",            sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
 	fillSRhisto(histos, "SignalRegionPreselPrecleaning",      sample, sn, sn2, SRSS[1], SR3l[1], weight, weight);
@@ -383,7 +411,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       if(checkevent) cout << "passed       SRSS " << SRSS[0] << " SR3l " << SR3l[0] << " ARSS " << SRSS[2] << " AR3l " << SR3l[2] << " CRSS " << SRSS[4] << " CR3l " << SR3l[4] << endl;
       //if(SRSS[2]==0) cout << __LINE__ << endl;
-      for(int i = 0; i<8; ++i) {
+      for(int i = 0; i<20; ++i) {
 	if(!selects3l[i]){
 	  if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
 	}
@@ -407,11 +435,18 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	fillSRhisto(histos, "SignalRegion_PUup",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUup,    weight_PUup);
 	fillSRhisto(histos, "SignalRegion_PUdn",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUdn,    weight_PUdn);
 	
+	fillSRhisto(histos, "SignalRegionNew",            sample, sn, sn2, SRSS[10], SR3l[10], weight, weight);
+	fillSRhisto(histos, "SignalRegionPreselNew",      sample, sn, sn2, SRSS[11], SR3l[11], weight, weight);	
       }
       fillSRhisto(  histos, "ApplicationRegion",          sample, sn, sn2, SRSS[2], SR3l[2], weight, weight);
       fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, sn2, SRSS[3], SR3l[3], weight, weight);
       fillSRhisto(  histos, "WZControlRegion",            sample, sn2,sn2, SRSS[4], SR3l[4], weight, weight);
       fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn2,sn2, SRSS[5], SR3l[5], weight, weight);
+      
+      fillSRhisto(  histos, "ApplicationRegionNew",       sample, sn, sn2, SRSS[12], SR3l[12], weight, weight);
+      fillSRhisto(  histos, "ApplicationRegionPreselNew", sample, sn, sn2, SRSS[13], SR3l[13], weight, weight);
+      fillSRhisto(  histos, "WZControlRegionNew",         sample, sn2,sn2, SRSS[14], SR3l[14], weight, weight);
+      fillSRhisto(  histos, "WZControlRegionPreselNew",   sample, sn2,sn2, SRSS[15], SR3l[15], weight, weight);
 
       if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "RawSignalRegion",            sample, sn, sn2, SRSS[0], SR3l[0], 1., 1.);

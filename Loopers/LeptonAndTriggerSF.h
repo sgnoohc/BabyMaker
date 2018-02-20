@@ -1,3 +1,6 @@
+#include "fakerate_baseline_v2_ss.C"
+#include "fakerate_baseline_v2_3l.C"
+
 //______________________________________________________________________________________
 float lepsf_EGammaReco(float PT, float Eta)
 {
@@ -703,13 +706,9 @@ float lepsf_MuTightVVV_MuTightVVVMu8_unc(float PT, float Eta)
 
 
 
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-
 
 //______________________________________________________________________________________
-float fakerate_mu_data(float Eta, float conecorrPT)
+float fakerate_baseline_v1_mu_data(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -727,7 +726,7 @@ float fakerate_mu_data(float Eta, float conecorrPT)
     if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0699800116561;
     return 1;
 }
-float fakerate_mu_data_unc(float Eta, float conecorrPT)
+float fakerate_baseline_v1_mu_data_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -746,7 +745,7 @@ float fakerate_mu_data_unc(float Eta, float conecorrPT)
     return 0;
 }
 //______________________________________________________________________________________
-float fakerate_mu_qcd(float Eta, float conecorrPT)
+float fakerate_baseline_v1_mu_qcd(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -764,7 +763,7 @@ float fakerate_mu_qcd(float Eta, float conecorrPT)
     if (fabs(eta) < 2.4 && (conecorrpt) < 10000) return 0.0583591616584;
     return 1;
 }
-float fakerate_mu_qcd_unc(float Eta, float conecorrPT)
+float fakerate_baseline_v1_mu_qcd_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -784,7 +783,7 @@ float fakerate_mu_qcd_unc(float Eta, float conecorrPT)
 }
 
 //______________________________________________________________________________________
-float fakerate_el_data(float Eta, float conecorrPT)
+float fakerate_baseline_v1_el_data(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.49,std::max((float)-2.49,Eta));
@@ -802,7 +801,7 @@ float fakerate_el_data(float Eta, float conecorrPT)
     if (fabs(eta) < 2.5   && (conecorrpt) < 10000) return 0.0995944944707;
     return 1;
 }
-float fakerate_el_data_unc(float Eta, float conecorrPT)
+float fakerate_baseline_v1_el_data_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.49,std::max((float)-2.49,Eta));
@@ -821,7 +820,7 @@ float fakerate_el_data_unc(float Eta, float conecorrPT)
     return 0;
 }
 //______________________________________________________________________________________
-float fakerate_el_qcd(float Eta, float conecorrPT)
+float fakerate_baseline_v1_el_qcd(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.49,std::max((float)-2.49,Eta));
@@ -839,7 +838,7 @@ float fakerate_el_qcd(float Eta, float conecorrPT)
     if (fabs(eta) < 2.5   && (conecorrpt) < 10000) return 0.0892398734513;
     return 1;
 }
-float fakerate_el_qcd_unc(float Eta, float conecorrPT)
+float fakerate_baseline_v1_el_qcd_unc(float Eta, float conecorrPT)
 {
     float conecorrpt  = std::min((float)9999.,conecorrPT);
     float eta = std::min((float)2.49,std::max((float)-2.49,Eta));
@@ -856,6 +855,188 @@ float fakerate_el_qcd_unc(float Eta, float conecorrPT)
     if (fabs(eta) < 1.479 && (conecorrpt) < 10000) return 0.0386388851491;
     if (fabs(eta) < 2.5   && (conecorrpt) < 10000) return 0.0199718234062;
     return 0;
+}
+
+//______________________________________________________________________________________
+float fakerate_baseline_v2_ss_mu_data(float Eta, float conecorrPT)
+{
+    return fakerate_mu_data_baseline_v2_ss(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_ss_mu_data_unc(float Eta, float conecorrPT)
+{
+    return fakerate_mu_data_baseline_v2_ss(Eta, conecorrPT, 1) - fakerate_mu_data_baseline_v2_ss(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_baseline_v2_ss_mu_qcd(float Eta, float conecorrPT)
+{
+    return fakerate_mu_qcd_baseline_v2_ss(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_ss_mu_qcd_unc(float Eta, float conecorrPT)
+{
+    return fakerate_mu_qcd_baseline_v2_ss(Eta, conecorrPT, 1) - fakerate_mu_qcd_baseline_v2_ss(Eta, conecorrPT);
+}
+
+//______________________________________________________________________________________
+float fakerate_baseline_v2_ss_el_data(float Eta, float conecorrPT)
+{
+    return fakerate_el_data_baseline_v2_ss(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_ss_el_data_unc(float Eta, float conecorrPT)
+{
+    return fakerate_el_data_baseline_v2_ss(Eta, conecorrPT, 1) - fakerate_el_data_baseline_v2_ss(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_baseline_v2_ss_el_qcd(float Eta, float conecorrPT)
+{
+    return fakerate_el_qcd_baseline_v2_ss(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_ss_el_qcd_unc(float Eta, float conecorrPT)
+{
+    return fakerate_el_qcd_baseline_v2_ss(Eta, conecorrPT, 1) - fakerate_el_qcd_baseline_v2_ss(Eta, conecorrPT);
+}
+
+//______________________________________________________________________________________
+float fakerate_baseline_v2_3l_mu_data(float Eta, float conecorrPT)
+{
+    return fakerate_mu_data_baseline_v2_3l(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_3l_mu_data_unc(float Eta, float conecorrPT)
+{
+    return fakerate_mu_data_baseline_v2_3l(Eta, conecorrPT, 1) - fakerate_mu_data_baseline_v2_3l(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_baseline_v2_3l_mu_qcd(float Eta, float conecorrPT)
+{
+    return fakerate_mu_qcd_baseline_v2_3l(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_3l_mu_qcd_unc(float Eta, float conecorrPT)
+{
+    return fakerate_mu_qcd_baseline_v2_3l(Eta, conecorrPT, 1) - fakerate_mu_qcd_baseline_v2_3l(Eta, conecorrPT);
+}
+
+//______________________________________________________________________________________
+float fakerate_baseline_v2_3l_el_data(float Eta, float conecorrPT)
+{
+    return fakerate_el_data_baseline_v2_3l(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_3l_el_data_unc(float Eta, float conecorrPT)
+{
+    return fakerate_el_data_baseline_v2_3l(Eta, conecorrPT, 1) - fakerate_el_data_baseline_v2_3l(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_baseline_v2_3l_el_qcd(float Eta, float conecorrPT)
+{
+    return fakerate_el_qcd_baseline_v2_3l(Eta, conecorrPT);
+}
+float fakerate_baseline_v2_3l_el_qcd_unc(float Eta, float conecorrPT)
+{
+    return fakerate_el_qcd_baseline_v2_3l(Eta, conecorrPT, 1) - fakerate_el_qcd_baseline_v2_3l(Eta, conecorrPT);
+}
+
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+
+//______________________________________________________________________________________
+float fakerate_mu_data(float Eta, float conecorrPT, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_mu_data(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_mu_data(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_mu_data(Eta, conecorrPT);
+}
+float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_mu_data_unc(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_mu_data_unc(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_mu_data_unc(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_mu_qcd(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_mu_qcd(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_mu_qcd(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_mu_qcd(Eta, conecorrPT);
+}
+float fakerate_mu_qcd_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_mu_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_mu_qcd_unc(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_mu_qcd_unc(Eta, conecorrPT);
+}
+
+//______________________________________________________________________________________
+float fakerate_el_data(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_el_data(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_el_data(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_el_data(Eta, conecorrPT);
+}
+float fakerate_el_data_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_el_data_unc(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_el_data_unc(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_el_data_unc(Eta, conecorrPT);
+}
+//______________________________________________________________________________________
+float fakerate_el_qcd(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_el_qcd(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_el_qcd(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_el_qcd(Eta, conecorrPT);
+}
+float fakerate_el_qcd_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+{
+    if (version == -1)
+    {
+        return fakerate_baseline_v2_3l_el_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == 1)
+    {
+        return fakerate_baseline_v2_ss_el_qcd_unc(Eta, conecorrPT);
+    }
+    return fakerate_baseline_v1_el_qcd_unc(Eta, conecorrPT);
 }
 
 

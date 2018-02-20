@@ -4,7 +4,8 @@
 PACKAGES = rooutil
 TARGET = wwwana
 SRCS = wwwana.C Functions.C
-OBJS = $(SRCS:.C=.o) CMS3_WWW0117.o
+VERSION=CMS3_WWW0118
+OBJS = $(SRCS:.C=.o) $(VERSION).o
 ROOTLIBS:= $(shell root-config --libs) -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -lRooFit -lRooFitCore
 
 all: $(PACKAGES) $(OBJS)
@@ -14,6 +15,9 @@ CMS3_WWW0116.o : CMS3_WWW0116.cc
 	g++ -Wunused-variable -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual $(shell root-config --cflags) -c $< -o $@
 
 CMS3_WWW0117.o : CMS3_WWW0117.cc
+	g++ -Wunused-variable -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual $(shell root-config --cflags) -c $< -o $@
+
+CMS3_WWW0118.o : CMS3_WWW0118.cc
 	g++ -Wunused-variable -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual $(shell root-config --cflags) -c $< -o $@
 
 %.o : %.C

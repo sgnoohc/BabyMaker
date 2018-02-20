@@ -12,6 +12,7 @@ bkg_types_3L = ["trueWWW", "true3L", "chargeflips", "3lLL", "fakes", "photonfake
 
 #_______________________________________________________________________________________
 def combexpr(exprlist):
+    exprlist = [ expr if len(expr) != 0 else "1" for expr in exprlist ]
     return "({})".format(")*(".join(exprlist))
 
 ########################################################################################
@@ -45,26 +46,26 @@ btagwgt = combexpr(btagwgt_expressions)
 # The following string is used to define the fakerate weight and trigger sf
 preselwgt_ss_expressions = [
 "trigsf",
-"{\"$(path)\"==\"/fake\"?{\"$(variation)\"==\"fakeup\"?ffwgtss+ffwgtss_noerr:{\"$(variation)\"==\"fakedn\"?ffwgtss-ffwgtss_noerr:ffwgtss}}:1}"
+"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgtss+ffwgtss_err:{\"$(variation)\"==\"fakedn\"?ffwgtss-ffwgtss_err:ffwgtss}}:1}",
 ]
 preselwgt_ss_expression = combexpr(preselwgt_ss_expressions)
 
 preselwgt_3l_expressions = [
 "trigsf",
-"{\"$(path)\"==\"/fake\"?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_noerr:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_noerr:ffwgt3l}}:1}"
+"{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_err:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_err:ffwgt3l}}:1}"
 ]
 preselwgt_3l_expression = combexpr(preselwgt_3l_expressions)
 
 # Variations
 commonsystvarwgt = [
-["lepsfup"   , "{\"$(path)\"==\"/fake\"?1:(lepsf+lepsf_err)/lepsf}"],
-["lepsfdn"   , "{\"$(path)\"==\"/fake\"?1:(lepsf-lepsf_err)/lepsf}"], 
-["purewgtup" , "{\"$(path)\"==\"/fake\"?1:purewgt_up/purewgt}"], 
-["purewgtdn" , "{\"$(path)\"==\"/fake\"?1:purewgt_dn/purewgt}"], 
-["btaghfup"  , "{\"$(path)\"==\"/fake\"?1:btagsf_hfup}"], 
-["btaghfdn"  , "{\"$(path)\"==\"/fake\"?1:btagsf_hfdn}"], 
-["btaglfup"  , "{\"$(path)\"==\"/fake\"?1:btagsf_lfup}"], 
-["btaglfdn"  , "{\"$(path)\"==\"/fake\"?1:btagsf_lfdn}"], 
+["lepsfup"   , "{$(usefakeweight)?1:(lepsf+lepsf_err)/lepsf}"],
+["lepsfdn"   , "{$(usefakeweight)?1:(lepsf-lepsf_err)/lepsf}"], 
+["purewgtup" , "{$(usefakeweight)?1:purewgt_up/purewgt}"], 
+["purewgtdn" , "{$(usefakeweight)?1:purewgt_dn/purewgt}"], 
+["btaghfup"  , "{$(usefakeweight)?1:btagsf_hfup}"], 
+["btaghfdn"  , "{$(usefakeweight)?1:btagsf_hfdn}"], 
+["btaglfup"  , "{$(usefakeweight)?1:btagsf_lfup}"], 
+["btaglfdn"  , "{$(usefakeweight)?1:btagsf_lfdn}"], 
 ]
 
 systvarwgtss = commonsystvarwgt
@@ -100,6 +101,10 @@ typebkg_ss_configuration_cuts = [
 "{\"$(path)\"==\"/typebkg/fakes/WZ\"?process_name_ss==\"fakes\":1}",
 "{\"$(path)\"==\"/typebkg/photon/WZ\"?process_name_ss==\"photonfakes\":1}",
 "{\"$(path)\"==\"/typebkg/others/WZ\"?process_name_ss==\"others\":1}",
+"{\"$(path)\"==\"/closure/fake/ttbar\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/fake/W\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/mc/ttbar\"?process_name_ss==\"fakes\":1}",
+"{\"$(path)\"==\"/closure/mc/W\"?process_name_ss==\"fakes\":1}",
 ]
 typebkg_ss_configuration_cut = combexpr(typebkg_ss_configuration_cuts)
 typebkg_3l_configuration_cuts = [
@@ -120,7 +125,7 @@ typebkg_3l_configuration_cut = combexpr(typebkg_3l_configuration_cuts)
 
 # WZCR building off of SS regions.
 # WZCR for SS regions will drop, Mjj window cut and add Z mass window cut + three lepton selection.
-ss_wzcr_z_window_cut = "(nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Mll2SFOS0-91.1876)<10||abs(Mll2SFOS1-91.1876)<10)"
+ss_wzcr_z_window_cut = "(nj30>=2)*((nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Mll2SFOS0-91.1876)<10||abs(Mll2SFOS1-91.1876)<10))+(nj30==1)*(MET.pt()<45.)"
 
 ########################################################################################
 #
@@ -131,7 +136,7 @@ ss_wzcr_z_window_cut = "(nSFOS==1)*(abs(Mll1SFOS-91.1876)<10)+(nSFOS==2)*(abs(Ml
 ########################################################################################
 
 #_______________________________________________________________________________________
-def addCuts(base, prefix_base, cutdefs, systvarwgts=[]):
+def addCuts(base, prefix_base, cutdefs, systvarwgts=[], doNm1=True):
     cuts = []
     prefix = prefix_base.split("base_")[1]
     for i, cutdef in enumerate(cutdefs):
@@ -150,6 +155,12 @@ def addCuts(base, prefix_base, cutdefs, systvarwgts=[]):
     for i in xrange(len(cuts) - 1):
         cuts[i].addCut(cuts[i+1])
     base.addCut(cuts[0])
+    if doNm1:
+        for i, cutdef in enumerate(cutdefs):
+            nm1cuts = [ cut[0] for j, cut in enumerate(cutdefs) if j!=i]
+            nm1wgts = [ cut[1] for j, cut in enumerate(cutdefs) if j!=i]
+            cutname = "{}_minus_{}".format(prefix, i)
+            base.addCut(TQCut(cutname, cutname, combexpr(nm1cuts), combexpr(nm1wgts)))
 
 #_______________________________________________________________________________________
 def getCuts(prefix, basecut, basewgt, addcutfunc, extracut):
@@ -176,13 +187,11 @@ SSpreselcuts = [
         typebkg_ss_configuration_cut,
         "n_veto_ss_lep==2",
         "vetophotonss==0",
-        "n_tight_ss_lep=={\"$(path)\"==\"/fake\"?1:2}", # Fake estimation specific
-#        "n_loose_ss_lep==2",
+        "n_tight_ss_lep=={$(usefakeweight)?1:2}", # Fake estimation specific
+        "n_loose_ss_lep==2",
         "ntrk==0",
         "veto_ss_lep0.Pt()>20.",
         "veto_ss_lep1.Pt()>20.",
-#        "veto_ss_lep0_bdt1>(0.6 + 0.004*(55 - 1))",
-#        "veto_ss_lep1_bdt1>(0.6 + 0.004*(45 - 1))",
         ]
 SSpreselcut = combexpr(SSpreselcuts)
 SSpreselwgt = preselwgt_ss_expression
@@ -247,7 +256,7 @@ TLpreselcuts = [
         #"pass_offline_trig>0",
         "n_veto_3l_lep==3",
         "vetophoton3l==0",
-        "n_tight_3l_lep=={\"$(path)\"==\"/fake\"?2:3}", # Fake estimation specific
+        "n_tight_3l_lep=={$(usefakeweight)?2:3}", # Fake estimation specific
         "n_loose_3l_lep==3",
         "ntrk==0"
         ]
@@ -358,7 +367,7 @@ TLWZpreselcuts = [
         #"pass_offline_trig>0",
         #"n_veto_3l_lep==3", # Three lepton WZCR drops the veto lepton requirement
         "vetophoton3l==0",
-        "n_tight_3l_lep=={\"$(path)\"==\"/fake\"?2:3}", # Fake estimation specific
+        "n_tight_3l_lep=={$(usefakeweight)?2:3}", # Fake estimation specific
         "n_loose_3l_lep==3",
         "ntrk==0"
         ]
@@ -413,17 +422,17 @@ def addAllTLWZ2SFOSCuts(base): base.addCut(getTLWZ2SFOSCuts("TLWZ2SFOS"))
 
 #_______________________________________________________________________________________
 def addAllCuts(base):
-    #addAllSSeeCuts(base)
-    #addAllSSemCuts(base)
+    addAllSSeeCuts(base)
+    addAllSSemCuts(base)
     addAllSSmmCuts(base)
-    #addAllTL0SFOSCuts(base)
-    #addAllTL1SFOSCuts(base)
-    #addAllTL2SFOSCuts(base)
-    #addAllWZCReeCuts(base)
-    #addAllWZCRemCuts(base)
-    #addAllWZCRmmCuts(base)
-    #addAllTLWZ1SFOSCuts(base)
-    #addAllTLWZ2SFOSCuts(base)
+    addAllTL0SFOSCuts(base)
+    addAllTL1SFOSCuts(base)
+    addAllTL2SFOSCuts(base)
+    addAllWZCReeCuts(base)
+    addAllWZCRemCuts(base)
+    addAllWZCRmmCuts(base)
+    addAllTLWZ1SFOSCuts(base)
+    addAllTLWZ2SFOSCuts(base)
 
 #_______________________________________________________________________________________
 def getAllCuts():

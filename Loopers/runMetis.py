@@ -6,8 +6,10 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v10"
-input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.17/skim/"
+job_tag = "minibaby_v4.4"
+input_tag = "18"
+input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
+#input_location = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.{}/skim/".format(input_tag)
 
 ###################################################################################################################
 ###################################################################################################################
@@ -57,10 +59,19 @@ os.chdir(metis_path)
 # Loop over datasets to submit
 total_summary = {}
 while True:
+    wwwsample = DirectorySample(dataset="/WWW_v0_1_18",
+                                location=input_location,
+                                globber="*.root")
+    #wwwsample.get_files()
+    #new_list_files = []
+    #for i in wwwsample.info["files"]:
+    #    if i.get_name().find("wgjets") != -1:
+    #        new_list_files.append(i)
+    #wwwsample.info["files"] = new_list_files
 
     # define the task
     task = CondorTask(
-            sample               = DirectorySample(dataset="/WWW_v0_1_17",
+            sample               = DirectorySample(dataset="/WWW_v0_1_{}".format(input_tag),
                                                    location=input_location,
                                                    globber="*.root"),
             tag                  = job_tag,
@@ -79,7 +90,7 @@ while True:
     task.process()
 
     # save some information for the dashboard
-    total_summary["WWW_v0_1_17"] = task.get_task_summary()
+    total_summary["WWW_v0_1_{}".format(input_tag)] = task.get_task_summary()
 
     # parse the total summary and write out the dashboard
     StatsParser(data=total_summary, webdir=metis_dashboard_path).do()
@@ -104,4 +115,7 @@ while True:
         raw_input("Press Enter to force update, or Ctrl-C to quit.")
         print "Force updating..."
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+print "./rename <(sh map.sh ProjectMetis/tasks/CondorTask_WWW_v0_1_{}_{}/logs/std_logs/ | grep hadoop) /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag, input_tag, job_tag)
+print "sh merge.sh /hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_{}_{}/".format(input_tag, job_tag)
 #eof

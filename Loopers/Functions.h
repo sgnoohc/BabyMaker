@@ -38,6 +38,7 @@ struct myevt{
 #define MZ 91.1876
 
 vector<string> split(string mystring, string c="/");
+string leptype(unsigned lep_index);
 int gentype_v2(unsigned lep1_index=0,unsigned lep2_index=1, int lep3_index=-1);
 float dR(LorentzVector vec1,LorentzVector vec2 );
 float dEta(LorentzVector vec1,LorentzVector vec2 );
@@ -49,9 +50,11 @@ bool sortPt(int i1, int i2);
 bool sortDecreasing(double i1, double i2);
 int numJ(float jetpt=20., float jeteta=2.4, float csv=-1, int jec=0);//loose: 0.5426, medium: 0.8484, if csv < 0 - count Njets, else Nbjets
 bool getalljetnumbers(int &nj, int &nj30, int &nb, int jec=0);
-bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l);
+bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version=0, float pTSS=30., float pT3l=20.);
+bool istightlepton(int i, int version);
+bool islooselepton(int i, int version);
 bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int bdtnum = 1, float bdt_wp = 0.85);
-float coneCorrPt(int lepi);//apply only to loose but not tight leptons
+float coneCorrPt(int lepi, int version=0);//apply only to loose but not tight leptons
 //float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin=10.1, float muFRptmax=119.9, float muFRetamin=0.01, float muFRetamax=2.39, float elFRptmin=10.1, float elFRptmax=119.9, float elFRetamin=0.01, float elFRetamax=2.49, bool conecorrected=true);
 float calcMjj(bool closestDR=true, int jec=0);//Mjj or MjjL
 float Detajj(int jec=0);
@@ -65,16 +68,17 @@ bool splitVH(string filename);//true is WHtoWWW, false everything else
 string whatWW(string filename, string samplename);
 string process(string filename, bool SS, vector<int> tightlep, vector<int> looselep={});
 bool vetophotonprocess(string filename, bool process);//true if W,DY,tt,etc. is photonfake; true if Wg,Zg,ttg,etc. is not photonfake. else false.
-int isSRSS(vector<int> tightlep, vector<int> vetolep,                        bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false);
-int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false);
-int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false);
-bool passJetSSstate(bool preselect=false, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, bool is3lCR=false, int jec=0, bool btag=false, bool Mjjside=false);
-int isSR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false);
-int isAR3l(vector<int> tightlep, vector<int> looselep,               bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false);
-int isCR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false);
-bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false);
+int isSRSS(vector<int> tightlep, vector<int> vetolep,                        bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=0);
+bool passJetSSstate(bool preselect=false, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, bool is3lCR=false, int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int isSR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+int isAR3l(vector<int> tightlep, vector<int> looselep,               bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+int isCR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
 vector<float> allMSFOS(vector<int> tightlep, vector<int> looselep={});
 map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir, int splitWW=0);
+map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir);
 bool deleteHistograms(map<string, TH1D*> histos);
 bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l=-2e6, bool fillsample=true);
 bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample=true);
@@ -91,9 +95,9 @@ bool fileexists(string filename);
 float getlepSFandError(float &error, int index);//so far assumes tight ID as only those SF are implemented.
 float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
 float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});
-float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true);
-float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false);
-float getlepFRClosureError(int index, bool data=true, bool conecorr=true);
+float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, int version=0);
+float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false, int version=0);
+float getlepFRClosureError(int index, bool data=true, bool conecorr=true, int version=0);
 
 float getPUWeight(int variation=0);
 float getPUWeightAndError(float &errorup, float &errordown);
