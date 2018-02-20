@@ -37,6 +37,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
         // Fill baby ntuple branches corresponding to lepton indices
         FillMuons();
 
+        // Fill generatore level particles
+        FillGenParticles();
+
         // Organize leptons by sorting
         SortLeptonBranches();
 
@@ -122,10 +125,13 @@ void babyMaker_v2::CreateOutput()
     tx->createBranch<float>("weight_btagsf_light_DN");
     tx->createBranch<float>("weight_btagsf_light_UP");
 
+    tx->createBranch<float>("gen_ht");
+
     tx->createBranch<vector<LorentzVector>>("genPart_p4");
     tx->createBranch<vector<int>>("genPart_motherId");
     tx->createBranch<vector<int>>("genPart_pdgId");
 
+    tx->clear();
 }
 
 //##############################################################################################################
@@ -211,6 +217,15 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.mus_charge()[idx]);
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.mus_p4()[idx].eta()); // Electron specific branch. Just take muon's regular eta.
     }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillGenParticles()
+{
+    tx->setBranch<float>("gen_ht", coreGenPart.gen_ht);
+    tx->setBranch<vector<LorentzVector>>("genPart_p4", coreGenPart.genPart_p4);
+    tx->setBranch<vector<int>>("genPart_motherId", coreGenPart.genPart_motherId);
+    tx->setBranch<vector<int>>("genPart_pdgId", coreGenPart.genPart_pdgId);
 }
 
 //##############################################################################################################

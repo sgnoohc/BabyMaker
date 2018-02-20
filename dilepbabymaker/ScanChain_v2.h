@@ -118,6 +118,7 @@ public:
     bool PassPresel();
     void FillElectrons();
     void FillMuons();
+    void FillGenParticles();
     void SortLeptonBranches();
     void FillOutput();
 };
