@@ -1,5 +1,5 @@
-#ifndef ScanChain_h
-#define ScanChain_h
+#ifndef ScanChain_v2_h
+#define ScanChain_v2_h
 
 // C++
 #include <iostream>
@@ -56,9 +56,17 @@
 
 // RooUtil
 #include "rooutil/looper.h"
+#include "rooutil/ttreex.h"
 
 // CoreUtil
 #include "coreutil/jec.h"
+#include "coreutil/btag.h"
+#include "coreutil/puwgt.h"
+#include "coreutil/genpart.h"
+#include "coreutil/trigger.h"
+#include "coreutil/electron.h"
+#include "coreutil/muon.h"
+#include "coreutil/grl.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
@@ -78,28 +86,40 @@ class babyMaker_v2
 private:
 
     SimPa simpa;
-    const char* json_file;
     CoreUtil::jec coreJec;
+    CoreUtil::grl coreGRL;
+    CoreUtil::btag coreBtagSF;
+    CoreUtil::puwgt corePUWgt;
+    CoreUtil::trigger coreTrigger;
+    CoreUtil::genpart coreGenPart;
+    CoreUtil::electron coreElectron;
+    CoreUtil::muon coreMuon;
+
+    TFile* ofile;
+    TTree* t;
+    RooUtil::TTreeX* tx;
 
     bool isData;
-
-    bool HLT_DoubleMu;
-    bool HLT_MuEG;
-    bool HLT_DoubleEl;
-    bool HLT_DoubleEl_DZ;
 
 public:
 
     babyMaker_v2() {}
     ~babyMaker_v2() {}
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1);
-    void Configure();
-    void ConfigureElectronMVA();
-    void ConfigureMuonMVA();
-    void ConfigurePileUpReweighting();
+
+    void CreateOutput();
+
     void ConfigureGoodRunsList();
-    void ConfigureBtagging();
-    void ConfigureJEC();
+
+    void ProcessTriggers();
+    void ProcessGenParticles();
+    void ProcessElectrons();
+    void ProcessMuons();
+    bool PassPresel();
+    void FillElectrons();
+    void FillMuons();
+    void SortLeptonBranches();
+    void FillOutput();
 };
 
 

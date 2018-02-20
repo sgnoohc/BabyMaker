@@ -5,47 +5,43 @@ using namespace std;
 //##############################################################################################################
 void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events)
 {
-    // Configure the event loop
-    Configure();
 
     // Looper
     RooUtil::Looper<CMS3> looper(chain, &cms3, max_events);
 
+    // Output root file
+    CreateOutput();
+
     while (looper.nextEvent())
     {
-        isData = tas::evt_isRealData();
 
-        //======================================================
         // Triggers
-        //======================================================
-        HLT_DoubleMu = (passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||
-                        passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v") ||
-                        passHLTTriggerPattern("HLT_TkMu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v") ||
-                        passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
-                        passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v"));
-
-        HLT_MuEG = (passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-                    passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") ||
-                    passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v") ||
-                    passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v") ||
-                    passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-                    passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v") ||
-                    passHLTTriggerPattern("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v") ||
-                    passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v") ||
-                    passHLTTriggerPattern("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"));
-
-        HLT_DoubleEl = (passHLTTriggerPattern("HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-                        passHLTTriggerPattern("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v")); // prescaled - turned off
-
-        HLT_DoubleEl_DZ = passHLTTriggerPattern("HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"); // prescaled
+        ProcessTriggers();
 
         // Loop over gen particles
+        ProcessGenParticles();
 
         // Loop over electrons
+        ProcessElectrons();
 
         // Loop over muons
+        ProcessMuons();
+
+        // Check preselection
+        if (!PassPresel())
+            continue;
+
+        // Fill baby ntuple branches corresponding to lepton indices
+        FillElectrons();
+
+        // Fill baby ntuple branches corresponding to lepton indices
+        FillMuons();
 
         // Organize leptons by sorting
+        SortLeptonBranches();
+
+        // Fill TTree (NOTE: also clears internal variables)
+        FillOutput();
 
         // Photons Not needed
 
@@ -61,101 +57,194 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 
         coreJec.setJECFor(looper.getCurrentFileName());
     }
+
+    ofile->cd();
+    t->Write();
 }
 
 //##############################################################################################################
-// Configuring before running the event loop
-void babyMaker_v2::Configure()
+void babyMaker_v2::CreateOutput()
 {
-    ConfigureElectronMVA();
-    ConfigureMuonMVA();
-    ConfigureGoodRunsList();
-    ConfigurePileUpReweighting();
-    ConfigureBtagging();
+    ofile = new TFile("output.root", "recreate");
+    t = new TTree("t", "t");
+    tx = new RooUtil::TTreeX(t);
+    tx->createBranch<vector<LorentzVector>>("lep_p4");
+
+    tx->createBranch<Int_t>("run");
+    tx->createBranch<Int_t>("lumi");
+    tx->createBranch<unsigned long long>("evt");
+    tx->createBranch<int>("isData");
+    tx->createBranch<float>("evt_scale1fb");
+
+    tx->createBranch<vector<LorentzVector>>("lep_p4");
+    tx->createBranch<vector<float>>("lep_ip3d");
+    tx->createBranch<vector<float>>("lep_ip3derr");
+    tx->createBranch<vector<int>>("lep_isTriggerSafe_v1");
+    tx->createBranch<vector<int>>("lep_lostHits");
+    tx->createBranch<vector<int>>("lep_motherIdSS");
+    tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_fo_noiso");
+    tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_tight_noiso");
+    tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_veto_noiso");
+    tx->createBranch<vector<int>>("lep_pdgId");
+    tx->createBranch<vector<float>>("lep_ptRatio");
+    tx->createBranch<vector<float>>("lep_ptRel");
+    tx->createBranch<vector<float>>("lep_pterr");
+    tx->createBranch<vector<float>>("lep_relIso03EAv2");
+    tx->createBranch<vector<float>>("lep_relIso04EAv2");
+    tx->createBranch<vector<int>>("lep_tightCharge");
+    tx->createBranch<vector<float>>("lep_trk_pt");
+    tx->createBranch<vector<int>>("lep_charge");
+    tx->createBranch<vector<float>>("lep_etaSC");
+
+    tx->createBranch<vector<LorentzVector>>("jets_p4");
+    tx->createBranch<vector<LorentzVector>>("jets_up_p4");
+    tx->createBranch<vector<LorentzVector>>("jets_dn_p4");
+    tx->createBranch<vector<float>>("jets_csv");
+    tx->createBranch<vector<float>>("jets_up_csv");
+    tx->createBranch<vector<float>>("jets_dn_csv");
+
+    tx->createBranch<float>("met_pt");
+    tx->createBranch<float>("met_phi");
+    tx->createBranch<float>("met_T1CHS_miniAOD_CORE_up_pt");
+    tx->createBranch<float>("met_T1CHS_miniAOD_CORE_up_phi");
+    tx->createBranch<float>("met_T1CHS_miniAOD_CORE_dn_pt");
+    tx->createBranch<float>("met_T1CHS_miniAOD_CORE_dn_phi");
+
+    tx->createBranch<int>("firstgoodvertex");
+    tx->createBranch<int>("nTrueInt");
+    tx->createBranch<int>("nVert");
+
+    tx->createBranch<int>("nisoTrack_mt2_cleaned_VVV_cutbased_veto");
+
+    tx->createBranch<float>("weight_btagsf");
+    tx->createBranch<float>("weight_btagsf_heavy_DN");
+    tx->createBranch<float>("weight_btagsf_heavy_UP");
+    tx->createBranch<float>("weight_btagsf_light_DN");
+    tx->createBranch<float>("weight_btagsf_light_UP");
+
+    tx->createBranch<vector<LorentzVector>>("genPart_p4");
+    tx->createBranch<vector<int>>("genPart_motherId");
+    tx->createBranch<vector<int>>("genPart_pdgId");
+
 }
 
 //##############################################################################################################
-void babyMaker_v2::ConfigureElectronMVA()
+void babyMaker_v2::ProcessTriggers() { coreTrigger.process(); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessGenParticles() { coreGenPart.process(); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessElectrons() { coreElectron.process(); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessMuons() { coreMuon.process(); }
+
+//##############################################################################################################
+bool babyMaker_v2::PassPresel()
 {
-    cout << "Creating electron MVA instance" << endl;
-    createAndInitMVA("MVAinput", true, false, 80); // for electrons
+    if (!(coreElectron.index.size() + coreMuon.index.size() >= 2)) return false;
+    return true;
 }
 
 //##############################################################################################################
-void babyMaker_v2::ConfigureGoodRunsList()
+void babyMaker_v2::FillElectrons()
 {
-    json_file = "Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt"; // 26p4 fb
-    cout << "Setting grl: " << json_file << endl;
-    set_goodrun_file(json_file);
+    for (auto& idx : coreElectron.index)
+    {
+        // Some variables that need to call another functions...
+        pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.els_charge()[idx] * (-11), idx)); //don't forget the sign
+        const LorentzVector& temp_jet_p4 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
+        float closeJetPt = temp_jet_p4.pt();
+
+        tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.els_p4()[idx]);
+        tx->pushbackToBranch<float>         ("lep_ip3d"                         , cms3.els_ip3d()[idx]);
+        tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.els_ip3derr()[idx]);
+        tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , isTriggerSafe_v1(idx));
+        tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.els_lostHits()[idx]);
+        tx->pushbackToBranch<int>           ("lep_motherIdSS"                   , motherId_genIdx.first);
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso));
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passElectronSelection_VVV(idx, VVV_cutbased_tight_noiso));
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passElectronSelection_VVV(idx, VVV_cutbased_veto_noiso));
+        tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.els_charge()[idx]*(-11));
+        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.));
+        tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.els_p4()[idx], temp_jet_p4, true));
+        tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.els_ptErr()[idx]);
+        tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , eleRelIso03EA(idx, 2));
+        //tx->pushbackToBranch<float>         ("lep_relIso04EAv2"                 , elRelIsoCustomCone(idx, 0.4, false, 0.0, /*useDBCorr=*/false, /*useEACorr=*/true, /*mindr=*/ -1, /*eaversion=*/2));
+        tx->pushbackToBranch<float>         ("lep_relIso04EAv2"                 , eleRelIso03EA(idx, 2));
+        tx->pushbackToBranch<int>           ("lep_tightCharge"                  , tightChargeEle(idx));
+        tx->pushbackToBranch<float>         ("lep_trk_pt"                       , cms3.els_trk_p4()[idx].pt());
+        tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.els_charge()[idx]);
+        tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.els_etaSC()[idx]);
+    }
 }
 
 //##############################################################################################################
-void babyMaker_v2::ConfigurePileUpReweighting()
+void babyMaker_v2::FillMuons()
 {
-//    TH1F * h_vtxweight = NULL;
-//    TFile * f_vtx = NULL;
-//    f_vtx = TFile::Open("puWeight2016.root", "READ");
-//    h_vtxweight = (TH1F*)f_vtx->Get("pileupWeight")->Clone("h_vtxweight");
-//    h_vtxweight->SetDirectory(rootdir);
-//    f_vtx->Close();
+    for (auto& idx : coreMuon.index)
+    {
+        // Some variables that need to call another functions...
+        pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.mus_charge()[idx] * (-13), idx)); //don't forget the sign
+        const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
+        float closeJetPt = temp_jet_p4.pt();
+
+        tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.mus_p4()[idx]);
+        tx->pushbackToBranch<float>         ("lep_ip3d"                         , cms3.mus_ip3d()[idx]);
+        tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.mus_ip3derr()[idx]);
+        tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , true); // Electron specific branch. So muons always pass.
+        tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.mus_lostHits()[idx]);
+        tx->pushbackToBranch<int>           ("lep_motherIdSS"                   , motherId_genIdx.first);
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso));
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passMuonSelection_VVV(idx, VVV_cutbased_tight_noiso));
+        tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passMuonSelection_VVV(idx, VVV_cutbased_veto_noiso));
+        tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.mus_charge()[idx]*(-13));
+        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.));
+        tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.mus_p4()[idx], temp_jet_p4, true));
+        tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.mus_ptErr()[idx]);
+        tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , muRelIso03EA(idx, 2));
+        //tx->pushbackToBranch<float>         ("lep_relIso04EAv2"                 , muRelIsoCustomCone(idx, 0.4, /*useVetoCones=*/false, 0.5, false, true, -1, 2));
+        tx->pushbackToBranch<float>         ("lep_relIso04EAv2"                 , muRelIso03EA(idx, 2));
+        tx->pushbackToBranch<int>           ("lep_tightCharge"                  , tightChargeMuon(idx));
+        tx->pushbackToBranch<float>         ("lep_trk_pt"                       , cms3.mus_trk_p4()[idx].pt());
+        tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.mus_charge()[idx]);
+        tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.mus_p4()[idx].eta()); // Electron specific branch. Just take muon's regular eta.
+    }
 }
 
 //##############################################################################################################
-void babyMaker_v2::ConfigureMuonMVA()
+void babyMaker_v2::SortLeptonBranches()
 {
-//    reader1 = new TMVA::Reader("!Color:!Silent");
-//    reader2 = new TMVA::Reader("!Color:!Silent");
-//    reader3 = new TMVA::Reader("!Color:!Silent");
-//    reader1->AddVariable("lepton_eta", &lepton_eta);
-//    reader1->AddVariable("lepton_phi", &lepton_phi);
-//    reader1->AddVariable("lepton_pt", &lepton_pt);
-//    reader1->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
-//    reader1->AddVariable("lepton_chiso", &lepton_chiso);
-//    reader1->AddVariable("lepton_nhiso", &lepton_nhiso);
-//    reader1->AddVariable("lepton_emiso", &lepton_emiso);
-//    reader1->AddVariable("lepton_ncorriso", &lepton_ncorriso);
-//    reader1->AddVariable("lepton_dxy", &lepton_dxy);
-//    reader1->AddVariable("lepton_dz", &lepton_dz);
-//    reader1->AddVariable("lepton_ip3d", &lepton_ip3d);
-//    reader1->BookMVA("BDT1", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.2__preliminary_11lepvec_1Msig_100Kbkg_events/TMVA_BDT.weights.xml");
-//    reader2->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
-//    reader2->AddVariable("lepton_chiso", &lepton_chiso);
-//    reader2->AddVariable("lepton_nhiso", &lepton_nhiso);
-//    reader2->AddVariable("lepton_emiso", &lepton_emiso);
-//    reader2->AddVariable("lepton_ncorriso", &lepton_ncorriso);
-//    reader2->AddVariable("lepton_dxy", &lepton_dxy);
-//    reader2->AddVariable("lepton_dz", &lepton_dz);
-//    reader2->AddVariable("lepton_ip3d", &lepton_ip3d);
-//    reader2->BookMVA("BDT2", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.4__nolepp4/TMVA_BDT.weights.xml");
-//    reader3->AddVariable("lepton_relIso03EA", &lepton_relIso03EA);
-//    reader3->AddVariable("lepton_chiso", &lepton_chiso);
-//    reader3->AddVariable("lepton_nhiso", &lepton_nhiso);
-//    reader3->AddVariable("lepton_emiso", &lepton_emiso);
-//    reader3->AddVariable("lepton_ncorriso", &lepton_ncorriso);
-//    reader3->BookMVA("BDT3", "/hadoop/cms/store/user/phchang/mlp/weights_BDTbaseline_v0.0.5__nop4noip/TMVA_BDT.weights.xml");
+    tx->sortVecBranchesByPt("lep_p4",
+            {
+            "lep_ip3d",
+            "lep_ip3derr",
+            "lep_ptRatio",
+            "lep_ptRel",
+            "lep_pterr",
+            "lep_relIso03EAv2",
+            "lep_relIso04EAv2",
+            "lep_trk_pt",
+            "lep_etaSC",
+            },
+            {
+            "lep_pass_VVV_cutbased_fo_noiso",
+            "lep_pass_VVV_cutbased_tight_noiso",
+            "lep_pass_VVV_cutbased_veto_noiso",
+            "lep_isTriggerSafe_v1",
+            "lep_lostHits",
+            "lep_motherIdSS",
+            "lep_pdgId",
+            "lep_tightCharge",
+            "lep_charge",
+            },
+            {});
 }
 
 //##############################################################################################################
-void babyMaker_v2::ConfigureBtagging()
+void babyMaker_v2::FillOutput()
 {
-//    // setup btag calibration readers
-//    calib           = new BTagCalibration("csvv2", "btagsf/CSVv2_Moriond17_B_H.csv"); // Moriond17 version of SFs
-//    reader_heavy    = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "central"); // central
-//    reader_heavy_UP = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "up");      // sys up
-//    reader_heavy_DN = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "comb", "down");    // sys down
-//    reader_light    = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "central"); // central
-//    reader_light_UP = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "up");      // sys up
-//    reader_light_DN = new BTagCalibrationReader(calib, BTagEntry::OP_LOOSE, "incl", "down");    // sys down
-//    // get btag efficiencies
-//    TFile * f_btag_eff           = new TFile("btagsf/btageff__ttbar_powheg_pythia8_25ns_Moriond17.root");
-//    TH2D  * h_btag_eff_b_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_b");
-//    TH2D  * h_btag_eff_c_temp    = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_c");
-//    TH2D  * h_btag_eff_udsg_temp = (TH2D*) f_btag_eff->Get("h2_BTaggingEff_csv_loose_Eff_udsg");
-//    BabyFile_->cd();
-//    h_btag_eff_b    = (TH2D*) h_btag_eff_b_temp    -> Clone("h_btag_eff_b");
-//    h_btag_eff_c    = (TH2D*) h_btag_eff_c_temp    -> Clone("h_btag_eff_c");
-//    h_btag_eff_udsg = (TH2D*) h_btag_eff_udsg_temp -> Clone("h_btag_eff_udsg");
-//    // f_btag_eff->Close();
-//    std::cout << "loaded fullsim btag SFs" << std::endl;
+    tx->fill();
+    tx->clear();
 }
-
