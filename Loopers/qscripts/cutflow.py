@@ -59,7 +59,7 @@ def getFakeError(cutname):
     fake = samples.getCounter("/fake", cutname)
     fakesyst = samples.getCounter("/fakeup-fake", cutname)
     frerror = fakesyst.getCounter() / fake.getCounter()
-    frclosuresyst = 0.30
+    frclosuresyst = 0.50
     frerror = math.sqrt(frerror**2 + frclosuresyst**2)
     print 1.0, frerror
     return 1.0, frerror
@@ -454,9 +454,9 @@ rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}
 {I}fWZStat              lnN        -            -            -            -            -            {wzerr:<13s}
 {I}gWZNorm              gmN {wzcr:<6s} -            -            -            -            -            {wzalpha:<13s}
 {I}hWZPurity            lnN        -            -            -            -            -            {wzpurity:<13s}
-FakeSyst                lnN        -            1.50         -            -            -            -
+FakeSyst                lnN        -            1.30         -            -            -            -
 FakeRate                lnN        -            {fakeuperr:<13s}-            -            -            -
-SSSyst                  lnN        -            -            -            1.15         -            -
+SSSyst                  lnN        -            -            -            1.20         -            -
 JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
 LepSF                   lnN        1.001        -            -            1.001        -            -
 LumSyst                 lnN        1.025        -            1.025        1.025        1.025        -
@@ -509,9 +509,9 @@ rate                               {sig:<13s}{fake:<13s}{photon:<13s}{ss3l:<13s}
 {I}eChFlstat            lnN        -            -            -            -            {qfliperr:<13s}-
 {I}fWZStat              lnN        -            -            -            -            -            {wzerr:<13s}
 {I}gWZNorm              lnN        -            -            -            -            -            {wzalpha:<13s}
-FakeSyst                lnN        -            1.50         -            -            -            -
+FakeSyst                lnN        -            1.30         -            -            -            -
 FakeRate                lnN        -            {fakeuperr:<13s}-            -            -            -
-SSSyst                  lnN        -            -            -            1.10         -            -
+SSSyst                  lnN        -            -            -            1.20         -            -
 JECSyst                 lnN        0.990/0.980  -            -            0.990/1.010  -            -
 LepSF                   lnN        1.001        -            -            1.001        -            -
 LumSyst                 lnN        1.025        -            1.025        1.025        1.025        -
@@ -527,11 +527,11 @@ bSF                     lnN        1.03         -            -            1.04  
 #printAllCutflow()
 
 applyWZNF()
-applyFakeError()
-applyPromptBkgSyst()
+#applyFakeError()
+#applyPromptBkgSyst()
 blind()
 printSummaryCutflow()
-statcardfunc = getStatCardString
+statcardfunc = getStatCardStringWithGmN
 f = open("SSee.txt", "write"); f.write(statcardfunc("SSee", "001"))
 f = open("SSem.txt", "write"); f.write(statcardfunc("SSem", "002"))
 f = open("SSmm.txt", "write"); f.write(statcardfunc("SSmm", "003"))

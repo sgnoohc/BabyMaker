@@ -29,7 +29,6 @@ samples.visitSampleFolders(vis, "/sig")
 samples.visitSampleFolders(vis, "/typebkg")
 samples.visitSampleFolders(vis, "/fake")
 samples.visitSampleFolders(vis, "/fakeup")
-samples.visitSampleFolders(vis, "/fakedn")
 samples.visitSampleFolders(vis, "/data")
 
 samples.writeToFile("output.root", True)
