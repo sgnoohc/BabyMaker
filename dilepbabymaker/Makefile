@@ -47,7 +47,7 @@ CORESOURCES = $(wildcard ../CORE/*.cc)
 COREOBJECTS = $(CORESOURCES:.cc=.o) 
 CORELIB = libBabymakerCORE.so
 
-TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc)
+TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc) $(wildcard ../CORE/Tools/datasetinfo/*.cc)
 TOOLSOBJECTS = $(TOOLSSOURCES:.cc=.o) 
 TOOLSLIB = libBabymakerTools.so
 

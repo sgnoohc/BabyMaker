@@ -53,6 +53,7 @@
 #include "../CORE/Tools/goodrun.h"
 #include "../CORE/Tools/btagsf/BTagCalibrationStandalone.h"
 #include "../CORE/Tools/btagsf/BTagCalibrationStandalone.h"
+#include "../CORE/Tools/datasetinfo/getDatasetInfo.h"
 
 // RooUtil
 #include "rooutil/looper.h"
@@ -67,6 +68,9 @@
 #include "coreutil/electron.h"
 #include "coreutil/muon.h"
 #include "coreutil/grl.h"
+#include "coreutil/datasetinfo.h"
+#include "coreutil/jet.h"
+#include "coreutil/met.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
@@ -94,6 +98,9 @@ private:
     CoreUtil::genpart coreGenPart;
     CoreUtil::electron coreElectron;
     CoreUtil::muon coreMuon;
+    CoreUtil::datasetinfo coreDatasetInfo;
+    CoreUtil::jet coreJet;
+    CoreUtil::met coreMET;
 
     TFile* ofile;
     TTree* t;
@@ -115,12 +122,27 @@ public:
     void ProcessGenParticles();
     void ProcessElectrons();
     void ProcessMuons();
+    void ProcessJets();
+    void ProcessMET();
+
     bool PassPresel();
+
+    void FillOutput();
+
+    void FillEventInfo();
     void FillElectrons();
     void FillMuons();
+    void FillJets();
+    void FillMET();
     void FillGenParticles();
     void SortLeptonBranches();
-    void FillOutput();
+    void SortJetBranches();
+    void FillTrigger();
+    void FillTTree();
+
+    bool isLooseMuon(int);
+    bool isLooseElectron(int);
+    bool isOverlapping(int ijet);
 };
 
 
