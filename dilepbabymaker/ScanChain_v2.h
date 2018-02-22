@@ -71,6 +71,7 @@
 #include "coreutil/datasetinfo.h"
 #include "coreutil/jet.h"
 #include "coreutil/met.h"
+#include "coreutil/track.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
@@ -101,6 +102,7 @@ private:
     CoreUtil::datasetinfo coreDatasetInfo;
     CoreUtil::jet coreJet;
     CoreUtil::met coreMET;
+    CoreUtil::track coreTrack;
 
     TFile* ofile;
     TTree* t;
@@ -124,6 +126,7 @@ public:
     void ProcessMuons();
     void ProcessJets();
     void ProcessMET();
+    void ProcessTracks();
 
     bool PassPresel();
 
@@ -134,15 +137,21 @@ public:
     void FillMuons();
     void FillJets();
     void FillMET();
+    void FillTracks();
     void FillGenParticles();
     void SortLeptonBranches();
     void SortJetBranches();
     void FillTrigger();
+    void FillVertexInfo();
+    void FillMETFilter();
     void FillTTree();
 
+    bool isLeptonOverlappingWithJet(int ijet);
+    bool isLeptonOverlappingWithTrack(int ijet);
     bool isLooseMuon(int);
     bool isLooseElectron(int);
-    bool isOverlapping(int ijet);
+    bool isVetoMuon(int);
+    bool isVetoElectron(int);
 };
 
 
