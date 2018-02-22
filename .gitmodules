@@ -16,3 +16,6 @@
 [submodule "dilepbabymaker/coreutil"]
 	path = dilepbabymaker/coreutil
 	url = git@github.com:sgnoohc/coreutil.git
+[submodule "dilepbabymaker/ProjectMetis"]
+	path = dilepbabymaker/ProjectMetis
+	url = git@github.com:aminnj/ProjectMetis.git
