@@ -5,6 +5,8 @@
 
 #include "ScanChain_v2.h"
 
+#include "hadoopmap.h"
+
 #include <iostream>
 
 int main(int argc, char **argv)
@@ -20,10 +22,23 @@ int main(int argc, char **argv)
     if (argc >= 4) { max_events = atoi(argv[3]); }
     std::cout << "set max number of events to: " << max_events << std::endl;
     std::cout << "running on file: " << infile.Data() << std::endl;
+
     TChain *chain = new TChain("Events");
-    chain->Add(infile.Data());
-    // chain->Add("/hadoop/cms/store/group/snt/run2_50ns/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/V07-04-03/merged_ntuple_2.root");
-    // chain->Add("/hadoop/cms/store/group/snt/run2_50ns/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/V07-04-03/merged_ntuple_3.root");
+    // Intervention needed for CMS3 data sitting on hadoop but mapped to nfs
+    HadoopPathMap hmap;
+    if (infile.Contains("nfs"))
+    {
+        std::cout << "Adding to TChain: file = " << hmap.getHadoopPath(infile) << std::endl;
+        //if (!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016E_SingleElectron_MINIAOD_03Feb2017-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017-v1_110000_48D8C9CE-91EA-E611-94FD-003048F5ADEC.root")
+        //        &&!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016G_SingleElectron_MINIAOD_03Feb2017-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017-v1_50000_2A3E72FD-12EB-E611-BABF-A0000420FE80.root")
+        //        &&!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016H_SingleElectron_MINIAOD_03Feb2017_ver2-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017_ver2-v1_100000_B013E292-56EC-E611-A7CD-00259073E4D4.root"))
+        chain->Add(hmap.getHadoopPath(infile));
+    }
+    else
+    {
+        std::cout << "Adding to TChain: file = " << infile << std::endl;
+        chain->Add(infile.Data());
+    }
     if (chain->GetEntries() == 0)
     {
         std::cout << "ERROR: no entries in chain. filename was: " << infile << std::endl;

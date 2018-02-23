@@ -12,49 +12,59 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
     // Output root file
     CreateOutput();
 
-    while (looper.nextEvent())
+    try
     {
-        coreJec.setJECFor(looper.getCurrentFileName());
+        while (looper.nextEvent())
+        {
+            coreJec.setJECFor(looper.getCurrentFileName());
 
-        // Loop over electrons
-        ProcessElectrons();
+            // Loop over electrons
+            ProcessElectrons();
 
-        // Loop over muons
-        ProcessMuons();
+            // Loop over muons
+            ProcessMuons();
 
-        // Check preselection
-        if (!PassPresel())
-            continue;
+            // Check preselection
+            if (!PassPresel())
+                continue;
 
-        // Triggers
-        ProcessTriggers();
+            // Triggers
+            ProcessTriggers();
 
-        // Loop over gen particles
-        ProcessGenParticles();
+            // Loop over gen particles
+            ProcessGenParticles();
 
-        // Loop over Jets
-        ProcessJets();
+            // Loop over Jets
+            ProcessJets();
 
-        // Process MET (recalculate etc.)
-        ProcessMET();
+            // Process MET (recalculate etc.)
+            ProcessMET();
 
-        // Loop over charged particle candidates
-        ProcessTracks();
+            // Loop over charged particle candidates
+            ProcessTracks();
 
-        // Fill baby ntuple
-        FillOutput();
+            // Fill baby ntuple
+            FillOutput();
 
-        // Photons Not needed
+            // Photons Not needed
 
-        // Select based on two leptons
+            // Select based on two leptons
 
-        // Loop over jets (keep track of good ones for removal)
+            // Loop over jets (keep track of good ones for removal)
 
-        // jet lepton overlap
+            // jet lepton overlap
 
-        // Loop over good jets after removal and select
+            // Loop over good jets after removal and select
 
-        // kinematic variables for pf cands (isotrack)
+            // kinematic variables for pf cands (isotrack)
+        }
+    }
+    catch (const std::ios_base::failure& e)
+    {
+        std::cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
+        std::cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
+        std::cout << "[CheckCorrupt] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
+        std::cout << e.what() << endl;
     }
 
     ofile->cd();
@@ -100,6 +110,13 @@ void babyMaker_v2::CreateOutput()
     tx->createBranch<vector<int>>("lep_charge");
     tx->createBranch<vector<float>>("lep_etaSC");
     tx->createBranch<vector<float>>("lep_MVA");
+    tx->createBranch<vector<int>>("lep_isFromW");
+    tx->createBranch<vector<int>>("lep_isFromZ");
+    tx->createBranch<vector<int>>("lep_isFromB");
+    tx->createBranch<vector<int>>("lep_isFromC");
+    tx->createBranch<vector<int>>("lep_isFromL");
+    tx->createBranch<vector<int>>("lep_isFromLF");
+    tx->createBranch<vector<int>>("lep_genPart_index");
 
     tx->createBranch<vector<LorentzVector>>("jets_p4");
     tx->createBranch<vector<LorentzVector>>("jets_up_p4");
@@ -134,6 +151,9 @@ void babyMaker_v2::CreateOutput()
     tx->createBranch<vector<LorentzVector>>("genPart_p4");
     tx->createBranch<vector<int>>("genPart_motherId");
     tx->createBranch<vector<int>>("genPart_pdgId");
+    tx->createBranch<vector<int>>("genPart_charge");
+    tx->createBranch<int>("ngenLep");
+    tx->createBranch<int>("ngenLepFromTau");
 
     tx->createBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter");
     tx->createBranch<int>("Flag_HBHEIsoNoiseFilter");
@@ -223,7 +243,10 @@ void babyMaker_v2::FillEventInfo()
     tx->setBranch<Int_t>("lumi", cms3.evt_lumiBlock());
     tx->setBranch<unsigned long long>("evt", cms3.evt_event());
     tx->setBranch<int>("isData", cms3.evt_isRealData());
-    tx->setBranch<float>("evt_scale1fb", coreDatasetInfo.getScale1fb());
+    if (cms3.evt_isRealData())
+        tx->setBranch<float>("evt_scale1fb", 1);
+    else
+        tx->setBranch<float>("evt_scale1fb", coreDatasetInfo.getScale1fb());
 }
 
 //##############################################################################################################
@@ -232,7 +255,6 @@ void babyMaker_v2::FillElectrons()
     for (auto& idx : coreElectron.index)
     {
         // Some variables that need to call another functions...
-        pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.els_charge()[idx] * (-11), idx)); //don't forget the sign
         const LorentzVector& temp_jet_p4 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
         float closeJetPt = temp_jet_p4.pt();
 
@@ -241,7 +263,6 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.els_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , isTriggerSafe_v1(idx));
         tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.els_lostHits()[idx]);
-        tx->pushbackToBranch<int>           ("lep_motherIdSS"                   , motherId_genIdx.first);
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passElectronSelection_VVV(idx, VVV_cutbased_tight_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passElectronSelection_VVV(idx, VVV_cutbased_veto_noiso));
@@ -255,6 +276,29 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.els_charge()[idx]);
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.els_etaSC()[idx]);
         tx->pushbackToBranch<float>         ("lep_MVA"                          , getMVAoutput(idx));
+        if (!cms3.evt_isRealData())
+        {
+            pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.els_charge()[idx] * (-11), idx)); //don't forget the sign
+            tx->pushbackToBranch<int>       ("lep_motherIdSS"                   , motherId_genIdx.first);
+            tx->pushbackToBranch<int>       ("lep_genPart_index"                , motherId_genIdx.second);
+            tx->pushbackToBranch<int>       ("lep_isFromW"                      , isFromW(11, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromZ"                      , isFromZ(11, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromB"                      , isFromB(11, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromC"                      , isFromC(11, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromL"                      , isFromLight(11, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromLF"                     , isFromLightFake(11, idx));
+        }
+        else
+        {
+            tx->pushbackToBranch<int>       ("lep_motherIdSS"                   , 99);
+            tx->pushbackToBranch<int>       ("lep_genPart_index"                , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromW"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromZ"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromB"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromC"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromL"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromLF"                     , -1);
+        }
 
         // Due to CMS4 not having pf candidates...
         std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
@@ -272,7 +316,6 @@ void babyMaker_v2::FillMuons()
     for (auto& idx : coreMuon.index)
     {
         // Some variables that need to call another functions...
-        pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.mus_charge()[idx] * (-13), idx)); //don't forget the sign
         const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
         float closeJetPt = temp_jet_p4.pt();
 
@@ -281,7 +324,6 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.mus_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , true); // Electron specific branch. So muons always pass.
         tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.mus_lostHits()[idx]);
-        tx->pushbackToBranch<int>           ("lep_motherIdSS"                   , motherId_genIdx.first);
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passMuonSelection_VVV(idx, VVV_cutbased_tight_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passMuonSelection_VVV(idx, VVV_cutbased_veto_noiso));
@@ -295,6 +337,29 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.mus_charge()[idx]);
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.mus_p4()[idx].eta()); // Electron specific branch. Just take muon's regular eta.
         tx->pushbackToBranch<float>         ("lep_MVA"                          , -99);
+        if (!cms3.evt_isRealData())
+        {
+            pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.els_charge()[idx] * (-13), idx)); //don't forget the sign
+            tx->pushbackToBranch<int>       ("lep_motherIdSS"                   , motherId_genIdx.first);
+            tx->pushbackToBranch<int>       ("lep_genPart_index"                , motherId_genIdx.second);
+            tx->pushbackToBranch<int>       ("lep_isFromW"                      , isFromW(13, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromZ"                      , isFromZ(13, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromB"                      , isFromB(13, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromC"                      , isFromC(13, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromL"                      , isFromLight(13, idx));
+            tx->pushbackToBranch<int>       ("lep_isFromLF"                     , isFromLightFake(13, idx));
+        }
+        else
+        {
+            tx->pushbackToBranch<int>       ("lep_motherIdSS"                   , 99);
+            tx->pushbackToBranch<int>       ("lep_genPart_index"                , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromW"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromZ"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromB"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromC"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromL"                      , -1);
+            tx->pushbackToBranch<int>       ("lep_isFromLF"                     , -1);
+        }
 
         // Due to CMS4 not having pf candidates...
         std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
@@ -309,10 +374,15 @@ void babyMaker_v2::FillMuons()
 //##############################################################################################################
 void babyMaker_v2::FillGenParticles()
 {
+    if (cms3.evt_isRealData())
+        return;
     tx->setBranch<float>("gen_ht", coreGenPart.gen_ht);
     tx->setBranch<vector<LorentzVector>>("genPart_p4", coreGenPart.genPart_p4);
     tx->setBranch<vector<int>>("genPart_motherId", coreGenPart.genPart_motherId);
     tx->setBranch<vector<int>>("genPart_pdgId", coreGenPart.genPart_pdgId);
+    tx->setBranch<vector<int>>("genPart_charge", coreGenPart.genPart_charge);
+    tx->setBranch<int>("ngenLep", coreGenPart.ngenLep);
+    tx->setBranch<int>("ngenLepFromTau", coreGenPart.ngenLepFromTau);
 }
 
 //##############################################################################################################
@@ -329,6 +399,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_relIso04EAv2",
             "lep_trk_pt",
             "lep_etaSC",
+            "lep_MVA",
             },
             {
             "lep_pass_VVV_cutbased_fo_noiso",
@@ -337,9 +408,16 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_isTriggerSafe_v1",
             "lep_lostHits",
             "lep_motherIdSS",
+            "lep_genPart_index",
             "lep_pdgId",
             "lep_tightCharge",
             "lep_charge",
+            "lep_isFromW",
+            "lep_isFromZ",
+            "lep_isFromB",
+            "lep_isFromC",
+            "lep_isFromL",
+            "lep_isFromLF",
             },
             {});
 }
