@@ -13,15 +13,25 @@ int main(int argc, char **argv)
 {
     if (argc < 3)
     {
-        std::cout << "USAGE: processBaby <tag> <filename> [<max_num_events>]" << std::endl;
+        std::cout << "USAGE: processBaby <tag> <filename> [<max_num_events>] [index] [type anything to make it verbose]" << std::endl;
         return 1;
     }
     TString outfileid(argv[1]);
     TString infile(argv[2]);
     int max_events = -1;
+    int index = 1;
+    bool verbose = false;
     if (argc >= 4) { max_events = atoi(argv[3]); }
+    if (argc >= 5) { index = atoi(argv[4]); }
+    if (argc >= 6) { verbose = true; }
     std::cout << "set max number of events to: " << max_events << std::endl;
     std::cout << "running on file: " << infile.Data() << std::endl;
+
+//    TObjArray* files = input_path.Tokenize(",");
+//    for (unsigned int ifile = 0; ifile < files->GetEntries(); ++ifile)
+//    {
+//        TString filepath = ((TObjString*) files->At(ifile))->GetString();
+//    }
 
     TChain *chain = new TChain("Events");
     // Intervention needed for CMS3 data sitting on hadoop but mapped to nfs
@@ -29,9 +39,6 @@ int main(int argc, char **argv)
     if (infile.Contains("nfs"))
     {
         std::cout << "Adding to TChain: file = " << hmap.getHadoopPath(infile) << std::endl;
-        //if (!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016E_SingleElectron_MINIAOD_03Feb2017-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017-v1_110000_48D8C9CE-91EA-E611-94FD-003048F5ADEC.root")
-        //        &&!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016G_SingleElectron_MINIAOD_03Feb2017-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017-v1_50000_2A3E72FD-12EB-E611-BABF-A0000420FE80.root")
-        //        &&!hmap.getHadoopPath(filepath).EqualTo("/hadoop/cms/store/user/mderdzinski/dataTuple/Run2016H_SingleElectron_MINIAOD_03Feb2017_ver2-v1/V08-00-18/SingleElectron_MINIAOD_03Feb2017_ver2-v1_100000_B013E292-56EC-E611-A7CD-00259073E4D4.root"))
         chain->Add(hmap.getHadoopPath(infile));
     }
     else
@@ -223,6 +230,6 @@ int main(int argc, char **argv)
 //    babyMaker *looper = new babyMaker();
 //    looper->ScanChain(chain, sample, max_events);
     babyMaker_v2 *looper = new babyMaker_v2();
-    looper->ScanChain_v2(chain, sample, max_events);
+    looper->ScanChain_v2(chain, sample, max_events, index, verbose);
     return 0;
 }

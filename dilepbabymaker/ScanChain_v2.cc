@@ -3,19 +3,22 @@
 using namespace std;
 
 //##############################################################################################################
-void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events)
+void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events, int index, bool verbose)
 {
 
     // Looper
     RooUtil::Looper<CMS3> looper(chain, &cms3, max_events);
 
     // Output root file
-    CreateOutput();
+    CreateOutput(index);
 
     try
     {
         while (looper.nextEvent())
         {
+            if (verbose)
+                cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
+            
             coreJec.setJECFor(looper.getCurrentFileName());
 
             // Loop over electrons
@@ -61,10 +64,10 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
     }
     catch (const std::ios_base::failure& e)
     {
-        std::cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
-        std::cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
-        std::cout << "[CheckCorrupt] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
-        std::cout << e.what() << endl;
+        cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
+        cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
+        cout << "[CheckCorrupt] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
+        cout << e.what() << endl;
     }
 
     ofile->cd();
@@ -72,9 +75,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 }
 
 //##############################################################################################################
-void babyMaker_v2::CreateOutput()
+void babyMaker_v2::CreateOutput(int index)
 {
-    ofile = new TFile("output.root", "recreate");
+    ofile = new TFile(Form("output_%d.root", index), "recreate");
     t = new TTree("t", "t");
     tx = new RooUtil::TTreeX(t);
 
@@ -191,8 +194,39 @@ void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
 //##############################################################################################################
 bool babyMaker_v2::PassPresel()
 {
-    if (!((coreElectron.index.size() + coreMuon.index.size()) >= 2)) return false;
-    return true;
+    // Select 2 SS lepton events or 3 or more lepton events
+    vector<int> el_idx;
+    vector<int> mu_idx;
+    for (auto& idx : coreElectron.index) if (isVetoElectron(idx)) el_idx.push_back(idx);
+    for (auto& idx : coreMuon.index) if (isVetoMuon(idx)) mu_idx.push_back(idx);
+    if (el_idx.size() + mu_idx.size() > 2) return true;
+    if (el_idx.size() + mu_idx.size() < 2) return false;
+    if (mu_idx.size() == 2)
+    {
+        if (cms3.mus_charge()[mu_idx[0]] * cms3.mus_charge()[mu_idx[1]] > 0)
+            return true;
+        else
+            return false;
+    }
+    else if (el_idx.size() == 2)
+    {
+        if (cms3.els_charge()[el_idx[0]] * cms3.els_charge()[el_idx[1]] > 0)
+            return true;
+        else
+            return false;
+    }
+    else if (mu_idx.size() == 1 && el_idx.size() == 1)
+    {
+        if (cms3.mus_charge()[mu_idx[0]] * cms3.els_charge()[el_idx[0]] > 0)
+            return true;
+        else
+            return false;
+    }
+    else
+    {
+        cout << "FATAL ERROR: I Should never be here!" << endl;
+        return false;
+    }
 }
 
 //##############################################################################################################
@@ -339,7 +373,7 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<float>         ("lep_MVA"                          , -99);
         if (!cms3.evt_isRealData())
         {
-            pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.els_charge()[idx] * (-13), idx)); //don't forget the sign
+            pair<int, int> motherId_genIdx = lepMotherID_v2(Lep(cms3.mus_charge()[idx] * (-13), idx)); //don't forget the sign
             tx->pushbackToBranch<int>       ("lep_motherIdSS"                   , motherId_genIdx.first);
             tx->pushbackToBranch<int>       ("lep_genPart_index"                , motherId_genIdx.second);
             tx->pushbackToBranch<int>       ("lep_isFromW"                      , isFromW(13, idx));
@@ -669,45 +703,79 @@ bool babyMaker_v2::isLeptonOverlappingWithTrack(int idx)
     return false;
 }
 
-////##############################################################################################################
-//bool babyMaker_v2::isLooseMuon(int idx)
-//{
-//    if (!(coreMuon.pass(idx) && cms3.mus_p4()[idx].pt() > 20.)) return false;
-//    return true;
-//}
-//
-////##############################################################################################################
-//bool babyMaker_v2::isLooseElectron(int idx)
-//{
-//    if (!(coreElectron.pass(idx) && cms3.els_p4()[idx].pt() > 20.)) return false;
-//    return true;
-//}
+//##############################################################################################################
+bool babyMaker_v2::isTightMuon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 20.                     )) return false;
+    if (!( fabs(cms3.mus_ip3d()[idx]) < 0.015                )) return false;
+    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, 2);
+    float closeJetPt = temp_jet_p4.pt();
+    float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
+    if (!( ptratio > 0.9                                     )) return false;
+    if (!( passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso) )) return false;
+    return true;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::isTightElectron(int idx)
+{
+    if (!( cms3.els_p4()[idx].pt() > 20.                         )) return false;
+    if (!( fabs(cms3.els_ip3d()[idx]) < 0.015                    )) return false;
+    if (!( isTriggerSafe_v1(idx)                                 )) return false;
+    if (!( tightChargeEle(idx) == 2                              )) return false;
+    if (!( cms3.els_lostHits()[idx] == 0                         )) return false;
+    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    float reliso04 = cms3.evt_CMS3tag()[0].Contains("CMS3") ? elRelIsoCustomCone(idx, 0.4, false, 0.0, false, true, -1, 2) : eleRelIso03EA(idx, 2);
+    std::cout.clear();
+    if (fabs(cms3.els_etaSC()[idx]) <= 1.479)
+    {
+        if (!( reliso04 < 0.05                                   )) return false;
+        if (!( getMVAoutput(idx) > 0.941                         )) return false;
+    }
+    else
+    {
+        if (!( reliso04 < 0.07                                   )) return false;
+        if (!( getMVAoutput(idx) > 0.925                         )) return false;
+    }
+    if (!( passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso) )) return false;
+    return true;
+}
 
 //##############################################################################################################
 bool babyMaker_v2::isLooseMuon(int idx)
 {
-    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
+    if (!( cms3.mus_p4()[idx].pt() > 20.                     )) return false;
+    if (!( fabs(cms3.mus_ip3d()[idx]) < 0.015                )) return false;
+    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, 2);
     float closeJetPt = temp_jet_p4.pt();
     float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
-    if (!(passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso)
-                && fabs(cms3.mus_ip3d()[idx]) < 0.015
-                && ptratio > 0.65
-                && cms3.mus_p4()[idx].pt() > 20.))
-        return false;
+    if (!( ptratio > 0.65                                    )) return false;
+    if (!( passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso) )) return false;
     return true;
 }
 
 //##############################################################################################################
 bool babyMaker_v2::isLooseElectron(int idx)
 {
-    if (!(passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso)
-                && isTriggerSafe_v1(idx)
-                && cms3.els_lostHits()[idx] == 0
-                && tightChargeEle(idx) == 2
-                && fabs(cms3.els_ip3d()[idx]) < 0.015
-                && eleRelIso03EA(idx, 2) < 0.4
-                && cms3.els_p4()[idx].pt() > 20.))
-        return false;
+    if (!( cms3.els_p4()[idx].pt() > 20.                         )) return false;
+    if (!( fabs(cms3.els_ip3d()[idx]) < 0.015                    )) return false;
+    if (!( isTriggerSafe_v1(idx)                                 )) return false;
+    if (!( tightChargeEle(idx) == 2                              )) return false;
+    if (!( cms3.els_lostHits()[idx] == 0                         )) return false;
+    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    float reliso04 = cms3.evt_CMS3tag()[0].Contains("CMS3") ? elRelIsoCustomCone(idx, 0.4, false, 0.0, false, true, -1, 2) : eleRelIso03EA(idx, 2);
+    std::cout.clear();
+    if (fabs(cms3.els_etaSC()[idx]) <= 1.479)
+    {
+        if (!( reliso04 < 0.4                                    )) return false;
+        if (!( getMVAoutput(idx) > 0.941                         )) return false;
+    }
+    else
+    {
+        if (!( reliso04 < 0.4                                    )) return false;
+        if (!( getMVAoutput(idx) > 0.925                         )) return false;
+    }
+    if (!( passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso) )) return false;
     return true;
 }
 

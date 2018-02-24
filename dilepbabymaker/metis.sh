@@ -12,6 +12,8 @@ PACKAGE=package.tar.gz
 # if 
 if [ "x${_CONDOR_JOB_AD}" == "x" ]; then
     :
+    INPUTFILENAMES=$1
+    shift;
 else
     hostname
     uname -a
@@ -75,7 +77,28 @@ ls -l
 echo ">>> export COREDIR=$PWD/CORE/"
 export COREDIR=$PWD/CORE/
 echo ">>> ./processBaby dummy ${INPUTFILENAMES} -1"
-./processBaby dummy "${INPUTFILENAMES}" $@
+INPUTFILES=$(echo ${INPUTFILENAMES} | tr ',' ' ')
+INDEX=1
+for file in $INPUTFILES; do
+    ./processBaby dummy "$file" -1 ${INDEX} &
+    JOBS[${INDEX}]=$!
+    INDEX=$((INDEX + 1))
+done
+GOODOUTPUTS=""
+INDEX=1
+for job in "${JOBS[@]}"; do
+    wait $job
+    JOBSTATUS=$?
+    echo "Job #${INDEX} Exit Code = $JOBSTATUS"
+    if [ $JOBSTATUS -eq 0 ]; then
+        echo "Job #${INDEX} Success"
+        GOODOUTPUTS="${GOODOUTPUTS} output_${INDEX}.root"
+    else
+        echo "Job #${INDEX} Failed"
+    fi
+    INDEX=$((INDEX+1))
+done
+hadd -f output.root ${GOODOUTPUTS}
 
 ###################################################################################################
 # ProjectMetis/CondorTask specific (Copying files over to hadoop)
