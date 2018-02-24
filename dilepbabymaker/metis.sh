@@ -89,12 +89,18 @@ INDEX=1
 for job in "${JOBS[@]}"; do
     wait $job
     JOBSTATUS=$?
+    echo ""
     echo "Job #${INDEX} Exit Code = $JOBSTATUS"
+    echo ""
     if [ $JOBSTATUS -eq 0 ]; then
+        echo ""
         echo "Job #${INDEX} Success"
+        echo ""
         GOODOUTPUTS="${GOODOUTPUTS} output_${INDEX}.root"
     else
+        echo ""
         echo "Job #${INDEX} Failed"
+        echo ""
     fi
     INDEX=$((INDEX+1))
 done

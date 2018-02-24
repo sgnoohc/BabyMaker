@@ -64,11 +64,14 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
     }
     catch (const std::ios_base::failure& e)
     {
+        cout << endl;
         cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
         cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
         cout << "[CheckCorrupt] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
         cout << e.what() << endl;
     }
+
+    looper.getTree()->PrintCacheStats();
 
     ofile->cd();
     t->Write();
