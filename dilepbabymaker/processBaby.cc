@@ -25,27 +25,31 @@ int main(int argc, char **argv)
     if (argc >= 5) { index = atoi(argv[4]); }
     if (argc >= 6) { verbose = true; }
     std::cout << "set max number of events to: " << max_events << std::endl;
-    std::cout << "running on file: " << infile.Data() << std::endl;
-
-//    TObjArray* files = input_path.Tokenize(",");
-//    for (unsigned int ifile = 0; ifile < files->GetEntries(); ++ifile)
-//    {
-//        TString filepath = ((TObjString*) files->At(ifile))->GetString();
-//    }
+    std::cout << "running on files: " << infile.Data() << std::endl;
 
     TChain *chain = new TChain("Events");
-    // Intervention needed for CMS3 data sitting on hadoop but mapped to nfs
-    HadoopPathMap hmap;
-    if (infile.Contains("nfs"))
+
+    TString input_path = infile;
+    TObjArray* files = input_path.Tokenize(",");
+    for (unsigned int ifile = 0; ifile < files->GetEntries(); ++ifile)
     {
-        std::cout << "Adding to TChain: file = " << hmap.getHadoopPath(infile) << std::endl;
-        chain->Add(hmap.getHadoopPath(infile));
+        TString filepath = ((TObjString*) files->At(ifile))->GetString();
+
+        // Intervention needed for CMS3 data sitting on hadoop but mapped to nfs
+        HadoopPathMap hmap;
+        if (filepath.Contains("nfs"))
+        {
+            std::cout << "Adding to TChain: file = " << hmap.getHadoopPath(filepath) << std::endl;
+            chain->Add(hmap.getHadoopPath(filepath));
+        }
+        else
+        {
+            std::cout << "Adding to TChain: file = " << filepath << std::endl;
+            chain->Add(filepath.Data());
+        }
+
     }
-    else
-    {
-        std::cout << "Adding to TChain: file = " << infile << std::endl;
-        chain->Add(infile.Data());
-    }
+
     if (chain->GetEntries() == 0)
     {
         std::cout << "ERROR: no entries in chain. filename was: " << infile << std::endl;

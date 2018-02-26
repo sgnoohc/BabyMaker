@@ -101,11 +101,14 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<float>>("lep_ip3derr");
     tx->createBranch<vector<int>>("lep_isTriggerSafe_v1");
     tx->createBranch<vector<int>>("lep_lostHits");
+    tx->createBranch<vector<int>>("lep_convVeto");
     tx->createBranch<vector<int>>("lep_motherIdSS");
     tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_fo_noiso");
     tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_tight_noiso");
     tx->createBranch<vector<int>>("lep_pass_VVV_cutbased_veto_noiso");
     tx->createBranch<vector<int>>("lep_pdgId");
+    tx->createBranch<vector<float>>("lep_dxy");
+    tx->createBranch<vector<float>>("lep_dz");
     tx->createBranch<vector<float>>("lep_ptRatio");
     tx->createBranch<vector<float>>("lep_ptRel");
     tx->createBranch<vector<float>>("lep_pterr");
@@ -158,6 +161,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<int>>("genPart_motherId");
     tx->createBranch<vector<int>>("genPart_pdgId");
     tx->createBranch<vector<int>>("genPart_charge");
+    tx->createBranch<vector<int>>("genPart_status");
     tx->createBranch<int>("ngenLep");
     tx->createBranch<int>("ngenLepFromTau");
 
@@ -197,6 +201,8 @@ void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
 //##############################################################################################################
 bool babyMaker_v2::PassPresel()
 {
+    if (coreElectron.index.size() + coreMuon.index.size() > 1) return true;
+    return false;
     // Select 2 SS lepton events or 3 or more lepton events
     vector<int> el_idx;
     vector<int> mu_idx;
@@ -300,10 +306,13 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.els_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , isTriggerSafe_v1(idx));
         tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.els_lostHits()[idx]);
+        tx->pushbackToBranch<int>           ("lep_convVeto"                     , !cms3.els_conv_vtx_flag()[idx]);
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passElectronSelection_VVV(idx, VVV_cutbased_fo_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passElectronSelection_VVV(idx, VVV_cutbased_tight_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passElectronSelection_VVV(idx, VVV_cutbased_veto_noiso));
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.els_charge()[idx]*(-11));
+        tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.els_dxyPV()[idx]);
+        tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.els_dzPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.));
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.els_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.els_ptErr()[idx]);
@@ -361,10 +370,13 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.mus_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , true); // Electron specific branch. So muons always pass.
         tx->pushbackToBranch<int>           ("lep_lostHits"                     , cms3.mus_lostHits()[idx]);
+        tx->pushbackToBranch<int>           ("lep_convVeto"                     , 1);
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_fo_noiso"   , passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_tight_noiso", passMuonSelection_VVV(idx, VVV_cutbased_tight_noiso));
         tx->pushbackToBranch<int>           ("lep_pass_VVV_cutbased_veto_noiso" , passMuonSelection_VVV(idx, VVV_cutbased_veto_noiso));
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.mus_charge()[idx]*(-13));
+        tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.mus_dxyPV()[idx]);
+        tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.mus_dzPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.));
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.mus_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.mus_ptErr()[idx]);
@@ -418,6 +430,7 @@ void babyMaker_v2::FillGenParticles()
     tx->setBranch<vector<int>>("genPart_motherId", coreGenPart.genPart_motherId);
     tx->setBranch<vector<int>>("genPart_pdgId", coreGenPart.genPart_pdgId);
     tx->setBranch<vector<int>>("genPart_charge", coreGenPart.genPart_charge);
+    tx->setBranch<vector<int>>("genPart_status", coreGenPart.genPart_status);
     tx->setBranch<int>("ngenLep", coreGenPart.ngenLep);
     tx->setBranch<int>("ngenLepFromTau", coreGenPart.ngenLepFromTau);
 }
@@ -427,6 +440,8 @@ void babyMaker_v2::SortLeptonBranches()
 {
     tx->sortVecBranchesByPt("lep_p4",
             {
+            "lep_dxy",
+            "lep_dz",
             "lep_ip3d",
             "lep_ip3derr",
             "lep_ptRatio",
@@ -444,6 +459,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_pass_VVV_cutbased_veto_noiso",
             "lep_isTriggerSafe_v1",
             "lep_lostHits",
+            "lep_convVeto",
             "lep_motherIdSS",
             "lep_genPart_index",
             "lep_pdgId",
@@ -471,7 +487,7 @@ void babyMaker_v2::FillJets()
         float current_csv_val = cms3.getbtagvalue("pfCombinedInclusiveSecondaryVertexV2BJetTags", idx);
 
         // Check whether this jet overlaps with any of the leptons
-        if (isLeptonOverlappingWithJet(idx))
+        if (isLeptonOverlappingWithJet(ijet))
             continue;
 
         LorentzVector jet = cms3.pfjets_p4()[idx] * cms3.pfjets_undoJEC()[idx] * corr;
@@ -621,19 +637,11 @@ void babyMaker_v2::FillTTree()
 }
 
 //##############################################################################################################
-bool babyMaker_v2::isLeptonOverlappingWithJet(int idx)
+bool babyMaker_v2::isLeptonOverlappingWithJet(int ijet)
 {
     bool is_overlapping = false;
 
-//    int idx = coreJet.index[ijet];
-//    float corr = coreJet.corrs[ijet];
-//    float shift = coreJet.shifts[ijet];
-//    float pt = (cms3.pfjets_p4()[idx] * corr).pt();
-//    float eta = (cms3.pfjets_p4()[idx] * corr).eta();
-
-//    if (!(pt > JET_PT_MIN || (pt > BJET_PT_MIN && cms3.getbtagvalue("pfCombinedInclusiveSecondaryVertexV2BJetTags", idx) >= BJET_CSV_MED))) { return false; }
-//    if (fabs(eta) > JET_ETA_MAX) { return false; }
-//    if (!(isLoosePFJet_Summer16_v1(idx))) { return false; }
+    int idx = coreJet.index[ijet];
 
     for (auto& imu : coreMuon.index)
     {
@@ -653,6 +661,53 @@ bool babyMaker_v2::isLeptonOverlappingWithJet(int idx)
     for (auto& iel : coreElectron.index)
     {
         if (!(isLooseElectron(iel)))
+            continue;
+
+        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfjets_p4()[idx], cms3.els_p4()[iel]) < 0.4)
+        {
+            is_overlapping = true;
+            break;
+        }
+    }
+
+    if (is_overlapping)
+        return true;
+
+    return false;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::isLeptonOverlappingWithJet_OldVersion(int ijet)
+{
+    bool is_overlapping = false;
+
+    int idx = coreJet.index[ijet];
+    float corr = coreJet.corrs[ijet];
+    float pt = (cms3.pfjets_p4()[idx] * corr).pt();
+    float eta = (cms3.pfjets_p4()[idx] * corr).eta();
+
+    if (!(pt > JET_PT_MIN || (pt > BJET_PT_MIN && cms3.getbtagvalue("pfCombinedInclusiveSecondaryVertexV2BJetTags", idx) >= BJET_CSV_MED))) { return false; }
+    if (fabs(eta) > JET_ETA_MAX) { return false; }
+    if (!(isLoosePFJet_Summer16_v1(idx))) { return false; }
+
+    for (auto& imu : coreMuon.index)
+    {
+        if (!(cms3.mus_p4()[imu].pt() > 20))
+            continue;
+
+        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfjets_p4()[idx], cms3.mus_p4()[imu]) < 0.4)
+        {
+            is_overlapping = true;
+            break;
+        }
+    }
+
+    if (is_overlapping)
+        return true;
+
+    for (auto& iel : coreElectron.index)
+    {
+        if (!(cms3.els_p4()[iel].pt() > 20))
             continue;
 
         if (ROOT::Math::VectorUtil::DeltaR(cms3.pfjets_p4()[idx], cms3.els_p4()[iel]) < 0.4)
@@ -794,9 +849,18 @@ bool babyMaker_v2::isVetoMuon(int idx)
 //##############################################################################################################
 bool babyMaker_v2::isVetoElectron(int idx)
 {
-    if (!(passElectronSelection_VVV(idx, VVV_cutbased_veto)
-                && cms3.els_p4()[idx].pt() > 10.))
-        return false;
-    return true;
+    if (!isTriggerSafenoIso_v1(idx))            return false;
+    if (fabs(cms3.els_etaSC().at(idx)) > 2.5)   return false;
+    if (cms3.els_exp_innerlayers().at(idx) > 1) return false;
+    if (fabs(cms3.els_ip3d().at(idx)) >= 0.015) return false;
+    float reliso = 0;
+    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    if (cms3.evt_CMS3tag()[0].Contains("CMS3"))
+        reliso = elRelIsoCustomCone(idx, 0.4, false, 0.0, /*useDBCorr=*/false, /*useEACorr=*/true, /*mindr=*/ -1, /*eaversion=*/2);
+    else
+        reliso = eleRelIso03EA(idx, 2);
+    std::cout.clear();
+    if (reliso >= 0.40) return false;
+    return (cms3.els_p4()[idx].pt() > 10.);
 }
 

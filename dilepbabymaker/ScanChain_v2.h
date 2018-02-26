@@ -147,6 +147,7 @@ public:
     void FillTTree();
 
     bool isLeptonOverlappingWithJet(int ijet);
+    bool isLeptonOverlappingWithJet_OldVersion(int ijet);
     bool isLeptonOverlappingWithTrack(int ijet);
     bool isTightMuon(int);
     bool isTightElectron(int);
