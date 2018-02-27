@@ -6,7 +6,7 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "WWW_v1.0.0"
+job_tag = "WWW_v1.0.1"
 
 ###################################################################################################################
 ###################################################################################################################
@@ -104,7 +104,6 @@ samples = {
 ## Private from Mia
 "/TEST-www/www-Private80X-v1/USER"                                                                                                                                              : "www_2l_mia",
 "/TEST-www/wwwext-Private80X-v1/USER"                                                                                                                                           : "www_2l_ext1_mia",
-"/TEST-tth/tth-Private80X-v1/USER"                                                                                                                                              : "tth_mia",
 ## Higgs
 "/VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                                   : "vh_nonbb_amcnlo",
 ## Data
@@ -131,6 +130,7 @@ samples = {
 "/MuonEG/Run2016H-03Feb2017_ver2-v1/CMS3"                                                                                                                                       : "data_Run2016H_03feb2017rereco_unmerged_em_v2",
 "/MuonEG/Run2016H-03Feb2017_ver3-v1/CMS3"                                                                                                                                       : "data_Run2016H_03feb2017rereco_unmerged_em_v3",
 
+#"/TEST-tth/tth-Private80X-v1/USER"                                                                                                                                              : "tth_mia",
 #"/WmWmJJ_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                                                         : "wmwm_powheg",
 #"/ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                       : "znunugamma_ptg40_mgmlm",
 #"/ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                           : "znunugamma_ptg130_mgmlm",
@@ -218,7 +218,7 @@ doCMS4 = False
 
 # Create tarball
 os.chdir(main_dir)
-os.system("tar -chzf {} localsetup.sh processBaby *.so rooutil/lib*.so coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
+os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
 
 # Change directory to metis
 os.chdir(metis_path)
