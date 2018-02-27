@@ -872,46 +872,10 @@ bool babyMaker_v2::isVetoElectronNoIso(int idx)
 {
     if (!( cms3.els_p4()[idx].pt()            >  10.   )) return false;
     if (!( fabs(cms3.els_etaSC().at(idx))     <= 2.5   )) return false;
-    if (!( cms3.els_exp_innerlayers().at(idx) <= 1     )) return false;
     if (!( fabs(cms3.els_dxyPV().at(idx))     <  0.05  )) return false;
     if (!( fabs(cms3.els_dzPV().at(idx))      <  0.1   )) return false;
     if (!( isTriggerSafenoIso_v1(idx)                  )) return false;
     return true;
 }
 
-////##############################################################################################################
-//// Used to overlap remova against tracks
-//bool babyMaker_v2::isVetoMuon(int idx)
-//{
-//    if (!( cms3.mus_p4()[idx].pt()            > 10.    )) return false;
-//    if (!(passMuonSelection_VVV(idx, VVV_cutbased_veto))) return false;
-//    return true;
-//}
-//
-////##############################################################################################################
-//// Used to overlap remova against tracks
-//bool babyMaker_v2::isVetoElectron(int idx)
-//{
-//    if (!( cms3.els_p4()[idx].pt()            >  10.   )) return false;
-//    if (!(passElectronSelection_VVV(idx, VVV_cutbased_veto))) return false;
-//    return true;
-//}
-////##############################################################################################################
-//// Used to "pre"select leptons from CMS3
-//bool babyMaker_v2::isVetoMuonNoIso(int idx)
-//{
-//    if (!( cms3.mus_p4()[idx].pt()            > 10.    )) return false;
-//    if (!( isLooseMuonPOG(idx)                         )) return false;
-//    return true;
-//}
-//
-////##############################################################################################################
-//// Used to "pre"select leptons from CMS3
-//bool babyMaker_v2::isVetoElectronNoIso(int idx)
-//{
-//    if (!( cms3.els_p4()[idx].pt()            >  10.   )) return false;
-//    if (!(isVetoElectronPOGspring16noIso_v1(idx) || passElectronSelection_VVV(idx, VVV_MVAbased_tight_noiso))) return false;
-//    return true;
-//}
-
-
+//eof
