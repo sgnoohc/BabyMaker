@@ -6,10 +6,12 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "minibaby_v4.4"
-input_tag = "18"
-input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
+job_tag = "v1.0.0_test15_test1"
+input_tag = "test15_test1"
+#input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
+#input_location = "/hadoop/cms/store/user/bhashemi/AutoTwopler_babies/merged/VVV/WWW_v0.1.{}/skim/".format(input_tag)
 #input_location = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.{}/skim/".format(input_tag)
+input_location = "/hadoop/cms/store/user/phchang/metis/wwwbaby/*test15/merged"
 
 ###################################################################################################################
 ###################################################################################################################
@@ -51,7 +53,7 @@ args = ""
 
 # Create tarball
 os.chdir(main_dir)
-os.system("tar -chzf {} localsetup.sh .wwwana.json wwwana rooutil/lib*.so data".format(tar_gz_path))
+os.system("tar -chzf {} localsetup.sh .wwwana.json wwwana wwwana100 rooutil/lib*.so data".format(tar_gz_path))
 
 # Change directory to metis
 os.chdir(metis_path)
@@ -59,21 +61,52 @@ os.chdir(metis_path)
 # Loop over datasets to submit
 total_summary = {}
 while True:
-    wwwsample = DirectorySample(dataset="/WWW_v0_1_18",
+    wwwsample = DirectorySample(dataset="/{}".format(input_tag),
                                 location=input_location,
                                 globber="*.root")
-    #wwwsample.get_files()
-    #new_list_files = []
-    #for i in wwwsample.info["files"]:
-    #    if i.get_name().find("wgjets") != -1:
-    #        new_list_files.append(i)
-    #wwwsample.info["files"] = new_list_files
+    wwwsample.get_files()
+    new_list_files = []
+    for i in wwwsample.info["files"]:
+        if i.get_name().find("dy_m50_mgmlm_ht100_ext1_skim_1_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ht200_ext1_skim_1_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ht400_ext1_skim_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ht600_nonext_skim_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ext1_skim_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ext1_skim_1_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("dy_m50_mgmlm_ext1_skim_1_2.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("ttbar_dilep_mgmlm_ext1_skim_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("ttbar_dilep_mgmlm_ext1_skim_1_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("ttbar_dilep_mgmlm_ext1_skim_1_2.root") != -1:
+            new_list_files.append(i)
+            continue
+        if i.get_name().find("tzq_ll_amcnlo_skim_1_1.root") != -1:
+            new_list_files.append(i)
+            continue
+        #if i.get_name().find("wgjets") != -1:
+        #    new_list_files.append(i)
+    wwwsample.info["files"] = new_list_files
 
     # define the task
     task = CondorTask(
-            sample               = DirectorySample(dataset="/WWW_v0_1_{}".format(input_tag),
-                                                   location=input_location,
-                                                   globber="*.root"),
+            sample               = wwwsample,
             tag                  = job_tag,
             arguments            = args,
             executable           = exec_path,
@@ -81,7 +114,7 @@ while True:
             special_dir          = hadoop_path,
             output_name          = "merged.root",
             files_per_output     = 1,
-            condor_submit_params = {"sites" : "UAF,T2_US_UCSD"},
+            condor_submit_params = {"sites" : "UAF"},
             open_dataset         = False,
             flush                = True
             )

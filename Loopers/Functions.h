@@ -22,7 +22,11 @@
 #include <tuple>
 
 // CMS3
-#include "CMS3_WWW0117.h"
+#ifdef USE_CMS3_WWW100
+#include "CMS3_WWW100.h"
+#else
+#include "CMS3_WWW0118.h"
+#endif
 
 #ifndef FUNCTION_H
 #define FUNCTION_H

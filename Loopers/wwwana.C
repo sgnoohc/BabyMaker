@@ -13,7 +13,11 @@
 #include "rooutil/json.h"
 #include "rooutil/draw.h"
 
+#ifdef USE_CMS3_WWW100
+#include "CMS3_WWW100.h"
+#else
 #include "CMS3_WWW0118.h"
+#endif
 #include "Functions.h"
 
 #include "Math/VectorUtil.h"
@@ -343,6 +347,7 @@ void WWWAnalysis::init()
 
         // Set the looper instance
         looper.init(chain, &cms3, -1);
+        //looper.init(chain, &cms3, 10000);
 
         // Set the output file
         ofile = new TFile(output_name, "recreate");
@@ -578,41 +583,89 @@ void WWWAnalysis::run()
 
         // Fill the TTree
         setBranches(ttreex);
-        ttreex.fill();
-        if (process_name_ss.EqualTo("WWW") || process_name_3l.EqualTo("WHtoWWW"))
+        if (list_incl_veto_ss_lep_idx.size() == 2)
         {
-            setBranches(ttreex_www);
-            ttreex_www.fill();
+            if (!process_name_ss.EqualTo("not2l"))
+            {
+                ttreex.fill();
+            }
+            if (process_name_ss.EqualTo("WWW") || process_name_ss.EqualTo("WHtoWWW"))
+            {
+                setBranches(ttreex_www);
+                ttreex_www.fill();
+            }
+            if (process_name_ss.EqualTo("trueSS"))
+            {
+                setBranches(ttreex_prompt);
+                ttreex_prompt.fill();
+            }
+            if (process_name_ss.EqualTo("chargeflips"))
+            {
+                setBranches(ttreex_qflip);
+                ttreex_qflip.fill();
+            }
+            if (process_name_ss.EqualTo("SSLL"))
+            {
+                setBranches(ttreex_lostlep);
+                ttreex_lostlep.fill();
+            }
+            if (process_name_ss.EqualTo("fakes"))
+            {
+                setBranches(ttreex_fakes);
+                ttreex_fakes.fill();
+            }
+            if (process_name_ss.EqualTo("photonfakes"))
+            {
+                setBranches(ttreex_photon);
+                ttreex_photon.fill();
+            }
+            if (process_name_ss.EqualTo("others"))
+            {
+                setBranches(ttreex_others);
+                ttreex_others.fill();
+            }
         }
-        if (process_name_ss.EqualTo("trueSS") || process_name_3l.EqualTo("true3L") || process_name_3l.EqualTo("trueWWW"))
+        else if (list_incl_veto_ss_lep_idx.size() == 3)
         {
-            setBranches(ttreex_prompt);
-            ttreex_prompt.fill();
-        }
-        if (process_name_ss.EqualTo("chargeflips") || process_name_3l.EqualTo("chargeflips"))
-        {
-            setBranches(ttreex_qflip);
-            ttreex_qflip.fill();
-        }
-        if (process_name_ss.EqualTo("SSLL") || process_name_3l.EqualTo("3lLL"))
-        {
-            setBranches(ttreex_lostlep);
-            ttreex_lostlep.fill();
-        }
-        if (process_name_ss.EqualTo("fakes") || process_name_3l.EqualTo("fakes"))
-        {
-            setBranches(ttreex_fakes);
-            ttreex_fakes.fill();
-        }
-        if (process_name_ss.EqualTo("photonfakes") || process_name_3l.EqualTo("photonfakes"))
-        {
-            setBranches(ttreex_photon);
-            ttreex_photon.fill();
-        }
-        if (process_name_ss.EqualTo("others") || process_name_3l.EqualTo("others"))
-        {
-            setBranches(ttreex_others);
-            ttreex_others.fill();
+            if (!process_name_3l.EqualTo("not3l"))
+            {
+                ttreex.fill();
+            }
+            if (process_name_3l.EqualTo("WWW") || process_name_3l.EqualTo("WHtoWWW"))
+            {
+                setBranches(ttreex_www);
+                ttreex_www.fill();
+            }
+            if (process_name_3l.EqualTo("true3L") || process_name_3l.EqualTo("trueWWW"))
+            {
+                setBranches(ttreex_prompt);
+                ttreex_prompt.fill();
+            }
+            if (process_name_3l.EqualTo("chargeflips"))
+            {
+                setBranches(ttreex_qflip);
+                ttreex_qflip.fill();
+            }
+            if (process_name_3l.EqualTo("3lLL"))
+            {
+                setBranches(ttreex_lostlep);
+                ttreex_lostlep.fill();
+            }
+            if (process_name_3l.EqualTo("fakes"))
+            {
+                setBranches(ttreex_fakes);
+                ttreex_fakes.fill();
+            }
+            if (process_name_3l.EqualTo("photonfakes"))
+            {
+                setBranches(ttreex_photon);
+                ttreex_photon.fill();
+            }
+            if (process_name_3l.EqualTo("others"))
+            {
+                setBranches(ttreex_others);
+                ttreex_others.fill();
+            }
         }
 
         // checking events with run/lumi/evt matching in the list provided.
@@ -668,7 +721,13 @@ bool WWWAnalysis::calcStdVariables()
     lumiblock_number = tas::lumi();
     event_number = tas::evt();
 
-    int lepton_version = 1;
+    if (isData())
+    {
+        duplicate_removal::DorkyEventIdentifier id(tas::run(), tas::evt(), tas::lumi());
+        if( is_duplicate(id)) return false;
+    }
+
+    int lepton_version = 2;
 
     // Get all the lepton indices
     if (lepton_version == 1)
@@ -679,6 +738,47 @@ bool WWWAnalysis::calcStdVariables()
 
     // I like to keep the lepton indices to be more about what they actually mean.
     processLeptonIndices();
+
+    // if nveto's don't agree something is weird
+    if (list_incl_veto_3l_lep_idx.size() != list_incl_veto_ss_lep_idx.size())
+    {
+        std::cout <<  " list_incl_veto_ss_lep_idx.size(): " << list_incl_veto_ss_lep_idx.size() <<  std::endl;
+        std::cout <<  " list_incl_veto_3l_lep_idx.size(): " << list_incl_veto_3l_lep_idx.size() <<  std::endl;
+        for (unsigned int ilep = 0; ilep < cms3.lep_p4().size(); ++ilep)
+        {
+            std::cout <<  " ilep: " << ilep <<  std::endl;
+            std::cout <<  " cms3.lep_dxy().at(ilep): " << cms3.lep_dxy().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_dz().at(ilep): " << cms3.lep_dz().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_ip3d().at(ilep): " << cms3.lep_ip3d().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_ip3derr().at(ilep): " << cms3.lep_ip3derr().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_ptRatio().at(ilep): " << cms3.lep_ptRatio().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_ptRel().at(ilep): " << cms3.lep_ptRel().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_pterr().at(ilep): " << cms3.lep_pterr().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_relIso03EAv2().at(ilep): " << cms3.lep_relIso03EAv2().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_relIso04EAv2().at(ilep): " << cms3.lep_relIso04EAv2().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_trk_pt().at(ilep): " << cms3.lep_trk_pt().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_etaSC().at(ilep): " << cms3.lep_etaSC().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_MVA().at(ilep): " << cms3.lep_MVA().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isTriggerSafe_v1().at(ilep): " << cms3.lep_isTriggerSafe_v1().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_lostHits().at(ilep): " << cms3.lep_lostHits().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_convVeto().at(ilep): " << cms3.lep_convVeto().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_motherIdSS().at(ilep): " << cms3.lep_motherIdSS().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_genPart_index().at(ilep): " << cms3.lep_genPart_index().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_pdgId().at(ilep): " << cms3.lep_pdgId().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_tightCharge().at(ilep): " << cms3.lep_tightCharge().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_charge().at(ilep): " << cms3.lep_charge().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromW().at(ilep): " << cms3.lep_isFromW().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromZ().at(ilep): " << cms3.lep_isFromZ().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromB().at(ilep): " << cms3.lep_isFromB().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromC().at(ilep): " << cms3.lep_isFromC().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromL().at(ilep): " << cms3.lep_isFromL().at(ilep) <<  std::endl;
+            std::cout <<  " cms3.lep_isFromLF().at(ilep): " << cms3.lep_isFromLF().at(ilep) <<  std::endl;
+        }
+        abort();
+    }
 
     // Preselection. Events not passing these are never used anywhere.
     if (firstgoodvertex() != 0)   { return false; }
@@ -979,7 +1079,7 @@ void WWWAnalysis::processLeptonIndices()
     list_incl_loose_3l_lep_idx.insert(list_incl_loose_3l_lep_idx.end(), list_tight_3l_lep_idx.begin(), list_tight_3l_lep_idx.end());
     list_incl_loose_3l_lep_idx.insert(list_incl_loose_3l_lep_idx.end(), list_loose_3l_lep_idx.begin(), list_loose_3l_lep_idx.end());
 
-    // The loose needs to have tight + veto
+    // The veto needs to have tight + veto
     list_incl_veto_ss_lep_idx.insert(list_incl_veto_ss_lep_idx.end(), list_tight_ss_lep_idx.begin(), list_tight_ss_lep_idx.end());
     list_incl_veto_ss_lep_idx.insert(list_incl_veto_ss_lep_idx.end(), list_veto_ss_lep_idx.begin(), list_veto_ss_lep_idx.end());
     list_incl_veto_3l_lep_idx.insert(list_incl_veto_3l_lep_idx.end(), list_tight_3l_lep_idx.begin(), list_tight_3l_lep_idx.end());
@@ -1008,15 +1108,6 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<int>("veto_ss_lep0_pdgid" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_ss_lep_idx[0]] : 0);
     t.setBranch<int>("veto_ss_lep1_pdgid" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_ss_lep_idx[1]] : 0);
 
-    t.setBranch<float>("veto_ss_lep0_bdt1" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt1()[list_incl_veto_ss_lep_idx[0]] : -999);
-    t.setBranch<float>("veto_ss_lep1_bdt1" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt1()[list_incl_veto_ss_lep_idx[1]] : -999);
-
-    t.setBranch<float>("veto_ss_lep0_bdt2" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt2()[list_incl_veto_ss_lep_idx[0]] : -999);
-    t.setBranch<float>("veto_ss_lep1_bdt2" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt2()[list_incl_veto_ss_lep_idx[1]] : -999);
-
-    t.setBranch<float>("veto_ss_lep0_bdt3" , list_incl_veto_ss_lep_idx.size() > 0 ? lep_bdt3()[list_incl_veto_ss_lep_idx[0]] : -999);
-    t.setBranch<float>("veto_ss_lep1_bdt3" , list_incl_veto_ss_lep_idx.size() > 1 ? lep_bdt3()[list_incl_veto_ss_lep_idx[1]] : -999);
-
     t.setBranch<float>("veto_ss_lep0_pterr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pterr()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<float>("veto_ss_lep1_pterr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pterr()[list_incl_veto_ss_lep_idx[1]] : -999);
 
@@ -1038,20 +1129,20 @@ void WWWAnalysis::setBranches(RooUtil::TTreeX& t)
     t.setBranch<float>("veto_ss_lep0_ip3derr", list_incl_veto_ss_lep_idx.size() > 0 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<float>("veto_ss_lep1_ip3derr", list_incl_veto_ss_lep_idx.size() > 1 ? lep_ip3derr()[list_incl_veto_ss_lep_idx[1]] : -999);
 
-    t.setBranch<float>("veto_ss_lep0_conecorrpt", list_incl_veto_ss_lep_idx.size() > 0 ? coneCorrPt(list_incl_veto_ss_lep_idx[0]) : -999);
-    t.setBranch<float>("veto_ss_lep1_conecorrpt", list_incl_veto_ss_lep_idx.size() > 1 ? coneCorrPt(list_incl_veto_ss_lep_idx[1]) : -999);
+//    t.setBranch<float>("veto_ss_lep0_conecorrpt", list_incl_veto_ss_lep_idx.size() > 0 ? coneCorrPt(list_incl_veto_ss_lep_idx[0]) : -999);
+//    t.setBranch<float>("veto_ss_lep1_conecorrpt", list_incl_veto_ss_lep_idx.size() > 1 ? coneCorrPt(list_incl_veto_ss_lep_idx[1]) : -999);
 
     t.setBranch<int>("veto_ss_lep0_motheridss", list_incl_veto_ss_lep_idx.size() > 0 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[0]] : -999);
     t.setBranch<int>("veto_ss_lep1_motheridss", list_incl_veto_ss_lep_idx.size() > 1 ? lep_motherIdSS()[list_incl_veto_ss_lep_idx[1]] : -999);
 
-    t.setBranch<bool>("veto_ss_lep0_medium", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
-    t.setBranch<bool>("veto_ss_lep1_medium", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
-
-    t.setBranch<bool>("veto_ss_lep0_loose", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
-    t.setBranch<bool>("veto_ss_lep1_loose", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
-
-    t.setBranch<bool>("veto_ss_lep0_tight", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
-    t.setBranch<bool>("veto_ss_lep1_tight", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+//    t.setBranch<bool>("veto_ss_lep0_medium", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+//    t.setBranch<bool>("veto_ss_lep1_medium", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_medium_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+//
+//    t.setBranch<bool>("veto_ss_lep0_loose", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+//    t.setBranch<bool>("veto_ss_lep1_loose", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_loose_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
+//
+//    t.setBranch<bool>("veto_ss_lep0_tight", list_incl_veto_ss_lep_idx.size() > 0 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[0]] : 0);
+//    t.setBranch<bool>("veto_ss_lep1_tight", list_incl_veto_ss_lep_idx.size() > 1 ? lep_pass_POG_tight_noiso()[list_incl_veto_ss_lep_idx[1]] : 0);
 
     t.setBranch<int>("veto_3l_lep0_pdgid" , list_incl_veto_3l_lep_idx.size() > 0 ? lep_pdgId()[list_incl_veto_3l_lep_idx[0]] : 0);
     t.setBranch<int>("veto_3l_lep1_pdgid" , list_incl_veto_3l_lep_idx.size() > 1 ? lep_pdgId()[list_incl_veto_3l_lep_idx[1]] : 0);
