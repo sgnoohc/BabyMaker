@@ -201,8 +201,8 @@ void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
 //##############################################################################################################
 bool babyMaker_v2::PassPresel()
 {
-    if (coreElectron.index.size() + coreMuon.index.size() > 1) return true;
-    return false;
+    //if (coreElectron.index.size() + coreMuon.index.size() > 1) return true;
+    //return false;
     // Select 2 SS lepton events or 3 or more lepton events
     vector<int> el_idx;
     vector<int> mu_idx;
