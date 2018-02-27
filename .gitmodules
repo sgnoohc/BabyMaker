@@ -6,7 +6,20 @@
 	path = Loopers/ProjectMetis
 	url = git@github.com:aminnj/ProjectMetis.git
 	ignore = untracked
+	ignore = dirty
 [submodule "Loopers/plottery"]
 	path = Loopers/plottery
 	url = git@github.com:aminnj/plottery.git
 	ignore = untracked
+[submodule "dilepbabymaker/rooutil"]
+	path = dilepbabymaker/rooutil
+	url = git@github.com:sgnoohc/rooutil.git
+	ignore = untracked
+[submodule "dilepbabymaker/coreutil"]
+	path = dilepbabymaker/coreutil
+	url = git@github.com:sgnoohc/coreutil.git
+	ignore = untracked
+[submodule "dilepbabymaker/ProjectMetis"]
+	path = dilepbabymaker/ProjectMetis
+	url = git@github.com:aminnj/ProjectMetis.git
+	ignore = dirty

@@ -20,17 +20,19 @@ endif
 #	ROOFITINCLUDE = $(shell scramv1 tool info roofitcore | grep INCLUDE | sed 's/^INCLUDE=/-I/')
 #endif
 
+PACKAGES = rooutil coreutil
+
 CC = g++
 CMSROOT = ./
 INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE
-CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS)
+CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS) -fno-var-tracking
 ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA #-lEG -lGenVector
 COREDIR = ../CORE
 
 DICTINCLUDE = $(ROOTSYS)/include/Math/QuantFuncMathCore.h $(ROOTSYS)/include/TLorentzVector.h $(ROOTSYS)/include/Math/Vector4D.h
 
 LINKER = g++
-LINKERFLAGS = $(shell root-config --ldflags --libs) -lEG -lGenVector -lTMVA
+LINKERFLAGS = $(shell root-config --ldflags --libs) -lEG -lGenVector -lTMVA -O2
 # ifeq ($(shell root-config --platform),macosx)
 # 	LINKERFLAGS = -dynamiclib -undefined dynamic_lookup -Wl,-x -O -Xlinker -bind_at_load -flat_namespace $(shell root-config --libs) -lEG -lGenVector
 # endif
@@ -45,7 +47,7 @@ CORESOURCES = $(wildcard ../CORE/*.cc)
 COREOBJECTS = $(CORESOURCES:.cc=.o) 
 CORELIB = libBabymakerCORE.so
 
-TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc)
+TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc) $(wildcard ../CORE/Tools/datasetinfo/*.cc)
 TOOLSOBJECTS = $(TOOLSSOURCES:.cc=.o) 
 TOOLSLIB = libBabymakerTools.so
 
@@ -58,7 +60,7 @@ LIBS = $(LIB) $(CORELIB) $(TOOLSLIB) $(FWLIB)
 
 EXE = processBaby
 
-.PHONY: all help compile clean cms2env
+.PHONY: all help compile clean cms2env $(PACKAGES)
 
 #
 # how to make it
@@ -94,6 +96,10 @@ $(LIB):	$(DICT) $(OBJECTS)
 	echo "$(LINKER) -shared -o $@ $(OBJECTS) $(DICT) $(LINKERFLAGS)"; \
 	$(LINKER) -shared -o $@ $(OBJECTS) $(DICT) $(LINKERFLAGS)
 
+$(PACKAGES):
+	make -j 15 -C $@
+	cp $@/lib$@.so .
+
 # $(FWLIB):
 # 	echo "making MiniFWLite"; \
 #         cd ../Software/MiniFWLite; \
@@ -128,10 +134,10 @@ LinkDef_out.cxx: LinkDef.h
 # .PHONY: clean
 
 # the option "-Wl,-rpath,./" adds ./ to the runtime search path for libraries
-$(EXE):  $(LIBS)
+$(EXE): $(PACKAGES) $(LIBS)
 	$(QUIET) echo "Building $@"; \
-	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./"; \
-	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ 
+	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))"; \
+	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./  $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))
 
 %.o: 	%.cc %.h
 	$(QUIET) echo "Compiling $<"; \
