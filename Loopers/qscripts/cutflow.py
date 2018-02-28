@@ -66,9 +66,9 @@ def getFakeError(cutname):
 
 #_______________________________________________________________________________
 def applyWZNF():
-    nf_ee, nferr_ee = getWZNF("WZCRee")
-    nf_em, nferr_em = getWZNF("WZCRem")
-    nf_mm, nferr_mm = getWZNF("WZCRmm")
+    nf_ee, nferr_ee = getWZNF3L("WZCRee")
+    nf_em, nferr_em = getWZNF3L("WZCRem")
+    nf_mm, nferr_mm = getWZNF3L("WZCRmm")
     #nf_mmnj1, nferr_mmnj1 = getWZNF("WZCRmmNJ1")
     #nf_mmnj2, nferr_mmnj2 = getWZNF("WZCRmmNJ2")
     #nf_mmnj2sb, nferr_mmnj2sb = getWZNF("WZCRmmNJ2MJJSB")

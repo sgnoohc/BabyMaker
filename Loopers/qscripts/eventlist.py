@@ -10,10 +10,12 @@ from cuts import bkg_types_3L
 
 ROOT.gROOT.SetBatch(True)
 
-samples = TQSampleFolder.loadSampleFolder("output.root:samples")
+samples = TQSampleFolder.loadSampleFolder("validate.root:samples")
 #samples.getSampleFolder("/samples/bkg/mm/ttV").printContents("trd")
 printer = TQEventlistPrinter(samples)
-printer.addCut("SSmm")
-printer.addProcess("/sig/www")
+printer.addCut("SSem")
+#printer.addProcess("/sig/www")
 #printer.addProcess("/typebkg")
+printer.addProcess("/samples/lostlep/val_wz_100")
+printer.addProcess("/samples/lostlep/val_wz_18")
 printer.writeEventlists("evtlist", "eventlists", "verbose=true");

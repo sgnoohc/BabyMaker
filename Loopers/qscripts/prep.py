@@ -30,7 +30,8 @@ addSampleFolderFromXSecParser(samples)
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v1.7/", 1) # After hadoop 25% loss try again
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v4.2/", 1) # New lepton id
 #init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_18_minibaby_v4.4/", 1) # Old lepton id
-init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_17_minibaby_v1.0/", 1) # Old lepton id v17
+#init = TQSampleInitializer("/hadoop/cms/store/user/phchang/metis/wwwanalysis/WWW_v0_1_17_minibaby_v1.0/", 1) # Old lepton id v17
+init = TQSampleInitializer(os.getcwd() + "/samples/", 1) # v1.0.1
 samples.visitMe(init)
 
 samples.printContents("rtd")

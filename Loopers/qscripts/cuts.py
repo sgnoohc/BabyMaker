@@ -322,7 +322,7 @@ def addTL2SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt, i
 # Common cuts and weights
 SSWZpreselcuts = [
         configuration_cut,
-        typebkg_ss_configuration_cut,
+        typebkg_3l_configuration_cut,
         #"pass_offline_trig>0",
         "n_veto_3l_lep==3",
         "vetophoton3l==0",

@@ -681,6 +681,9 @@ bool babyMaker_v2::isLeptonOverlappingWithJet_OldVersion(int ijet)
         if (!(cms3.mus_p4()[imu].pt() > 20))
             continue;
 
+        if (!(isVetoMuonNoIso_OldVersion(imu)))
+            continue;
+
         if (ROOT::Math::VectorUtil::DeltaR(cms3.pfjets_p4()[idx], cms3.mus_p4()[imu]) < 0.4)
         {
             is_overlapping = true;
@@ -694,6 +697,9 @@ bool babyMaker_v2::isLeptonOverlappingWithJet_OldVersion(int ijet)
     for (auto& iel : coreElectron.index)
     {
         if (!(cms3.els_p4()[iel].pt() > 20))
+            continue;
+
+        if (!(isVetoElectronNoIso_OldVersion(iel)))
             continue;
 
         if (ROOT::Math::VectorUtil::DeltaR(cms3.pfjets_p4()[idx], cms3.els_p4()[iel]) < 0.4)
@@ -796,9 +802,6 @@ bool babyMaker_v2::isLooseElectron(int idx)
 {
     if (!( cms3.els_p4()[idx].pt() > 20.                         )) return false;
     if (!( fabs(cms3.els_ip3d()[idx]) < 0.015                    )) return false;
-    if (!( isTriggerSafe_v1(idx)                                 )) return false;
-    if (!( tightChargeEle(idx) == 2                              )) return false;
-    if (!( cms3.els_lostHits()[idx] == 0                         )) return false;
 
     std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
     float reliso04 = cms3.evt_CMS3tag()[0].Contains("CMS3") ? elRelIsoCustomCone(idx, 0.4, false, 0.0, false, true, -1, 2) : eleRelIso03EA(idx, 2);
@@ -877,5 +880,25 @@ bool babyMaker_v2::isVetoElectronNoIso(int idx)
     if (!( isTriggerSafenoIso_v1(idx)                  )) return false;
     return true;
 }
+
+//##############################################################################################################
+// Used to "pre"select leptons from CMS3
+bool babyMaker_v2::isVetoMuonNoIso_OldVersion(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt()            > 10.    )) return false;
+    if (!( isLooseMuonPOG(idx)                         )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to "pre"select leptons from CMS3
+bool babyMaker_v2::isVetoElectronNoIso_OldVersion(int idx)
+{
+    if (!( cms3.els_p4()[idx].pt()            >  10.   )) return false;
+    if (!(isVetoElectronPOGspring16noIso_v1(idx) || passElectronSelection_VVV(idx, VVV_MVAbased_tight_noiso))) return false;
+    return true;
+}
+
+
 
 //eof

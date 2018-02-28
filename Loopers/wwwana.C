@@ -740,45 +740,45 @@ bool WWWAnalysis::calcStdVariables()
     processLeptonIndices();
 
     // if nveto's don't agree something is weird
-    if (list_incl_veto_3l_lep_idx.size() != list_incl_veto_ss_lep_idx.size())
-    {
-        std::cout <<  " list_incl_veto_ss_lep_idx.size(): " << list_incl_veto_ss_lep_idx.size() <<  std::endl;
-        std::cout <<  " list_incl_veto_3l_lep_idx.size(): " << list_incl_veto_3l_lep_idx.size() <<  std::endl;
-        for (unsigned int ilep = 0; ilep < cms3.lep_p4().size(); ++ilep)
-        {
-            std::cout <<  " ilep: " << ilep <<  std::endl;
-            std::cout <<  " cms3.lep_dxy().at(ilep): " << cms3.lep_dxy().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_dz().at(ilep): " << cms3.lep_dz().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_ip3d().at(ilep): " << cms3.lep_ip3d().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_ip3derr().at(ilep): " << cms3.lep_ip3derr().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_ptRatio().at(ilep): " << cms3.lep_ptRatio().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_ptRel().at(ilep): " << cms3.lep_ptRel().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_pterr().at(ilep): " << cms3.lep_pterr().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_relIso03EAv2().at(ilep): " << cms3.lep_relIso03EAv2().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_relIso04EAv2().at(ilep): " << cms3.lep_relIso04EAv2().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_trk_pt().at(ilep): " << cms3.lep_trk_pt().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_etaSC().at(ilep): " << cms3.lep_etaSC().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_MVA().at(ilep): " << cms3.lep_MVA().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isTriggerSafe_v1().at(ilep): " << cms3.lep_isTriggerSafe_v1().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_lostHits().at(ilep): " << cms3.lep_lostHits().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_convVeto().at(ilep): " << cms3.lep_convVeto().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_motherIdSS().at(ilep): " << cms3.lep_motherIdSS().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_genPart_index().at(ilep): " << cms3.lep_genPart_index().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_pdgId().at(ilep): " << cms3.lep_pdgId().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_tightCharge().at(ilep): " << cms3.lep_tightCharge().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_charge().at(ilep): " << cms3.lep_charge().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromW().at(ilep): " << cms3.lep_isFromW().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromZ().at(ilep): " << cms3.lep_isFromZ().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromB().at(ilep): " << cms3.lep_isFromB().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromC().at(ilep): " << cms3.lep_isFromC().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromL().at(ilep): " << cms3.lep_isFromL().at(ilep) <<  std::endl;
-            std::cout <<  " cms3.lep_isFromLF().at(ilep): " << cms3.lep_isFromLF().at(ilep) <<  std::endl;
-        }
-        abort();
-    }
+//    if (list_incl_veto_3l_lep_idx.size() != list_incl_veto_ss_lep_idx.size())
+//    {
+//        std::cout <<  " list_incl_veto_ss_lep_idx.size(): " << list_incl_veto_ss_lep_idx.size() <<  std::endl;
+//        std::cout <<  " list_incl_veto_3l_lep_idx.size(): " << list_incl_veto_3l_lep_idx.size() <<  std::endl;
+//        for (unsigned int ilep = 0; ilep < cms3.lep_p4().size(); ++ilep)
+//        {
+//            std::cout <<  " ilep: " << ilep <<  std::endl;
+//            std::cout <<  " cms3.lep_dxy().at(ilep): " << cms3.lep_dxy().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_dz().at(ilep): " << cms3.lep_dz().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_ip3d().at(ilep): " << cms3.lep_ip3d().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_ip3derr().at(ilep): " << cms3.lep_ip3derr().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_ptRatio().at(ilep): " << cms3.lep_ptRatio().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_ptRel().at(ilep): " << cms3.lep_ptRel().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_pterr().at(ilep): " << cms3.lep_pterr().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_relIso03EAv2().at(ilep): " << cms3.lep_relIso03EAv2().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_relIso04EAv2().at(ilep): " << cms3.lep_relIso04EAv2().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_trk_pt().at(ilep): " << cms3.lep_trk_pt().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_etaSC().at(ilep): " << cms3.lep_etaSC().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_MVA().at(ilep): " << cms3.lep_MVA().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_fo_noiso().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_tight_noiso().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep): " << cms3.lep_pass_VVV_cutbased_veto_noiso().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isTriggerSafe_v1().at(ilep): " << cms3.lep_isTriggerSafe_v1().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_lostHits().at(ilep): " << cms3.lep_lostHits().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_convVeto().at(ilep): " << cms3.lep_convVeto().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_motherIdSS().at(ilep): " << cms3.lep_motherIdSS().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_genPart_index().at(ilep): " << cms3.lep_genPart_index().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_pdgId().at(ilep): " << cms3.lep_pdgId().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_tightCharge().at(ilep): " << cms3.lep_tightCharge().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_charge().at(ilep): " << cms3.lep_charge().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromW().at(ilep): " << cms3.lep_isFromW().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromZ().at(ilep): " << cms3.lep_isFromZ().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromB().at(ilep): " << cms3.lep_isFromB().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromC().at(ilep): " << cms3.lep_isFromC().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromL().at(ilep): " << cms3.lep_isFromL().at(ilep) <<  std::endl;
+//            std::cout <<  " cms3.lep_isFromLF().at(ilep): " << cms3.lep_isFromLF().at(ilep) <<  std::endl;
+//        }
+//        abort();
+//    }
 
     // Preselection. Events not passing these are never used anywhere.
     if (firstgoodvertex() != 0)   { return false; }
