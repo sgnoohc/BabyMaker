@@ -207,12 +207,12 @@ bool istightlepton(int i, int version){
   }
   if(version==1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.05&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.07&&lep_MVA()[i]>0.925) );
-    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.9;
+    bool isgoodmuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.9;
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   if(version==-1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.015&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.920) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.1&&lep_MVA()[i]>0.880) );
-    bool isgoodmuon = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.84; // 0.84 cut point is when we keep the fake rate same
+    bool isgoodmuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.84; // 0.84 cut point is when we keep the fake rate same
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   return istight;
@@ -224,9 +224,14 @@ bool islooselepton(int i, int version){
    if(version ==0){
      isloose = abs(lep_pdgId()[i])==13 ? lep_pass_VVV_cutbased_fo_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i] && lep_relIso03EAv2()[i]<0.4 :  lep_pass_VVV_cutbased_fo_noiso()[i]   &&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_isTriggerSafe_v1()[i] && lep_lostHits()[i]==0&&lep_tightCharge()[i]==2 && lep_relIso03EAv2()[i]<0.2;
    }   
-   if(abs(version) ==1){
-     bool isloosemuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.65;
+   if(version ==1){
      bool islooseelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.01&&lep_tightCharge()[i]==2&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.941) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.925) );
+     bool isloosemuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.65;
+     isloose = abs(lep_pdgId()[i])==13 ? isloosemuon : islooseelectron;
+   }   
+   if(version ==-1){
+     bool islooseelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.015&&( (fabs(lep_etaSC()[i])<=1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.920) || (fabs(lep_etaSC()[i]) >1.479&&lep_relIso04EAv2()[i]<0.4&&lep_MVA()[i]>0.880) );
+     bool isloosemuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_tightCharge()[i]==2&&lep_ptRatio()[i]>0.65;
      isloose = abs(lep_pdgId()[i])==13 ? isloosemuon : islooseelectron;
    }   
    return isloose;
@@ -251,43 +256,42 @@ bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vec
     if(islooselepton(i,-1*version)&&!is3l&&lep_p4()[i].Pt()>pT3l) { ia3l.push_back(i); isa3l = true; }
     if(islooselepton(i,   version)&&!isSS&&lep_p4()[i].Pt()>pTSS) { iaSS.push_back(i); isaSS = true; }
     //vetoID --simple, leave it here.
-//    if (version == 0)
-//    {
+    if (version == 0)
+    {
         if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_relIso03EAv2()[i]<=0.4) {
             if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
             if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
             if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
             if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
         }
-//    }
-//    else if (version == 1)
-//    {
-//        if (abs(lep_pdgId()[i]) == 11)
-//        {
-//            bool isvetoel = true;
-//            if (!lep_isTriggerSafe_v1().at(i)) isvetoel = false;
-//            if (fabs(lep_etaSC().at(i)) > 2.5) isvetoel = false;
-//            if (fabs(lep_dxy().at(i)) > 0.05) isvetoel = false;
-//            if (fabs(lep_dz().at(i)) > 0.1) isvetoel = false;
-//            if (lep_lostHits().at(i) > 1) isvetoel = false;
-//            if (lep_relIso04EAv2().at(i) >= 0.40) isvetoel = false;
-//            if(isvetoel) {
-//                if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
-//                if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
-//                if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
-//                if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
-//            }
-//        }
-//        else if (abs(lep_pdgId()[i]) == 13)
-//        {
-//            if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_ptRatio()[i]>0.65) {
-//                if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
-//                if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
-//                if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
-//                if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
-//            }
-//        }
-//    }
+    }
+    else if (version == 1)
+    {
+        if (abs(lep_pdgId()[i]) == 11)
+        {
+            bool isvetoel = true;
+            if (!lep_isTriggerSafe_v1().at(i)) isvetoel = false;
+            if (fabs(lep_etaSC().at(i)) > 2.5) isvetoel = false;
+            if (fabs(lep_dxy().at(i)) > 0.05) isvetoel = false;
+            if (fabs(lep_dz().at(i)) > 0.1) isvetoel = false;
+            if (lep_relIso04EAv2().at(i) >= 0.70) isvetoel = false;
+            if(isvetoel) {
+                if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
+                if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
+                if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
+                if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
+            }
+        }
+        else if (abs(lep_pdgId()[i]) == 13)
+        {
+            if(lep_pass_VVV_cutbased_veto_noiso()[i] &&fabs(lep_p4()[i].Eta())<2.4&&lep_ptRatio()[i]>0.58) {
+                if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
+                if(!is3l &&          lep_p4()[i].Pt()>10) v3l  .push_back(i);
+                if(!isSS && !isaSS &&lep_p4()[i].Pt()>10) vaSS .push_back(i);
+                if(!is3l && !isa3l &&lep_p4()[i].Pt()>10) va3l .push_back(i);
+            }
+        }
+    }
   }
   return true;
 }
