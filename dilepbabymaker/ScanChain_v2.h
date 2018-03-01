@@ -149,14 +149,10 @@ public:
     bool isLeptonOverlappingWithJet(int ijet);
     bool isLeptonOverlappingWithJet_OldVersion(int ijet);
     bool isLeptonOverlappingWithTrack(int ijet);
-//    static bool isTightMuon(int);
-//    static bool isTightElectron(int);
     static bool isLooseMuon(int);
     static bool isLooseElectron(int);
     static bool isVetoMuon(int);
     static bool isVetoElectron(int);
-    static bool isVetoMuonNoIso(int);
-    static bool isVetoElectronNoIso(int);
     static bool isVetoMuonNoIso_OldVersion(int);
     static bool isVetoElectronNoIso_OldVersion(int);
 };

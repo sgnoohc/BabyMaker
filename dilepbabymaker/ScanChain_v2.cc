@@ -172,10 +172,10 @@ void babyMaker_v2::ProcessTriggers() { coreTrigger.process(); }
 void babyMaker_v2::ProcessGenParticles() { coreGenPart.process(); }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessElectrons() { coreElectron.process(isVetoElectronNoIso); }
+void babyMaker_v2::ProcessElectrons() { coreElectron.process(isVetoElectron); }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessMuons() { coreMuon.process(isVetoMuonNoIso); }
+void babyMaker_v2::ProcessMuons() { coreMuon.process(isVetoMuon); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessJets() { coreJet.process(coreJec); }
@@ -190,10 +190,8 @@ void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
 bool babyMaker_v2::PassPresel()
 {
     // Select 2 SS lepton events or 3 or more lepton events
-    vector<int> el_idx;
-    vector<int> mu_idx;
-    for (auto& idx : coreElectron.index) if (isVetoElectron(idx)) el_idx.push_back(idx);
-    for (auto& idx : coreMuon.index) if (isVetoMuon(idx)) mu_idx.push_back(idx);
+    vector<int> el_idx = coreElectron.index;
+    vector<int> mu_idx = coreMuon.index;
     if (el_idx.size() + mu_idx.size() > 2) return true;
     if (el_idx.size() + mu_idx.size() < 2) return false;
     if (mu_idx.size() == 2)
@@ -663,6 +661,99 @@ bool babyMaker_v2::isLeptonOverlappingWithJet(int ijet)
 }
 
 //##############################################################################################################
+bool babyMaker_v2::isLeptonOverlappingWithTrack(int idx)
+{
+    bool is_overlapping = false;
+
+    for (auto& imu : coreMuon.index)
+    {
+        if (!(isVetoMuon(imu)))
+            continue;
+
+        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfcands_p4()[idx], cms3.mus_p4()[imu]) < 0.01)
+        {
+            is_overlapping = true;
+            break;
+        }
+    }
+
+    if (is_overlapping)
+        return true;
+
+    for (auto& iel : coreElectron.index)
+    {
+        if (!(isVetoElectron(iel)))
+            continue;
+
+        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfcands_p4()[idx], cms3.els_p4()[iel]) < 0.01)
+        {
+            is_overlapping = true;
+            break;
+        }
+    }
+
+    if (is_overlapping)
+        return true;
+
+    return false;
+}
+
+//##############################################################################################################
+// Used to overlap remova against jets
+bool babyMaker_v2::isLooseMuon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 20.                     )) return false;
+    if (!( passMuonSelection_VVV(idx, VVV_cutbased_3l_fo_v2) )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against jets
+bool babyMaker_v2::isLooseElectron(int idx)
+{
+    if (!( cms3.els_p4()[idx].pt() > 20.                         )) return false;
+    if (!( passElectronSelection_VVV(idx, VVV_cutbased_3l_fo_v2) )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
+bool babyMaker_v2::isVetoMuon(int idx)
+{
+    if (!( passMuonSelection_VVV(idx, VVV_cutbased_veto_v2) )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
+bool babyMaker_v2::isVetoElectron(int idx)
+{
+    if (!( passElectronSelection_VVV(idx, VVV_cutbased_veto_v2) )) return false;
+    return true;
+}
+
+
+
+
+
+//---------------==================-----------------==================-----------------=================----------
+//---------------==================-----------------==================-----------------=================----------
+//---------------==================-----------------==================-----------------=================----------
+//---------------==================-----------------==================-----------------=================----------
+//---------------==================-----------------==================-----------------=================----------
+
+
+
+
+//
+//
+// Old version overlap removal settings and the lepton definition used to perform the overlap removal
+// This is kept only for documentation purpose only
+//
+//
+
+
+//##############################################################################################################
 bool babyMaker_v2::isLeptonOverlappingWithJet_OldVersion(int ijet)
 {
     bool is_overlapping = false;
@@ -713,172 +804,6 @@ bool babyMaker_v2::isLeptonOverlappingWithJet_OldVersion(int ijet)
         return true;
 
     return false;
-}
-
-//##############################################################################################################
-bool babyMaker_v2::isLeptonOverlappingWithTrack(int idx)
-{
-    bool is_overlapping = false;
-
-    for (auto& imu : coreMuon.index)
-    {
-        if (!(isVetoMuon(imu)))
-            continue;
-
-        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfcands_p4()[idx], cms3.mus_p4()[imu]) < 0.01)
-        {
-            is_overlapping = true;
-            break;
-        }
-    }
-
-    if (is_overlapping)
-        return true;
-
-    for (auto& iel : coreElectron.index)
-    {
-        if (!(isVetoElectron(iel)))
-            continue;
-
-        if (ROOT::Math::VectorUtil::DeltaR(cms3.pfcands_p4()[idx], cms3.els_p4()[iel]) < 0.01)
-        {
-            is_overlapping = true;
-            break;
-        }
-    }
-
-    if (is_overlapping)
-        return true;
-
-    return false;
-}
-
-////##############################################################################################################
-//bool babyMaker_v2::isTightMuon(int idx)
-//{
-//    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, 2);
-//    float closeJetPt = temp_jet_p4.pt();
-//    float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
-//    if (!( ptratio > 0.9                                     )) return false;
-//    if (!( isLooseMuon(idx)                                  )) return false;
-//    return true;
-//}
-//
-////##############################################################################################################
-//bool babyMaker_v2::isTightElectron(int idx)
-//{
-//    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
-//    float reliso04 = cms3.evt_CMS3tag()[0].Contains("CMS3") ? elRelIsoCustomCone(idx, 0.4, false, 0.0, false, true, -1, 2) : eleRelIso03EA(idx, 2);
-//    std::cout.clear();
-//    if (fabs(cms3.els_etaSC()[idx]) <= 1.479)
-//    {
-//        if (!( reliso04 < 0.05                                   )) return false;
-//    }
-//    else
-//    {
-//        if (!( reliso04 < 0.07                                   )) return false;
-//    }
-//    if (!( isLooseElectron(idx)                                  )) return false;
-//    return true;
-//}
-
-//##############################################################################################################
-// Used to overlap remova against jets
-bool babyMaker_v2::isLooseMuon(int idx)
-{
-    if (!( cms3.mus_p4()[idx].pt() > 20.                     )) return false;
-    if (!( fabs(cms3.mus_ip3d()[idx]) < 0.015                )) return false;
-    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, 2);
-    float closeJetPt = temp_jet_p4.pt();
-    float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
-    if (!( ptratio > 0.65                                    )) return false;
-    if (!( passMuonSelection_VVV(idx, VVV_cutbased_fo_noiso) )) return false;
-    return true;
-}
-
-//##############################################################################################################
-// Used to overlap remova against jets
-bool babyMaker_v2::isLooseElectron(int idx)
-{
-    if (!( cms3.els_p4()[idx].pt() > 20.                         )) return false;
-    if (!( fabs(cms3.els_ip3d()[idx]) < 0.015                    )) return false;
-
-    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
-    float reliso04 = cms3.evt_CMS3tag()[0].Contains("CMS3") ? elRelIsoCustomCone(idx, 0.4, false, 0.0, false, true, -1, 2) : eleRelIso03EA(idx, 2);
-    std::cout.clear();
-
-    if (fabs(cms3.els_etaSC()[idx]) <= 1.479)
-    {
-        if (!( reliso04 < 0.4                                    )) return false;
-        if (!( getMVAoutput(idx) > 0.941                         )) return false;
-    }
-    else
-    {
-        if (!( reliso04 < 0.4                                    )) return false;
-        if (!( getMVAoutput(idx) > 0.925                         )) return false;
-    }
-    if (!( isVetoElectron(idx)                                   )) return false;
-    return true;
-}
-
-//##############################################################################################################
-// Used to overlap remova against tracks
-bool babyMaker_v2::isVetoMuon(int idx)
-{
-    if (!( isVetoMuonNoIso(idx)                        )) return false;
-
-    // Compute ptratio
-    const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, 2);
-    float closeJetPt = temp_jet_p4.pt();
-    float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
-
-    // Require ptratio
-    if (!( ptratio > 0.58 )) return false;
-    return true;
-}
-
-//##############################################################################################################
-// Used to overlap remova against tracks
-bool babyMaker_v2::isVetoElectron(int idx)
-{
-    if (!( isVetoElectronNoIso(idx)                    )) return false;
-
-    // Now compute the reliso
-    float reliso = 0;
-    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
-    if (cms3.evt_CMS3tag()[0].Contains("CMS3"))
-        reliso = elRelIsoCustomCone(idx, 0.4, false, 0.0, /*useDBCorr=*/false, /*useEACorr=*/true, /*mindr=*/ -1, /*eaversion=*/2);
-    else
-        reliso = eleRelIso03EA(idx, 2);
-    std::cout.clear();
-
-    // Require reliso
-    if (!( reliso < 0.7 )) return false;
-    return true;
-}
-
-//##############################################################################################################
-// Used to "pre"select leptons from CMS3
-bool babyMaker_v2::isVetoMuonNoIso(int idx)
-{
-    if (!( cms3.mus_p4()[idx].pt()            > 10.    )) return false;
-    if (!( cms3.mus_p4()[idx].eta()           < 2.4    )) return false;
-    if (!( fabs(cms3.mus_dxyPV().at(idx))     <  0.05  )) return false;
-    if (!( fabs(cms3.mus_dzPV().at(idx))      <  0.1   )) return false;
-    if (!( isLooseMuonPOG(idx)                         )) return false;
-    return true;
-}
-
-//##############################################################################################################
-// Used to "pre"select leptons from CMS3
-bool babyMaker_v2::isVetoElectronNoIso(int idx)
-{
-    if (!( cms3.els_p4()[idx].pt()            >  10.   )) return false;
-    if (!( fabs(cms3.els_etaSC().at(idx))     <= 2.5   )) return false;
-    if (!( fabs(cms3.els_dxyPV().at(idx))     <  0.05  )) return false;
-    if (!( fabs(cms3.els_dzPV().at(idx))      <  0.1   )) return false;
-    if (!( isTriggerSafenoIso_v1(idx)                  )) return false;
-    return true;
 }
 
 //##############################################################################################################

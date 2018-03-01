@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
     TString input_path = infile;
     TObjArray* files = input_path.Tokenize(",");
-    for (unsigned int ifile = 0; ifile < files->GetEntries(); ++ifile)
+    for (int ifile = 0; ifile < files->GetEntries(); ++ifile)
     {
         TString filepath = ((TObjString*) files->At(ifile))->GetString();
 
