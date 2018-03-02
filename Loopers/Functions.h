@@ -55,9 +55,11 @@ bool sortDecreasing(double i1, double i2);
 int numJ(float jetpt=20., float jeteta=2.4, float csv=-1, int jec=0);//loose: 0.5426, medium: 0.8484, if csv < 0 - count Njets, else Nbjets
 bool getalljetnumbers(int &nj, int &nj30, int &nb, int jec=0);
 bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version=0, float pTSS=30., float pT3l=20.);
+#ifdef USE_CMS3_WWW100
+bool getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, float pTSS=25., float pT3l=20.);
+#endif
 bool istightlepton(int i, int version);
 bool islooselepton(int i, int version);
-bool getleptonindices_BDT(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int bdtnum = 1, float bdt_wp = 0.85);
 float coneCorrPt(int lepi, int version=0);//apply only to loose but not tight leptons
 //float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin=10.1, float muFRptmax=119.9, float muFRetamin=0.01, float muFRetamax=2.39, float elFRptmin=10.1, float elFRptmax=119.9, float elFRetamin=0.01, float elFRetamax=2.49, bool conecorrected=true);
 float calcMjj(bool closestDR=true, int jec=0);//Mjj or MjjL
