@@ -208,6 +208,7 @@ def addProcesses(printer, showdata, prettyversion=True):
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
         printer.addCutflowProcess("|", "|")
+        printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
         #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
         #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
         if showdata:
