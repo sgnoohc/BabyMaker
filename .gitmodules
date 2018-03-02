@@ -2,24 +2,30 @@
 	path = Loopers/rooutil
 	url = git@github.com:sgnoohc/rooutil.git
 	ignore = untracked
+	branch = master
 [submodule "Loopers/ProjectMetis"]
 	path = Loopers/ProjectMetis
 	url = git@github.com:aminnj/ProjectMetis.git
 	ignore = untracked
 	ignore = dirty
+	branch = master
 [submodule "Loopers/plottery"]
 	path = Loopers/plottery
 	url = git@github.com:aminnj/plottery.git
 	ignore = untracked
+	branch = master
 [submodule "dilepbabymaker/rooutil"]
 	path = dilepbabymaker/rooutil
 	url = git@github.com:sgnoohc/rooutil.git
 	ignore = untracked
+	branch = master
 [submodule "dilepbabymaker/coreutil"]
 	path = dilepbabymaker/coreutil
 	url = git@github.com:sgnoohc/coreutil.git
 	ignore = untracked
+	branch = master
 [submodule "dilepbabymaker/ProjectMetis"]
 	path = dilepbabymaker/ProjectMetis
 	url = git@github.com:aminnj/ProjectMetis.git
 	ignore = dirty
+	branch = master
