@@ -21,8 +21,15 @@
 #include <fstream>
 
 // CMS3
+#define USE_CMS3_WWW100 
+
 #include "Functions.h"
-#include "CMS3_WWW0117.cc"
+//#include "CMS3_WWW0117.cc"
+#ifdef USE_CMS3_WWW100
+#include "CMS3_WWW100.cc"
+#else
+#include "CMS3_WWW0118.cc"
+#endif
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -39,12 +46,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   addeventtocheck(e,1,15849, 8049420);
   addeventtocheck(e,1,21682,11012507);
 
-  bool blindSR = true;
+  bool blindSR = false;
   bool btagreweighting = true;
-  bool applylepSF      = true;
-  bool applytrigSF     = true;
+  bool applylepSF      = false;
+  bool applytrigSF     = false;
   bool applyPUrewgt    = true;
-  bool getJECunc       = true;
+  bool getJECunc       = false;
   
   const char* json_file = "data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
   set_goodrun_file_json(json_file);
@@ -179,7 +186,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       
       double weight = evt_scale1fb()*35.9;
       //if(nEventsTotal==0) cout << weight << endl; 
-
       if(firstgoodvertex()!=0)   continue;
       if(nVert()<0)              continue;
       //if(nlep()<2)               continue;
@@ -245,7 +251,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
       //getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
-      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
+      //getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
+      getleptonindices_v2(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,25,20);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
@@ -410,7 +417,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
 
       if(checkevent) cout << "passed       SRSS " << SRSS[0] << " SR3l " << SR3l[0] << " ARSS " << SRSS[2] << " AR3l " << SR3l[2] << " CRSS " << SRSS[4] << " CR3l " << SR3l[4] << endl;
-      //if(SRSS[2]==0) cout << __LINE__ << endl;
       for(int i = 0; i<20; ++i) {
 	if(!selects3l[i]){
 	  if(vetophotonprocess(fname,isphotonSS))    { SRSS[i] = -1; }
@@ -419,7 +425,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(vetophotonprocess(fname,isphoton3l))     { SR3l[i] = -1; }
       }
       if(checkevent) cout << "photonpassed SRSS " << SRSS[0] << " SR3l " << SR3l[0] << " ARSS " << SRSS[2] << " AR3l " << SR3l[2] << " CRSS " << SRSS[4] << " CR3l " << SR3l[4] << endl;
-
 
       if(!isData()||!blindSR){//SR is blinded
 	fillSRhisto(histos, "SignalRegion",               sample, sn, sn2, SRSS[0], SR3l[0], weight, weight);
@@ -434,7 +439,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	fillSRhisto(histos, "SignalRegion_bLFSFdn",       sample, sn, sn2, SRSS[0], SR3l[0], weight_bLFSFdn, weight_bLFSFdn);
 	fillSRhisto(histos, "SignalRegion_PUup",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUup,    weight_PUup);
 	fillSRhisto(histos, "SignalRegion_PUdn",          sample, sn, sn2, SRSS[0], SR3l[0], weight_PUdn,    weight_PUdn);
-	
+
 	fillSRhisto(histos, "SignalRegionNew",            sample, sn, sn2, SRSS[10], SR3l[10], weight, weight);
 	fillSRhisto(histos, "SignalRegionPreselNew",      sample, sn, sn2, SRSS[11], SR3l[11], weight, weight);	
       }

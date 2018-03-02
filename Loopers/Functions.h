@@ -21,6 +21,7 @@
 #include <fstream>
 #include <tuple>
 
+#define USE_CMS3_WWW100 
 // CMS3
 #ifdef USE_CMS3_WWW100
 #include "CMS3_WWW100.h"
