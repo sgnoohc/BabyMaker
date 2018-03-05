@@ -6,7 +6,7 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "WWW_v1.0.4"
+job_tag = "WWW_v1.0.5"
 
 ###################################################################################################################
 ###################################################################################################################
@@ -218,7 +218,7 @@ doCMS4 = False
 
 # Create tarball
 os.chdir(main_dir)
-os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
+os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
 
 # Change directory to metis
 os.chdir(metis_path)

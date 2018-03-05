@@ -85,6 +85,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("HLT_MuEG");
 
     tx->createBranch<vector<LorentzVector>>("lep_p4");
+    tx->createBranch<vector<float>>("lep_coneCorrPt");
     tx->createBranch<vector<float>>("lep_ip3d");
     tx->createBranch<vector<float>>("lep_ip3derr");
     tx->createBranch<vector<int>>("lep_isTriggerSafe_v1");
@@ -167,6 +168,69 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("Flag_globalTightHalo2016");
     tx->createBranch<int>("Flag_goodVertices");
 
+    // Summary variables
+    tx->createBranch<int>("nVlep");
+    tx->createBranch<int>("nTlep");
+    tx->createBranch<int>("nTlepSS");
+    tx->createBranch<int>("nLlep");
+
+    tx->createBranch<int>("nSFOS");
+    tx->createBranch<int>("nSFOSinZ");
+
+    tx->createBranch<int>("nj");
+    tx->createBranch<int>("nj_up");
+    tx->createBranch<int>("nj_dn");
+
+    tx->createBranch<int>("nj30");
+    tx->createBranch<int>("nj30_up");
+    tx->createBranch<int>("nj30_dn");
+
+    tx->createBranch<float>("Mjj");
+    tx->createBranch<float>("Mjj_up");
+    tx->createBranch<float>("Mjj_dn");
+
+    tx->createBranch<float>("MjjVBF");
+    tx->createBranch<float>("MjjVBF_up");
+    tx->createBranch<float>("MjjVBF_dn");
+
+    tx->createBranch<float>("DetajjVBF");
+    tx->createBranch<float>("DetajjVBF_up");
+    tx->createBranch<float>("DetajjVBF_dn");
+
+    tx->createBranch<float>("MjjL");
+    tx->createBranch<float>("MjjL_up");
+    tx->createBranch<float>("MjjL_dn");
+
+    tx->createBranch<float>("DetajjL");
+    tx->createBranch<float>("DetajjL_up");
+    tx->createBranch<float>("DetajjL_dn");
+
+    tx->createBranch<float>("MllSS");
+    tx->createBranch<float>("MeeSS");
+    tx->createBranch<float>("Mll3L");
+    tx->createBranch<float>("Mee3L");
+    tx->createBranch<float>("Mll3L1");
+    tx->createBranch<float>("M3l");
+    tx->createBranch<float>("Pt3l");
+    tx->createBranch<float>("M01");
+    tx->createBranch<float>("M02");
+    tx->createBranch<float>("M12");
+    tx->createBranch<int>("isSFOS01");
+    tx->createBranch<int>("isSFOS02");
+    tx->createBranch<int>("isSFOS12");
+
+    tx->createBranch<float>("DPhi3lMET");
+    tx->createBranch<float>("DPhi3lMET_up");
+    tx->createBranch<float>("DPhi3lMET_dn");
+    tx->createBranch<float>("MTmax");
+    tx->createBranch<float>("MTmax_up");
+    tx->createBranch<float>("MTmax_dn");
+
+    tx->createBranch<float>("MT3rd");
+    tx->createBranch<float>("MT3rd_up");
+    tx->createBranch<float>("MT3rd_dn");
+
+
     tx->clear();
 }
 
@@ -197,8 +261,51 @@ bool babyMaker_v2::PassPresel()
     // Select 2 SS lepton events or 3 or more lepton events
     vector<int> el_idx = coreElectron.index;
     vector<int> mu_idx = coreMuon.index;
-    if (el_idx.size() + mu_idx.size() > 2) return true;
+
+    // If 3 or more veto lepton events. then require 3 and only 3 loose lepton events
+    // Such requirement ensures simplicity in various things like SFOS counter and fake rate application
+    // Also, require that it is total charge == 1
+    if (el_idx.size() + mu_idx.size() > 2)
+    {
+        int nloose = 0;
+        int chargesum = 0;
+        for (auto& iel : coreElectron.index)
+        {
+            if (passElectronSelection_VVV(iel, VVV_cutbased_3l_fo_v2))
+            {
+                nloose++;
+                chargesum += cms3.els_charge()[iel];
+            }
+        }
+        for (auto& imu : coreMuon.index)
+        {
+            if (passMuonSelection_VVV(imu, VVV_cutbased_3l_fo_v2))
+            {
+                nloose++;
+                chargesum += cms3.mus_charge()[imu];
+            }
+        }
+        if (nloose == 3)
+            return abs(chargesum) == 1;
+        else
+            return false;
+    }
+    // If less than 2 leptons skip
     if (el_idx.size() + mu_idx.size() < 2) return false;
+    // If equal to 2 leptons then must be a same-sign and at must have two loose lepton
+    int nloose = 0;
+    for (auto& iel : coreElectron.index)
+    {
+        if (passElectronSelection_VVV(iel, VVV_cutbased_fo_v2))
+            nloose++;
+    }
+    for (auto& imu : coreMuon.index)
+    {
+        if (passMuonSelection_VVV(imu, VVV_cutbased_fo_v2))
+            nloose++;
+    }
+    if (nloose != 2)
+        return false;
     if (mu_idx.size() == 2)
     {
         if (cms3.mus_charge()[mu_idx[0]] * cms3.mus_charge()[mu_idx[1]] > 0)
@@ -264,6 +371,9 @@ void babyMaker_v2::FillOutput()
     // Fill vertex info
     FillVertexInfo();
 
+    // Fill summary variables
+    FillSummaryVariables();
+
     // Fill TTree (NOTE: also clears internal variables)
     FillTTree();
 }
@@ -289,8 +399,23 @@ void babyMaker_v2::FillElectrons()
         // Some variables that need to call another functions...
         const LorentzVector& temp_jet_p4 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
         float closeJetPt = temp_jet_p4.pt();
+        float ptratio = (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.);
+        float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ?  0.84 / ptratio : 0.9 / ptratio;
+        float conecorrptfactor = max(0., conecorrptfactorraw - 1.) + 1.; // To clip correcting once it passes tight isolation criteria
+
+        if (coreElectron.index.size() + coreMuon.index.size() == 2)
+        {
+            if (!( passElectronSelection_VVV(idx, VVV_cutbased_fo_v2) ))
+                continue;
+        }
+        else if (coreElectron.index.size() + coreMuon.index.size() > 2)
+        {
+            if (!( passElectronSelection_VVV(idx, VVV_cutbased_3l_fo_v2) ))
+                continue;
+        }
 
         tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.els_p4()[idx]);
+        tx->pushbackToBranch<float>         ("lep_coneCorrPt"                   , cms3.els_p4()[idx].pt() * conecorrptfactor);
         tx->pushbackToBranch<float>         ("lep_ip3d"                         , cms3.els_ip3d()[idx]);
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.els_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , isTriggerSafe_v1(idx));
@@ -307,7 +432,7 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.els_charge()[idx]*(-11));
         tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.els_dxyPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.els_dzPV()[idx]);
-        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.));
+        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , ptratio);
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.els_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.els_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , eleRelIso03EA(idx, 2));
@@ -358,8 +483,23 @@ void babyMaker_v2::FillMuons()
         // Some variables that need to call another functions...
         const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
         float closeJetPt = temp_jet_p4.pt();
+        float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
+        float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ?  0.84 / ptratio : 0.9 / ptratio;
+        float conecorrptfactor = max(0., conecorrptfactorraw - 1.) + 1.; // To clip correcting once it passes tight isolation criteria
+
+        if (coreMuon.index.size() + coreMuon.index.size() == 2)
+        {
+            if (!( passMuonSelection_VVV(idx, VVV_cutbased_fo_v2) ))
+                continue;
+        }
+        else if (coreMuon.index.size() + coreMuon.index.size() > 2)
+        {
+            if (!( passMuonSelection_VVV(idx, VVV_cutbased_3l_fo_v2) ))
+                continue;
+        }
 
         tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.mus_p4()[idx]);
+        tx->pushbackToBranch<float>         ("lep_coneCorrPt"                   , cms3.mus_p4()[idx].pt() * conecorrptfactor);
         tx->pushbackToBranch<float>         ("lep_ip3d"                         , cms3.mus_ip3d()[idx]);
         tx->pushbackToBranch<float>         ("lep_ip3derr"                      , cms3.mus_ip3derr()[idx]);
         tx->pushbackToBranch<int>           ("lep_isTriggerSafe_v1"             , true); // Electron specific branch. So muons always pass.
@@ -376,7 +516,7 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.mus_charge()[idx]*(-13));
         tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.mus_dxyPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.mus_dzPV()[idx]);
-        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.));
+        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , ptratio);
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.mus_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.mus_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , muRelIso03EA(idx, 2));
@@ -451,6 +591,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_trk_pt",
             "lep_etaSC",
             "lep_MVA",
+            "lep_coneCorrPt",
             },
             {
             "lep_pass_VVV_cutbased_3l_fo",
@@ -634,6 +775,15 @@ void babyMaker_v2::FillMETFilter()
 }
 
 //##############################################################################################################
+void babyMaker_v2::FillSummaryVariables()
+{
+    FillJetVariables(0);
+    FillJetVariables(1);
+    FillJetVariables(-1);
+    FillLeptonVariables();
+}
+
+//##############################################################################################################
 void babyMaker_v2::FillTTree()
 {
     tx->fill();
@@ -752,7 +902,440 @@ bool babyMaker_v2::isVetoElectron(int idx)
     return true;
 }
 
+//##############################################################################################################
+int babyMaker_v2::passCount(const vector<int>& v)
+{
+    return std::count_if(v.begin(), v.end(), [](int i){return i > 0;});
+}
 
+//##############################################################################################################
+int babyMaker_v2::nSFOS()
+{
+    int nSFOS = 0;
+    for (auto& pdgid0 : tx->getBranch<vector<int>>("lep_pdgId"))
+        for (auto& pdgid1 : tx->getBranch<vector<int>>("lep_pdgId"))
+            if (pdgid0 == -pdgid1)
+                nSFOS++;
+    return nSFOS/2; // Because the nested for loop double counts
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillJetVariables(int variation)
+{
+    //
+    // Assumes FillJets and SortJetBranches are already called
+    //
+
+    TString jets_csv     = variation == 0 ? "jets_csv"   : variation == 1 ? "jets_up_csv"   : "jets_dn_csv";
+    TString jets_p4      = variation == 0 ? "jets_p4"    : variation == 1 ? "jets_up_p4"    : "jets_dn_p4";
+    TString nj_bn        = variation == 0 ? "nj"         : variation == 1 ? "nj_up"         : "nj_dn";
+    TString nj30_bn      = variation == 0 ? "nj30"       : variation == 1 ? "nj30_up"       : "nj30_dn";
+    TString nb_bn        = variation == 0 ? "nb"         : variation == 1 ? "nb_up"         : "nb_dn";
+    TString Mjj_bn       = variation == 0 ? "Mjj"        : variation == 1 ? "Mjj_up"        : "Mjj_dn";
+    TString MjjL_bn      = variation == 0 ? "MjjL"       : variation == 1 ? "MjjL_up"       : "MjjL_dn";
+    TString DetajjL_bn   = variation == 0 ? "DetajjL"    : variation == 1 ? "DetajjL_up"    : "DetajjL_dn";
+    TString MjjVBF_bn    = variation == 0 ? "MjjVBF"     : variation == 1 ? "MjjVBF_up"     : "MjjVBF_dn";
+    TString DetajjVBF_bn = variation == 0 ? "DetajjVBF"  : variation == 1 ? "DetajjVBF_up"  : "DetajjVBF_dn";
+
+    int nj = 0;
+    int nj30 = 0;
+    int nb = 0;
+    float Mjj = 0;
+    float MjjL = -999;
+    float DetajjL = -999;
+    float MjjVBF = -999;
+    float DetajjVBF = -999;
+    float tmpDR = 9999;
+    for (unsigned int i = 0; i < tx->getBranch<vector<float>>(jets_csv).size(); ++i)
+    {
+        const LV& p4 = tx->getBranch<vector<LV>>(jets_p4)[i];
+        const float& csv= tx->getBranch<vector<float>>(jets_csv)[i];
+
+        // nb jets
+        if (!( p4.pt() > 20. ))
+            continue;
+        if (fabs(p4.eta()) < 2.4 && csv >= 0.5426)
+            nb++;
+
+        // njets across all eta
+        if (!( p4.pt() > 30. ))
+            continue;
+        if (fabs(p4.eta()) < 5.0)
+            nj++;
+
+        // njets for central for SS
+        if (fabs(p4.eta()) < 2.5)
+            nj30++;
+
+        // Compute Mjj using the closest two jets
+        for (unsigned int j = i + 1; j < tx->getBranch<vector<float>>(jets_csv).size(); ++j)
+        {
+            const LV& p4_2 = tx->getBranch<vector<LV>>(jets_p4)[j];
+
+            // central eta
+            if (fabs(p4.eta()) < 2.5 && fabs(p4_2.eta()) < 2.5)
+            {
+                // Choose the closest two jets
+                float this_dR = ROOT::Math::VectorUtil::DeltaR(p4, p4_2);
+                if (this_dR < tmpDR)
+                {
+                    tmpDR = this_dR;
+                    Mjj = (p4 + p4_2).M();
+                }
+
+                // If they were not set then set (this makes it choose two leading ones)
+                if (MjjL < 0)
+                {
+                    MjjL = (p4 + p4_2).M();
+                    DetajjL = fabs(p4.eta() - p4_2.eta());
+                }
+            }
+
+            // all eta
+            if (fabs(p4.eta()) < 5.0 && fabs(p4_2.eta()) < 5.0)
+            {
+                // If they were not set then set (this makes it choose two leading ones)
+                if (MjjVBF < 0)
+                {
+                    MjjVBF = (p4 + p4_2).M();
+                    DetajjVBF = fabs(p4.eta() - p4_2.eta());
+                }
+            }
+        }
+    }
+    tx->setBranch<int>(nj_bn, nj);
+    tx->setBranch<int>(nj30_bn, nj30);
+    tx->setBranch<int>(nb_bn, nb);
+    tx->setBranch<float>(Mjj_bn, Mjj);
+    tx->setBranch<float>(MjjL_bn, MjjL);
+    tx->setBranch<float>(DetajjL_bn, DetajjL);
+    tx->setBranch<float>(MjjVBF_bn, MjjVBF);
+    tx->setBranch<float>(DetajjVBF_bn, DetajjVBF);
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillLeptonVariables()
+{
+
+    //
+    // Assumes FillElectrons and FillLeptons as well as SortLeptonBranches are called
+    //
+
+    // Calculate tight and loose lepton based on number of veto leptons
+    int nVlep = coreElectron.index.size() + coreMuon.index.size();
+    int nTlep = nVlep == 2 ? passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_tight")) : passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_3l_tight"));
+    int nLlep = nVlep == 2 ? passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_fo")) : passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_3l_fo"));
+    int nTlepSS = passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_tight"));
+
+    // Set the number of lepton counter
+    tx->setBranch<int>("nVlep", nVlep);
+    tx->setBranch<int>("nTlep", nTlep);
+    tx->setBranch<int>("nTlepSS", nTlepSS);
+    tx->setBranch<int>("nLlep", nLlep);
+
+    // nVlep == 2
+    //  nLlep == 2 isSS
+    // nVlep >= 3
+    //  nLlep == 3 is3l
+    //    nLlepSS >= 2 (is the pair a same-sign?) need idx isSS3lCR
+
+    bool isSS = (nVlep == 2 && nLlep == 2);
+    bool is3L = (nVlep >= 3 && nLlep == 3);
+
+    // is SS events then set the SS related variables
+    if (isSS)
+    {
+        FillSSLeptonVariables(0, 1);
+    }
+    // is 3L events then set the 3L related variables
+    else if (is3L)
+    {
+        Fill3LLeptonVariables();
+
+        // If it additionally passes isSSCR then set the "Same-sign" variables for the 3L events
+        bool issscr;
+        int index0;
+        int index1;
+        tie(issscr, index0, index1) = isSSCR();
+        if (issscr)
+        {
+            FillSSLeptonVariables(index0, index1);
+        }
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
+{
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+
+    tx->setBranch<float>("MllSS", (lep_p4[idx0] + lep_p4[idx1]).mass());
+    if (abs(lep_pdgId[idx0]) == 11 && abs(lep_pdgId[idx1]) == 11)
+        tx->setBranch<float>("MeeSS", (lep_p4[idx0] + lep_p4[idx1]).mass());
+
+    // Set up MET variables
+    const float& met_pt = tx->getBranch<float>("met_pt");
+    const float& met_phi = tx->getBranch<float>("met_phi");
+    const float& met_T1CHS_miniAOD_CORE_up_pt = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_up_pt");
+    const float& met_T1CHS_miniAOD_CORE_up_phi = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_up_phi");
+    const float& met_T1CHS_miniAOD_CORE_dn_pt = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_dn_pt");
+    const float& met_T1CHS_miniAOD_CORE_dn_phi = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_dn_phi");
+    LV MET;
+    LV MET_up;
+    LV MET_dn;
+    MET.SetPxPyPzE( met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
+    MET_up.SetPxPyPzE( met_T1CHS_miniAOD_CORE_up_pt * TMath::Cos(met_T1CHS_miniAOD_CORE_up_phi), met_T1CHS_miniAOD_CORE_up_pt * TMath::Sin(met_T1CHS_miniAOD_CORE_up_phi), 0, met_T1CHS_miniAOD_CORE_up_pt);
+    MET_dn.SetPxPyPzE( met_T1CHS_miniAOD_CORE_dn_pt * TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi), met_T1CHS_miniAOD_CORE_dn_pt * TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi), 0, met_T1CHS_miniAOD_CORE_dn_pt);
+
+    float MT0    = mT(lep_p4[idx0], MET);
+    float MT1    = mT(lep_p4[idx1], MET);
+    float MT0_up = mT(lep_p4[idx0], MET_up);
+    float MT1_up = mT(lep_p4[idx1], MET_up);
+    float MT0_dn = mT(lep_p4[idx0], MET_dn);
+    float MT1_dn = mT(lep_p4[idx1], MET_dn);
+
+    tx->setBranch<float>("MTmax", MT0 > MT1 ? MT0 : MT1);
+    tx->setBranch<float>("MTmax_up", MT0_up > MT1_up ? MT0_up : MT1_up);
+    tx->setBranch<float>("MTmax_dn", MT0_dn > MT1_dn ? MT0_dn : MT1_dn);
+}
+
+//##############################################################################################################
+void babyMaker_v2::Fill3LLeptonVariables()
+{
+    int nSFOS = babyMaker_v2::nSFOS();
+    int nSFOSinZ = 0;
+    if (nSFOS == 0)
+    {
+        tx->setBranch<float>("Mll3L", get0SFOSMll());
+        tx->setBranch<float>("Mee3L", get0SFOSMee());
+    }
+    else if (nSFOS == 1)
+    {
+        tx->setBranch<float>("Mll3L", get1SFOSMll());
+        if (fabs(tx->getBranch<float>("Mll3L") - 91.1876) < 10.)
+            nSFOSinZ = 1;
+    }
+    else if (nSFOS == 2)
+    {
+        tx->setBranch<float>("Mll3L", get2SFOSMll0());
+        tx->setBranch<float>("Mll3L1", get2SFOSMll1());
+        if (fabs(tx->getBranch<float>("Mll3L") - 91.1876) < 10.)
+            nSFOSinZ++;
+        if (fabs(tx->getBranch<float>("Mll3L1") - 91.1876) < 10.)
+            nSFOSinZ++;
+    }
+    tx->setBranch<int>("nSFOS", nSFOS);
+    tx->setBranch<int>("nSFOSinZ", nSFOSinZ);
+
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+
+    // Extra variables related to the three leptons
+    tx->setBranch<float>("M3l", (lep_p4[0] + lep_p4[1] + lep_p4[2]).mass());
+    tx->setBranch<float>("Pt3l", (lep_p4[0] + lep_p4[1] + lep_p4[2]).pt());
+    tx->setBranch<float>("M01", (lep_p4[0] + lep_p4[1]).mass());
+    tx->setBranch<float>("M02", (lep_p4[0] + lep_p4[2]).mass());
+    tx->setBranch<float>("M12", (lep_p4[1] + lep_p4[2]).mass());
+    tx->setBranch<int>("isSFOS01", lep_pdgId[0] == -lep_pdgId[1]);
+    tx->setBranch<int>("isSFOS02", lep_pdgId[0] == -lep_pdgId[2]);
+    tx->setBranch<int>("isSFOS12", lep_pdgId[1] == -lep_pdgId[2]);
+
+    // Set up MET variables
+    const float& met_pt = tx->getBranch<float>("met_pt");
+    const float& met_phi = tx->getBranch<float>("met_phi");
+    const float& met_T1CHS_miniAOD_CORE_up_pt = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_up_pt");
+    const float& met_T1CHS_miniAOD_CORE_up_phi = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_up_phi");
+    const float& met_T1CHS_miniAOD_CORE_dn_pt = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_dn_pt");
+    const float& met_T1CHS_miniAOD_CORE_dn_phi = tx->getBranch<float>("met_T1CHS_miniAOD_CORE_dn_phi");
+    LV MET;
+    LV MET_up;
+    LV MET_dn;
+    MET.SetPxPyPzE( met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
+    MET_up.SetPxPyPzE( met_T1CHS_miniAOD_CORE_up_pt * TMath::Cos(met_T1CHS_miniAOD_CORE_up_phi), met_T1CHS_miniAOD_CORE_up_pt * TMath::Sin(met_T1CHS_miniAOD_CORE_up_phi), 0, met_T1CHS_miniAOD_CORE_up_pt);
+    MET_dn.SetPxPyPzE( met_T1CHS_miniAOD_CORE_dn_pt * TMath::Cos(met_T1CHS_miniAOD_CORE_dn_phi), met_T1CHS_miniAOD_CORE_dn_pt * TMath::Sin(met_T1CHS_miniAOD_CORE_dn_phi), 0, met_T1CHS_miniAOD_CORE_dn_pt);
+
+    // Set MET lep related variables
+    tx->setBranch<float>("DPhi3lMET"   , fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET   )));
+    tx->setBranch<float>("DPhi3lMET_up", fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET_up)));
+    tx->setBranch<float>("DPhi3lMET_dn", fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET_dn)));
+
+    if (nSFOS == 1)
+    {
+        int idx = -1;
+        if (lep_pdgId[0] == -lep_pdgId[1]) idx = 2;
+        if (lep_pdgId[0] == -lep_pdgId[2]) idx = 1;
+        if (lep_pdgId[1] == -lep_pdgId[2]) idx = 0;
+        tx->setBranch<float>("MT3rd"   , mT(lep_p4[idx], MET   ));
+        tx->setBranch<float>("MT3rd_up", mT(lep_p4[idx], MET_up));
+        tx->setBranch<float>("MT3rd_dn", mT(lep_p4[idx], MET_dn));
+    }
+}
+
+//##############################################################################################################
+float babyMaker_v2::get0SFOSMll()
+{
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    int pdgid0 = lep_pdgId[0];
+    int pdgid1 = lep_pdgId[1];
+    int pdgid2 = lep_pdgId[2];
+
+    if (pdgid0 == pdgid1)
+        return (lep_p4[0] + lep_p4[1]).mass();
+    else if (pdgid0 == pdgid2)
+        return (lep_p4[0] + lep_p4[2]).mass();
+    else if (pdgid1 == pdgid2)
+        return (lep_p4[1] + lep_p4[2]).mass();
+
+    cout << "Warning: Shouldn't be here if function call are at the right places." << endl;
+
+    return -999;
+}
+
+//##############################################################################################################
+float babyMaker_v2::get0SFOSMee()
+{
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    int pdgid0 = lep_pdgId[0];
+    int pdgid1 = lep_pdgId[1];
+    int pdgid2 = lep_pdgId[2];
+
+    if (pdgid0 == pdgid1 && abs(pdgid0) == 11)
+        return (lep_p4[0] + lep_p4[1]).mass();
+    else if (pdgid0 == pdgid2 && abs(pdgid0) == 11)
+        return (lep_p4[0] + lep_p4[2]).mass();
+    else if (pdgid1 == pdgid2 && abs(pdgid1) == 11)
+        return (lep_p4[1] + lep_p4[2]).mass();
+    return -999;
+}
+
+//##############################################################################################################
+float babyMaker_v2::get1SFOSMll()
+{
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    int pdgid0 = lep_pdgId[0];
+    int pdgid1 = lep_pdgId[1];
+    int pdgid2 = lep_pdgId[2];
+
+    if (pdgid0 == -pdgid1)
+        return (lep_p4[0] + lep_p4[1]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (lep_p4[0] + lep_p4[2]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (lep_p4[1] + lep_p4[2]).mass();
+
+    cout << "Warning: Shouldn't be here if function call are at the right places." << endl;
+
+    return -999;
+}
+
+//##############################################################################################################
+float babyMaker_v2::get2SFOSMll0()
+{
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    int pdgid0 = lep_pdgId[0];
+    int pdgid1 = lep_pdgId[1];
+    int pdgid2 = lep_pdgId[2];
+
+    if (pdgid0 == -pdgid1)
+        return (lep_p4[0] + lep_p4[1]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (lep_p4[0] + lep_p4[2]).mass();
+    else if (pdgid1 == -pdgid2)
+        return (lep_p4[1] + lep_p4[2]).mass();
+
+    cout << "Warning: Shouldn't be here if function call are at the right places." << endl;
+
+    return -999;
+}
+
+//##############################################################################################################
+float babyMaker_v2::get2SFOSMll1()
+{
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    int pdgid0 = lep_pdgId[0];
+    int pdgid1 = lep_pdgId[1];
+    int pdgid2 = lep_pdgId[2];
+
+    if (pdgid2 == -pdgid1)
+        return (lep_p4[1] + lep_p4[2]).mass();
+    else if (pdgid0 == -pdgid2)
+        return (lep_p4[0] + lep_p4[2]).mass();
+    else if (pdgid1 == -pdgid0)
+        return (lep_p4[0] + lep_p4[1]).mass();
+
+    cout << "Warning: Shouldn't be here if function call are at the right places." << endl;
+
+    return -999;
+}
+
+//##############################################################################################################
+float babyMaker_v2::mT(LV p4, LV met)
+{
+    float phi1 = p4.Phi();
+    float phi2 = met.Phi();
+    float Et1  = p4.Et();
+    float Et2  = met.Et();
+    return sqrt(2*Et1*Et2*(1.0 - cos(phi1-phi2)));
+}
+
+//##############################################################################################################
+// Returns true + indices of the SSID passing leptons that makes a SS pair.
+tuple<bool, int, int> babyMaker_v2::isSSCR()
+{
+    // Assumes that the FillElectron/FillMuon is done
+    // Retrieve some info we need from the lepton containers
+    const vector<int>& lep_pdgId  = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<int>& lep_charge = tx->getBranch<vector<int>>("lep_charge");
+    const vector<int>& lep_tight  = tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_tight");
+
+    // Count the number of tight "SSID" leptons
+    int ntight = passCount(lep_tight);
+
+    // If there are no two "SSID" passing leptons then return false, and -1 indices
+    if (ntight < 2)
+    {
+        return make_tuple(false, -1, -1);
+    }
+    else if (ntight >= 2)
+    {
+        // Determine whether I have two positive or two negative
+        // Assumes abs charge == 1 ensured
+        int totalcharge = lep_charge[0] + lep_charge[1] + lep_charge[2];
+
+        // Save the indices here
+        vector<int> lep_index;
+
+        // Loop over leptons and pick the two indices that passes tight ID and are "same-sign"
+        for (unsigned int i = 0; i < lep_pdgId.size(); ++i)
+        {
+            if (totalcharge == 1 ? lep_pdgId[i] < 0 && lep_tight[i] : lep_pdgId[i] > 0 && lep_tight[i])
+                lep_index.push_back(i);
+        }
+
+        // If the lep_index does not have two leptons
+        // this event did not pass the SSCR requirement from the 3L region
+        if (lep_index.size() != 2)
+            return make_tuple(false, -1, -1);
+        else
+            return make_tuple(true, lep_index[0], lep_index[1]);
+    }
+    else
+    {
+        cout << "FATAL ERROR: I Should never be here!" << endl;
+        return make_tuple(false, -1, -1);
+    }
+}
 
 
 
@@ -843,7 +1426,6 @@ bool babyMaker_v2::isVetoElectronNoIso_OldVersion(int idx)
     if (!(isVetoElectronPOGspring16noIso_v1(idx) || passElectronSelection_VVV(idx, VVV_MVAbased_tight_noiso))) return false;
     return true;
 }
-
 
 
 //eof
