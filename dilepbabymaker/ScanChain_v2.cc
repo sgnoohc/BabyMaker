@@ -12,13 +12,15 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
     // Output root file
     CreateOutput(index);
 
-    try
+    int nskipped_batch = 0;
+    int nskipped = 0;
+    while (looper.nextEvent())
     {
-        while (looper.nextEvent())
+        try
         {
             if (verbose)
                 cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
-            
+
             coreJec.setJECFor(looper.getCurrentFileName());
 
             // Loop over electrons
@@ -49,20 +51,45 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             // Fill baby ntuple
             FillOutput();
         }
+        catch (const std::ios_base::failure& e)
+        {
+            cout << endl;
+            cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
+            cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
+            cout << "[CheckCorrupt] event index = " << looper.getCurrentEventIndex() << " out of " << chain->GetEntries() << endl;
+            cout << e.what() << endl;
+            cout << endl;
+            tx->clear(); // clear the TTree of any residual stuff
+
+            nskipped_batch++;
+
+            // If the nskipped is quite large than skip the entire file
+            if (nskipped_batch > 500)
+            {
+                nskipped += nskipped_batch;
+                nskipped_batch = 0;
+                for (int i = 0; i < 10000; ++i)
+                {
+                    if (!looper.nextEvent())
+                        break;
+                    nskipped++;
+                }
+            }
+        }
     }
-    catch (const std::ios_base::failure& e)
-    {
-        cout << endl;
-        cout << "[CheckCorrupt] Caught an I/O failure in the ROOT file." << endl;
-        cout << "[CheckCorrupt] Possibly corrupted hadoop file." << endl;
-        cout << "[CheckCorrupt] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
-        cout << e.what() << endl;
-    }
+
+    nskipped += nskipped_batch;
 
     looper.getTree()->PrintCacheStats();
 
+    if (nskipped)
+    {
+        cout << "[CheckCorrupt] Skipped " << nskipped << " events out of " << chain->GetEntries() << " [" << float(nskipped) / float(chain->GetEntries()) << "%% loss]" << endl;
+    }
+
     ofile->cd();
     t->Write();
+//    t->SetDirectory(0);
 }
 
 //##############################################################################################################
@@ -77,6 +104,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<unsigned long long>("evt");
     tx->createBranch<int>("isData");
     tx->createBranch<float>("evt_scale1fb");
+    tx->createBranch<int>("evt_passgoodrunlist");
 
     tx->createBranch<int>("HLT_DoubleMu");
     tx->createBranch<int>("HLT_DoubleEl");
@@ -386,9 +414,15 @@ void babyMaker_v2::FillEventInfo()
     tx->setBranch<unsigned long long>("evt", cms3.evt_event());
     tx->setBranch<int>("isData", cms3.evt_isRealData());
     if (cms3.evt_isRealData())
+    {
         tx->setBranch<float>("evt_scale1fb", 1);
+        tx->setBranch<int>("evt_passgoodrunlist", goodrun(cms3.evt_run(), cms3.evt_lumiBlock()));
+    }
     else
+    {
         tx->setBranch<float>("evt_scale1fb", coreDatasetInfo.getScale1fb());
+        tx->setBranch<int>("evt_passgoodrunlist", true);
+    }
 }
 
 //##############################################################################################################
