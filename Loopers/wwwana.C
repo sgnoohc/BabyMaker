@@ -14,7 +14,7 @@
 #include "rooutil/draw.h"
 
 #ifdef USE_CMS3_WWW100
-#include "CMS3_WWW100.h"
+#include "CMS3_WWW105.h"
 #else
 #include "CMS3_WWW0118.h"
 #endif
@@ -138,6 +138,7 @@ public:
 
     // Lepton + MET variables
     float MTmax;
+    float MTmax_wrong;
     float MTmax_up;
     float MTmax_dn;
     float MTmax3l;
@@ -254,17 +255,16 @@ int main(int argc, char* argv[])
         cxxopts::Options options(argv[0], "WWW Analysis Looper");
         options.positional_help("[optional args]");
         options.add_options()
-            ("D,babydir", "Directory path to baby ntuples", cxxopts::value<std::string>(), "DIRPATH")
             ("i,input", "Instead of -d,--dataset option one can run over single file using this option.", cxxopts::value<std::string>(), "INPUTROOTFILE")
             ("d,dataset", "Dataset to run over (e.g. WWW, Other, VVV, tt1l, tt2l, singleTop, ttV, Wjets, Zjets, WW, WZ, ZZ, WG, ZG, WGstar, Data)", cxxopts::value<std::string>(), "DATASET")
             ("e,eventlist", "File containing the event list to check", cxxopts::value<std::string>()->default_value("eventlist.txt"), "EVENTLISTFILE")
             ("o,output", "Output name", cxxopts::value<std::string>()->default_value("output.root"), "OUTPUT")
             ("h,help", "Print help")
             ;
-        options.parse(argc, argv);
+        auto result = options.parse(argc, argv);
 
         // Print help message if --help or -h is provided
-        if (options.count("help"))
+        if (result.count("help"))
         {
             RooUtil::print(options.help());
             exit(0);
@@ -277,41 +277,29 @@ int main(int argc, char* argv[])
 //        ifstream default_config(".wwwana.json");
 //        default_config >> wwwanalysis._j;
 
-        // If no babydir option is given, take the default one
-        if (!options.count("babydir") && !options.count("input"))
-        {
-            TString default_baby_dir_path = wwwanalysis._j["default_baby_dir_path"];
-            //RooUtil::print(Form("No baby dir path is provided. Using the default one=%s", default_baby_dir_path.Data()));
-            wwwanalysis.babydir = default_baby_dir_path;
-        }
-        else
-        {
-            wwwanalysis.babydir = options["babydir"].as<std::string>() + "/";
-        }
-
         // Sanity check on the options provided.
-        if (!options.count("dataset") && !options.count("input"))
+        if (!result.count("dataset") && !result.count("input"))
         {
             RooUtil::error(Form("Both --dataset and --input is not set! Check your arguments! Type ./%s --help for help.", argv[0]));
         }
-        else if (options.count("dataset") && options.count("input"))
+        else if (result.count("dataset") && result.count("input"))
         {
             RooUtil::error(Form("Both --dataset and --input is set! Set only one of them! Type ./%s --help for help.", argv[0]));
         }
 
         // Set the dataset or the single input file to run over
-        if (options.count("dataset"))
-            wwwanalysis.dataset_to_run_over = options["dataset"].as<std::string>();
+        if (result.count("dataset"))
+            wwwanalysis.dataset_to_run_over = result["dataset"].as<std::string>();
 
         // Set the dataset or the single input file to run over
-        if (options.count("input"))
-            wwwanalysis.input_root_file_to_run_over = options["input"].as<std::string>();
+        if (result.count("input"))
+            wwwanalysis.input_root_file_to_run_over = result["input"].as<std::string>();
 
         // Set the output_name string
-        wwwanalysis.output_name = options["output"].as<std::string>();
+        wwwanalysis.output_name = result["output"].as<std::string>();
 
         // Set the eventlist.txt path
-        wwwanalysis.eventlist_file_path = options["eventlist"].as<std::string>();
+        wwwanalysis.eventlist_file_path = result["eventlist"].as<std::string>();
 
         // Initialize the analysis module
         wwwanalysis.init();
@@ -725,7 +713,7 @@ bool WWWAnalysis::calcStdVariables()
         if( is_duplicate(id)) return false;
     }
 
-    int lepton_version = 2;
+    int lepton_version = 3;
 
     // Get all the lepton indices
     if (lepton_version == 1)
@@ -957,6 +945,7 @@ bool WWWAnalysis::calcStdVariables()
 
     // Lepton + MET variables
     MTmax = calcMTmax(list_tight_ss_lep_idx, MET);
+    MTmax_wrong = calcMTmax(list_tight_ss_lep_idx[0], list_tight_ss_lep_idx[1], MET);
     MTmax_up = calcMTmax(list_tight_ss_lep_idx, MET_up);
     MTmax_dn = calcMTmax(list_tight_ss_lep_idx, MET_dn);
     MTmax3l = calcMTmax(list_tight_3l_lep_idx, MET, true);
@@ -1270,6 +1259,10 @@ void WWWAnalysis::checkEvent()
 {
     using namespace std;
     using namespace tas;
+    cout << "------------------------" << endl;
+    cout <<  " tas::run(): " << tas::run() <<  " tas::lumi(): " << tas::lumi() <<  " tas::evt(): " << tas::evt() << endl;
+    cout << "------------------------" << endl;
+    std::cout <<  " sample_name: " << sample_name <<  std::endl;
     cout << "nj30 " << nj30 << " nj " << nj << " nb " << nb << " Mjj " << Mjj << " MjjL " << MjjL << " Detajj " << Detajj << endl;
     for (unsigned int i = 0; i < jets_p4().size(); ++i)
     {
@@ -1278,16 +1271,19 @@ void WWWAnalysis::checkEvent()
         cout << endl;
     }
     cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << purewgt << " trig " << trigsf << " lep " << lepsf << endl;
-    cout << "nSS " << list_tight_ss_lep_idx.size();
-    cout << " n3l " << list_tight_3l_lep_idx.size();
-    cout << " naSS " << list_loose_ss_lep_idx.size();
-    cout << " na3l " << list_loose_3l_lep_idx.size();
-    cout << " nvetoaSS " << list_veto_ss_lep_idx.size();
-    cout << " nvetoa3l " << list_veto_3l_lep_idx.size();
+    cout << " nSS " << list_incl_tight_ss_lep_idx.size();
+    cout << " n3l " << list_incl_tight_3l_lep_idx.size();
+    cout << " naSS " << list_incl_loose_ss_lep_idx.size();
+    cout << " na3l " << list_incl_loose_3l_lep_idx.size();
+    cout << " nvetoaSS " << list_incl_veto_ss_lep_idx.size();
+    cout << " nvetoa3l " << list_incl_veto_3l_lep_idx.size();
     cout << " ntracks " << nisoTrack_mt2_cleaned_VVV_cutbased_veto() << endl;
     for (unsigned int i = 0; i < lep_pdgId().size(); ++i)
     {
-        cout << "lep " << lep_pdgId()[i] << " Pt " << lep_p4()[i].Pt() << " eta " << lep_p4()[i].Eta() << " ID t/l/v/trig " << lep_pass_VVV_cutbased_tight_noiso()[i] << "/" << lep_pass_VVV_cutbased_fo_noiso()[i] << "/" << lep_pass_VVV_cutbased_veto_noiso()[i] << "/" << lep_isTriggerSafe_v1()[i] << " iso " << lep_relIso03EAv2()[i] << " ip3d " << lep_ip3d()[i] << " losthits " << lep_lostHits()[i] << " t.q " << lep_tightCharge()[i];
+        cout << "lep " << lep_pdgId()[i] << " Pt " << lep_p4()[i].Pt() << " eta " << lep_p4()[i].Eta();
+        cout << " ID t/l/v/trig " << lep_pass_VVV_cutbased_tight()[i] << "/" << lep_pass_VVV_cutbased_fo()[i] << "/" << lep_pass_VVV_cutbased_veto()[i] << "/" << lep_isTriggerSafe_v1()[i];
+        cout << " ID t3/l3 " << lep_pass_VVV_cutbased_3l_tight()[i] << "/" << lep_pass_VVV_cutbased_3l_fo()[i];
+        cout << " iso " << lep_ptRatio()[i] << " ip3d " << lep_ip3d()[i] << " losthits " << lep_lostHits()[i] << " t.q " << lep_tightCharge()[i];
         for (unsigned int j = i + 1; j < lep_pdgId().size(); ++j)
         {
             cout << " M" << i << j << " " << (lep_p4()[i] + lep_p4()[j]).M();
@@ -1296,6 +1292,9 @@ void WWWAnalysis::checkEvent()
         cout << endl;
     }
     cout << "MET " << MET.Pt() << " MTmax " << MTmax << " MTmax3l " << MTmax3l << endl;
+    std::cout <<  " MTmax_wrong: " << MTmax_wrong <<  std::endl;
+    std::cout <<  " Pt3l: " << Pt3l <<  " DPhi3lMET: " << DPhi3lMET <<  " M3l: " << M3l <<  " Mll0SFOS: " << Mll0SFOS <<  " Mee0SFOS: " << Mee0SFOS <<  std::endl;
+    std::cout <<  " vetophoton3l: " << vetophoton3l <<  std::endl;
 }
 
 

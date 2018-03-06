@@ -8,13 +8,13 @@ OBJS = $(SRCS:.C=.o)
 OBJS100 = $(SRCS:.C=_100.o)
 ROOTLIBS:= $(shell root-config --libs) -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -lRooFit -lRooFitCore
 
+wwwana100: $(PACKAGES) $(OBJS100) CMS3_WWW105.o
+	g++ -o $(TARGET)100 $(OBJS100)  CMS3_WWW105.o $(ROOTLIBS) $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES)) -DUSE_CMS3_WWW100
+
 wwwana: $(PACKAGES) $(OBJS) CMS3_WWW0118.o
 	g++ -o $(TARGET) $(OBJS) CMS3_WWW0118.o $(ROOTLIBS) $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))
 
-wwwana100: $(PACKAGES) $(OBJS100) CMS3_WWW100.o
-	g++ -o $(TARGET)100 $(OBJS100)  CMS3_WWW100.o $(ROOTLIBS) $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES)) -DUSE_CMS3_WWW100
-
-all: wwwana wwwana100
+all: wwwana100 wwwana
 
 %.o : %.cc
 	g++ -Wunused-variable -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual $(shell root-config --cflags) -c $< -o $@
