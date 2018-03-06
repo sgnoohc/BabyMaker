@@ -25,7 +25,8 @@ def combexpr(exprlist):
 
 # The following string is used to define the base weights including the systematic weights.
 weight_expressions = [
-"weight*lepsf*purewgt",
+#"weight*lepsf*purewgt",
+"weight*purewgt",
 #"{\"$(variation)\"==\"lepsfup\"?(lepsf+lepsf_err)/lepsf:1}",
 #"{\"$(variation)\"==\"lepsfdn\"?(lepsf-lepsf_err)/lepsf:1}",
 #"{\"$(variation)\"==\"purewgtup\"?purewgt_up/purewgt:1}",
@@ -45,13 +46,13 @@ btagwgt = combexpr(btagwgt_expressions)
 
 # The following string is used to define the fakerate weight and trigger sf
 preselwgt_ss_expressions = [
-"trigsf",
+#"trigsf",
 "{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgtss+ffwgtss_err:{\"$(variation)\"==\"fakedn\"?ffwgtss-ffwgtss_err:ffwgtss}}:1}",
 ]
 preselwgt_ss_expression = combexpr(preselwgt_ss_expressions)
 
 preselwgt_3l_expressions = [
-"trigsf",
+#"trigsf",
 "{$(usefakeweight)?{\"$(variation)\"==\"fakeup\"?ffwgt3l+ffwgt3l_err:{\"$(variation)\"==\"fakedn\"?ffwgt3l-ffwgt3l_err:ffwgt3l}}:1}"
 ]
 preselwgt_3l_expression = combexpr(preselwgt_3l_expressions)
@@ -267,7 +268,7 @@ TLpreselwgt = preselwgt_3l_expression
 def addTL0SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt):
     cutdefs = []
     cutdefs.append([preselcut                 , preselwgt])
-    cutdefs.append(["nj30<=1"                 , ""       ])
+    cutdefs.append(["nj<=1"                   , ""       ])
     cutdefs.append(["nb==0"                   , btagwgt  ])
     cutdefs.append(["Pt3l>60."                , ""       ])
     cutdefs.append(["DPhi3lMET>2.7"           , ""       ])
@@ -280,7 +281,7 @@ def addTL0SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt):
 def addTL1SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt, invertZ=False):
     cutdefs = []
     cutdefs.append([preselcut                  , preselwgt])
-    cutdefs.append(["nj30<=1"                  , ""       ])
+    cutdefs.append(["nj<=1"                    , ""       ])
     cutdefs.append(["nb==0"                    , btagwgt  ])
     cutdefs.append(["Pt3l>60."                 , ""       ])
     cutdefs.append(["DPhi3lMET>2.5"            , ""       ])
@@ -296,7 +297,7 @@ def addTL1SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt, i
 def addTL2SFOSCuts(base, prefix, preselcut=TLpreselcut, preselwgt=TLpreselwgt, invertZ=False):
     cutdefs = []
     cutdefs.append([preselcut                   , preselwgt])
-    cutdefs.append(["nj30<=1"                   , ""       ])
+    cutdefs.append(["nj<=1"                     , ""       ])
     cutdefs.append(["nb==0"                     , btagwgt  ])
     cutdefs.append(["Pt3l>60."                  , ""       ])
     cutdefs.append(["DPhi3lMET>2.5"             , ""       ])
