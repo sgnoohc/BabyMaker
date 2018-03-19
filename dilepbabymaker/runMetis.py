@@ -6,7 +6,9 @@
 
 # NOTE: If you want to resubmit the skimming job, you need to delete $ANALYSIS_BASE/tasks and hadoop_path output path
 
-job_tag = "WWW_v1.0.5"
+#job_tag = "WWW_v1.0.8" # Added lepton scale factors
+#job_tag = "WWW_v1.0.9" # Added lepton scale factors
+job_tag = "WWW_v1.0.10" # Added trigger efficiencies
 
 ###################################################################################################################
 ###################################################################################################################
@@ -233,23 +235,26 @@ while True:
 
         # Use DIS to parse hadoop path from MINIAOD sample name
         loc = ""
-        result = dis_client.query(q=sample, typ="snt")
-        status = result["response"]["status"]
-        if status == "success":
-            payloads = result["response"]["payload"]
-            for payload in payloads:
-                #print payload
-                if not doCMS4:
-                    if payload["cms3tag"].find("CMS4") != -1: continue
-                    loc = payload["location"]
-                else:
-                    if payload["cms3tag"].find("CMS3") != -1: continue
-                    loc = payload["location"]
+        #result = dis_client.query(q=sample, typ="snt")
+        #status = result["response"]["status"]
+        #if status == "success":
+        #    payloads = result["response"]["payload"]
+        #    for payload in payloads:
+        #        #print payload
+        #        if not doCMS4:
+        #            if payload["cms3tag"].find("CMS4") != -1: continue
+        #            loc = payload["location"]
+        #        else:
+        #            if payload["cms3tag"].find("CMS3") != -1: continue
+        #            loc = payload["location"]
 
-        # If the location is empty after querying via dis, alert the user and skip
-        if loc == "":
-            print ">>> [WARNING] DIS did not find hadoop path corresponding to the sample = {}".format(sample)
-            continue
+        #print loc, sample
+        #continue
+
+        ## If the location is empty after querying via dis, alert the user and skip
+        #if loc == "":
+        #    print ">>> [WARNING] DIS did not find hadoop path corresponding to the sample = {}".format(sample)
+        #    continue
 
         # define the task
         maker_task = CondorTask(
@@ -276,7 +281,7 @@ while True:
                 files_per_output       = 100000,
                 output_dir             = maker_task.get_outputdir() + "/merged",
                 output_name            = samples[sample] + "_skim_1.root",
-                condor_submit_params   = {"sites":"UAF"},
+                condor_submit_params   = {"sites":"T2_US_UCSD"},
                 output_is_tree         = True,
                 # check_expectedevents = True,
                 tag                    = job_tag,
@@ -295,7 +300,7 @@ while True:
 
         # save some information for the dashboard
         total_summary[maker_task.get_sample().get_datasetname()] = maker_task.get_task_summary()
-        #total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
+        total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
 
         # Aggregate whether all tasks are complete
         all_tasks_complete = all_tasks_complete and maker_task.complete() and merge_task.complete()

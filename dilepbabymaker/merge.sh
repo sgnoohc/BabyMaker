@@ -57,7 +57,9 @@ out_file=${OUTPUTNAME}.root
 in_folder=${OUTPUTDIR}
 echo "Will merge $in_folder/*.root into $out_file"
 echo root -l -n -b -q mergeHadoopFiles.C\(\"${in_folder}\",\"${out_file}\"\)
-root -l -n -b -q mergeHadoopFiles.C+\(\"${in_folder}\",\"${out_file}\"\)
+#root -l -n -b -q mergeHadoopFiles.C+\(\"${in_folder}\",\"${out_file}\"\)
+hadd -f $out_file $in_folder/*.root
+
 
 ## Perform Skim
 #out_file=${skimout_folder}/skimmed_${OUTPUTNAME}.root

@@ -1,3 +1,6 @@
+#ifndef fakerate_baseline_v2_3l_c
+#define fakerate_baseline_v2_3l_c
+
 float fakerate_mu_data_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -70,3 +73,5 @@ float fakerate_el_qcd_baseline_v2_3l(float eta, float conecorrpt, int isyst=0)
     return 1;
 }
 
+
+#endif

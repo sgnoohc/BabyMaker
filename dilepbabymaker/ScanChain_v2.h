@@ -74,6 +74,7 @@
 #include "coreutil/met.h"
 #include "coreutil/track.h"
 
+
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
 // `````````````````````````````````````````````````````````````````````````````````````````````````````````````
@@ -107,7 +108,15 @@ private:
 
     TFile* ofile;
     TTree* t;
+    TTree* t_www;
+    TTree* t_prompt;
+    TTree* t_qflip;
+    TTree* t_photon;
+    TTree* t_lostlep;
+    TTree* t_fakes;
     RooUtil::TTreeX* tx;
+
+    std::string filename;
 
     bool isData;
 
@@ -118,6 +127,8 @@ public:
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1, int index = 1, bool verbose = false);
 
     void CreateOutput(int index=1);
+
+    void SaveOutput();
 
     void ConfigureGoodRunsList();
 
@@ -158,15 +169,17 @@ public:
     static bool isVetoMuonNoIso_OldVersion(int);
     static bool isVetoElectronNoIso_OldVersion(int);
 
-    // Calculator
-    static int passCount(const vector<int>& vec);
-    int nSFOS();
+    // Fill variables
     void FillJetVariables(int variation);
     void FillLeptonVariables();
     void FillSSLeptonVariables(int, int);
     void Fill3LLeptonVariables();
+    void FillEventTags();
+    void FillWeights();
 
-    tuple<bool, int, int> isSSCR();
+    // Calculator
+    static int passCount(const vector<int>& vec);
+    int nSFOS();
     float get0SFOSMll();
     float get0SFOSMee();
     float get1SFOSMll();
@@ -174,6 +187,21 @@ public:
     float get2SFOSMll1();
     float calcMTmax(LorentzVector MET, bool compareSSpairs);
     float mT(LV p4, LV met);
+
+    // Event tagging
+    void setFilename(TString);
+    TString process();
+    bool splitVH();
+    int gentype_v2();
+    bool vetophotonprocess();
+    tuple<bool, int, int> isSSCR();
+
+    // special weights
+    std::tuple<float, float> getlepFakeRateandError(bool data, int version=1);
+    std::tuple<float, float> getlepSFandError(int index, int lepton_id_version=1);
+    std::tuple<float, float> getlepSFWeightandError(int lepton_id_version=1);
+    static std::tuple<float, float> getCombinedTrigEffandError(float, float, float, float, float, float, float, float);
+    std::tuple<float, float> getTrigEffandError(int lepton_id_version=1);
 
 };
 

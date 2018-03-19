@@ -1,5 +1,575 @@
+#ifndef LeptonAndTriggerSF_h
+#define LeptonAndTriggerSF_h
+
 #include "fakerate_baseline_v2_ss.C"
 #include "fakerate_baseline_v2_3l.C"
+
+float trigeff_dimu_dz(float etatrail, float etalead, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 0.8) return 0.958495616913 + isyst * 0.00546260719797;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 1.25) return 0.958122730255 + isyst * 0.00546046056872;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 1.25) return 0.958429932594 + isyst * 0.0176314346933;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 1.6) return 0.947062015533 + isyst * 0.00645058084178;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 1.6) return 0.946415901184 + isyst * 0.0147614055914;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 1.6) return 0.931489229202 + isyst * 0.0240560712592;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 1.6) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 1.6) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 2.1) return 0.948736727238 + isyst * 0.00683121074294;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 2.1) return 0.954986155033 + isyst * 0.0146794964116;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 2.1) return 0.934047341347 + isyst * 0.0159555285106;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 2.1) return 0.943475961685 + isyst * 0.0220071955461;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 2.1) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8) return 0.946924805641 + isyst * 0.0102463712706;
+    if (fabs(etatrail) < 1.25) return 0.952153086662 + isyst * 0.0228724522651;
+    if (fabs(etatrail) < 1.6) return 0.94414126873 + isyst * 0.0242746719209;
+    if (fabs(etatrail) < 2.1) return 0.944147527218 + isyst * 0.0221479045306;
+    if (fabs(etatrail) < 2.4) return 0.948979616165 + isyst * 0.0434429235866;
+    printf("WARNING in trigeff_dimu_dz(): the given phase-space (%f, %f) did not fall under any range!\n", etatrail, etalead);
+    return 1;
+}
+
+float trigeff_diel_dz(float etatrail, float etalead, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 0.8) return 0.992154300213 + isyst * 0.00203163606519;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 1.25) return 0.993901968002 + isyst * 0.00212507876017;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 1.25) return 0.995324671268 + isyst * 0.00681363620605;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 1.25) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 1.6) return 0.990763425827 + isyst * 0.00325640447262;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 1.6) return 0.990844190121 + isyst * 0.00714279079965;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 1.6) return 0.988755106926 + isyst * 0.0149449686468;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 1.6) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 1.6) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8 && fabs(etalead) < 2.1) return 0.989297926426 + isyst * 0.00332681036547;
+    if (fabs(etatrail) < 1.25 && fabs(etalead) < 2.1) return 0.988601565361 + isyst * 0.00625359984571;
+    if (fabs(etatrail) < 1.6 && fabs(etalead) < 2.1) return 0.986697733402 + isyst * 0.00879642239202;
+    if (fabs(etatrail) < 2.1 && fabs(etalead) < 2.1) return 0.985203206539 + isyst * 0.0107807543243;
+    if (fabs(etatrail) < 2.4 && fabs(etalead) < 2.1) return 0.0 + isyst * 0.0;
+    if (fabs(etatrail) < 0.8) return 0.986127853394 + isyst * 0.00767700752112;
+    if (fabs(etatrail) < 1.25) return 0.988208055496 + isyst * 0.0203401438854;
+    if (fabs(etatrail) < 1.6) return 0.988068580627 + isyst * 0.0270632436227;
+    if (fabs(etatrail) < 2.1) return 0.98489266634 + isyst * 0.0227624791057;
+    if (fabs(etatrail) < 2.4) return 0.982456147671 + isyst * 0.106723565089;
+    printf("WARNING in trigeff_diel_dz(): the given phase-space (%f, %f) did not fall under any range!\n", etatrail, etalead);
+    return 1;
+}
+
+float trigeff_emu_dz(float etamuon, float etaelec, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(etamuon) < 0.8 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0148988450118;
+    if (fabs(etamuon) < 1.25 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0224563228222;
+    if (fabs(etamuon) < 1.6 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0299812675598;
+    if (fabs(etamuon) < 2.1 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0367855946389;
+    if (fabs(etamuon) < 2.4 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0632455532034;
+    if (fabs(etamuon) < 0.8 && fabs(etaelec) < 1.25) return 1.0 + isyst * 0.0219053977169;
+    if (fabs(etamuon) < 1.25 && fabs(etaelec) < 1.25) return 1.0 + isyst * 0.0341792963512;
+    if (fabs(etamuon) < 1.6 && fabs(etaelec) < 1.25) return 1.0 + isyst * 0.0422200330921;
+    if (fabs(etamuon) < 2.1 && fabs(etaelec) < 1.25) return 1.0 + isyst * 0.0508986598559;
+    if (fabs(etamuon) < 2.4 && fabs(etaelec) < 1.25) return 1.0 + isyst * 0.084818892968;
+    if (fabs(etamuon) < 0.8 && fabs(etaelec) < 1.6) return 1.0 + isyst * 0.0326250816902;
+    if (fabs(etamuon) < 1.25 && fabs(etaelec) < 1.6) return 1.0 + isyst * 0.0467780269725;
+    if (fabs(etamuon) < 1.6 && fabs(etaelec) < 1.6) return 1.0 + isyst * 0.0625;
+    if (fabs(etamuon) < 2.1 && fabs(etaelec) < 1.6) return 1.0 + isyst * 0.0707106781187;
+    if (fabs(etamuon) < 2.4 && fabs(etaelec) < 1.6) return 1.0 + isyst * 0.125491161028;
+    if (fabs(etamuon) < 0.8 && fabs(etaelec) < 2.1) return 1.0 + isyst * 0.0327824804786;
+    if (fabs(etamuon) < 1.25 && fabs(etaelec) < 2.1) return 1.0 + isyst * 0.0485071250073;
+    if (fabs(etamuon) < 1.6 && fabs(etaelec) < 2.1) return 1.0 + isyst * 0.0597081434027;
+    if (fabs(etamuon) < 2.1 && fabs(etaelec) < 2.1) return 1.0 + isyst * 0.0658664921939;
+    if (fabs(etamuon) < 2.4 && fabs(etaelec) < 2.1) return 1.0 + isyst * 0.108465228909;
+    if (fabs(etamuon) < 0.8) return 1.0 + isyst * 0.105117666246;
+    if (fabs(etamuon) < 1.25) return 1.0 + isyst * 0.162221421131;
+    if (fabs(etamuon) < 1.6) return 1.0 + isyst * 0.178174161275;
+    if (fabs(etamuon) < 2.1) return 1.0 + isyst * 0.215665546407;
+    if (fabs(etamuon) < 2.4) return 1.0 + isyst * 0.408248290464;
+    printf("WARNING in trigeff_emu_dz(): the given phase-space (%f, %f) did not fall under any range!\n", etamuon, etaelec);
+    return 1;
+}
+
+float trigeff_mu_lead(float eta, float pt, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.1 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.4 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 0.8 && (pt) < 20.0) return 0.485289096832 + isyst * 0.00217619814201;
+    if (fabs(eta) < 1.25 && (pt) < 20.0) return 0.442688703537 + isyst * 0.00286556291153;
+    if (fabs(eta) < 1.6 && (pt) < 20.0) return 0.432150036097 + isyst * 0.00320639407397;
+    if (fabs(eta) < 2.1 && (pt) < 20.0) return 0.382266998291 + isyst * 0.00292072228902;
+    if (fabs(eta) < 2.4 && (pt) < 20.0) return 0.328791469336 + isyst * 0.00390191679523;
+    if (fabs(eta) < 0.8 && (pt) < 25.0) return 0.923819541931 + isyst * 0.00257577554411;
+    if (fabs(eta) < 1.25 && (pt) < 25.0) return 0.928004562855 + isyst * 0.00395023657835;
+    if (fabs(eta) < 1.6 && (pt) < 25.0) return 0.962020993233 + isyst * 0.00487367049199;
+    if (fabs(eta) < 2.1 && (pt) < 25.0) return 0.916795015335 + isyst * 0.00487240686941;
+    if (fabs(eta) < 2.4 && (pt) < 25.0) return 0.821739792824 + isyst * 0.00662717857136;
+    if (fabs(eta) < 0.8 && (pt) < 30.0) return 0.925402164459 + isyst * 0.00174825335843;
+    if (fabs(eta) < 1.25 && (pt) < 30.0) return 0.930361151695 + isyst * 0.00274203158045;
+    if (fabs(eta) < 1.6 && (pt) < 30.0) return 0.964953124523 + isyst * 0.00346462035417;
+    if (fabs(eta) < 2.1 && (pt) < 30.0) return 0.925271034241 + isyst * 0.00350501941534;
+    if (fabs(eta) < 2.4 && (pt) < 30.0) return 0.853314638138 + isyst * 0.00477973668153;
+    if (fabs(eta) < 0.8 && (pt) < 35.0) return 0.926691830158 + isyst * 0.0012517373;
+    if (fabs(eta) < 1.25 && (pt) < 35.0) return 0.930585741997 + isyst * 0.00195093174202;
+    if (fabs(eta) < 1.6 && (pt) < 35.0) return 0.965024650097 + isyst * 0.00255296891033;
+    if (fabs(eta) < 2.1 && (pt) < 35.0) return 0.927997112274 + isyst * 0.00257300858657;
+    if (fabs(eta) < 2.4 && (pt) < 35.0) return 0.872729957104 + isyst * 0.00355997246416;
+    if (fabs(eta) < 0.8 && (pt) < 40.0) return 0.92677205801 + isyst * 0.000999646687114;
+    if (fabs(eta) < 1.25 && (pt) < 40.0) return 0.93065148592 + isyst * 0.00148070164706;
+    if (fabs(eta) < 1.6 && (pt) < 40.0) return 0.963970661163 + isyst * 0.00197602971094;
+    if (fabs(eta) < 2.1 && (pt) < 40.0) return 0.929808735847 + isyst * 0.00203236888152;
+    if (fabs(eta) < 2.4 && (pt) < 40.0) return 0.884106934071 + isyst * 0.00292662165442;
+    if (fabs(eta) < 0.8 && (pt) < 50.0) return 0.925964653492 + isyst * 0.000687396907038;
+    if (fabs(eta) < 1.25 && (pt) < 50.0) return 0.931133925915 + isyst * 0.000969411929169;
+    if (fabs(eta) < 1.6 && (pt) < 50.0) return 0.959052085876 + isyst * 0.00123406162104;
+    if (fabs(eta) < 2.1 && (pt) < 50.0) return 0.930562853813 + isyst * 0.00128939078806;
+    if (fabs(eta) < 2.4 && (pt) < 50.0) return 0.894406437874 + isyst * 0.00207138069792;
+    if (fabs(eta) < 0.8 && (pt) < 70.0) return 0.924016833305 + isyst * 0.00122157806112;
+    if (fabs(eta) < 1.25 && (pt) < 70.0) return 0.930401027203 + isyst * 0.00170846691762;
+    if (fabs(eta) < 1.6 && (pt) < 70.0) return 0.945301949978 + isyst * 0.00213169493654;
+    if (fabs(eta) < 2.1 && (pt) < 70.0) return 0.93123704195 + isyst * 0.00220691347254;
+    if (fabs(eta) < 2.4 && (pt) < 70.0) return 0.899564743042 + isyst * 0.00354156911912;
+    if (fabs(eta) < 0.8 && (pt) < 100.0) return 0.919343531132 + isyst * 0.00333540537524;
+    if (fabs(eta) < 1.25 && (pt) < 100.0) return 0.928387224674 + isyst * 0.0047459653979;
+    if (fabs(eta) < 1.6 && (pt) < 100.0) return 0.899892091751 + isyst * 0.00579193484437;
+    if (fabs(eta) < 2.1 && (pt) < 100.0) return 0.924907147884 + isyst * 0.00607713544489;
+    if (fabs(eta) < 2.4 && (pt) < 100.0) return 0.90477001667 + isyst * 0.00989260560718;
+    if (fabs(eta) < 0.8 && (pt) < 200.0) return 0.914235055447 + isyst * 0.00559716791167;
+    if (fabs(eta) < 1.25 && (pt) < 200.0) return 0.922193586826 + isyst * 0.00796320023675;
+    if (fabs(eta) < 1.6 && (pt) < 200.0) return 0.833148777485 + isyst * 0.00943439712422;
+    if (fabs(eta) < 2.1 && (pt) < 200.0) return 0.89550948143 + isyst * 0.0102324535902;
+    if (fabs(eta) < 2.4 && (pt) < 200.0) return 0.881266474724 + isyst * 0.018343723994;
+    if (fabs(eta) < 0.8 && (pt) < 300.0) return 0.894565224648 + isyst * 0.019194723831;
+    if (fabs(eta) < 1.25 && (pt) < 300.0) return 0.915387988091 + isyst * 0.0277247948717;
+    if (fabs(eta) < 1.6 && (pt) < 300.0) return 0.792071819305 + isyst * 0.0325832406518;
+    if (fabs(eta) < 2.1 && (pt) < 300.0) return 0.816182911396 + isyst * 0.0361071590549;
+    if (fabs(eta) < 2.4 && (pt) < 300.0) return 0.804444432259 + isyst * 0.0803208927751;
+    if (fabs(eta) < 0.8) return 0.897703528404 + isyst * 0.0421694465755;
+    if (fabs(eta) < 1.25) return 0.895491778851 + isyst * 0.0589768878915;
+    if (fabs(eta) < 1.6) return 0.780821919441 + isyst * 0.0690072654786;
+    if (fabs(eta) < 2.1) return 0.764367818832 + isyst * 0.0880381962027;
+    if (fabs(eta) < 2.4) return 0.833333313465 + isyst * 0.252304196175;
+    printf("WARNING in trigeff_mu_lead(): the given phase-space (%f, %f) did not fall under any range!\n", eta, pt);
+    return 1;
+}
+
+float trigeff_mu_trail(float eta, float pt, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.1 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.4 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 0.8 && (pt) < 20.0) return 0.920952677727 + isyst * 0.0034093349455;
+    if (fabs(eta) < 1.25 && (pt) < 20.0) return 0.947876632214 + isyst * 0.0048722664975;
+    if (fabs(eta) < 1.6 && (pt) < 20.0) return 0.974800229073 + isyst * 0.00565489783158;
+    if (fabs(eta) < 2.1 && (pt) < 20.0) return 0.939942836761 + isyst * 0.00542570385713;
+    if (fabs(eta) < 2.4 && (pt) < 20.0) return 0.932220518589 + isyst * 0.00792276896744;
+    if (fabs(eta) < 0.8 && (pt) < 25.0) return 0.934387803078 + isyst * 0.00259757226009;
+    if (fabs(eta) < 1.25 && (pt) < 25.0) return 0.954212427139 + isyst * 0.00403276077213;
+    if (fabs(eta) < 1.6 && (pt) < 25.0) return 0.982256352901 + isyst * 0.00494999071162;
+    if (fabs(eta) < 2.1 && (pt) < 25.0) return 0.946583449841 + isyst * 0.00498925336209;
+    if (fabs(eta) < 2.4 && (pt) < 25.0) return 0.942261993885 + isyst * 0.00732753823596;
+    if (fabs(eta) < 0.8 && (pt) < 30.0) return 0.935320436954 + isyst * 0.00176211818029;
+    if (fabs(eta) < 1.25 && (pt) < 30.0) return 0.954345822334 + isyst * 0.00279435112274;
+    if (fabs(eta) < 1.6 && (pt) < 30.0) return 0.982160031796 + isyst * 0.00351064508737;
+    if (fabs(eta) < 2.1 && (pt) < 30.0) return 0.947456598282 + isyst * 0.00356716807749;
+    if (fabs(eta) < 2.4 && (pt) < 30.0) return 0.944064855576 + isyst * 0.00514909700966;
+    if (fabs(eta) < 0.8 && (pt) < 35.0) return 0.936251997948 + isyst * 0.00126129513922;
+    if (fabs(eta) < 1.25 && (pt) < 35.0) return 0.953760504723 + isyst * 0.00198689391209;
+    if (fabs(eta) < 1.6 && (pt) < 35.0) return 0.981917738914 + isyst * 0.00258626292823;
+    if (fabs(eta) < 2.1 && (pt) < 35.0) return 0.946613013744 + isyst * 0.00261120384268;
+    if (fabs(eta) < 2.4 && (pt) < 35.0) return 0.947488427162 + isyst * 0.00378262695704;
+    if (fabs(eta) < 0.8 && (pt) < 40.0) return 0.936363339424 + isyst * 0.00100730389182;
+    if (fabs(eta) < 1.25 && (pt) < 40.0) return 0.953175842762 + isyst * 0.00150722907887;
+    if (fabs(eta) < 1.6 && (pt) < 40.0) return 0.982085347176 + isyst * 0.00200368689638;
+    if (fabs(eta) < 2.1 && (pt) < 40.0) return 0.94696521759 + isyst * 0.00206013036206;
+    if (fabs(eta) < 2.4 && (pt) < 40.0) return 0.948359966278 + isyst * 0.00308235478177;
+    if (fabs(eta) < 0.8 && (pt) < 50.0) return 0.935382962227 + isyst * 0.000692571181002;
+    if (fabs(eta) < 1.25 && (pt) < 50.0) return 0.953191936016 + isyst * 0.000986412869397;
+    if (fabs(eta) < 1.6 && (pt) < 50.0) return 0.98130685091 + isyst * 0.00125536795772;
+    if (fabs(eta) < 2.1 && (pt) < 50.0) return 0.945464909077 + isyst * 0.00130468041521;
+    if (fabs(eta) < 2.4 && (pt) < 50.0) return 0.949369609356 + isyst * 0.0021648142322;
+    if (fabs(eta) < 0.8 && (pt) < 70.0) return 0.933903753757 + isyst * 0.00123124745683;
+    if (fabs(eta) < 1.25 && (pt) < 70.0) return 0.95255190134 + isyst * 0.00173857463051;
+    if (fabs(eta) < 1.6 && (pt) < 70.0) return 0.981103420258 + isyst * 0.00219157954421;
+    if (fabs(eta) < 2.1 && (pt) < 70.0) return 0.945890903473 + isyst * 0.00223263209912;
+    if (fabs(eta) < 2.4 && (pt) < 70.0) return 0.946820616722 + isyst * 0.00367831810352;
+    if (fabs(eta) < 0.8 && (pt) < 100.0) return 0.930257022381 + isyst * 0.00336466945025;
+    if (fabs(eta) < 1.25 && (pt) < 100.0) return 0.951008379459 + isyst * 0.00483152930378;
+    if (fabs(eta) < 1.6 && (pt) < 100.0) return 0.975963890553 + isyst * 0.00615134895603;
+    if (fabs(eta) < 2.1 && (pt) < 100.0) return 0.940444350243 + isyst * 0.00615264827311;
+    if (fabs(eta) < 2.4 && (pt) < 100.0) return 0.943725168705 + isyst * 0.0102061163659;
+    if (fabs(eta) < 0.8 && (pt) < 200.0) return 0.927840054035 + isyst * 0.00565866274554;
+    if (fabs(eta) < 1.25 && (pt) < 200.0) return 0.947699785233 + isyst * 0.0081259551571;
+    if (fabs(eta) < 1.6 && (pt) < 200.0) return 0.95267790556 + isyst * 0.0104121966551;
+    if (fabs(eta) < 2.1 && (pt) < 200.0) return 0.915432989597 + isyst * 0.0103998834342;
+    if (fabs(eta) < 2.4 && (pt) < 200.0) return 0.921656191349 + isyst * 0.01895968127;
+    if (fabs(eta) < 0.8 && (pt) < 300.0) return 0.910869538784 + isyst * 0.0194520197345;
+    if (fabs(eta) < 1.25 && (pt) < 300.0) return 0.946953117847 + isyst * 0.0284301619911;
+    if (fabs(eta) < 1.6 && (pt) < 300.0) return 0.914734482765 + isyst * 0.036193959849;
+    if (fabs(eta) < 2.1 && (pt) < 300.0) return 0.855760753155 + isyst * 0.0373729130747;
+    if (fabs(eta) < 2.4 && (pt) < 300.0) return 0.866666674614 + isyst * 0.0847945956815;
+    if (fabs(eta) < 0.8) return 0.915448844433 + isyst * 0.0427828357578;
+    if (fabs(eta) < 1.25) return 0.926229536533 + isyst * 0.0604649100592;
+    if (fabs(eta) < 1.6) return 0.890410959721 + isyst * 0.0759244991468;
+    if (fabs(eta) < 2.1) return 0.781609177589 + isyst * 0.0894594922053;
+    if (fabs(eta) < 2.4) return 0.916666686535 + isyst * 0.270566107483;
+    printf("WARNING in trigeff_mu_trail(): the given phase-space (%f, %f) did not fall under any range!\n", eta, pt);
+    return 1;
+}
+
+float trigeff_el_lead(float eta, float pt, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.1 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.4 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 0.8 && (pt) < 20.0) return 0.000498351582792 + isyst * 9.77591410645e-05;
+    if (fabs(eta) < 1.25 && (pt) < 20.0) return 0.000817813444883 + isyst * 0.000174429698169;
+    if (fabs(eta) < 1.6 && (pt) < 20.0) return 0.00960683170706 + isyst * 0.000928847543939;
+    if (fabs(eta) < 2.1 && (pt) < 20.0) return 0.000702881836332 + isyst * 0.000265757703883;
+    if (fabs(eta) < 2.4 && (pt) < 20.0) return 0.000397456286009 + isyst * 0.00039753525771;
+    if (fabs(eta) < 0.8 && (pt) < 25.0) return 0.467286527157 + isyst * 0.00241510456174;
+    if (fabs(eta) < 1.25 && (pt) < 25.0) return 0.419471412897 + isyst * 0.00335631913246;
+    if (fabs(eta) < 1.6 && (pt) < 25.0) return 0.405463665724 + isyst * 0.00516747514884;
+    if (fabs(eta) < 2.1 && (pt) < 25.0) return 0.448543071747 + isyst * 0.00587240240429;
+    if (fabs(eta) < 2.4 && (pt) < 25.0) return 0.267077684402 + isyst * 0.00913534578149;
+    if (fabs(eta) < 0.8 && (pt) < 30.0) return 0.937598764896 + isyst * 0.00259272692697;
+    if (fabs(eta) < 1.25 && (pt) < 30.0) return 0.951536655426 + isyst * 0.00404617646382;
+    if (fabs(eta) < 1.6 && (pt) < 30.0) return 0.956267118454 + isyst * 0.00645411941432;
+    if (fabs(eta) < 2.1 && (pt) < 30.0) return 0.970133125782 + isyst * 0.00700898559933;
+    if (fabs(eta) < 2.4 && (pt) < 30.0) return 0.897065758705 + isyst * 0.0141897125284;
+    if (fabs(eta) < 0.8 && (pt) < 35.0) return 0.949110031128 + isyst * 0.00180451711962;
+    if (fabs(eta) < 1.25 && (pt) < 35.0) return 0.963108778 + isyst * 0.00292329819428;
+    if (fabs(eta) < 1.6 && (pt) < 35.0) return 0.968120276928 + isyst * 0.00477060305206;
+    if (fabs(eta) < 2.1 && (pt) < 35.0) return 0.975660085678 + isyst * 0.00509831159628;
+    if (fabs(eta) < 2.4 && (pt) < 35.0) return 0.948072373867 + isyst * 0.0105725279428;
+    if (fabs(eta) < 0.8 && (pt) < 40.0) return 0.959196925163 + isyst * 0.00139179074846;
+    if (fabs(eta) < 1.25 && (pt) < 40.0) return 0.968025922775 + isyst * 0.00224937868662;
+    if (fabs(eta) < 1.6 && (pt) < 40.0) return 0.971206903458 + isyst * 0.00372249359467;
+    if (fabs(eta) < 2.1 && (pt) < 40.0) return 0.978650867939 + isyst * 0.00398827777346;
+    if (fabs(eta) < 2.4 && (pt) < 40.0) return 0.960192859173 + isyst * 0.00852058192282;
+    if (fabs(eta) < 0.8 && (pt) < 50.0) return 0.962568759918 + isyst * 0.000927823528439;
+    if (fabs(eta) < 1.25 && (pt) < 50.0) return 0.970576584339 + isyst * 0.00145078072605;
+    if (fabs(eta) < 1.6 && (pt) < 50.0) return 0.973040103912 + isyst * 0.0024068292189;
+    if (fabs(eta) < 2.1 && (pt) < 50.0) return 0.980077683926 + isyst * 0.00272619100454;
+    if (fabs(eta) < 2.4 && (pt) < 50.0) return 0.965013444424 + isyst * 0.00613965346778;
+    if (fabs(eta) < 0.8 && (pt) < 70.0) return 0.965936183929 + isyst * 0.00165980347205;
+    if (fabs(eta) < 1.25 && (pt) < 70.0) return 0.97201359272 + isyst * 0.00257142441851;
+    if (fabs(eta) < 1.6 && (pt) < 70.0) return 0.974364995956 + isyst * 0.00417665070298;
+    if (fabs(eta) < 2.1 && (pt) < 70.0) return 0.98047554493 + isyst * 0.00473081370246;
+    if (fabs(eta) < 2.4 && (pt) < 70.0) return 0.968735396862 + isyst * 0.0105571300454;
+    if (fabs(eta) < 0.8 && (pt) < 100.0) return 0.969938099384 + isyst * 0.0044036627819;
+    if (fabs(eta) < 1.25 && (pt) < 100.0) return 0.975994884968 + isyst * 0.00688721550919;
+    if (fabs(eta) < 1.6 && (pt) < 100.0) return 0.973707675934 + isyst * 0.0110610221474;
+    if (fabs(eta) < 2.1 && (pt) < 100.0) return 0.981661677361 + isyst * 0.0116687716932;
+    if (fabs(eta) < 2.4 && (pt) < 100.0) return 0.971915721893 + isyst * 0.02531338826;
+    if (fabs(eta) < 0.8 && (pt) < 200.0) return 0.969920158386 + isyst * 0.00716663026926;
+    if (fabs(eta) < 1.25 && (pt) < 200.0) return 0.979286432266 + isyst * 0.0115877950809;
+    if (fabs(eta) < 1.6 && (pt) < 200.0) return 0.97321587801 + isyst * 0.0183953880798;
+    if (fabs(eta) < 2.1 && (pt) < 200.0) return 0.987339615822 + isyst * 0.0181995985321;
+    if (fabs(eta) < 2.4 && (pt) < 200.0) return 0.975920677185 + isyst * 0.0369551241269;
+    if (fabs(eta) < 0.8 && (pt) < 300.0) return 0.963103115559 + isyst * 0.0244179854831;
+    if (fabs(eta) < 1.25 && (pt) < 300.0) return 0.980341851711 + isyst * 0.0407348323478;
+    if (fabs(eta) < 1.6 && (pt) < 300.0) return 0.982683956623 + isyst * 0.0649400621504;
+    if (fabs(eta) < 2.1 && (pt) < 300.0) return 0.989495813847 + isyst * 0.0643094823766;
+    if (fabs(eta) < 2.4 && (pt) < 300.0) return 0.985507249832 + isyst * 0.168399618706;
+    if (fabs(eta) < 0.8) return 0.969696998596 + isyst * 0.0537954766423;
+    if (fabs(eta) < 1.25) return 0.995433807373 + isyst * 0.0952363610997;
+    if (fabs(eta) < 1.6) return 0.984615385532 + isyst * 0.173386311244;
+    if (fabs(eta) < 2.1) return 1.0 + isyst * 0.16552117772;
+    if (fabs(eta) < 2.4) return 1.0 + isyst * 0.57735026919;
+    printf("WARNING in trigeff_el_lead(): the given phase-space (%f, %f) did not fall under any range!\n", eta, pt);
+    return 1;
+}
+
+float trigeff_el_trail(float eta, float pt, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.1 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.4 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 0.8 && (pt) < 20.0) return 0.885743319988 + isyst * 0.005658176435;
+    if (fabs(eta) < 1.25 && (pt) < 20.0) return 0.881825983524 + isyst * 0.00785410952808;
+    if (fabs(eta) < 1.6 && (pt) < 20.0) return 0.871997892857 + isyst * 0.0120500429515;
+    if (fabs(eta) < 2.1 && (pt) < 20.0) return 0.823978304863 + isyst * 0.0122845671572;
+    if (fabs(eta) < 2.4 && (pt) < 20.0) return 0.647058844566 + isyst * 0.0205812201646;
+    if (fabs(eta) < 0.8 && (pt) < 25.0) return 0.933126926422 + isyst * 0.00391730486697;
+    if (fabs(eta) < 1.25 && (pt) < 25.0) return 0.948862016201 + isyst * 0.00591481034768;
+    if (fabs(eta) < 1.6 && (pt) < 25.0) return 0.953001260757 + isyst * 0.00933879018087;
+    if (fabs(eta) < 2.1 && (pt) < 25.0) return 0.965341567993 + isyst * 0.0100347727148;
+    if (fabs(eta) < 2.4 && (pt) < 25.0) return 0.839210867882 + isyst * 0.0195099374148;
+    if (fabs(eta) < 0.8 && (pt) < 30.0) return 0.938782811165 + isyst * 0.00259515617398;
+    if (fabs(eta) < 1.25 && (pt) < 30.0) return 0.955618619919 + isyst * 0.00405908440555;
+    if (fabs(eta) < 1.6 && (pt) < 30.0) return 0.963593065739 + isyst * 0.00649091434542;
+    if (fabs(eta) < 2.1 && (pt) < 30.0) return 0.974039971828 + isyst * 0.00703004454684;
+    if (fabs(eta) < 2.4 && (pt) < 30.0) return 0.909962117672 + isyst * 0.0143398396985;
+    if (fabs(eta) < 0.8 && (pt) < 35.0) return 0.949124097824 + isyst * 0.0018045370249;
+    if (fabs(eta) < 1.25 && (pt) < 35.0) return 0.963153958321 + isyst * 0.00292340044249;
+    if (fabs(eta) < 1.6 && (pt) < 35.0) return 0.968454778194 + isyst * 0.00477183238945;
+    if (fabs(eta) < 2.1 && (pt) < 35.0) return 0.975835382938 + isyst * 0.00509899579765;
+    if (fabs(eta) < 2.4 && (pt) < 35.0) return 0.948253929615 + isyst * 0.0105740329937;
+    if (fabs(eta) < 0.8 && (pt) < 40.0) return 0.959200024605 + isyst * 0.00139179409029;
+    if (fabs(eta) < 1.25 && (pt) < 40.0) return 0.968031227589 + isyst * 0.00224938789357;
+    if (fabs(eta) < 1.6 && (pt) < 40.0) return 0.971272051334 + isyst * 0.00372267994448;
+    if (fabs(eta) < 2.1 && (pt) < 40.0) return 0.978733003139 + isyst * 0.00398852793835;
+    if (fabs(eta) < 2.4 && (pt) < 40.0) return 0.960308611393 + isyst * 0.00852134685407;
+    if (fabs(eta) < 0.8 && (pt) < 50.0) return 0.962569653988 + isyst * 0.00092782418312;
+    if (fabs(eta) < 1.25 && (pt) < 50.0) return 0.970577657223 + isyst * 0.00145078195362;
+    if (fabs(eta) < 1.6 && (pt) < 50.0) return 0.973040103912 + isyst * 0.0024068292189;
+    if (fabs(eta) < 2.1 && (pt) < 50.0) return 0.980093002319 + isyst * 0.00272622285588;
+    if (fabs(eta) < 2.4 && (pt) < 50.0) return 0.965112805367 + isyst * 0.00614012492631;
+    if (fabs(eta) < 0.8 && (pt) < 70.0) return 0.965936183929 + isyst * 0.00165980347205;
+    if (fabs(eta) < 1.25 && (pt) < 70.0) return 0.972020506859 + isyst * 0.00257143804231;
+    if (fabs(eta) < 1.6 && (pt) < 70.0) return 0.974364995956 + isyst * 0.00417665070298;
+    if (fabs(eta) < 2.1 && (pt) < 70.0) return 0.980487048626 + isyst * 0.004730855274;
+    if (fabs(eta) < 2.4 && (pt) < 70.0) return 0.968793809414 + isyst * 0.0105576051563;
+    if (fabs(eta) < 0.8 && (pt) < 100.0) return 0.969938099384 + isyst * 0.0044036627819;
+    if (fabs(eta) < 1.25 && (pt) < 100.0) return 0.975994884968 + isyst * 0.00688721550919;
+    if (fabs(eta) < 1.6 && (pt) < 100.0) return 0.973707675934 + isyst * 0.0110610221474;
+    if (fabs(eta) < 2.1 && (pt) < 100.0) return 0.981661677361 + isyst * 0.0116687716932;
+    if (fabs(eta) < 2.4 && (pt) < 100.0) return 0.971915721893 + isyst * 0.02531338826;
+    if (fabs(eta) < 0.8 && (pt) < 200.0) return 0.969920158386 + isyst * 0.00716663026926;
+    if (fabs(eta) < 1.25 && (pt) < 200.0) return 0.979286432266 + isyst * 0.0115877950809;
+    if (fabs(eta) < 1.6 && (pt) < 200.0) return 0.97321587801 + isyst * 0.0183953880798;
+    if (fabs(eta) < 2.1 && (pt) < 200.0) return 0.987339615822 + isyst * 0.0181995985321;
+    if (fabs(eta) < 2.4 && (pt) < 200.0) return 0.975920677185 + isyst * 0.0369551241269;
+    if (fabs(eta) < 0.8 && (pt) < 300.0) return 0.963103115559 + isyst * 0.0244179854831;
+    if (fabs(eta) < 1.25 && (pt) < 300.0) return 0.980341851711 + isyst * 0.0407348323478;
+    if (fabs(eta) < 1.6 && (pt) < 300.0) return 0.982683956623 + isyst * 0.0649400621504;
+    if (fabs(eta) < 2.1 && (pt) < 300.0) return 0.989495813847 + isyst * 0.0643094823766;
+    if (fabs(eta) < 2.4 && (pt) < 300.0) return 0.985507249832 + isyst * 0.168399618706;
+    if (fabs(eta) < 0.8) return 0.969696998596 + isyst * 0.0537954766423;
+    if (fabs(eta) < 1.25) return 0.995433807373 + isyst * 0.0952363610997;
+    if (fabs(eta) < 1.6) return 0.984615385532 + isyst * 0.173386311244;
+    if (fabs(eta) < 2.1) return 1.0 + isyst * 0.16552117772;
+    if (fabs(eta) < 2.4) return 1.0 + isyst * 0.57735026919;
+    printf("WARNING in trigeff_el_trail(): the given phase-space (%f, %f) did not fall under any range!\n", eta, pt);
+    return 1;
+}
+
+float trigeff_mu_muon(float eta, float pt, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.1 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 2.4 && (pt) < 10.0) return 0.0 + isyst * 0.0;
+    if (fabs(eta) < 0.8 && (pt) < 20.0) return 0.0181972403079 + isyst * 0.00119526848508;
+    if (fabs(eta) < 1.25 && (pt) < 20.0) return 0.0176960453391 + isyst * 0.00176760473795;
+    if (fabs(eta) < 1.6 && (pt) < 20.0) return 0.017584098503 + isyst * 0.00213540719849;
+    if (fabs(eta) < 2.1 && (pt) < 20.0) return 0.0156885534525 + isyst * 0.00215162356892;
+    if (fabs(eta) < 2.4 && (pt) < 20.0) return 0.0140405613929 + isyst * 0.0033325439905;
+    if (fabs(eta) < 0.8 && (pt) < 25.0) return 0.377397894859 + isyst * 0.0082362595628;
+    if (fabs(eta) < 1.25 && (pt) < 25.0) return 0.366666674614 + isyst * 0.0122122975578;
+    if (fabs(eta) < 1.6 && (pt) < 25.0) return 0.363084107637 + isyst * 0.015207508362;
+    if (fabs(eta) < 2.1 && (pt) < 25.0) return 0.324675321579 + isyst * 0.0159339210893;
+    if (fabs(eta) < 2.4 && (pt) < 25.0) return 0.302649945021 + isyst * 0.0234490132231;
+    if (fabs(eta) < 0.8 && (pt) < 30.0) return 0.932249307632 + isyst * 0.0148961177474;
+    if (fabs(eta) < 1.25 && (pt) < 30.0) return 0.906476736069 + isyst * 0.0215508427316;
+    if (fabs(eta) < 1.6 && (pt) < 30.0) return 0.894642829895 + isyst * 0.0275083485621;
+    if (fabs(eta) < 2.1 && (pt) < 30.0) return 0.841351687908 + isyst * 0.0297875666758;
+    if (fabs(eta) < 2.4 && (pt) < 30.0) return 0.698412716389 + isyst * 0.0433917737013;
+    if (fabs(eta) < 0.8 && (pt) < 35.0) return 0.928998529911 + isyst * 0.0149406596043;
+    if (fabs(eta) < 1.25 && (pt) < 35.0) return 0.907245576382 + isyst * 0.0220869189574;
+    if (fabs(eta) < 1.6 && (pt) < 35.0) return 0.90794980526 + isyst * 0.0283788101143;
+    if (fabs(eta) < 2.1 && (pt) < 35.0) return 0.828695118427 + isyst * 0.0306135033025;
+    if (fabs(eta) < 2.4 && (pt) < 35.0) return 0.759999990463 + isyst * 0.045363489216;
+    if (fabs(eta) < 0.8 && (pt) < 40.0) return 0.92997610569 + isyst * 0.0154429315447;
+    if (fabs(eta) < 1.25 && (pt) < 40.0) return 0.903132259846 + isyst * 0.0223268025375;
+    if (fabs(eta) < 1.6 && (pt) < 40.0) return 0.926670014858 + isyst * 0.0299454328104;
+    if (fabs(eta) < 2.1 && (pt) < 40.0) return 0.853503167629 + isyst * 0.0317431056864;
+    if (fabs(eta) < 2.4 && (pt) < 40.0) return 0.788944721222 + isyst * 0.0486221975168;
+    if (fabs(eta) < 0.8 && (pt) < 50.0) return 0.926731348038 + isyst * 0.0116314387466;
+    if (fabs(eta) < 1.25 && (pt) < 50.0) return 0.910960018635 + isyst * 0.0169895079832;
+    if (fabs(eta) < 1.6 && (pt) < 50.0) return 0.916197955608 + isyst * 0.0222194843578;
+    if (fabs(eta) < 2.1 && (pt) < 50.0) return 0.845889210701 + isyst * 0.0231759236185;
+    if (fabs(eta) < 2.4 && (pt) < 50.0) return 0.814382910728 + isyst * 0.0378940571833;
+    if (fabs(eta) < 0.8 && (pt) < 70.0) return 0.92620575428 + isyst * 0.00960852138474;
+    if (fabs(eta) < 1.25 && (pt) < 70.0) return 0.908558964729 + isyst * 0.014104923717;
+    if (fabs(eta) < 1.6 && (pt) < 70.0) return 0.908719360828 + isyst * 0.0183733722779;
+    if (fabs(eta) < 2.1 && (pt) < 70.0) return 0.854216873646 + isyst * 0.0195362087315;
+    if (fabs(eta) < 2.4 && (pt) < 70.0) return 0.822591364384 + isyst * 0.0315622878459;
+    if (fabs(eta) < 0.8 && (pt) < 100.0) return 0.917802810669 + isyst * 0.0107670782505;
+    if (fabs(eta) < 1.25 && (pt) < 100.0) return 0.902871012688 + isyst * 0.0156652558873;
+    if (fabs(eta) < 1.6 && (pt) < 100.0) return 0.88211786747 + isyst * 0.0203629028433;
+    if (fabs(eta) < 2.1 && (pt) < 100.0) return 0.846651017666 + isyst * 0.0214313658185;
+    if (fabs(eta) < 2.4 && (pt) < 100.0) return 0.800921678543 + isyst * 0.0364609147821;
+    if (fabs(eta) < 0.8 && (pt) < 200.0) return 0.919220805168 + isyst * 0.0123589448133;
+    if (fabs(eta) < 1.25 && (pt) < 200.0) return 0.895772457123 + isyst * 0.0181888953127;
+    if (fabs(eta) < 1.6 && (pt) < 200.0) return 0.841079950333 + isyst * 0.0230047655697;
+    if (fabs(eta) < 2.1 && (pt) < 200.0) return 0.837361752987 + isyst * 0.0251055650399;
+    if (fabs(eta) < 2.4 && (pt) < 200.0) return 0.818181812763 + isyst * 0.0467037099035;
+    if (fabs(eta) < 0.8 && (pt) < 300.0) return 0.880402028561 + isyst * 0.0407900582694;
+    if (fabs(eta) < 1.25 && (pt) < 300.0) return 0.854117631912 + isyst * 0.0610426004009;
+    if (fabs(eta) < 1.6 && (pt) < 300.0) return 0.821739137173 + isyst * 0.080676334791;
+    if (fabs(eta) < 2.1 && (pt) < 300.0) return 0.87634408474 + isyst * 0.094023648453;
+    if (fabs(eta) < 2.4 && (pt) < 300.0) return 0.676470577717 + isyst * 0.182634563202;
+    if (fabs(eta) < 0.8) return 0.886363625526 + isyst * 0.0974680638906;
+    if (fabs(eta) < 1.25) return 0.85526317358 + isyst * 0.14449267998;
+    if (fabs(eta) < 1.6) return 0.741935491562 + isyst * 0.204182377845;
+    if (fabs(eta) < 2.1) return 0.925925910473 + isyst * 0.256995802403;
+    if (fabs(eta) < 2.4) return 0.0 + isyst * 0.0;
+    printf("WARNING in trigeff_mu_muon(): the given phase-space (%f, %f) did not fall under any range!\n", eta, pt);
+    return 1;
+}
+
+float lepsf_MuMediumPOG_MuTightVVV_v2(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.925597071648 + isyst * 0.00149392509654;
+    if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.935978472233 + isyst * 0.00110756404918;
+    if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.953309178352 + isyst * 0.000470867389614;
+    if ((pt) < 50.0 && fabs(eta) < 0.9) return 0.964556634426 + isyst * 0.000349571697355;
+    if ((pt) < 60.0 && fabs(eta) < 0.9) return 0.970992326736 + isyst * 0.00028242928435;
+    if ((pt) < 120.0 && fabs(eta) < 0.9) return 0.983958184719 + isyst * 0.000634456097094;
+    if ((pt) < 1200.0 && fabs(eta) < 0.9) return 0.998649656773 + isyst * 0.000961262600414;
+    if ((pt) < 25.0 && fabs(eta) < 1.2) return 0.914257586002 + isyst * 0.00337676832016;
+    if ((pt) < 30.0 && fabs(eta) < 1.2) return 0.933219134808 + isyst * 0.00232727214725;
+    if ((pt) < 40.0 && fabs(eta) < 1.2) return 0.94868272543 + isyst * 0.000980580532727;
+    if ((pt) < 50.0 && fabs(eta) < 1.2) return 0.96019166708 + isyst * 0.000677483868841;
+    if ((pt) < 60.0 && fabs(eta) < 1.2) return 0.968595445156 + isyst * 0.00113420287253;
+    if ((pt) < 120.0 && fabs(eta) < 1.2) return 0.982807934284 + isyst * 0.00124166255845;
+    if ((pt) < 1200.0 && fabs(eta) < 1.2) return 0.995942592621 + isyst * 0.00370077843517;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.92449337244 + isyst * 0.00244436980171;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.936849117279 + isyst * 0.00173741444398;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.947120904922 + isyst * 0.000809172482436;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.959933876991 + isyst * 0.000574496176315;
+    if ((pt) < 60.0 && fabs(eta) < 2.1) return 0.968874752522 + isyst * 0.000988507251817;
+    if ((pt) < 120.0 && fabs(eta) < 2.1) return 0.983020961285 + isyst * 0.00110401331352;
+    if ((pt) < 1200.0 && fabs(eta) < 2.1) return 1.00674164295 + isyst * 0.00371229386528;
+    if ((pt) < 25.0) return 0.799259185791 + isyst * 0.0041982245494;
+    if ((pt) < 30.0) return 0.823484182358 + isyst * 0.00312842585282;
+    if ((pt) < 40.0) return 0.854889392853 + isyst * 0.00157464275873;
+    if ((pt) < 50.0) return 0.879745423794 + isyst * 0.00131191233773;
+    if ((pt) < 60.0) return 0.904842376709 + isyst * 0.00230472703078;
+    if ((pt) < 120.0) return 0.931934773922 + isyst * 0.00274829269756;
+    if ((pt) < 1200.0) return 1.00346159935 + isyst * 0.0124157090494;
+    printf("WARNING in lepsf_MuMediumPOG_MuTightVVV_v2(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_MuMediumPOG_MuTightVVV3l_v2(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.94525462389 + isyst * 0.00136056937261;
+    if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.960446059704 + isyst * 0.000777744646118;
+    if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.976442217827 + isyst * 0.000304648180747;
+    if ((pt) < 50.0 && fabs(eta) < 0.9) return 0.98465770483 + isyst * 0.00020383373952;
+    if ((pt) < 60.0 && fabs(eta) < 0.9) return 0.988770961761 + isyst * 0.000344183459314;
+    if ((pt) < 120.0 && fabs(eta) < 0.9) return 0.994172751904 + isyst * 0.00040507092635;
+    if ((pt) < 1200.0 && fabs(eta) < 0.9) return 0.999082803726 + isyst * 0.00193518161167;
+    if ((pt) < 25.0 && fabs(eta) < 1.2) return 0.933608353138 + isyst * 0.00288189540584;
+    if ((pt) < 30.0 && fabs(eta) < 1.2) return 0.956573188305 + isyst * 0.00105858280735;
+    if ((pt) < 40.0 && fabs(eta) < 1.2) return 0.97286516428 + isyst * 0.000629017215926;
+    if ((pt) < 50.0 && fabs(eta) < 1.2) return 0.982085347176 + isyst * 0.000388054852022;
+    if ((pt) < 60.0 && fabs(eta) < 1.2) return 0.985915184021 + isyst * 0.000642751942934;
+    if ((pt) < 120.0 && fabs(eta) < 1.2) return 0.992436408997 + isyst * 0.000772290903332;
+    if ((pt) < 1200.0 && fabs(eta) < 1.2) return 0.999902963638 + isyst * 0.00160911104624;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.954884111881 + isyst * 0.00302796515213;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.967316865921 + isyst * 0.000639207420765;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.980427980423 + isyst * 0.0005072644198;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.990154087543 + isyst * 0.00016492350584;
+    if ((pt) < 60.0 && fabs(eta) < 2.1) return 0.995615124702 + isyst * 0.000568600610674;
+    if ((pt) < 120.0 && fabs(eta) < 2.1) return 1.00136506557 + isyst * 0.000696219628136;
+    if ((pt) < 1200.0 && fabs(eta) < 2.1) return 1.00947761536 + isyst * 0.00311826624537;
+    if ((pt) < 25.0) return 0.875713825226 + isyst * 0.00334365530581;
+    if ((pt) < 30.0) return 0.907857954502 + isyst * 0.00112338481774;
+    if ((pt) < 40.0) return 0.939255356789 + isyst * 0.00104863909459;
+    if ((pt) < 50.0) return 0.960826158524 + isyst * 0.00083715871379;
+    if ((pt) < 60.0) return 0.969234347343 + isyst * 0.00150125228949;
+    if ((pt) < 120.0) return 0.979165613651 + isyst * 0.00198287256778;
+    if ((pt) < 1200.0) return 1.00263929367 + isyst * 0.0114839491566;
+    printf("WARNING in lepsf_MuMediumPOG_MuTightVVV3l_v2(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && fabs(eta) < 1.0) return 0.954154133797 + isyst * 0.00143712383466;
+    if ((pt) < 40.0 && fabs(eta) < 1.0) return 0.967395663261 + isyst * 0.000611815232638;
+    if ((pt) < 50.0 && fabs(eta) < 1.0) return 0.972688913345 + isyst * 0.000459584202635;
+    if ((pt) < 2000.0 && fabs(eta) < 1.0) return 0.971450805664 + isyst * 0.000715516298791;
+    if ((pt) < 30.0 && fabs(eta) < 1.4442) return 0.928322196007 + isyst * 0.00285288574254;
+    if ((pt) < 40.0 && fabs(eta) < 1.4442) return 0.938621044159 + isyst * 0.00134062629996;
+    if ((pt) < 50.0 && fabs(eta) < 1.4442) return 0.947251141071 + isyst * 0.00100572949582;
+    if ((pt) < 2000.0 && fabs(eta) < 1.4442) return 0.949140846729 + isyst * 0.00149810977307;
+    if ((pt) < 30.0 && fabs(eta) < 1.56) return 0.984156966209 + isyst * 0.00979809229708;
+    if ((pt) < 40.0 && fabs(eta) < 1.56) return 0.984381318092 + isyst * 0.00554469338609;
+    if ((pt) < 50.0 && fabs(eta) < 1.56) return 0.960480153561 + isyst * 0.00209633094793;
+    if ((pt) < 2000.0 && fabs(eta) < 1.56) return 0.94547688961 + isyst * 0.00617510158806;
+    if ((pt) < 30.0 && fabs(eta) < 2.0) return 0.827958226204 + isyst * 0.00470557878145;
+    if ((pt) < 40.0 && fabs(eta) < 2.0) return 0.865741193295 + isyst * 0.00179886648022;
+    if ((pt) < 50.0 && fabs(eta) < 2.0) return 0.887886404991 + isyst * 0.00147118323875;
+    if ((pt) < 2000.0 && fabs(eta) < 2.0) return 0.903809905052 + isyst * 0.00258680521333;
+    if ((pt) < 30.0) return 0.723212182522 + isyst * 0.00406150326347;
+    if ((pt) < 40.0) return 0.763825893402 + isyst * 0.00214794247781;
+    if ((pt) < 50.0) return 0.813915252686 + isyst * 0.00202700865459;
+    if ((pt) < 2000.0) return 0.873283565044 + isyst * 0.00381863723574;
+    printf("WARNING in lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaTightPOGMVA_EGammaVVV_v2(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && fabs(eta) < 1.0) return 0.937993526459 + isyst * 0.00186250539227;
+    if ((pt) < 40.0 && fabs(eta) < 1.0) return 0.948573231697 + isyst * 0.00079991772711;
+    if ((pt) < 50.0 && fabs(eta) < 1.0) return 0.95408308506 + isyst * 0.000586800118303;
+    if ((pt) < 2000.0 && fabs(eta) < 1.0) return 0.962138712406 + isyst * 0.000857039759975;
+    if ((pt) < 30.0 && fabs(eta) < 1.4442) return 0.932696223259 + isyst * 0.00392172588756;
+    if ((pt) < 40.0 && fabs(eta) < 1.4442) return 0.937459051609 + isyst * 0.00186365028397;
+    if ((pt) < 50.0 && fabs(eta) < 1.4442) return 0.940408110619 + isyst * 0.00136372058286;
+    if ((pt) < 2000.0 && fabs(eta) < 1.4442) return 0.946673810482 + isyst * 0.00209300378748;
+    if ((pt) < 30.0 && fabs(eta) < 1.56) return 0.985139966011 + isyst * 0.0158431249836;
+    if ((pt) < 40.0 && fabs(eta) < 1.56) return 0.978415548801 + isyst * 0.00807562538375;
+    if ((pt) < 50.0 && fabs(eta) < 1.56) return 0.962861895561 + isyst * 0.00607426910695;
+    if ((pt) < 2000.0 && fabs(eta) < 1.56) return 0.94798797369 + isyst * 0.00947013122544;
+    if ((pt) < 30.0 && fabs(eta) < 2.0) return 0.804668962955 + isyst * 0.00680292264433;
+    if ((pt) < 40.0 && fabs(eta) < 2.0) return 0.824794232845 + isyst * 0.00279962950591;
+    if ((pt) < 50.0 && fabs(eta) < 2.0) return 0.840912163258 + isyst * 0.00227706613553;
+    if ((pt) < 2000.0 && fabs(eta) < 2.0) return 0.861829400063 + isyst * 0.00349987495151;
+    if ((pt) < 30.0) return 0.611690700054 + isyst * 0.00626353597885;
+    if ((pt) < 40.0) return 0.617916941643 + isyst * 0.00325818329423;
+    if ((pt) < 50.0) return 0.644828796387 + isyst * 0.00298628727302;
+    if ((pt) < 2000.0) return 0.714055359364 + isyst * 0.00508280205632;
+    printf("WARNING in lepsf_EGammaTightPOGMVA_EGammaVVV_v2(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
 
 //______________________________________________________________________________________
 float lepsf_EGammaReco(float PT, float Eta)
@@ -212,7 +782,7 @@ float lepsf_EGammaTightID_unc(float PT, float Eta)
 }
 
 //______________________________________________________________________________________
-float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta)
+float lepsf_EGammaTightPOG_EGammaVVV_v1(float PT, float Eta)
 {
     float pt  = std::min((float)1999.,PT);
     float eta = std::min((float)2.49,std::max((float)-2.49,Eta));
@@ -238,6 +808,19 @@ float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta)
     if (pt < 2000.0 && fabs(eta) < 2.5   ) return 1.00487089157;
     return 1;
 }
+
+float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta, int version=0)
+{
+    float pt  = std::min((float)1199.,PT);
+    float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if (version == 0)
+        return lepsf_EGammaTightPOG_EGammaVVV_v1(pt, eta);
+    else if (version == 1)
+        return lepsf_EGammaTightPOGMVA_EGammaVVV_v2(pt, eta);
+    else if (version == -1)
+        return lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(pt, eta);
+}
+
 
 //______________________________________________________________________________________
 float lepsf_EGammaVVV_EGammaVVVEle12(float PT, float Eta)
@@ -505,9 +1088,8 @@ float lepsf_MuMediumID_GH_unc(float PT, float Eta){
     return 0;
 }
 
-
 //______________________________________________________________________________________
-float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta)
+float lepsf_MuMediumPOG_MuTightVVV_v1(float PT, float Eta)
 {
     float pt  = std::min((float)1199.,PT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -546,8 +1128,20 @@ float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta)
     return 1;
 }
 
+float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta, int version=0)
+{
+    float pt  = std::min((float)1199.,PT);
+    float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if (version == 0)
+        return lepsf_MuMediumPOG_MuTightVVV_v1(pt, eta);
+    else if (version == 1)
+        return lepsf_MuMediumPOG_MuTightVVV_v2(pt, eta);
+    else if (version == -1)
+        return lepsf_MuMediumPOG_MuTightVVV3l_v2(pt, eta);
+}
+
 //______________________________________________________________________________________
-float lepsf_MuTightVVV_MuTightVVVMu17(float PT, float Eta)
+float lepsf_MuTightVVV_MuTightVVVMu17_v1(float PT, float Eta)
 {
     float pt  = std::min((float)1199.,PT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
@@ -584,6 +1178,55 @@ float lepsf_MuTightVVV_MuTightVVVMu17(float PT, float Eta)
     if ((pt) < 200.0  && fabs(eta) < 2.4) return 0.884702563286;
     if ((pt) < 1200.0 && fabs(eta) < 2.4) return 0.80960047245;
     return 1;
+}
+
+float lepsf_MuTightVVV_MuTightVVVMu17_v2(float PT, float Eta)
+{
+    float pt  = std::min((float)1199.,PT);
+    float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if ((pt) < 25.0   && fabs(eta) < 0.9) return 0.922722399235;
+    if ((pt) < 30.0   && fabs(eta) < 0.9) return 0.923307836056;
+    if ((pt) < 40.0   && fabs(eta) < 0.9) return 0.924030900002;
+    if ((pt) < 50.0   && fabs(eta) < 0.9) return 0.923241138458;
+    if ((pt) < 60.0   && fabs(eta) < 0.9) return 0.921180009842;
+    if ((pt) < 120.0  && fabs(eta) < 0.9) return 0.918352901936;
+    if ((pt) < 200.0  && fabs(eta) < 0.9) return 0.910844266415;
+    if ((pt) < 1200.0 && fabs(eta) < 0.9) return 0.894463002682;
+    if ((pt) < 25.0   && fabs(eta) < 1.2) return 0.942260980606;
+    if ((pt) < 30.0   && fabs(eta) < 1.2) return 0.945485949516;
+    if ((pt) < 40.0   && fabs(eta) < 1.2) return 0.946832001209;
+    if ((pt) < 50.0   && fabs(eta) < 1.2) return 0.946245908737;
+    if ((pt) < 60.0   && fabs(eta) < 1.2) return 0.945586264133;
+    if ((pt) < 120.0  && fabs(eta) < 1.2) return 0.945138394833;
+    if ((pt) < 200.0  && fabs(eta) < 1.2) return 0.933813333511;
+    if ((pt) < 1200.0 && fabs(eta) < 1.2) return 0.931742787361;
+    if ((pt) < 25.0   && fabs(eta) < 2.1) return 0.934685409069;
+    if ((pt) < 30.0   && fabs(eta) < 2.1) return 0.940949559212;
+    if ((pt) < 40.0   && fabs(eta) < 2.1) return 0.941943407059;
+    if ((pt) < 50.0   && fabs(eta) < 2.1) return 0.943855106831;
+    if ((pt) < 60.0   && fabs(eta) < 2.1) return 0.94069480896;
+    if ((pt) < 120.0  && fabs(eta) < 2.1) return 0.926266431808;
+    if ((pt) < 200.0  && fabs(eta) < 2.1) return 0.873467862606;
+    if ((pt) < 1200.0 && fabs(eta) < 2.1) return 0.823928773403;
+    if ((pt) < 25.0   && fabs(eta) < 2.4) return 0.837569534779;
+    if ((pt) < 30.0   && fabs(eta) < 2.4) return 0.866438448429;
+    if ((pt) < 40.0   && fabs(eta) < 2.4) return 0.885224223137;
+    if ((pt) < 50.0   && fabs(eta) < 2.4) return 0.898686885834;
+    if ((pt) < 60.0   && fabs(eta) < 2.4) return 0.901396632195;
+    if ((pt) < 120.0  && fabs(eta) < 2.4) return 0.906494557858;
+    if ((pt) < 200.0  && fabs(eta) < 2.4) return 0.884702563286;
+    if ((pt) < 1200.0 && fabs(eta) < 2.4) return 0.80960047245;
+    return 1;
+}
+
+float lepsf_MuTightVVV_MuTightVVVMu17(float PT, float Eta, int version=0)
+{
+    float pt  = std::min((float)1199.,PT);
+    float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if (version == 0)
+        return lepsf_MuTightVVV_MuTightVVVMu17_v1(pt, eta);
+    else if (version == 1)
+        return lepsf_MuTightVVV_MuTightVVVMu17_v2(pt, eta);
 }
 
 float lepsf_MuTightVVV_MuTightVVVMu17_unc(float PT, float Eta)
@@ -963,7 +1606,7 @@ float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
     return fakerate_baseline_v1_mu_data_unc(Eta, conecorrPT);
 }
 //______________________________________________________________________________________
-float fakerate_mu_qcd(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_mu_qcd(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -975,7 +1618,7 @@ float fakerate_mu_qcd(float Eta, float conecorrPT, bool is3l=false, int version=
     }
     return fakerate_baseline_v1_mu_qcd(Eta, conecorrPT);
 }
-float fakerate_mu_qcd_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_mu_qcd_unc(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -989,7 +1632,7 @@ float fakerate_mu_qcd_unc(float Eta, float conecorrPT, bool is3l=false, int vers
 }
 
 //______________________________________________________________________________________
-float fakerate_el_data(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_el_data(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -1001,7 +1644,7 @@ float fakerate_el_data(float Eta, float conecorrPT, bool is3l=false, int version
     }
     return fakerate_baseline_v1_el_data(Eta, conecorrPT);
 }
-float fakerate_el_data_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_el_data_unc(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -1014,7 +1657,7 @@ float fakerate_el_data_unc(float Eta, float conecorrPT, bool is3l=false, int ver
     return fakerate_baseline_v1_el_data_unc(Eta, conecorrPT);
 }
 //______________________________________________________________________________________
-float fakerate_el_qcd(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_el_qcd(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -1026,7 +1669,7 @@ float fakerate_el_qcd(float Eta, float conecorrPT, bool is3l=false, int version=
     }
     return fakerate_baseline_v1_el_qcd(Eta, conecorrPT);
 }
-float fakerate_el_qcd_unc(float Eta, float conecorrPT, bool is3l=false, int version=0)
+float fakerate_el_qcd_unc(float Eta, float conecorrPT, int version=0)
 {
     if (version == -1)
     {
@@ -1280,3 +1923,4 @@ float puWeight(int nPUVtx, int variation=0){
   }
   return 1;//should not happen
 }
+#endif
