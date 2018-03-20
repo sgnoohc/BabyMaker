@@ -114,6 +114,12 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("HLT_DoubleEl_DZ_2");
     tx->createBranch<int>("HLT_MuEG");
 
+    tx->createBranch<int>("mc_HLT_DoubleMu");
+    tx->createBranch<int>("mc_HLT_DoubleEl");
+    tx->createBranch<int>("mc_HLT_DoubleEl_DZ");
+    tx->createBranch<int>("mc_HLT_DoubleEl_DZ_2");
+    tx->createBranch<int>("mc_HLT_MuEG");
+
     tx->createBranch<vector<LorentzVector>>("lep_p4");
     tx->createBranch<vector<float>>("lep_pt");
     tx->createBranch<vector<float>>("lep_eta");
@@ -190,6 +196,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("ngenLep");
     tx->createBranch<int>("ngenLepFromTau");
 
+    tx->createBranch<int>("Flag_AllEventFilters");
     tx->createBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter");
     tx->createBranch<int>("Flag_HBHEIsoNoiseFilter");
     tx->createBranch<int>("Flag_HBHENoiseFilter");
@@ -483,6 +490,9 @@ void babyMaker_v2::FillOutput()
 
     // Fill vertex info
     FillVertexInfo();
+
+    // Fill vertex info
+    FillMETFilter();
 
     // Fill summary variables
     FillSummaryVariables();
@@ -797,6 +807,14 @@ void babyMaker_v2::FillJets()
         tx->setBranch<float>("weight_btagsf_light_DN", coreBtagSF.btagprob_light_DN / coreBtagSF.btagprob_mc);
         tx->setBranch<float>("weight_btagsf_light_UP", coreBtagSF.btagprob_light_UP / coreBtagSF.btagprob_mc);
     }
+    else
+    {
+        tx->setBranch<float>("weight_btagsf"         , 1);
+        tx->setBranch<float>("weight_btagsf_heavy_DN", 1);
+        tx->setBranch<float>("weight_btagsf_heavy_UP", 1);
+        tx->setBranch<float>("weight_btagsf_light_DN", 1);
+        tx->setBranch<float>("weight_btagsf_light_UP", 1);
+    }
 }
 
 //##############################################################################################################
@@ -837,11 +855,27 @@ void babyMaker_v2::SortJetBranches()
 //##############################################################################################################
 void babyMaker_v2::FillTrigger()
 {
-    tx->setBranch<int>("HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
-    tx->setBranch<int>("HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
-    tx->setBranch<int>("HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
-    tx->setBranch<int>("HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
-    tx->setBranch<int>("HLT_MuEG", coreTrigger.HLT_MuEG);
+    if (cms3.evt_isRealData())
+    {
+        tx->setBranch<int>("HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
+        tx->setBranch<int>("HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
+        tx->setBranch<int>("HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
+        tx->setBranch<int>("HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
+        tx->setBranch<int>("HLT_MuEG", coreTrigger.HLT_MuEG);
+    }
+    else
+    {
+        tx->setBranch<int>("HLT_DoubleMu", 1);
+        tx->setBranch<int>("HLT_DoubleEl", 1);
+        tx->setBranch<int>("HLT_DoubleEl_DZ", 1);
+        tx->setBranch<int>("HLT_DoubleEl_DZ_2", 1);
+        tx->setBranch<int>("HLT_MuEG", 1);
+    }
+    tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
+    tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
+    tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
+    tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
+    tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
 }
 
 //##############################################################################################################
@@ -901,6 +935,25 @@ void babyMaker_v2::FillMETFilter()
             tx->setBranch<int>("Flag_noBadMuons", cms3.filt_noBadMuons());
         }
     }
+
+    // Pass all event filters if it is a data event or just pass it if it is an MC
+    tx->setBranch<int>("Flag_AllEventFilters",
+            (
+                cms3.evt_isRealData() &&
+                tx->getBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter") &&
+                tx->getBranch<int>("Flag_HBHEIsoNoiseFilter") &&
+                tx->getBranch<int>("Flag_HBHENoiseFilter") &&
+                tx->getBranch<int>("Flag_badChargedCandidateFilter") &&
+                tx->getBranch<int>("Flag_badMuonFilter") &&
+                tx->getBranch<int>("Flag_eeBadScFilter") &&
+                tx->getBranch<int>("Flag_globalTightHalo2016") &&
+                tx->getBranch<int>("Flag_goodVertices")
+            )
+            ||
+            (
+                !cms3.evt_isRealData()
+            )
+        );
 }
 
 //##############################################################################################################
@@ -1358,20 +1411,38 @@ void babyMaker_v2::FillWeights()
     tx->setBranch<float>("ffwgtqcd_dn", ffwgtqcd - ffwgtqcderr);
 
     // lepsf
-    float lepsf;
-    float lepsferr;
-    std::tie(lepsf, lepsferr) = getlepSFWeightandError();
-    tx->setBranch<float>("lepsf", lepsf);
-    tx->setBranch<float>("lepsf_up", lepsf + lepsferr);
-    tx->setBranch<float>("lepsf_dn", lepsf - lepsferr);
+    if (!cms3.evt_isRealData())
+    {
+        float lepsf;
+        float lepsferr;
+        std::tie(lepsf, lepsferr) = getlepSFWeightandError();
+        tx->setBranch<float>("lepsf", lepsf);
+        tx->setBranch<float>("lepsf_up", lepsf + lepsferr);
+        tx->setBranch<float>("lepsf_dn", lepsf - lepsferr);
+    }
+    else
+    {
+        tx->setBranch<float>("lepsf", 1);
+        tx->setBranch<float>("lepsf_up", 1);
+        tx->setBranch<float>("lepsf_dn", 1);
+    }
 
     // trigger eff
-    float trigeff;
-    float trigefferr;
-    std::tie(trigeff, trigefferr) = getTrigEffandError();
-    tx->setBranch<float>("trigeff", trigeff);
-    tx->setBranch<float>("trigeff_up", trigeff + trigefferr);
-    tx->setBranch<float>("trigeff_dn", trigeff - trigefferr);
+    if (!cms3.evt_isRealData())
+    {
+        float trigeff;
+        float trigefferr;
+        std::tie(trigeff, trigefferr) = getTrigEffandError();
+        tx->setBranch<float>("trigeff", trigeff);
+        tx->setBranch<float>("trigeff_up", trigeff + trigefferr);
+        tx->setBranch<float>("trigeff_dn", trigeff - trigefferr);
+    }
+    else
+    {
+        tx->setBranch<float>("trigeff", 1);
+        tx->setBranch<float>("trigeff_up", 1);
+        tx->setBranch<float>("trigeff_dn", 1);
+    }
 }
 
 //##############################################################################################################

@@ -8,7 +8,8 @@
 
 #job_tag = "WWW_v1.0.8" # Added lepton scale factors
 #job_tag = "WWW_v1.0.9" # Added lepton scale factors
-job_tag = "WWW_v1.0.10" # Added trigger efficiencies
+#job_tag = "WWW_v1.0.11" # Added trigger efficiencies
+job_tag = "WWW_v1.0.11" # Clean up some varialbes and turn on the met filters
 
 ###################################################################################################################
 ###################################################################################################################
@@ -235,18 +236,18 @@ while True:
 
         # Use DIS to parse hadoop path from MINIAOD sample name
         loc = ""
-        #result = dis_client.query(q=sample, typ="snt")
-        #status = result["response"]["status"]
-        #if status == "success":
-        #    payloads = result["response"]["payload"]
-        #    for payload in payloads:
-        #        #print payload
-        #        if not doCMS4:
-        #            if payload["cms3tag"].find("CMS4") != -1: continue
-        #            loc = payload["location"]
-        #        else:
-        #            if payload["cms3tag"].find("CMS3") != -1: continue
-        #            loc = payload["location"]
+        result = dis_client.query(q=sample, typ="snt")
+        status = result["response"]["status"]
+        if status == "success":
+            payloads = result["response"]["payload"]
+            for payload in payloads:
+                #print payload
+                if not doCMS4:
+                    if payload["cms3tag"].find("CMS4") != -1: continue
+                    loc = payload["location"]
+                else:
+                    if payload["cms3tag"].find("CMS3") != -1: continue
+                    loc = payload["location"]
 
         #print loc, sample
         #continue
