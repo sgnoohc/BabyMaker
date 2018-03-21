@@ -46,7 +46,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   addeventtocheck(e,1,15849, 8049420);
   addeventtocheck(e,1,21682,11012507);
 
-  bool blindSR = false;
+  bool blindSR = true;
   bool btagreweighting = true;
   bool applylepSF      = false;
   bool applytrigSF     = false;
@@ -338,14 +338,11 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	vector<int> temp; temp.push_back(iSS[0]); temp.push_back(iaSS[0]);
 	MTmax = calcMTmax(temp,MET);
       }
-      float MTmax3l = calcMTmax(i3l,MET,true);
       if(checkevent) cout << "MET " << MET.Pt() << " MTmax " << MTmax << " MTmax3l " << MTmax3l << endl;
       float MTmax_up(-1), MTmax_dn(-1), MTmax3l_up(-1), MTmax3l_dn(-1);
       if(getJECunc) {
 	MTmax_up   = calcMTmax(iSS,MET_up);
-	//MTmax3l_up = calcMTmax(i3l,MET_up,true);
 	MTmax_dn   = calcMTmax(iSS,MET_dn);
-	//MTmax3l_dn = calcMTmax(i3l,MET_dn,true);
       }
       
       int SRSS[20]; bool selects3l[20];
@@ -362,9 +359,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //3: AR preselect
       SRSS[3] = isARSS(iSS,iaSS,vaSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
       //4: CR
-      SRSS[4] = isCRSS(iSS,i3l,  v3l,false,MTmax3l,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
+      SRSS[4] = isCRSS(iSS,i3l,  v3l,false,-1,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
       //5: CR preselect
-      SRSS[5] = isCRSS(iSS,i3l,  v3l,true ,MTmax3l,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
+      SRSS[5] = isCRSS(iSS,i3l,  v3l,true ,-1,nj30,nb,Mjj,MjjL,Detajj);//enter variables for quicker calculation
       //6: SR JEC up
       if(getJECunc) SRSS[6] = isSRSS(iSS, vSS,false,MTmax_up, nj30_up,nb_up,Mjj_up,MjjL_up,Detajj_up,MET_up,1);
       //7: SR JEC dn
@@ -394,9 +391,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //13: AR preselect
       SRSS[13] = isARSS(iSS,iaSS,vaSS,true ,MTmax,  nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,1);//enter variables for quicker calculation
       //14: CR
-      SRSS[14] = isCRSS(iSS,i3l,  v3l,false,MTmax3l,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
+      SRSS[14] = isCRSS(iSS,i3l,  v3l,false,-1,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
       //15: CR preselect
-      SRSS[15] = isCRSS(iSS,i3l,  v3l,true ,MTmax3l,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
+      SRSS[15] = isCRSS(iSS,i3l,  v3l,true ,-1,nj30,nb,Mjj,MjjL,Detajj,MET,0,false,false,false,1);//enter variables for quicker calculation
       //10: SR, 14: CR
       checkbothSRCR3l(SR3l[10],SR3l[14],i3l,false,nj,nb,MET,0,false,1);
       //11: SR preselect, 15: CR preselect

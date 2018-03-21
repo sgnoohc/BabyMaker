@@ -39,7 +39,7 @@ int gentype_v2(unsigned lep1_index,unsigned lep2_index, int lep3_index){
   bool lep1_real = lep_motherIdSS().at(lep1_index) > 0;
   bool lep2_real = lep_motherIdSS().at(lep2_index) > 0;
   bool lep3_real = false;
-  if(lep3_index>0) lep3_real = lep_motherIdSS().at(lep3_index) > 0;
+  if(lep3_index>=0) lep3_real = lep_motherIdSS().at(lep3_index) > 0;
   vector<int> reallepindex;
 
   for (unsigned int lepindex = 0;lepindex<lep_p4().size();++lepindex){
