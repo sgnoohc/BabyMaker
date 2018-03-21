@@ -7,7 +7,7 @@
 float trigeff_dimu_dz(float etatrail, float etalead, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+      printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(etatrail) < 0.8 && fabs(etalead) < 0.8) return 0.958495616913 + isyst * 0.00546260719797;
     if (fabs(etatrail) < 1.25 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
     if (fabs(etatrail) < 1.6 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
@@ -40,7 +40,7 @@ float trigeff_dimu_dz(float etatrail, float etalead, int isyst=0)
 float trigeff_diel_dz(float etatrail, float etalead, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(etatrail) < 0.8 && fabs(etalead) < 0.8) return 0.992154300213 + isyst * 0.00203163606519;
     if (fabs(etatrail) < 1.25 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
     if (fabs(etatrail) < 1.6 && fabs(etalead) < 0.8) return 0.0 + isyst * 0.0;
@@ -73,7 +73,7 @@ float trigeff_diel_dz(float etatrail, float etalead, int isyst=0)
 float trigeff_emu_dz(float etamuon, float etaelec, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(etamuon) < 0.8 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0148988450118;
     if (fabs(etamuon) < 1.25 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0224563228222;
     if (fabs(etamuon) < 1.6 && fabs(etaelec) < 0.8) return 1.0 + isyst * 0.0299812675598;
@@ -106,7 +106,7 @@ float trigeff_emu_dz(float etamuon, float etaelec, int isyst=0)
 float trigeff_mu_lead(float eta, float pt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
@@ -174,7 +174,7 @@ float trigeff_mu_lead(float eta, float pt, int isyst=0)
 float trigeff_mu_trail(float eta, float pt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
@@ -242,7 +242,7 @@ float trigeff_mu_trail(float eta, float pt, int isyst=0)
 float trigeff_el_lead(float eta, float pt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
@@ -310,7 +310,7 @@ float trigeff_el_lead(float eta, float pt, int isyst=0)
 float trigeff_el_trail(float eta, float pt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
@@ -378,7 +378,7 @@ float trigeff_el_trail(float eta, float pt, int isyst=0)
 float trigeff_mu_muon(float eta, float pt, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if (fabs(eta) < 0.8 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.25 && (pt) < 10.0) return 0.0 + isyst * 0.0;
     if (fabs(eta) < 1.6 && (pt) < 10.0) return 0.0 + isyst * 0.0;
@@ -446,7 +446,7 @@ float trigeff_mu_muon(float eta, float pt, int isyst=0)
 float lepsf_MuMediumPOG_MuTightVVV_v2(float pt, float eta, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.925597071648 + isyst * 0.00149392509654;
     if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.935978472233 + isyst * 0.00110756404918;
     if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.953309178352 + isyst * 0.000470867389614;
@@ -482,7 +482,7 @@ float lepsf_MuMediumPOG_MuTightVVV_v2(float pt, float eta, int isyst=0)
 float lepsf_MuMediumPOG_MuTightVVV3l_v2(float pt, float eta, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.94525462389 + isyst * 0.00136056937261;
     if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.960446059704 + isyst * 0.000777744646118;
     if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.976442217827 + isyst * 0.000304648180747;
@@ -518,7 +518,7 @@ float lepsf_MuMediumPOG_MuTightVVV3l_v2(float pt, float eta, int isyst=0)
 float lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(float pt, float eta, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if ((pt) < 30.0 && fabs(eta) < 1.0) return 0.954154133797 + isyst * 0.00143712383466;
     if ((pt) < 40.0 && fabs(eta) < 1.0) return 0.967395663261 + isyst * 0.000611815232638;
     if ((pt) < 50.0 && fabs(eta) < 1.0) return 0.972688913345 + isyst * 0.000459584202635;
@@ -546,7 +546,7 @@ float lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(float pt, float eta, int isyst=0)
 float lepsf_EGammaTightPOGMVA_EGammaVVV_v2(float pt, float eta, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
-        printf(Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
     if ((pt) < 30.0 && fabs(eta) < 1.0) return 0.937993526459 + isyst * 0.00186250539227;
     if ((pt) < 40.0 && fabs(eta) < 1.0) return 0.948573231697 + isyst * 0.00079991772711;
     if ((pt) < 50.0 && fabs(eta) < 1.0) return 0.95408308506 + isyst * 0.000586800118303;
@@ -819,6 +819,7 @@ float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta, int version=0)
         return lepsf_EGammaTightPOGMVA_EGammaVVV_v2(pt, eta);
     else if (version == -1)
         return lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(pt, eta);
+    else return 1;
 }
 
 
@@ -1138,6 +1139,7 @@ float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta, int version=0)
         return lepsf_MuMediumPOG_MuTightVVV_v2(pt, eta);
     else if (version == -1)
         return lepsf_MuMediumPOG_MuTightVVV3l_v2(pt, eta);
+    else return 1;
 }
 
 //______________________________________________________________________________________
@@ -1227,6 +1229,7 @@ float lepsf_MuTightVVV_MuTightVVVMu17(float PT, float Eta, int version=0)
         return lepsf_MuTightVVV_MuTightVVVMu17_v1(pt, eta);
     else if (version == 1)
         return lepsf_MuTightVVV_MuTightVVVMu17_v2(pt, eta);
+    else return 1;
 }
 
 float lepsf_MuTightVVV_MuTightVVVMu17_unc(float PT, float Eta)
