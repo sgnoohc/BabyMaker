@@ -8,8 +8,9 @@
 
 #job_tag = "WWW_v1.0.8" # Added lepton scale factors
 #job_tag = "WWW_v1.0.9" # Added lepton scale factors
-#job_tag = "WWW_v1.0.11" # Added trigger efficiencies
-job_tag = "WWW_v1.0.11" # Clean up some varialbes and turn on the met filters
+#job_tag = "WWW_v1.0.10" # Added trigger efficiencies
+#job_tag = "WWW_v1.0.11" # Clean up some varialbes and turn on the met filters
+job_tag = "WWW_v1.0.12" # Zpeak window fixed to 20, pt requirements on leptons
 
 ###################################################################################################################
 ###################################################################################################################
