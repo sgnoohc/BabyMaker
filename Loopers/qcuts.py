@@ -67,29 +67,27 @@ SSpreselCuts = [
 ["nTlep=={$(usefakeweight)?1:2}"              , "1"],
 ["nLlep==2"                                   , "1"],
 ["nisoTrack_mt2_cleaned_VVV_cutbased_veto==0" , "1"],
-["lep_p4[0].pt()>25."                         , "1"],
-["lep_p4[1].pt()>25."                         , "1"],
 ["vetophoton==0"                              , "1"],
 ]
 
 # Get the cut expression for the SSee preselection
 SSeePreselCuts = [
 ["passSSee"     , "1"],
-["{\"$(path)\"==\"/data\"?HLT_DoubleMu:1}" , "1"],
+["HLT_DoubleMu" , "1"],
 ]
 SSeePreselCuts.extend(SSpreselCuts)
 
 # Get the cut expression for the SSem preselection
 SSemPreselCuts = [
 ["passSSem" , "1"],
-["{\"$(path)\"==\"/data\"?HLT_MuEG:1}" , "1"],
+["HLT_MuEG" , "1"],
 ]
 SSemPreselCuts.extend(SSpreselCuts)
 
 # Get the cut expression for the SSmm preselection
 SSmmPreselCuts = [
 ["passSSmm" , "1"],
-["{\"$(path)\"==\"/data\"?HLT_DoubleEl_DZ_2:1}" , "1"],
+["HLT_DoubleEl_DZ_2" , "1"],
 ]
 SSmmPreselCuts.extend(SSpreselCuts)
 
@@ -99,16 +97,13 @@ SSmmPreselCuts.extend(SSpreselCuts)
 
 # Common Cuts and weights
 TLpreselCuts = [
-[BkgTypeCutExpr                                                         , BkgTypeWgtExpr] , 
-[BaseCutExpr                                                            , BaseWgtExpr   ] , 
-["{\"$(path)\"==\"/data\"?HLT_DoubleEl_DZ_2||HLT_MuEG||HLT_DoubleMu:1}" , "1"           ] , 
-["nVlep==3"                                                             , "1"           ] , 
-["nTlep=={$(usefakeweight)?2:3}"                                        , "1"           ] , 
-["nLlep==3"                                                             , "1"           ] , 
-["lep_p4[0].Pt()>25."                                                   , "1"           ] , 
-["lep_p4[1].Pt()>20."                                                   , "1"           ] , 
-["lep_p4[2].Pt()>20."                                                   , "1"           ] , 
-["vetophoton==0"                                                        , "1"           ] , 
+[BkgTypeCutExpr                              , BkgTypeWgtExpr] , 
+[BaseCutExpr                                 , BaseWgtExpr   ] , 
+["HLT_DoubleEl_DZ_2||HLT_MuEG||HLT_DoubleMu" , "1"           ] , 
+["nVlep==3"                                  , "1"           ] , 
+["nTlep=={$(usefakeweight)?2:3}"             , "1"           ] , 
+["nLlep==3"                                  , "1"           ] , 
+["vetophoton==0"                             , "1"           ] , 
 ]
 
 # Get the cut expression for the TL0SFOS preselection
@@ -129,16 +124,14 @@ TL2SFOSPreselCuts.extend(TLpreselCuts)
 
 # Common Cuts and weights
 SSWZpreselCuts = [
-[BkgTypeCutExpr                                                         , BkgTypeWgtExpr] , 
-[BaseCutExpr                                                            , BaseWgtExpr   ] , 
-["{\"$(path)\"==\"/data\"?HLT_DoubleEl_DZ_2||HLT_MuEG||HLT_DoubleMu:1}" , "1"           ] , 
-["nVlep==3"                                                             , "1"           ] , 
-["nTlepSS>=2"                                                           , "1"           ] , 
-["nLlep==3"                                                             , "1"           ] , 
-["nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                           , "1"           ] , 
-["lep_p4[0].pt()>25."                                                   , "1"           ] , 
-["lep_p4[1].pt()>25."                                                   , "1"           ] , 
-["vetophoton==0"                                                        , "1"           ] , 
+[BkgTypeCutExpr                                  , BkgTypeWgtExpr] , 
+[BaseCutExpr                                     , BaseWgtExpr   ] , 
+["HLT_DoubleEl_DZ_2||HLT_MuEG||HLT_DoubleMu"     , "1"           ] , 
+["nVlep==3"                                      , "1"           ] , 
+["nTlepSS>=2"                                    , "1"           ] , 
+["nLlep==3"                                      , "1"           ] , 
+["nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"    , "1"           ] , 
+["vetophoton==0"                                 , "1"           ] , 
 ]
 
 # Get the cut expression for the SSWZee preselection
@@ -246,7 +239,7 @@ TL1SFOSCuts.append(["MT3rd>90."               , "1"])
 TL1SFOSCuts.append(["abs(M3l-91.1876)>10."    , "1"])
 TL1SFOSCuts.append(["met_pt>45."              , "1"])
 TL1SFOSCuts.append(["Mll3L>20."               , "1"])
-TL1SFOSCuts.append(["abs(Mll3L-91.1876)>20."  , "1"])
+TL1SFOSCuts.append(["nSFOSinZ>0"              , "1"])
 
 TL2SFOSCuts = []
 TL2SFOSCuts.extend(TL2SFOSPreselCuts)
@@ -258,8 +251,7 @@ TL2SFOSCuts.append(["abs(M3l-91.1876)>10."    , "1"])
 TL2SFOSCuts.append(["met_pt>55."              , "1"])
 TL2SFOSCuts.append(["Mll3L>20."               , "1"])
 TL2SFOSCuts.append(["Mll3L1>20."              , "1"])
-TL2SFOSCuts.append(["abs(Mll3L-91.1876)>20."  , "1"])
-TL2SFOSCuts.append(["abs(Mll3L1-91.1876)>20." , "1"])
+TL2SFOSCuts.append(["nSFOSinZ>0"              , "1"])
 
 ########################################################################################
 # Same Sign WZ CR
