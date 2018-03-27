@@ -22,8 +22,8 @@
 #include <fstream>
 
 // CMS3
-#include "Functions.h"
-#include "CMS3_WWW0116.cc"
+#include "Functions.h"//update this line
+#include "CMS3_WWW106.cc"//update this line
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -32,12 +32,13 @@
 using namespace std;
 using namespace tas;
 
-int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
+int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int dummy=-1) {
+  //int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
 //vector<string> ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test"/*, string outdir="/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/"*/) {
 
   //if(skimFilePrefix=="Background") return 0;
   bool mergesample = false;//probably false is good
-  string outdir = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";
+  string outdir = "/nfs-7/userdata/haweber/WWWskims/WWW_v1.0.11/";
   string newname = outdir+skimFilePrefix+".root";
   vector<string> filestomerge;
 
@@ -71,89 +72,131 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     cms3.Init(tree);
     tree->SetBranchStatus("*",0);
     tree->SetBranchStatus("run",1);
-    tree->SetBranchStatus("nVert",1);
-    tree->SetBranchStatus("nisoTrack_mt2_cleaned_VVV_cutbased_veto",1);
-    tree->SetBranchStatus("ngenLepFromTau",1);
-    tree->SetBranchStatus("ngenLep",1);
-    tree->SetBranchStatus("met_pt",1);
-    tree->SetBranchStatus("met_phi",1);
     tree->SetBranchStatus("lumi",1);
-    tree->SetBranchStatus("lep_relIso03EAv2",1);
-    tree->SetBranchStatus("lep_relIso03EA",1);
-    tree->SetBranchStatus("lep_pdgId",1);
-    tree->SetBranchStatus("nlep_VVV_cutbased_veto",1);
-    tree->SetBranchStatus("lep_genPart_index",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_veto_noiso",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_veto",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_tight_noiso",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_tight",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_fo_noiso",1);
-    tree->SetBranchStatus("lep_pass_VVV_cutbased_fo",1);
-    tree->SetBranchStatus("lep_p4*",1);//
-    tree->SetBranchStatus("lep_motherIdSS",1);
-    tree->SetBranchStatus("lep_mc_Id",1);
-    tree->SetBranchStatus("lep_lostHits",1);
-    tree->SetBranchStatus("lep_isTriggerSafe_v2",1);
-    tree->SetBranchStatus("lep_isTriggerSafe_v1",1);
-    tree->SetBranchStatus("lep_isFromZ",1);
-    tree->SetBranchStatus("lep_isFromW",1);
-    tree->SetBranchStatus("lep_isFromLF",1);
-    tree->SetBranchStatus("lep_isFromL",1);
-    tree->SetBranchStatus("lep_isFromC",1);
-    tree->SetBranchStatus("lep_isFromB",1);
-    tree->SetBranchStatus("lep_ip3derr",1);
-    tree->SetBranchStatus("lep_ip3d",1);
-    tree->SetBranchStatus("lep_etaSC",1);
-    tree->SetBranchStatus("lep_dz",1);
-    tree->SetBranchStatus("lep_dxy",1);
-    tree->SetBranchStatus("lep_charge",1);
-    tree->SetBranchStatus("lep_3ch_agree",1);
-    tree->SetBranchStatus("jets_p4*",1);
-    tree->SetBranchStatus("jets_csv",1);
+    tree->SetBranchStatus("evt",1);
     tree->SetBranchStatus("isData",1);
-    tree->SetBranchStatus("genPart_charge",1);
-    tree->SetBranchStatus("genPart_status",1);
-    tree->SetBranchStatus("genPart_pdgId",1);
-    tree->SetBranchStatus("genPart_p4*",1);
-    tree->SetBranchStatus("genPart_motherId",1);
-    tree->SetBranchStatus("firstgoodvertex",1);
     tree->SetBranchStatus("evt_scale1fb",1);
     tree->SetBranchStatus("evt_passgoodrunlist",1);
-    tree->SetBranchStatus("evt_dataset",1);
-    tree->SetBranchStatus("evt",1);
-    tree->SetBranchStatus("HLT_MuEG_noiso",1);
-    tree->SetBranchStatus("HLT_MuEG",1);
-    tree->SetBranchStatus("HLT_DoubleMu_noiso",1);
     tree->SetBranchStatus("HLT_DoubleMu",1);
-    tree->SetBranchStatus("HLT_DoubleEl_noiso",1);
-    tree->SetBranchStatus("HLT_DoubleEl_DZ_2",1);
-    tree->SetBranchStatus("HLT_DoubleEl_DZ",1);
     tree->SetBranchStatus("HLT_DoubleEl",1);
-    tree->SetBranchStatus("Flag_goodVertices",1);
-    tree->SetBranchStatus("Flag_globalTightHalo2016",1);
-    tree->SetBranchStatus("Flag_eeBadScFilter",1);
-    tree->SetBranchStatus("Flag_badMuonFilter",1);
-    tree->SetBranchStatus("Flag_badChargedCandidateFilter",1);
-    tree->SetBranchStatus("Flag_HBHENoiseFilter",1);
-    tree->SetBranchStatus("Flag_HBHEIsoNoiseFilter",1);
-    tree->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter",1);
-    tree->SetBranchStatus("nlep",1);
+    tree->SetBranchStatus("HLT_DoubleEl_DZ",1);
+    tree->SetBranchStatus("HLT_MuEG",1);
+    tree->SetBranchStatus("lep_p4*",1);
+    tree->SetBranchStatus("lep_coneCorrPt",1);
+    tree->SetBranchStatus("lep_ip3d",1);
+    tree->SetBranchStatus("lep_isTriggerSafe_v1",1);
+    tree->SetBranchStatus("lep_motherIdSS",1);
+    tree->SetBranchStatus("lep_pass_VVV_cutbased_3l_fo",1);
+    tree->SetBranchStatus("lep_pass_VVV_cutbased_3l_tight",1);
+    tree->SetBranchStatus("lep_pass_VVV_cutbased_fo",1);
+    tree->SetBranchStatus("lep_pass_VVV_cutbased_tight",1);
+    tree->SetBranchStatus("lep_pass_VVV_cutbased_veto",1);
+    tree->SetBranchStatus("lep_pdgId",1);
+    tree->SetBranchStatus("lep_ptRatio",1);
     tree->SetBranchStatus("lep_tightCharge",1);
+    tree->SetBranchStatus("lep_etaSC",1);
+    tree->SetBranchStatus("lep_MVA",1);
+    tree->SetBranchStatus("lep_isFromW",1);
+    tree->SetBranchStatus("lep_isFromZ",1);
+    tree->SetBranchStatus("lep_genPart_index",1);
+    tree->SetBranchStatus("jets_p4*",1);
     tree->SetBranchStatus("jets_up_p4*",1);
-    tree->SetBranchStatus("jets_up_csv",1);
     tree->SetBranchStatus("jets_dn_p4*",1);
+    tree->SetBranchStatus("jets_csv",1);
+    tree->SetBranchStatus("jets_up_csv",1);
     tree->SetBranchStatus("jets_dn_csv",1);
-    tree->SetBranchStatus("met_T1CHS_miniAOD_CORE_up_pt",1);
-    tree->SetBranchStatus("met_T1CHS_miniAOD_CORE_up_phi",1);
-    tree->SetBranchStatus("met_T1CHS_miniAOD_CORE_dn_pt",1);
-    tree->SetBranchStatus("met_T1CHS_miniAOD_CORE_dn_phi",1);
-    tree->SetBranchStatus("gen_ht",1);
-    tree->SetBranchStatus("weight_btagsf",1);
-    tree->SetBranchStatus("weight_btagsf_heavy_UP",1);
-    tree->SetBranchStatus("weight_btagsf_heavy_DN",1);
-    tree->SetBranchStatus("weight_btagsf_light_UP",1);
-    tree->SetBranchStatus("weight_btagsf_light_DN",1);
+    tree->SetBranchStatus("met_pt",1);
+    tree->SetBranchStatus("met_phi",1);
+    tree->SetBranchStatus("met_up_pt",1);
+    tree->SetBranchStatus("met_up_phi",1);
+    tree->SetBranchStatus("met_dn_pt",1);
+    tree->SetBranchStatus("met_dn_phi",1);
+    tree->SetBranchStatus("firstgoodvertex",1);
     tree->SetBranchStatus("nTrueInt",1);
+    tree->SetBranchStatus("nVert",1);
+    tree->SetBranchStatus("nisoTrack_mt2_cleaned_VVV_cutbased_veto",1);
+    tree->SetBranchStatus("weight_btagsf",1);
+    tree->SetBranchStatus("weight_btagsf_heavy_DN",1);
+    tree->SetBranchStatus("weight_btagsf_heavy_UP",1);
+    tree->SetBranchStatus("weight_btagsf_light_DN",1);
+    tree->SetBranchStatus("weight_btagsf_light_UP",1);
+    tree->SetBranchStatus("gen_ht",1);
+    tree->SetBranchStatus("genPart_p4*",1);
+    tree->SetBranchStatus("genPart_motherId",1);
+    tree->SetBranchStatus("genPart_pdgId",1);
+    tree->SetBranchStatus("genPart_status",1);
+    tree->SetBranchStatus("ngenLep",1);
+    tree->SetBranchStatus("ngenLepFromTau",1);
+    tree->SetBranchStatus("Flag_AllEventFilters",1);
+    tree->SetBranchStatus("nVlep",1);
+    tree->SetBranchStatus("nTlep",1);
+    tree->SetBranchStatus("nTlepSS",1);
+    tree->SetBranchStatus("nLlep",1);
+    tree->SetBranchStatus("nSFOS",1);
+    tree->SetBranchStatus("nSFOSinZ",1);
+    tree->SetBranchStatus("nj",1);
+    tree->SetBranchStatus("nj_up",1);
+    tree->SetBranchStatus("nj_dn",1);
+    tree->SetBranchStatus("nj30",1);
+    tree->SetBranchStatus("nj30_up",1);
+    tree->SetBranchStatus("nj30_dn",1);
+    tree->SetBranchStatus("nb",1);
+    tree->SetBranchStatus("nb_up",1);
+    tree->SetBranchStatus("nb_dn",1);
+    tree->SetBranchStatus("Mjj",1);
+    tree->SetBranchStatus("Mjj_up",1);
+    tree->SetBranchStatus("Mjj_dn",1);
+    tree->SetBranchStatus("MjjL",1);
+    tree->SetBranchStatus("MjjL_up",1);
+    tree->SetBranchStatus("MjjL_dn",1);
+    tree->SetBranchStatus("DetajjL",1);
+    tree->SetBranchStatus("DetajjL_up",1);
+    tree->SetBranchStatus("DetajjL_dn",1);
+    tree->SetBranchStatus("MllSS",1);
+    tree->SetBranchStatus("MeeSS",1);
+    tree->SetBranchStatus("Mll3L",1);
+    tree->SetBranchStatus("Mee3L",1);
+    tree->SetBranchStatus("Mll3L1",1);
+    tree->SetBranchStatus("M3l",1);
+    tree->SetBranchStatus("Pt3l",1);
+    tree->SetBranchStatus("DPhi3lMET",1);
+    tree->SetBranchStatus("DPhi3lMET_up",1);
+    tree->SetBranchStatus("DPhi3lMET_dn",1);
+    tree->SetBranchStatus("MTmax",1);
+    tree->SetBranchStatus("MTmax_up",1);
+    tree->SetBranchStatus("MTmax_dn",1);
+    tree->SetBranchStatus("MT3rd",1);
+    tree->SetBranchStatus("MT3rd_up",1);
+    tree->SetBranchStatus("MT3rd_dn",1);
+    tree->SetBranchStatus("passSSee",1);
+    tree->SetBranchStatus("passSSem",1);
+    tree->SetBranchStatus("passSSmm",1);
+    tree->SetBranchStatus("lep_idx0_SS",1);
+    tree->SetBranchStatus("lep_idx1_SS",1);
+    tree->SetBranchStatus("bkgtype",1);
+    tree->SetBranchStatus("vetophoton",1);
+    tree->SetBranchStatus("purewgt",1);
+    tree->SetBranchStatus("purewgt_up",1);
+    tree->SetBranchStatus("purewgt_dn",1);
+    tree->SetBranchStatus("ffwgt",1);
+    tree->SetBranchStatus("ffwgt_up",1);
+    tree->SetBranchStatus("ffwgt_dn",1);
+    tree->SetBranchStatus("ffwgtqcd",1);
+    tree->SetBranchStatus("ffwgtqcd_up",1);
+    tree->SetBranchStatus("ffwgtqcd_dn",1);
+    tree->SetBranchStatus("lepsf",1);
+    tree->SetBranchStatus("lepsf_up",1);
+    tree->SetBranchStatus("lepsf_dn",1);
+    tree->SetBranchStatus("trigeff",1);
+    tree->SetBranchStatus("trigeff_up",1);
+    tree->SetBranchStatus("trigeff_dn",1);
+    tree->SetBranchStatus("M01",1);
+    tree->SetBranchStatus("M02",1);
+    tree->SetBranchStatus("M12",1);
+    tree->SetBranchStatus("isSFOS01",1);
+    tree->SetBranchStatus("isSFOS02",1);
+    tree->SetBranchStatus("isSFOS12",1);
+    
     vector<string> tempvec = split(fname);
     if(tempvec.size()==0) continue;
     
@@ -180,56 +223,32 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       double weight = evt_scale1fb()*35.9;
       //if(nEventsTotal==0) cout << weight << endl; 
 
-      if(firstgoodvertex()!=0)   continue;
-      if(nVert()<0)              continue;
-      //if(nlep()<2)               continue;
-
+      if(firstgoodvertex()!=0)                     continue;
+      if(nVert()<0)                                continue;
+      if(nVlep()>3)                                continue;
+      if(NtightSS()<1&&Ntight3l()<2)               continue;
+      if(NlooseSS()<2&&Nloose3l()<3)               continue;
+      if(NlooseSS()==2&&Nloose3l()<3){
+	if(nj30()<1)                               continue;//for SS, require at least one jet
+	if(!passSSee()&&!passSSem()&&!passSSmm())  continue;//require leptons to be SS
+      }
+      if(!passTriggers()) continue;//pass trigger for data, and offline lepton kinematic cuts for data/simulation
       //weight = 1;
-      if(string(currentFile->GetTitle()).find("wjets_incl_mgmlm_")!=string::npos){
-	if(gen_ht()>100) continue;
-      }
-      if(string(currentFile->GetTitle()).find("dy_m50_mgmlm_ext1_")!=string::npos){
-	if(gen_ht()>100) continue;
-      }
+      if(string(currentFile->GetTitle()).find("wjets_incl_mgmlm_" )!=string::npos && gen_ht()>100) continue;
+      if(string(currentFile->GetTitle()).find("dy_m50_mgmlm_ext1_")!=string::npos && gen_ht()>100) continue;
 
-      int nj(0), nb(0), nj30(0);
-      getalljetnumbers(nj,nj30,nb);
-      vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
-      vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
-      
-      int nvetoSS = vSS.size();
-      int nveto3l = v3l.size();
-      int nSS = iSS.size();
-      int n3l = i3l.size();
-      int nvetoaSS = vaSS.size();
-      int nvetoa3l = va3l.size();
-      int naSS = iaSS.size();
-      int na3l = ia3l.size();
-
-      
-      if((n3l+na3l)<2) continue;
-      bool passofflineforTrigger = passofflineTriggers(i3l, ia3l);
-      if(!passofflineforTrigger) continue;
-      
       if(isData()){
 	if(!passFilters()) continue;
 	duplicate_removal::DorkyEventIdentifier id(tas::run(), tas::evt(), tas::lumi());
-	if( is_duplicate(id)        ) { continue; }
+	if( is_duplicate(id)        )           continue;
 	if( !goodrun(tas::run(), tas::lumi()) ) continue;
-	bool passonlineTrigger = passonlineTriggers(i3l, ia3l);//currently applied only to data
-	if(!passonlineTrigger) continue;
       }
-      if(((nSS+naSS)==2&&nSS>=1&&nvetoaSS==0&&nj30>=2)||(((n3l+na3l)==3||n3l>=3)&&n3l>=2&&lep_p4()[i3l[0] ].Pt()>25.)) {
-	if((n3l+na3l)<3){
-	  if(nSS==2&&((lep_pdgId()[iSS[0] ])*(lep_pdgId()[ iSS[1] ]))<0) continue;
-	  if(nSS==1&&((lep_pdgId()[iSS[0] ])*(lep_pdgId()[iaSS[0] ]))<0) continue;
-	}
-	//need to activate all branches
-	tas::run();  tas::nVert();  tas::nisoTrack_mt2_cleaned_VVV_cutbased_veto();  tas::ngenLepFromTau();  tas::ngenLep();  tas::met_pt();  tas::met_phi();  tas::lumi();  tas::lep_relIso03EAv2();  tas::lep_relIso03EA();  tas::lep_pdgId();  tas::nlep_VVV_cutbased_veto();  tas::lep_genPart_index();  tas::lep_pass_VVV_cutbased_veto_noiso();  tas::lep_pass_VVV_cutbased_veto();  tas::lep_pass_VVV_cutbased_tight_noiso();  tas::lep_pass_VVV_cutbased_tight();  tas::lep_pass_VVV_cutbased_fo_noiso();  tas::lep_pass_VVV_cutbased_fo();  tas::lep_p4();  tas::lep_motherIdSS();  tas::lep_mc_Id();  tas::lep_lostHits();  tas::lep_isTriggerSafe_v2();  tas::lep_isTriggerSafe_v1();  tas::lep_isFromZ();  tas::lep_isFromW();  tas::lep_isFromLF();  tas::lep_isFromL();  tas::lep_isFromC();  tas::lep_isFromB();  tas::lep_ip3derr();  tas::lep_ip3d();  tas::lep_etaSC();  tas::lep_dz();  tas::lep_dxy();  tas::lep_charge();  tas::lep_3ch_agree();  tas::jets_p4();  tas::jets_csv();  tas::isData();  tas::genPart_charge();  tas::genPart_status();  tas::genPart_pdgId();  tas::genPart_p4();  tas::genPart_motherId();  tas::firstgoodvertex();  tas::evt_scale1fb();  tas::evt_passgoodrunlist();  tas::evt_dataset();  tas::evt();  tas::HLT_MuEG_noiso();  tas::HLT_MuEG();  tas::HLT_DoubleMu_noiso();  tas::HLT_DoubleMu();  tas::HLT_DoubleEl_noiso();  tas::HLT_DoubleEl_DZ_2();  tas::HLT_DoubleEl_DZ();  tas::HLT_DoubleEl();  tas::Flag_goodVertices();  tas::Flag_globalTightHalo2016();  tas::Flag_eeBadScFilter();  tas::Flag_badMuonFilter();  tas::Flag_badChargedCandidateFilter();  tas::Flag_HBHENoiseFilter();  tas::Flag_HBHEIsoNoiseFilter();  tas::Flag_EcalDeadCellTriggerPrimitiveFilter();  tas::nlep();  tas::lep_tightCharge();  tas::jets_up_p4();  tas::jets_up_csv();  tas::jets_dn_p4();  tas::jets_dn_csv();  tas::met_T1CHS_miniAOD_CORE_up_pt();  tas::met_T1CHS_miniAOD_CORE_up_phi();  tas::met_T1CHS_miniAOD_CORE_dn_pt();  tas::met_T1CHS_miniAOD_CORE_dn_phi(); tas::gen_ht(); tas::weight_btagsf(); tas::weight_btagsf_heavy_UP(); tas::weight_btagsf_heavy_DN(); tas::weight_btagsf_light_UP(); tas::weight_btagsf_light_DN(); tas::nTrueInt();
+      if(vetophoton()) continue;
 
-	newtree->Fill();
-      }
+	//need to activate all branches
+      tas::run(); tas::lumi(); tas::evt(); tas::isData(); tas::evt_scale1fb(); tas::evt_passgoodrunlist(); tas::HLT_DoubleMu(); tas::HLT_DoubleEl(); tas::HLT_DoubleEl_DZ(); tas::HLT_MuEG(); tas::lep_p4(); tas::lep_coneCorrPt(); tas::lep_ip3d(); tas::lep_isTriggerSafe_v1(); tas::lep_motherIdSS(); tas::lep_pass_VVV_cutbased_3l_fo(); tas::lep_pass_VVV_cutbased_3l_tight(); tas::lep_pass_VVV_cutbased_fo(); tas::lep_pass_VVV_cutbased_tight(); tas::lep_pass_VVV_cutbased_veto(); tas::lep_pdgId(); tas::lep_ptRatio(); tas::lep_tightCharge(); tas::lep_etaSC(); tas::lep_MVA(); tas::lep_isFromW(); tas::lep_isFromZ(); tas::lep_genPart_index(); tas::jets_p4(); tas::jets_up_p4(); tas::jets_dn_p4(); tas::jets_csv(); tas::jets_up_csv(); tas::jets_dn_csv(); tas::met_pt(); tas::met_phi(); tas::met_up_pt(); tas::met_up_phi(); tas::met_dn_pt(); tas::met_dn_phi(); tas::firstgoodvertex(); tas::nTrueInt(); tas::nVert(); tas::nisoTrack_mt2_cleaned_VVV_cutbased_veto(); tas::weight_btagsf(); tas::weight_btagsf_heavy_DN(); tas::weight_btagsf_heavy_UP(); tas::weight_btagsf_light_DN(); tas::weight_btagsf_light_UP(); tas::gen_ht(); tas::genPart_p4(); tas::genPart_motherId(); tas::genPart_pdgId(); tas::genPart_status(); tas::ngenLep(); tas::ngenLepFromTau(); tas::Flag_AllEventFilters(); tas::nVlep(); tas::nTlep(); tas::nTlepSS(); tas::nLlep(); tas::nSFOS(); tas::nSFOSinZ(); tas::nj(); tas::nj_up(); tas::nj_dn(); tas::nj30(); tas::nj30_up(); tas::nj30_dn(); tas::nb(); tas::nb_up(); tas::nb_dn(); tas::Mjj(); tas::Mjj_up(); tas::Mjj_dn(); tas::MjjL(); tas::MjjL_up(); tas::MjjL_dn(); tas::DetajjL(); tas::DetajjL_up(); tas::DetajjL_dn(); tas::MllSS(); tas::MeeSS(); tas::Mll3L(); tas::Mee3L(); tas::Mll3L1(); tas::M3l(); tas::Pt3l(); tas::DPhi3lMET(); tas::DPhi3lMET_up(); tas::DPhi3lMET_dn(); tas::MTmax(); tas::MTmax_up(); tas::MTmax_dn(); tas::MT3rd(); tas::MT3rd_up(); tas::MT3rd_dn(); tas::passSSee(); tas::passSSem(); tas::passSSmm(); tas::lep_idx0_SS(); tas::lep_idx1_SS(); tas::bkgtype(); tas::vetophoton(); tas::purewgt(); tas::purewgt_up(); tas::purewgt_dn(); tas::ffwgt(); tas::ffwgt_up(); tas::ffwgt_dn(); tas::ffwgtqcd(); tas::ffwgtqcd_up(); tas::ffwgtqcd_dn(); tas::lepsf(); tas::lepsf_up(); tas::lepsf_dn(); tas::trigeff(); tas::trigeff_up(); tas::trigeff_dn(); tas::M01(); tas::M02(); tas::M12(); tas::isSFOS01(); tas::isSFOS02(); tas::isSFOS12();
+
+      newtree->Fill();
     }//event loop
 
     filestomerge.push_back(nametemp);

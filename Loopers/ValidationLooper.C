@@ -22,7 +22,7 @@
 
 // CMS3
 #include "Functions.h"
-#include "CMS3_WWW0116.cc"
+#include "CMS3_WWW106.cc"
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -33,7 +33,7 @@ using namespace tas;
 
 int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFilePrefix = "test", int chainnumber=1) {
 
-  bool blindSR = true;
+  bool blindSR         = true;
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
@@ -71,14 +71,41 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("MET_VRSS_MjjW_ge4j_ge1bmed");      hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
   histonames.push_back("MSFOS_VR3l_Z_ge2j_ge1bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
   histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge1bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("ZPt_VR3l_Z_ge2j_ge2bmed");         hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_Z_ge2j_ge2bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_noZ_ge2j_ge2bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_Z_ge2j_ge2bmed");         hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_noZ_ge2j_ge2bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptll_VRSS_MjjW_ge4j_ge2bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VRSS_MjjW_ge4j_ge2bmed");      hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MSFOS_VR3l_Z_ge2j_ge2bmed");       hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge2bmed");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("ZPt_VR3l_Z_ge2j_ge1b");            hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_Z_ge2j_ge1b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_noZ_ge2j_ge1b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_Z_ge2j_ge1b");            hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_noZ_ge2j_ge1b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptll_VRSS_MjjW_ge4j_ge1b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VRSS_MjjW_ge4j_ge1b");         hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MSFOS_VR3l_Z_ge2j_ge1b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge1b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("ZPt_VR3l_Z_ge2j_ge2b");            hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_Z_ge2j_ge2b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptlll_VR3l_noZ_ge2j_ge2b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_Z_ge2j_ge2b");            hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VR3l_noZ_ge2j_ge2b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("Ptll_VRSS_MjjW_ge4j_ge2b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MET_VRSS_MjjW_ge4j_ge2b");         hbins.push_back(15); hlow.push_back( 0); hup.push_back(300);
+  histonames.push_back("MSFOS_VR3l_Z_ge2j_ge2b");          hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MSFOS_VR3l_noZ_ge2j_ge2b");        hbins.push_back(15); hlow.push_back( 0); hup.push_back(225);
 
   //WW VBS
   histonames.push_back("MjjL_VRSS_Detajj1p5");             hbins.push_back(10); hlow.push_back( 0); hup.push_back(500);
   histonames.push_back("Detajj_VRSS_MjjL400");             hbins.push_back(10); hlow.push_back( 0); hup.push_back(3.0);
 
   //Zg
-  histonames.push_back("pTlll_VR3l_noZ_METleq50");         hbins.push_back(10); hlow.push_back( 0); hup.push_back(100);
-  histonames.push_back("Mlll_VR3l_noZ_METleq50");          hbins.push_back(13); hlow.push_back(20); hup.push_back(150);
+  histonames.push_back("pTlll_VR3l_noZ_lowMET");           hbins.push_back(10); hlow.push_back( 0); hup.push_back(100);
+  histonames.push_back("Mlll_VR3l_noZ_lowMET");            hbins.push_back(13); hlow.push_back(20); hup.push_back(150);
 
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir,2);
   cout << "Loaded histograms" << endl;
@@ -124,7 +151,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       if(firstgoodvertex()!=0)   continue;
       if(nVert()<0)              continue;
-      //if(nlep()<2)               continue;
+      if(nLlep()<2)              continue;
+      if(nTlepSS()<1&&nTlep()<2) continue;//preselection can be done already here
 
       //weight = 1;
       if(string(currentFile->GetTitle()).find("wjets_incl_mgmlm_")!=string::npos){
@@ -133,68 +161,29 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(string(currentFile->GetTitle()).find("dy_m50_mgmlm_ext1_")!=string::npos){
 	if(gen_ht()>100) continue;
       }
-      if(string(currentFile->GetTitle()).find("www_2l_mia")!=string::npos)      weight *= 0.066805* 91900./(91900.+164800.);//(208fb/1pb)*BR(WWW—> >=2l)*combineweight
-      if(string(currentFile->GetTitle()).find("www_2l_ext1_mia")!=string::npos) weight *= 0.066805*164800./(91900.+164800.);//(208fb/1pb)*BR(WWW—> >=2l)*combineweight
+      //if(string(currentFile->GetTitle()).find("www_2l_mia")!=string::npos)      weight *= 0.066805* 91900./(91900.+164800.);//(208fb/1pb)*BR(WWW—> >=2l)*combineweight
+      //if(string(currentFile->GetTitle()).find("www_2l_ext1_mia")!=string::npos) weight *= 0.066805*164800./(91900.+164800.);//(208fb/1pb)*BR(WWW—> >=2l)*combineweight
       if(weight>100) cout << weight << " " << currentFile->GetTitle() << endl;
       if(isData()) weight = 1.;
       double rawweight = weight;
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
-      float PUweight(1.), PUweightup(1.), PUweightdn(1.);
-      if(applyPUrewgt&&!isData()){
-	PUweight = getPUWeightAndError(PUweightdn,PUweightup);
-	weight *= PUweight;
-      }
+      if(!isData()&&applyPUrewgt)    weight *= purewgt();
+      if(!isData()&&applylepSF)      weight *= lepsf();
+      if(!isData()&&applytrigSF)     weight *= trigeff();
 
-      LorentzVector MET; MET.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
-      int nj(0), nb(0), nj30(0);
-      getalljetnumbers(nj,nj30,nb);
-      float Mjj = -1;
-      float MjjL = -1; float Detajj = -1;
-      getMjjAndDeta(Mjj,MjjL,Detajj);
-
-      vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
-      vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l);
-      float lepSFSS(1.), lepSFerrSS(0.), lepSF3l(1.), lepSFerr3l(0.);
-      float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
-      if(applylepSF&&!isData()){
-	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
-	weight *= lepSF;
-      }
-      float trigSF(1.), trigSFerr(1.);
-      if(applytrigSF&&!isData()){
-	trigSF    = getTriggerWeightandError(trigSFerr, i3l,ia3l);
-	weight *= trigSF;
-      } 
-      int nvetoSS = vSS.size();
-      int nveto3l = v3l.size();
-      int nSS = iSS.size();
-      int n3l = i3l.size();
-      int nvetoaSS = vaSS.size();
-      int nvetoa3l = va3l.size();
-      int naSS = iaSS.size();
-      int na3l = ia3l.size();
-      
-      if((n3l+na3l)<2) continue;
-      bool passofflineforTrigger = passofflineTriggers(i3l, ia3l);
-      if(!passofflineforTrigger) continue;
-      
       if(isData()){
-	if(!passFilters()) continue;
+	if(!passFilters())                      continue;
 	duplicate_removal::DorkyEventIdentifier id(tas::run(), tas::evt(), tas::lumi());
-	if( is_duplicate(id)        ) { continue; }
+	if( is_duplicate(id) )                  continue; 
 	if( !goodrun(tas::run(), tas::lumi()) ) continue;
-	bool passonlineTrigger = passonlineTriggers(i3l, ia3l);//currently applied only to data
-	if(!passonlineTrigger) continue;
-      }
-
+      } 
+      if(!passTriggers()) continue;//pass trigger for data, and offline lepton kinematic cuts for data/simulation
+      
       string sample   = skimFilePrefix;
-      string sn       = ((iSS.size()+iaSS.size())>=2) ? process(fname,true ,iSS,iaSS) : string("not2l");
-      string sn2      = ((i3l.size()+ia3l.size())>=3) ? process(fname,false,i3l,ia3l) : string("not3l");
-      bool isphotonSS = (sn =="photonfakes");
-      bool isphoton3l = (sn2=="photonfakes");
       if(splitVH(fname)){ sample = "WHtoWWW"; }
-
+      string sn = string(bkgtype().Data());
+      if(vetophoton()) continue;
+      
       string extrasn = "";
       bool passextra1 = false;
       bool passextra2 = false;
@@ -202,155 +191,114 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(fname.find("ttw_"      )!=string::npos) { passextra2 = true; extrasn  = "ttW";   }
       if(fname.find("ttz_"      )!=string::npos) { passextra2 = true; extrasn  = "ttZ";   }
 
-      float MTmax = -1;
-      if(iSS.size()==2) MTmax = calcMTmax(iSS,MET);
-      else if(iSS.size()==1&&iaSS.size()>=1){
-	vector<int> temp; temp.push_back(iSS[0]); temp.push_back(iaSS[0]);
-	MTmax = calcMTmax(temp,MET);
-      }
-      float MTmax3l = calcMTmax(i3l,MET,true);
-
-      int VR[10]; bool selects3l[10];
-      for(int i = 0; i<10; ++i) { VR[i] = -1; selects3l[i] = false; }
       int nbmed = numJ(20.,2.4,0.8484);
-      //fake nj for 3lSR function
-      int fakenj = 0;
-      if(nj30<2) fakenj = 2;
+      vector<string> mynb;
+      if(nb() >=1) mynb.push_back("_ge1b");
+      if(nb() >=2) mynb.push_back("_ge2b");
+      if(nbmed>=1) mynb.push_back("_ge1bmed");
+      if(nbmed>=2) mynb.push_back("_ge2bmed");
+      
+      int VR[10];  int dummy = -1;
+      for(int i = 0; i<10; ++i) VR[i] = -1; 
 
-      //0: VR3l,Z,ge2j,ge1b
-      //1: VR3l,noZ,ge2j,ge1b
-      checkbothSRCR3l(VR[1],VR[0],i3l,true,fakenj,nb,MET,0,true);
-      VR[1] = std::max(VR[1],VR[0]);
-      if(VR[1]>0){
-	if(fabs((lep_p4()[i3l[0] ]+lep_p4()[i3l[0] ]+lep_p4()[i3l[0] ]).M()-MZ)<10.) { VR[1] = -1; }
-	vector<float> MSFOSvec = allMSFOS(i3l);
-	int countMZ = 0;
-	for(unsigned int i = 0; i<MSFOSvec.size(); ++i) {
-	  if(MSFOSvec[i]<20.) { VR[1] = -1; }
-	  if(fabs(MSFOSvec[i]-MZ)<15.) ++countMZ;
-	}
-	if(VR[1]>0){
-	  VR[1] = MSFOSvec.size()-countMZ;
-	  VR[0] = countMZ;
+      //1: VR3l,   Z, ge2j, ge1b loose
+      if(nj30()>=2&&nb()>=1&&nVlep()==3&&Ntight3l()==3&&abs(lep_charge()[0]+lep_charge()[1]+lep_charge()[2])!=3&&Mll3L ()>=20.&&(nSFOS()==1||(nSFOS()>=2&&Mll3L1()>=20.))){
+	if(nSFOS()==1){
+	  if(fabs(Mll3L()-MZ)>20.) VR[0] = 1;
+	  else                     VR[1] = 1;
+	} else if(nSFOS()==2){
+	  if(fabs(Mll3L ()-MZ)>20.&&fabs(Mll3L1()-MZ)>20.) VR[0] = 2;
+	  else                                             VR[1] = 2;
 	}
       }
-      selects3l[0] = true; selects3l[1] = true;
-      //2: VR3l,Z,ge2j,ge1bmed
-      //3: VR3l,noZ,ge2j,ge1bmed
-      checkbothSRCR3l(VR[3],VR[2],i3l,true,fakenj,nbmed,MET,0,true);
-      VR[3] = std::max(VR[3],VR[2]);
-      if(VR[3]>0){
-	if(fabs((lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M()-MZ)<10.) { VR[3] = -1; }
-	vector<float> MSFOSvec = allMSFOS(i3l);
-	int countMZ = 0;
-	for(unsigned int i = 0; i<MSFOSvec.size(); ++i) {
-	  if(MSFOSvec[i]<20.) { VR[3] = -1; }
-	  if(fabs(MSFOSvec[i]-MZ)<15.) ++countMZ;
-	}
-	if(VR[3]>0){
-	  VR[3] = MSFOSvec.size()-countMZ;
-	  VR[2] = countMZ;
-	  if(countMZ>0){
-	    if(!passextra2) fillhisto(histos, "MSFOS_VR3l_Z_ge2j_ge1bmed",   sample, sn2,     MSFOSvec[0], weight);
-	    else            fillhisto(histos, "MSFOS_VR3l_Z_ge2j_ge1bmed",   sample, extrasn, MSFOSvec[0], weight, false);
-	  }
-	  else {
-	    if(!passextra2) fillhisto(histos, "MSFOS_VR3l_noZ_ge2j_ge1bmed", sample, sn2,     MSFOSvec[0], weight);
-	    else            fillhisto(histos, "MSFOS_VR3l_noZ_ge2j_ge1bmed", sample, extrasn, MSFOSvec[0], weight, false);
-	  }
-	}
+      //2: VRSS,MjjW,ge4j,ge1b loose
+      VR[2] = isSRSS(true,0,true);
+      if(VR[2]>=0){
+	if(nj30()<4)            VR[2] = -1;
+	if(fabs(Mjj()-80.)>15.) VR[2] = -1;
       }
-      selects3l[2] = true; selects3l[3] = true;
-      //4: VRSS,MjjW,ge4j,ge1b
-      VR[4] = isSRSS(iSS,vSS,true,MTmax,nj30,nb,Mjj,MjjL,Detajj,MET,0,true);
-      if(VR[4]>=0){
-	if(nj30<4)            VR[4] = -1;
-	if(fabs(Mjj-80.)>20.) VR[4] = -1;
+      //3,4: VRSS,ge2j,0b
+      VR[3] = isSRSS(true);
+      VR[4] = VR[3];
+      VR[3] = (MjjL()  <400.) ? -1 : VR[3];
+      VR[4] = (DetajjL()<1.5) ? -1 : VR[4];
+      //5: VR3l, le1j,0b
+      VR[5] = isSR3l(true);
+      if(nSFOS()==0&&met_pt()>=30.) VR[5] = -1;
+      if(nSFOS()==1&&met_pt()>=40.) VR[5] = -1;
+      if(nSFOS()==2&&met_pt()>=55.) VR[5] = -1;
+      
+      float Mll = (nSFOS()==2&&(fabs(Mll3L()-MZ)>fabs(Mll3L1()-MZ))) ? Mll3L1() : Mll3L();
+      float pTll = -1;
+      if(nVlep()==2) pTll = (lep_p4()[0]+lep_p4()[1]).Pt();
+      else if (nVlep()==3&&nSFOS()>=1){
+	float minDeltaM = 1e6;
+	if(isSFOS01()&&fabs(M01()-MZ)<minDeltaM) { minDeltaM = fabs(M01()-MZ); pTll = (lep_p4()[0]+lep_p4()[1]).Pt(); }
+	if(isSFOS02()&&fabs(M02()-MZ)<minDeltaM) { minDeltaM = fabs(M02()-MZ); pTll = (lep_p4()[0]+lep_p4()[2]).Pt(); }
+	if(isSFOS12()&&fabs(M12()-MZ)<minDeltaM) { minDeltaM = fabs(M12()-MZ); pTll = (lep_p4()[1]+lep_p4()[2]).Pt(); }
       }
-      //5: VRSS,MjjW,ge4j,ge1bmed
-      VR[5] = isSRSS(iSS,vSS,true,MTmax,nj30,nbmed,Mjj,MjjL,Detajj,MET,0,true);
-      if(VR[5]>=0){
-	if(nj30<4)            VR[5] = -1;
-	if(fabs(Mjj-80.)>20.) VR[5] = -1;
-      }
-      //6,7: VRSS,ge2j,0b
-      VR[6] = isSRSS(iSS,vSS,true,MTmax,nj30,nb,Mjj,MjjL,Detajj,MET,0,false);
-      VR[7] = VR[6];
-      if(MjjL  <400.) VR[6] = -1;
-      if(Detajj<1.5)  VR[7] = -1;
-      //8: VR3l, le1j,0b
-      VR[8] = isSR3l(i3l,true,nj,nb);
-      if(VR[8]>=0){
-	if(met_pt()>50.) VR[8] = -1;
-      }
-      selects3l[8] = true; 
-      for(int i = 0; i<10; ++i) {
-	if(!selects3l[i]){
-	  if(vetophotonprocess(fname,isphotonSS))    { VR[i] = -1; }
-	}
-	else if(vetophotonprocess(fname,isphoton3l)){ VR[i] = -1; }
-      }
-      //cout << __LINE__ << " " << sn << " " << sn2 << " " << passextra1 << " " << passextra2 << " " << extrasn1 << " " << extrasn2 << endl;
-      if(VR[0]>=1){
-	if(!passextra2) fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",         sample, sn2,     nb,       weight);
-	else            fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",         sample, extrasn, nb,       weight, false);
-      }
-      if(VR[0]==0){
-	if(!passextra2) fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",       sample, sn2,     nb,       weight);
-	else            fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",       sample, extrasn, nb,       weight, false);
-      }
-      if(VR[2]>=1){
-	if(!passextra2) fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",      sample, sn2,     nbmed,    weight);
-	else            fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",      sample, extrasn, nbmed,    weight, false);
-	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(!passextra2) fillhisto(histos, "Ptlll_VR3l_Z_ge2j_ge1bmed",   sample, sn2,     ptlll,    weight);
-	else            fillhisto(histos, "Ptlll_VR3l_Z_ge2j_ge1bmed",   sample, extrasn, ptlll,    weight, false);
-	if(!passextra2) fillhisto(histos, "MET_VR3l_Z_ge2j_ge1bmed",     sample, sn2,     met_pt(), weight);
-	else            fillhisto(histos, "MET_VR3l_Z_ge2j_ge1bmed",     sample, extrasn, met_pt(), weight, false);
-	for(unsigned int i1 = 0; i1<3;++i1){
-	  for(unsigned int i2 = i1+1; i2<3;++i2){
-	    if((lep_pdgId()[i3l[i1] ])!=(-lep_pdgId()[i3l[i2] ])) continue;
-	    if(fabs((lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).M()-MZ)>15.) continue;
-	    if(!passextra2) fillhisto(histos, "ZPt_VR3l_Z_ge2j_ge1bmed", sample, sn2,     (lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(), weight);
-	    else            fillhisto(histos, "ZPt_VR3l_Z_ge2j_ge1bmed", sample, extrasn, (lep_p4()[i3l[i1] ]+lep_p4()[i3l[i2] ]).Pt(), weight, false);
-	  }
+      if(VR[1]>=1){//have a Z boson
+	if(!passextra2)   fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",           sample, sn,      nb(),        weight);
+	else              fillhisto(histos, "NB_VR3l_Z_ge2j_ge1b",           sample, extrasn, nb(),        weight, false);
+	if(nbmed>=1){
+	  if(!passextra2) fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",        sample, sn,      nbmed,       weight);
+	  else            fillhisto(histos, "NB_VR3l_Z_ge2j_ge1bmed",        sample, extrasn, nbmed,       weight, false);
 	}
       }
-      if(VR[2]==0){
-	if(!passextra2) fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",    sample, sn2,     nbmed,    weight);
-	else            fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",    sample, extrasn, nbmed,    weight, false);
-	float ptlll = (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt();
-	if(!passextra2) fillhisto(histos, "Ptlll_VR3l_noZ_ge2j_ge1bmed", sample, sn2,     ptlll,    weight);
-	else            fillhisto(histos, "Ptlll_VR3l_noZ_ge2j_ge1bmed", sample, extrasn, ptlll,    weight, false);
-	if(!passextra2) fillhisto(histos, "MET_VR3l_noZ_ge2j_ge1bmed",   sample, sn2,     met_pt(), weight);
-	else            fillhisto(histos, "MET_VR3l_noZ_ge2j_ge1bmed",   sample, extrasn, met_pt(), weight, false);
+      if(VR[0]>=1){//have no Z boson
+	if(!passextra2)   fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",         sample, sn,      nb(),        weight);
+	else              fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1b",         sample, extrasn, nb(),        weight, false);
+	if(nbmed>=1){
+	  if(!passextra2) fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",      sample, sn,      nbmed,       weight);
+	  else            fillhisto(histos, "NB_VR3l_noZ_ge2j_ge1bmed",      sample, extrasn, nbmed,       weight, false);
+	}
+      }
+      if(VR[2]>=0){
+	if(!passextra2)   fillhisto(histos,   "NB_VRSS_MjjW_ge4j_ge1b",      sample, sn,      nb(),      weight);
+	else              fillhisto(histos,   "NB_VRSS_MjjW_ge4j_ge1b",      sample, extrasn, nb(),      weight, false);
+	if(nbmed>=1){
+	  if(!passextra2) fillhisto(histos,   "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, sn,      nbmed,     weight);
+	  else            fillhisto(histos,   "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, extrasn, nbmed,     weight, false);
+	}
+      }
+      for(unsigned int i = 0; i<mynb.size(); ++i){
+	if(VR[1]>=1){//have a Z boson
+	  if(!passextra2)   fillhisto(histos, "MSFOS_VR3l_Z_ge2j"+mynb[i],   sample, sn,      Mll,         weight);
+	  else              fillhisto(histos, "MSFOS_VR3l_Z_ge2j"+mynb[i],   sample, extrasn, Mll,         weight, false);
+	  if(!passextra2)   fillhisto(histos, "Ptlll_VR3l_Z_ge2j"+mynb[i],   sample, sn,      Pt3l(),      weight);
+	  else              fillhisto(histos, "Ptlll_VR3l_Z_ge2j"+mynb[i],   sample, extrasn, Pt3l(),      weight, false);
+	  if(!passextra2)   fillhisto(histos,   "MET_VR3l_Z_ge2j"+mynb[i],   sample, sn,      met_pt(),    weight);
+	  else              fillhisto(histos,   "MET_VR3l_Z_ge2j"+mynb[i],   sample, extrasn, met_pt(),    weight, false);
+	  if(!passextra2)   fillhisto(histos,   "ZPt_VR3l_Z_ge2j"+mynb[i],   sample, sn,      pTll,        weight);
+	  else              fillhisto(histos,   "ZPt_VR3l_Z_ge2j"+mynb[i],   sample, extrasn, pTll,        weight, false);
+	}
+	if(VR[0]>=1){//have no Z boson
+	  if(!passextra2)   fillhisto(histos, "MSFOS_VR3l_noZ_ge2j"+mynb[i], sample, sn,      Mll,       weight);
+	  else              fillhisto(histos, "MSFOS_VR3l_noZ_ge2j"+mynb[i], sample, extrasn, Mll,       weight, false);
+	  if(!passextra2)   fillhisto(histos, "Ptlll_VR3l_noZ_ge2j"+mynb[i], sample, sn,      Pt3l(),    weight);
+	  else              fillhisto(histos, "Ptlll_VR3l_noZ_ge2j"+mynb[i], sample, extrasn, Pt3l(),    weight, false);
+	  if(!passextra2)   fillhisto(histos,   "MET_VR3l_noZ_ge2j"+mynb[i], sample, sn,      met_pt(),  weight);
+	  else              fillhisto(histos,   "MET_VR3l_noZ_ge2j"+mynb[i], sample, extrasn, met_pt(),  weight, false);
+	}
+	if(VR[2]>=0){
+	  if(!passextra2)   fillhisto(histos, "Ptll_VRSS_MjjW_ge4j"+mynb[i], sample, sn,      pTll,      weight);
+	  else              fillhisto(histos, "Ptll_VRSS_MjjW_ge4j"+mynb[i], sample, extrasn, pTll,      weight, false);
+	  if(!passextra2)   fillhisto(histos,  "MET_VRSS_MjjW_ge4j"+mynb[i], sample, sn,      met_pt(),  weight);
+	  else              fillhisto(histos,  "MET_VRSS_MjjW_ge4j"+mynb[i], sample, extrasn, met_pt(),  weight, false);
+	}
+      }
+      if(VR[3]>=0){
+	if(!passextra1)     fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, sn,      DetajjL(), weight);
+	else                fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, extrasn, DetajjL(), weight, false);
       }
       if(VR[4]>=0){
-	if(!passextra2) fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1b",      sample, sn,      nb,       weight);
-	else            fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1b",      sample, extrasn, nb,       weight, false);
+	if(!passextra1)     fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, sn,      MjjL(),    weight);
+	else                fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, extrasn, MjjL(),    weight, false);
       }
       if(VR[5]>=0){
-	if(!passextra2) fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, sn,      nbmed,    weight);
-	else            fillhisto(histos, "NB_VRSS_MjjW_ge4j_ge1bmed",   sample, extrasn, nbmed,    weight, false);
-	float ptll = (lep_p4()[iSS[0] ]+lep_p4()[iSS[1] ]).Pt();
-	if(!passextra2) fillhisto(histos, "Ptll_VRSS_MjjW_ge4j_ge1bmed", sample, sn,      ptll,     weight);
-	else            fillhisto(histos, "Ptll_VRSS_MjjW_ge4j_ge1bmed", sample, extrasn, ptll,     weight, false);
-	if(!passextra2) fillhisto(histos, "MET_VRSS_MjjW_ge4j_ge1bmed",  sample, sn,      met_pt(), weight);
-	else            fillhisto(histos, "MET_VRSS_MjjW_ge4j_ge1bmed",  sample, extrasn, met_pt(), weight, false);
+	fillhisto(                    histos, "pTlll_VR3l_noZ_lowMET",       sample, sn,      Pt3l(),    weight);
+	fillhisto(                    histos,  "Mlll_VR3l_noZ_lowMET",       sample, sn,      M3l(),     weight);
       }
-      if(VR[6]>=0){
-	if(!passextra1) fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, sn,      Detajj,   weight);
-	else            fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, extrasn, Detajj,   weight, false);
-      }
-      if(VR[7]>=0){
-	if(!passextra1) fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, sn,      MjjL,    weight);
-	else            fillhisto(histos, "MjjL_VRSS_Detajj1p5",         sample, extrasn, MjjL,    weight, false);
-      }
-      if(VR[8]>=0){
-	fillhisto(histos, "pTlll_VR3l_noZ_METleq50", sample, sn2, (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).Pt(), weight);
-	fillhisto(histos, "Mlll_VR3l_noZ_METleq50",  sample, sn2, (lep_p4()[i3l[0] ]+lep_p4()[i3l[1] ]+lep_p4()[i3l[2] ]).M(),  weight);
-      }
-
  
     }//event loop
   

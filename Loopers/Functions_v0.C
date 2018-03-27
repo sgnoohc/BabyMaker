@@ -1,4 +1,4 @@
-#include "Functions.h"
+#include "Functions_v0.h"
 #include "LeptonAndTriggerSF.h"
 
 using namespace std;
@@ -22,13 +22,13 @@ vector<string> split(string mystring, string c) {
 }
 
 string leptype(unsigned lep_index){
-  if(      lep_motherIdSS().at(lep_index) == 1)  return "real";
-  else if( lep_motherIdSS().at(lep_index) == 2)  return "chargeflip";
+  if( lep_motherIdSS().at(lep_index) ==1 ) return "real";
+  else if( lep_motherIdSS().at(lep_index) ==2 ) return "chargeflip";
   else if( lep_motherIdSS().at(lep_index) ==-1)  return "bfake";
   else if( lep_motherIdSS().at(lep_index) ==-2)  return "cfake";
   else if( lep_motherIdSS().at(lep_index) ==-3)  return "gamma";
-  else if( lep_motherIdSS().at(lep_index) == 0)  return "lightfake";
-  else                                           return "unknown";
+  else if(lep_motherIdSS().at(lep_index) ==0)    return "lightfake";
+  else return "unknown";
 }
 
 int gentype_v2(unsigned lep1_index,unsigned lep2_index, int lep3_index){
@@ -99,6 +99,8 @@ int gentype_v2(unsigned lep1_index,unsigned lep2_index, int lep3_index){
     return 0;
   }
 }
+
+
 
 float dR(LorentzVector vec1,LorentzVector vec2 ){
   float dphi = std::min(float(fabs(vec1.Phi() - vec2.Phi())), float(2 * M_PI - fabs(vec1.Phi() - vec2.Phi())) );
@@ -210,10 +212,11 @@ bool istightlepton(int i, int version){
   }
   if(version==-1) {
     bool isgoodelectron = abs(lep_pdgId()[i])==11&&fabs(lep_p4()[i].Eta())<2.4&&lep_isTriggerSafe_v1()[i]&&fabs(lep_ip3d()[i])<0.015&&( (fabs(lep_etaSC()[i])<=1.479&&lep_ptRatio()[i]>0.84&&lep_MVA()[i]>0.920) || (fabs(lep_etaSC()[i]) >1.479&&lep_ptRatio()[i]>0.84&&lep_MVA()[i]>0.880) );
-    bool isgoodmuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.84;
+    bool isgoodmuon     = abs(lep_pdgId()[i])==13&&lep_pass_VVV_cutbased_tight_noiso()[i]&&fabs(lep_p4()[i].Eta())<2.4&&fabs(lep_ip3d()[i])<0.015&&lep_ptRatio()[i]>0.84; // 0.84 cut point is when we keep the fake rate same
     istight = abs(lep_pdgId()[i])==13 ? isgoodmuon : isgoodelectron;
   }
   return istight;
+
 }
 
 bool islooselepton(int i, int version){
@@ -234,7 +237,7 @@ bool islooselepton(int i, int version){
    return isloose;
 }
 
-bool getleptonindices_v0(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version, float pTSS, float pT3l){
+bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version, float pTSS, float pT3l){
   iSS.clear();
   i3l.clear();
   iaSS.clear();
@@ -267,14 +270,16 @@ bool getleptonindices_v0(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, 
         if (abs(lep_pdgId()[i]) == 11)
         {
             bool isvetoel = true;
+            //if (!lep_isTriggerSafe_v1().at(i)) isvetoel = false;
             if (fabs(lep_etaSC().at(i)) > 2.5) isvetoel = false;
-            if (fabs(lep_dxy().at(i)) > 0.05)  isvetoel = false;
-            if (fabs(lep_dz().at(i)) > 0.1)    isvetoel = false;
-            if (lep_ptRatio()[i]<=0.58)        isvetoel = false;
+            if (fabs(lep_dxy().at(i)) > 0.05) isvetoel = false;
+            if (fabs(lep_dz().at(i)) > 0.1) isvetoel = false;
+            //if (lep_relIso04EAv2().at(i) >= 0.70) isvetoel = false;
+            if (lep_ptRatio()[i]<=0.58) isvetoel = false;
 	    if(fabs(lep_etaSC()[i])<=1.479){
-	      if (lep_MVA()[i]<=0.6)           isvetoel = false;
+	      if (lep_MVA()[i]<=0.6) isvetoel = false;
 	    } else {
-	      if (lep_MVA()[i]<=0.0)           isvetoel = false;
+	      if (lep_MVA()[i]<=0.0) isvetoel = false;
 	    }
             if(isvetoel) {
                 if(!isSS &&          lep_p4()[i].Pt()>10) vSS  .push_back(i);
@@ -324,36 +329,6 @@ bool getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, 
   }
   return true;
 }
-
-int NtightSS(float pTSS){
-  int n = 0;
-  for(unsigned int i = 0; i<lep_pdgId().size();++i){
-    if(lep_pass_VVV_cutbased_tight   ()[i]&&lep_p4()[i].Pt()>pTSS) ++n;
-  }
-  return n;
-}
-int NlooseSS(float pTSS){
-  int n = 0;
-  for(unsigned int i = 0; i<lep_pdgId().size();++i){
-    if(lep_pass_VVV_cutbased_fo      ()[i]&&lep_p4()[i].Pt()>pTSS) ++n;
-  }
-  return n;
-}
-int Ntight3l(float pT3l){
-  int n = 0;
-  for(unsigned int i = 0; i<lep_pdgId().size();++i){
-    if(lep_pass_VVV_cutbased_3l_tight()[i]&&lep_p4()[i].Pt()>pT3l) ++n;
-  }
-  return n;
-}
-int Nloose3l(float pT3l){
-  int n = 0;
-  for(unsigned int i = 0; i<lep_pdgId().size();++i){
-    if(lep_pass_VVV_cutbased_3l_fo   ()[i]&&lep_p4()[i].Pt()>pT3l) ++n;
-  }
-  return n;
-}
-
 #endif
 
 float coneCorrPt(int lepi, int version){
@@ -361,25 +336,65 @@ float coneCorrPt(int lepi, int version){
   float relIso = lep_relIso03EAv2().at(lepi);
   float relIso04 = lep_relIso04EAv2().at(lepi);
   float ptratio = lep_ptRatio().at(lepi);
-  if (version == 0) {
+  if (version == 0)
+  {
       if(   abs(lep_pdgId().at(lepi)) == 11) {
           if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso - 0.0588 );
           else                                       coneptcorr = std::max( 0., relIso - 0.0571 );
       }
-      if(   abs(lep_pdgId().at(lepi)) == 13)         coneptcorr = std::max( 0., relIso - 0.06   );
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., relIso - 0.06   );
   }
-  else if (version == 1) {
-      if(   abs(lep_pdgId().at(lepi)) == 11)         coneptcorr = std::max( 0., 0.9/ptratio - 1.);
-      if(   abs(lep_pdgId().at(lepi)) == 13)         coneptcorr = std::max( 0., 0.9/ptratio - 1.);
+  else if (version == 1)
+  {
+      if(   abs(lep_pdgId().at(lepi)) == 11) {
+          if(fabs(lep_p4().at(lepi).Eta()) <= 1.479) coneptcorr = std::max( 0., relIso04 - 0.05 );
+          else                                       coneptcorr = std::max( 0., relIso04 - 0.07 );
+      }
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., 0.9/ptratio - 1.   );
   }
-  else if (version == -1){
-      if(   abs(lep_pdgId().at(lepi)) == 11)         coneptcorr = std::max( 0., 0.84/ptratio - 1.);
-      if(   abs(lep_pdgId().at(lepi)) == 13)         coneptcorr = std::max( 0., 0.84/ptratio - 1.);
+  else if (version == -1)
+  {
+      if(   abs(lep_pdgId().at(lepi)) == 11)       coneptcorr = std::max( 0., relIso04 - 0.1   );
+      if(   abs(lep_pdgId().at(lepi)) == 13)       coneptcorr = std::max( 0., 0.84/ptratio - 1.);
   }
 
   return coneptcorr;
 }
-
+/*
+float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin, float muFRptmax, float muFRetamin, float muFRetamax, float elFRptmin, float elFRptmax, float elFRetamin, float elFRetamax, bool conecorrected){
+  float FR = 0.;
+  float FRerr = 0;
+  if(index<0) return -1.;
+  if((unsigned int)index>=lep_pdgId().size()) return -1;
+  float correction = 1.;
+  if(conecorrected) correction = (1.+coneCorrPt(index));
+  int bin;
+  float binx,biny;
+  if(abs(lep_pdgId()[index])==11){
+    if(!(hElFR==0)){
+      if(elFRetamin<0) biny = std::max(elFRetamin,std::min(elFRetamax,     lep_etaSC()[index]) );
+      else             biny = std::max(elFRetamin,std::min(elFRetamax,fabs(lep_etaSC()[index])));
+      binx                  = std::max(elFRptmin, std::min(elFRptmax, correction*lep_p4()[index].Pt()));
+      bin   = hElFR->FindBin(binx, biny);
+      FR    = hElFR->GetBinContent(bin);
+      FRerr = hElFR->GetBinError(  bin);
+    }
+  }
+  if(abs(lep_pdgId()[index])==13){
+    if(!(hMuFR==0)){
+      if(muFRetamin<0) biny = std::max(muFRetamin,std::min(muFRetamax,     lep_p4()[index].Eta()) );
+      else             biny = std::max(muFRetamin,std::min(muFRetamax,fabs(lep_p4()[index].Eta())));
+      binx                  = std::max(muFRptmin, std::min(muFRptmax, correction*lep_p4()[index].Pt()));
+      bin   = hMuFR->FindBin(binx, biny);
+      FR    = hMuFR->GetBinContent(bin);
+      FRerr = hMuFR->GetBinError(  bin);
+    }
+  }
+  FRSSerr = FRerr;
+ 
+  return FR;
+}
+*/
 float calcMjj(bool closestDR, int jec){
   float minDR=999.;
   int jDR1(-1), jDR2(-1);
@@ -578,35 +593,6 @@ float calcMTmax(int index1, int index2, LorentzVector MET){
   return MT2;
 }
 
-bool passTriggers(bool MCoffline, bool MCtrigger, float leadleppt, float trailleppt){
-  if(!MCoffline && !MCtrigger && !isData()) return true;//no offline requirements, and no trigger emulation
-  int nel25 = 0;
-  int nel = 0;
-  int nmu25 = 0;
-  int nmu = 0;
-  for(unsigned int i = 0; i<lep_pdgId().size();++i){
-    if(lep_pass_VVV_cutbased_3l_fo()[i]&&fabs(lep_p4()[i].Eta())<2.5&&lep_p4()[i].Pt()>leadleppt) {
-      if(     abs(lep_pdgId()[i])==11) ++nel25;
-      else if(abs(lep_pdgId()[i])==13) ++nmu25;
-    }
-    if(lep_pass_VVV_cutbased_3l_fo()[i]&&fabs(lep_p4()[i].Eta())<2.5&&lep_p4()[i].Pt()>trailleppt) {
-      if(     abs(lep_pdgId()[i])==11) ++nel;
-      else if(abs(lep_pdgId()[i])==13) ++nmu;
-    }
-  }
-  if(MCoffline && !MCtrigger && !isData()){
-    if(nmu>=2)           return true;
-    if(nmu25>=1&&nel>=1) return true;
-    if(nel25>=1&&nmu>=1) return true;
-    if(nel25>=1&&nel>=2) return true;
-    return false;
-  }
-  if(nmu>=2&&(HLT_DoubleMu()) )                             return true;
-  if(nmu25>=1&&nel>=1&&HLT_MuEG())                          return true;
-  if(nel25>=1&&nmu>=1&&HLT_MuEG())                          return true;
-  if(nel25>=1&&nel>=2&&(HLT_DoubleEl()||HLT_DoubleEl_DZ())) return true;
-  return false;
-}
 
 bool passofflineTriggers(vector<int> tightlep, vector<int> looselep){
   bool passofflineforTrigger = false;
@@ -670,7 +656,7 @@ bool passonlineTriggers(vector<int> tightlep, vector<int> looselep){
   return false;
 }
 
-bool passFilters_v0(){
+bool passFilters(){
   if(!isData()) return true;//don't apply filters on simulation
   if (!Flag_EcalDeadCellTriggerPrimitiveFilter() ) return false;
   if (!Flag_badChargedCandidateFilter         () ) return false;
@@ -680,12 +666,6 @@ bool passFilters_v0(){
   if (!Flag_eeBadScFilter                     () ) return false;
   if (!Flag_globalTightHalo2016               () ) return false;
   if (!Flag_badMuonFilter                     () ) return false;
-  return true;
-}
-
-bool passFilters(){
-  if(!isData()) return true;//don't apply filters on simulation
-  if (!Flag_AllEventFilters() ) return false;
   return true;
 }
 
@@ -741,12 +721,14 @@ string process(string filename, bool SS, vector<int> tightlep, vector<int> loose
 }
 
 bool vetophotonprocess(string filename, bool process){
+  //if((filename.find("wjets_")!=string::npos||filename.find("dy_")!=string::npos||filename.find("ttbar_")!=string::npos||filename.find("ww_")!=string::npos||filename.find("wz_")!=string::npos)&&(process==5)) return true;
+  //if((filename.find("wgjets_")!=string::npos||filename.find("wgstar_")!=string::npos||filename.find("zgamma_")!=string::npos||filename.find("ttg_")!=string::npos||filename.find("wwg_")!=string::npos ||filename.find("wzg_")!=string::npos)&&(process!=5)) return true;
   if((filename.find("wjets_" )!=string::npos||filename.find("dy_"    )!=string::npos||filename.find("ttbar_" )!=string::npos||filename.find("ww_" )!=string::npos||filename.find("wz_" )!=string::npos)&&(process)) return true;
   if((filename.find("wgjets_")!=string::npos||filename.find("wgstar_")!=string::npos||filename.find("zgamma_")!=string::npos||filename.find("ttg_")!=string::npos||filename.find("wwg_")!=string::npos ||filename.find("wzg_")!=string::npos)&&(!process)) return true;
   return false;
 }
 
-bool passJetSSstate_v0(bool preselect, int nj, int nb, float Mjj, float MjjL, float Detajj, bool is3lCR, int jec, bool btag, bool Mjjside, int version){
+bool passJetSSstate(bool preselect, int nj, int nb, float Mjj, float MjjL, float Detajj, bool is3lCR, int jec, bool btag, bool Mjjside, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -768,195 +750,18 @@ bool passJetSSstate_v0(bool preselect, int nj, int nb, float Mjj, float MjjL, fl
   if(!Mjjside&&fabs(Massjj-80.)>=masswindow) return false;
   return true;
 }
-
-bool passJetSSstate(bool preselect, bool is3lCR, int jec, bool btag, bool Mjjside, int version){
-    float masswindow = 20.;
-    if(abs(version)==1) masswindow = 15.;
-    if(jec==1){
-      if(nj30_up()<2)                              return false;
-      if( btag&&nb_up()==0)                        return false;
-      if(!btag&&nb_up()>0)                         return false;
-      if(preselect)                              return true;
-      if(fabs(DetajjL_up())>1.5)                   return false;
-      if(fabs(MjjL_up())>400.)                     return false;
-      if(is3lCR)                                 return true;
-      if( Mjjside&&fabs(Mjj_up()-80.) <masswindow) return false;
-      if(!Mjjside&&fabs(Mjj_up()-80.)>=masswindow) return false;
-      return true;
-    } else if(jec==(-1)){
-      if(nj30_dn()<2)                              return false;
-      if( btag&&nb_dn()==0)                        return false;
-      if(!btag&&nb_dn()>0)                         return false;
-      if(preselect)                              return true;
-      if(fabs(DetajjL_dn())>1.5)                   return false;
-      if(fabs(MjjL_dn())>400.)                     return false;
-      if(is3lCR)                                 return true;
-      if( Mjjside&&fabs(Mjj_dn()-80.) <masswindow) return false;
-      if(!Mjjside&&fabs(Mjj_dn()-80.)>=masswindow) return false;
-      return true;
-    } else {
-      if(nj30()<2)                              return false;
-      if( btag&&nb()==0)                        return false;
-      if(!btag&&nb()>0)                         return false;
-      if(preselect)                           return true;
-      if(fabs(DetajjL())>1.5)                   return false;
-      if(fabs(MjjL())>400.)                     return false;
-      if(is3lCR)                              return true;
-      if( Mjjside&&fabs(Mjj()-80.) <masswindow) return false;
-      if(!Mjjside&&fabs(Mjj()-80.)>=masswindow) return false;
-      return true;
-    }
-  return false;//should not happen
-}
-
-int isSRSS(bool preselect, int jec, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate(preselect, false, jec, btag, Mjjside,version)) return -1;
-  float met = met_pt();
-  if(     jec==  1 ) met = met_up_pt();
-  else if(jec==(-1)) met = met_dn_pt();
-  if(NtightSS()!=2)                                return -1;
-  if(nVlep()!=2)                                   return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0) return -1;
-  if(preselect){
-    if(passSSee() && fabs(MeeSS()-MZ)>10.)         return  0;
-    if(passSSem())                                 return  1;
-    if(passSSmm())                                 return  2;
-    return -1;
-  }
-  float metcut = 40.;
-  if(abs(version)==1) metcut = 60.;
-  float maxMT = MTmax();
-  if(jec==  1)  maxMT = MTmax_up();
-  if(jec==(-1)) maxMT = MTmax_dn();
-  if(passSSee() && fabs(MeeSS()-MZ)>10.&&met>metcut&&MllSS()>40.)           return 0;
-  if(passSSem() &&                       met>metcut&&MllSS()>30.&&maxMT>90) return 1;
-  if(passSSmm() &&                                   MllSS()>40.)           return 2;
-  return -1;
-}
-int isARSS(bool preselect, int jec, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate(preselect, false, jec, btag, Mjjside,version)) return -1;
-  float met = met_pt();
-  if(     jec==  1 ) met = met_up_pt();
-  else if(jec==(-1)) met = met_dn_pt();
-  if(NtightSS()!=1)                                return -1;
-  if(NlooseSS()!=2)                                return -1;
-  if(nVlep()!=2)                                   return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0) return -1;
-  if(preselect){
-    if(passSSee() && fabs(MeeSS()-MZ)>10.)         return  0;
-    if(passSSem())                                 return  1;
-    if(passSSmm())                                 return  2;
-    return -1;
-  }
-  float metcut = 40.;
-  if(abs(version)==1) metcut = 60.;
-  float maxMT = MTmax();
-  if(jec==  1)  maxMT = MTmax_up();
-  if(jec==(-1)) maxMT = MTmax_dn();
-  if(passSSee() && fabs(MeeSS()-MZ)>10.&&met>metcut&&MllSS()>40.)           return 0;
-  if(passSSem() &&                       met>metcut&&MllSS()>30.&&maxMT>90) return 1;
-  if(passSSmm() &&                                   MllSS()>40.)           return 2;
-  return -1;
-}
-int isCRSS(bool preselect, int jec, bool noZ, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate(preselect, true, jec, btag, Mjjside,version)) return -1;
-  float met = met_pt();
-  if(     jec==  1 ) met = met_up_pt();
-  else if(jec==(-1)) met = met_dn_pt();
-  if(NtightSS()<2)                                 return -1;
-  if(Ntight3l()!=3)                                return -1;
-  if(nVlep()!=3)                                   return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0) return -1;
-  int lep3 = -1; int SS1 = lep_idx0_SS(); int SS2 = lep_idx1_SS();
-  if(SS1<0||SS2<0) return -1;
-  if(SS1==0&&SS2==1) lep3 = 2;
-  else if(SS1==0&&SS2==2) lep3 = 1;
-  else if(SS1==1&&SS2==2) lep3 = 0;
-  if(!noZ){
-    bool hasSFOSZ = false;
-    if((lep_pdgId()[SS1]==(-lep_pdgId()[lep3]))&&(fabs((lep_p4()[SS1]+lep_p4()[lep3]).M()-MZ)<=10)) hasSFOSZ = true;
-    if((lep_pdgId()[SS2]==(-lep_pdgId()[lep3]))&&(fabs((lep_p4()[SS2]+lep_p4()[lep3]).M()-MZ)<=10)) hasSFOSZ = true;
-    if(!hasSFOSZ) return -1;
-  } else {
-    bool hasSFOS = false;
-    if((lep_pdgId()[SS1]==(-lep_pdgId()[lep3]))) hasSFOS = true;
-    if((lep_pdgId()[SS2]==(-lep_pdgId()[lep3]))) hasSFOS = true;
-   if(!hasSFOS)  return -1;
-  }
-  if(preselect){
-    if(passSSee() && fabs(MeeSS()-MZ)>10.)         return  0;
-    if(passSSem())                                 return  1;
-    if(passSSmm())                                 return  2;
-    return -1;
-  }
-  float metcut = 40.;
-  if(abs(version)==1) metcut = 60.;
-  float maxMT = MTmax();
-  if(jec==  1)  maxMT = MTmax_up();
-  if(jec==(-1)) maxMT = MTmax_dn();
-  if(passSSee() && fabs(MeeSS()-MZ)>10.&&met>metcut&&MllSS()>40.)           return 0;
-  if(passSSem() &&                       met>metcut&&MllSS()>30.&&maxMT>90) return 1;
-  if(passSSmm() &&                                   MllSS()>40.)           return 2;
-  return -1;
-}
-bool passAnySS(int &SR, int &AR, int &CR, bool preselect, int jec, bool noZ, bool btag, bool Mjjside, int version){
-  SR = -1; AR = -1; CR = -1;
-  bool changeSR = (NtightSS()==2                  && nVlep()==2);  
-  bool changeAR = (NtightSS()==1 && NlooseSS()==2 && nVlep()==2);  
-  bool changeCR = (NtightSS()>=2 && Ntight3l()==3 && nVlep()==3);
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0) return true;
-  if(!passJetSSstate(preselect, true, jec, btag, Mjjside,version)) return true;//don't pass any selection
-  if(!passJetSSstate(preselect, false, jec, btag, Mjjside,version)) { changeSR = false; changeAR = false; }
-  float met = met_pt();
-  if(     jec==  1 ) met = met_up_pt();
-  else if(jec==(-1)) met = met_dn_pt();
-  if(changeCR){
-    int lep3 = -1; int SS1 = lep_idx0_SS(); int SS2 = lep_idx1_SS();
-    if(SS1<0||SS2<0) return -1;
-    if(SS1==0&&SS2==1) lep3 = 2;
-    else if(SS1==0&&SS2==2) lep3 = 1;
-    else if(SS1==1&&SS2==2) lep3 = 0;
-    else { cout << "This should not happen SS1 " << SS1 << " SS2 " << SS2 << endl; return -1; }
-    if(!noZ){
-      bool hasSFOSZ = false;
-      if((lep_pdgId()[SS1]==(-lep_pdgId()[lep3]))&&(fabs((lep_p4()[SS1]+lep_p4()[lep3]).M()-MZ)<=10)) hasSFOSZ = true;
-      if((lep_pdgId()[SS2]==(-lep_pdgId()[lep3]))&&(fabs((lep_p4()[SS2]+lep_p4()[lep3]).M()-MZ)<=10)) hasSFOSZ = true;
-      if(!hasSFOSZ) return true;
-    } else {
-      bool hasSFOS = false;
-      if((lep_pdgId()[SS1]==(-lep_pdgId()[lep3]))) hasSFOS = true;
-      if((lep_pdgId()[SS2]==(-lep_pdgId()[lep3]))) hasSFOS = true;
-      if(!hasSFOS)  return true;
-    }
-  }
-  if(preselect){
-    if(passSSee() && fabs(MeeSS()-MZ)>10.) { SR = changeSR ? 0 : -1; AR = changeAR ? 0 : -1; CR = changeCR ? 0 : -1; }
-    if(passSSem())                         { SR = changeSR ? 1 : -1; AR = changeAR ? 1 : -1; CR = changeCR ? 1 : -1; }
-    if(passSSmm())                         { SR = changeSR ? 2 : -1; AR = changeAR ? 2 : -1; CR = changeCR ? 2 : -1; }
-    return true;
-  }
-  float metcut = 40.;
-  if(abs(version)==1) metcut = 60.;
-  float maxMT = MTmax();
-  if(jec==  1)  maxMT = MTmax_up();
-  if(jec==(-1)) maxMT = MTmax_dn();
-  if(passSSee() && fabs(MeeSS()-MZ)>10.&&met>metcut&&MllSS()>40.)           { SR = changeSR ? 0 : -1; AR = changeAR ? 0 : -1; CR = changeCR ? 0 : -1; }
-  if(passSSem() &&                       met>metcut&&MllSS()>30.&&maxMT>90) { SR = changeSR ? 1 : -1; AR = changeAR ? 1 : -1; CR = changeCR ? 1 : -1; }
-  if(passSSmm() &&                                   MllSS()>40.)           { SR = changeSR ? 2 : -1; AR = changeAR ? 2 : -1; CR = changeCR ? 2 : -1; }
-  return true;
-}
-
-int isSRSS_v0(vector<int> tightlep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate_v0(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
-  if(tightlep.size()!=2)                                                                          return -1;
-  if(vetolep.size()!=0)                                                                           return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                                return -1;
-  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ])<0)                                     return -1;
+      
+int isSRSS(vector<int> tightlep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()!=2)                                                                       return -1;
+  if(vetolep.size()!=0)                                                                        return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                             return -1;
+  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[tightlep[1] ])<0)                                  return -1;
   bool ee = false; bool em = false; bool mm = false;
 LorentzVector met = LorentzVector(0,0,0,0);
   if(MET.Pt()>0)     met = MET;
-  else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-  else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
  
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[tightlep[1] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()-MZ)>10.) ee = true;
@@ -982,17 +787,17 @@ LorentzVector met = LorentzVector(0,0,0,0);
   return -1;
 }
 
-int isARSS_v0(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate_v0(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
-  if(tightlep.size()!=1)                                                                          return -1;
-  if(looselep.size()!=1)                                                                          return -1;
-  if(vetolep.size()!=0)                                                                           return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                                return -1;
-  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[looselep[0] ])<0)                                     return -1;
+int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, false, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()!=1)                                                                       return -1;
+  if(looselep.size()!=1)                                                                       return -1;
+  if(vetolep.size()!=0)                                                                        return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                             return -1;
+  if((lep_pdgId()[tightlep[0] ]*lep_pdgId()[looselep[0] ])<0)                                  return -1;
    LorentzVector met = LorentzVector(0,0,0,0);
   if(MET.Pt()>0)     met = MET;
-  else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-  else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
   bool ee = false; bool em = false; bool mm = false;
   if(((lep_pdgId()[tightlep[0] ])*(lep_pdgId()[looselep[0] ]))==121&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)>10.) ee = true;
@@ -1018,20 +823,18 @@ int isARSS_v0(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  
   return -1;
 }
 
-int isCRSS_v0(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool noZ, bool btag, bool Mjjside, int version){
-  if(!passJetSSstate_v0(preselect, nj, nb, Mjj, MjjL, Detajj, true, jec, btag, Mjjside,version)) return -1;
-  if(tightlep.size()  <2)                                                                        return -1;
-  if(selectlep.size()!=3)                                                                        return -1;
-  if(vetolep.size()!=0)                                                                          return -1;
-  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                               return -1;
+int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect, float maxMT, int nj, int nb, float Mjj, float MjjL, float Detajj, LorentzVector MET, int jec, bool noZ, bool btag, bool Mjjside, int version){
+  if(!passJetSSstate(preselect, nj, nb, Mjj, MjjL, Detajj, true, jec, btag, Mjjside,version)) return -1;
+  if(tightlep.size()  <2)                                                                     return -1;
+  if(selectlep.size()!=3)                                                                     return -1;
+  if(vetolep.size()!=0)                                                                       return -1;
+  if(nisoTrack_mt2_cleaned_VVV_cutbased_veto()!=0)                                            return -1;
   //SS is just tighter pt, so can loop over i3l
   bool isSS = false;
   int lep3 = -1; int SS1 = -1; int SS2 = -1;
   if((lep_pdgId()[selectlep[0] ]*lep_pdgId()[selectlep[1] ])>0) { lep3 = selectlep[2]; SS1 = selectlep[0]; SS2 = selectlep[1]; isSS = true; }
   if((lep_pdgId()[selectlep[0] ]*lep_pdgId()[selectlep[2] ])>0) { lep3 = selectlep[1]; SS1 = selectlep[0]; SS2 = selectlep[2]; isSS = true; }
   if((lep_pdgId()[selectlep[1] ]*lep_pdgId()[selectlep[2] ])>0) { lep3 = selectlep[0]; SS1 = selectlep[1]; SS2 = selectlep[2]; isSS = true; }
-  if(!lep_pass_VVV_cutbased_tight()[SS1]) isSS = false;//changed from original function to agree with ntuples
-  if(!lep_pass_VVV_cutbased_tight()[SS2]) isSS = false;//changed from original function to agree with ntuples
   if(!isSS)       return -1;
   if(!noZ){
     bool hasSFOSZ = false;
@@ -1056,15 +859,14 @@ int isCRSS_v0(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, 
   }
   LorentzVector met = LorentzVector(0,0,0,0);
   if(MET.Pt()>0)     met = MET;
-  else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-  else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+  else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+  else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
   else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
   float metcut = 40.;
   if(abs(version)==1) metcut = 60.;
-  //changed Mll definition from original function to agree with ntuples
-  if(ee&&met.Pt()>metcut&&(lep_p4()[SS1]+lep_p4()[SS2]).M()>40.) return 0;
-  if(mm&&                 (lep_p4()[SS1]+lep_p4()[SS2]).M()>40.) return 2;
-  if(em&&met.Pt()>metcut&&(lep_p4()[SS1]+lep_p4()[SS2]).M()>30.) {
+  if(ee&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 0;
+  if(mm&&                 (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>40.) return 2;
+  if(em&&met.Pt()>metcut&&(lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]).M()>30.) {
     if(      maxMT>90.) return 1;
     else if(maxMT<0){
       float tempmaxMT = calcMTmax(SS1,SS2,met);
@@ -1073,230 +875,8 @@ int isCRSS_v0(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, 
   }
   return -1;
 }
-
-bool passJet3lstate(int jec, bool btag){
-  if(jec==1){
-    if(nj_up() >1)        return false;
-    if( btag&&nb_up()==0) return false;
-    if(!btag&&nb_up()!=0) return false; 
-  } else if(jec==(-1)){
-    if(nj_dn() >1)        return false;
-    if( btag&&nb_dn()==0) return false;
-    if(!btag&&nb_dn()!=0) return false; 
-  } else {
-    if(nj() >1)           return false;
-    if( btag&&nb()==0)    return false;
-    if(!btag&&nb()!=0)    return false; 
-  }
-  return true;
-}
-
-int isSR3l(bool preselect, int jec, bool btag, int version){
-  if(!passJet3lstate(jec,btag))               return -1;
-  if(Ntight3l()!=3)                           return -1;
-  if(nVlep()!=3)                              return -1;
-  float met = met_pt();
-  if(jec==1)    met = met_up_pt();
-  if(jec==(-1)) met = met_dn_pt();
-  float dphi = DPhi3lMET();
-  if(jec==1)    dphi = DPhi3lMET_up();
-  if(jec==(-1)) dphi = DPhi3lMET_dn();
-  if(abs(lep_charge()[0]+lep_charge()[1]+lep_charge()[2])==3) return -1;
-  if(            Mll3L ()>=0.&&Mll3L ()<20.)  return -1;//is MSF for 0SFOS, else MSFOS
-  if(nSFOS()>=2&&Mll3L1()>=0.&&Mll3L1()<20.)  return -1;//2nd MSFOS for 2 SFOS
-  if(nSFOS()==0){
-    if(fabs(Mee3L()-MZ)<15.)                  return -1;//Mee - is -999 if no ee --> this is fine
-    if(preselect)                           return  0;
-    if(version==0&&Pt3l()<60.)                return -1;
-    if(abs(version)==1&&met<30)               return -1;
-  } else if(nSFOS()==1){
-    if(version==0&&Mll3L()>55.&&Mll3L()<110.) return -1;
-    if(version!=0&&fabs(Mll3L()-MZ)<20.)      return -1;
-    if(preselect)                           return  1;
-    float metcut = 45.;
-    if(abs(version)==1) metcut = 40.;
-    if(met<metcut)                            return -1;
-    float MTthird = MT3rd();
-    if(jec==  1)  MTthird = MT3rd_up();
-    if(jec==(-1)) MTthird = MT3rd_dn();
-    if(MTthird>=0&&MTthird<90.)               return -1;
-  } else if(nSFOS()==2){
-    if(fabs(Mll3L ()-MZ)<20.)                 return -1;
-    if(fabs(Mll3L1()-MZ)<20.)                 return -1;
-    if(preselect)                           return  2;
-    if(met<55.)                               return -1;
-  }
-  if(dphi<2.5)                                return -1;
-  if(fabs(M3l()-MZ)<10.)                      return -1;
-  if(nSFOS()==0)                            return 0;
-  if(Pt3l()<60.)                              return -1;
-  if(nSFOS()==1)                            return 1;
-  if(nSFOS()==2)                            return 2;
-  return -1;
-}
-
-int isAR3l(bool preselect, int jec, bool btag, int version){
-  if(!passJet3lstate(jec,btag)) return -1;
-  if(Ntight3l()!=2)             return -1;
-  if(Nloose3l()!=3)             return -1;
-  if(nVlep()!=3)                return -1;
-  float met = met_pt();
-  if(jec==1)    met = met_up_pt();
-  if(jec==(-1)) met = met_dn_pt();
-  float dphi = DPhi3lMET();
-  if(jec==1)    dphi = DPhi3lMET_up();
-  if(jec==(-1)) dphi = DPhi3lMET_dn();
-  if(abs(lep_charge()[0]+lep_charge()[1]+lep_charge()[2])==3) return -1;
-  if(            Mll3L ()>=0.&&Mll3L ()<20.)  return -1;
-  if(nSFOS()>=2&&Mll3L1()>=0.&&Mll3L1()<20.)  return -1;
-  if(nSFOS()==0){
-    if(fabs(Mee3L()-MZ)<15.)                  return -1;
-    if(preselect)                           return  0;
-    if(version==0&&Pt3l()<60.)                return -1;
-    if(abs(version)==1&&met<30)               return -1;
-  } else if(nSFOS()==1){
-    if(version==0&&Mll3L()>55.&&Mll3L()<110.) return -1;
-    if(version!=0&&fabs(Mll3L()-MZ)<20.)      return -1;
-    if(preselect)                           return  1;
-    float metcut = 45.;
-    if(abs(version)==1) metcut = 40.;
-    if(met<metcut)                            return -1;
-    float MTthird = MT3rd();
-    if(jec==  1)  MTthird = MT3rd_up();
-    if(jec==(-1)) MTthird = MT3rd_dn();
-    if(MTthird>=0&&MTthird<90.)               return -1;
-  } else if(nSFOS()==2){
-    if(fabs(Mll3L ()-MZ)<20.)                 return -1;
-    if(fabs(Mll3L1()-MZ)<20.)                 return -1;
-    if(preselect)                           return  2;
-    if(met<55.)                               return -1;
-  }
-  if(dphi<2.5)                                return -1;
-  if(fabs(M3l()-MZ)<10.)                      return -1;
-  if(nSFOS()==0)                            return 0;
-  if(Pt3l()<60.)                              return -1;
-  if(nSFOS()==1)                            return 1;
-  if(nSFOS()==2)                            return 2;
-  return -1;
-}
-
-int isCR3l(bool preselect, int jec, bool btag, int version){
-  if(!passJet3lstate(jec,btag)) return -1;
-  if(Ntight3l()!=3)             return -1;
-  if(nVlep()!=3)                return -1;
-  float met = met_pt();
-  if(jec==1)    met = met_up_pt();
-  if(jec==(-1)) met = met_dn_pt();
-  float dphi = DPhi3lMET();
-  if(jec==1)    dphi = DPhi3lMET_up();
-  if(jec==(-1)) dphi = DPhi3lMET_dn();
-  if(abs(lep_charge()[0]+lep_charge()[1]+lep_charge()[2])==3) return -1;
-  if(            Mll3L ()>=0.&&Mll3L ()<20.)           return -1;
-  if(nSFOS()>=2&&Mll3L1()>=0.&&Mll3L1()<20.)           return -1;
-  if(nSFOS()==0){
-                                                       return -1;
-  } else if(nSFOS()==1){
-    if(version==0&&!(Mll3L()>55.&&Mll3L()<110.))       return -1;
-    if(version!=0&&fabs(Mll3L()-MZ)>=20.)              return -1;
-    if(preselect)                                    return  1;
-    float metcut = 45.;
-    if(abs(version)==1) metcut = 40.;
-    if(met<metcut)                                     return -1;
-    float MTthird = MT3rd();
-    if(jec==  1)  MTthird = MT3rd_up();
-    if(jec==(-1)) MTthird = MT3rd_dn();
-    if(MTthird>=0&&MTthird<90.)                        return -1;
-  } else if(nSFOS()==2){
-    if(fabs(Mll3L ()-MZ)>=20.&&fabs(Mll3L1()-MZ)>=20.) return -1;
-    if(preselect)                                    return  2;
-    if(met<55.)                                        return -1;
-  }
-  if(dphi<2.5)                                         return -1;
-  if(fabs(M3l()-MZ)<10.)                               return -1;
-  if(Pt3l()<60.)                                       return -1;
-  if(nSFOS()==1)                                      return 1;
-  if(nSFOS()==2)                                      return 2;
-  return -1;
-}
-
-bool passAny3l(int &SR, int &AR, int &CR, bool preselect, int jec, bool btag, int version){
-  SR = -1; AR = -1; CR = -1;
-  bool isSR = false; bool isAR = false; bool isCR = false; 
-  if(!passJet3lstate(jec,btag)) return true;
-  if(nVlep()!=3)                return true;
-  if(Ntight3l()==3)                { isSR = true; isCR = true; }
-  if(Ntight3l()==2&&Nloose3l()==3)   isAR = true;
-  float met = met_pt();
-  if(jec==1)    met = met_up_pt();
-  if(jec==(-1)) met = met_dn_pt();
-  float dphi = DPhi3lMET();
-  if(jec==1)    dphi = DPhi3lMET_up();
-  if(jec==(-1)) dphi = DPhi3lMET_dn();
-  if(abs(lep_charge()[0]+lep_charge()[1]+lep_charge()[2])==3) return true;
-  if(            Mll3L ()>=0.&&Mll3L ()<20.) return true;
-  if(nSFOS()>=2&&Mll3L1()>=0.&&Mll3L1()<20.) return true;
-  if(nSFOS()==0){
-    if(fabs(Mee3L()-MZ)<15.)    return true;
-    if(preselect){
-      if(isSR) SR = 0;
-      if(isAR) AR = 0;
-      return true;
-    }
-    if(version==0&&Pt3l()<60.)  return true;
-    if(abs(version)==1&&met<30) return true;
-  } else if(nSFOS()==1){
-    if(version==0&&Mll3L()>55.&&Mll3L()<110.) { isSR = false; isAR = false; }
-    else if(version==0)                         isCR = false;
-    if(version!=0&&fabs(Mll3L()-MZ)<=20.)     { isSR = false; isAR = false; }
-    else if(version!=0)                         isCR = false;
-    if(preselect) {
-      if(isSR) SR = 1;
-      if(isAR) AR = 1;
-      if(isCR) CR = 1;
-      return true;
-    }
-    float metcut = 45.;
-    if(abs(version)==1) metcut = 40.;
-    if(met<metcut)                            return true;
-    float MTthird = MT3rd();
-    if(jec==  1)  MTthird = MT3rd_up();
-    if(jec==(-1)) MTthird = MT3rd_dn();
-    if(MTthird>=0&&MTthird<90.)               return true;
-  } else if(nSFOS()==2){
-    if(fabs(Mll3L ()-MZ)>20.&&fabs(Mll3L1()-MZ)>20.)   isCR = false;
-    else                                             { isSR = false; isAR = false; }
-    if(preselect) {
-      if(isSR) SR = 2;
-      if(isAR) AR = 2;
-      if(isCR) CR = 2;
-      return true;
-    }
-    if(met<55.)                                        return true;
-  }
-  if(dphi<2.5)           return true;
-  if(fabs(M3l()-MZ)<10.) return true;
-  if(nSFOS()==0){
-      if(isSR) SR = 0;
-      if(isAR) AR = 0;
-      return true;
-    }
-  if(Pt3l()<60.)         return true;
-  if(nSFOS()==1){
-      if(isSR) SR = 1;
-      if(isAR) AR = 1;
-      if(isCR) CR = 1;
-      return true;
-    }
-  if(nSFOS()==2){
-      if(isSR) SR = 2;
-      if(isAR) AR = 2;
-      if(isCR) CR = 2;
-      return true;
-    }
-  return false;
-}
 		      
-int isSR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
+int isSR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -1310,10 +890,11 @@ int isSR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVecto
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
-    else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-    else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+    else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+    else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
     pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
@@ -1375,13 +956,13 @@ int isSR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVecto
     if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { pass2 = false; }
   }
-  if(DPhilllMET>=2.5&&pass0 ) return 0;//2.7 --> 2.5 changed from original function
+  if(DPhilllMET>=2.7&&pass0 ) return 0;
   if(DPhilllMET>=2.5&&pass1 ) return 1;
   if(DPhilllMET>=2.5&&pass2 ) return 2;
   return -1;
 }
 
-int isAR3l_v0(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
+int isAR3l(vector<int> tightlep, vector<int> looselep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -1396,10 +977,11 @@ int isAR3l_v0(vector<int> tightlep, vector<int> looselep, bool preselect, int nj
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
-    else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-    else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+    else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+    else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<10.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Pt()   <60.) return -1;
     pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).Phi(),met.Phi());
   }
@@ -1461,13 +1043,13 @@ int isAR3l_v0(vector<int> tightlep, vector<int> looselep, bool preselect, int nj
     if(OS02&&SF02&&fabs((lep_p4()[tightlep[0] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass2 = false; }
     if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[looselep[0] ]).M()-MZ)<20.) { pass2 = false; }
   }
-  if(DPhilllMET>=2.5&&pass0 ) return 0;//2.7 --> 2.5 changed from original function
+  if(DPhilllMET>=2.7&&pass0 ) return 0;
   if(DPhilllMET>=2.5&&pass1 ) return 1;
   if(DPhilllMET>=2.5&&pass2 ) return 2;
   return -1;
 }
 
-int isCR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
+int isCR3l(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   int numj = nj;
   int numb = nb;
   int x;
@@ -1481,10 +1063,11 @@ int isCR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVecto
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
-    else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-    else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+    else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+    else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return -1;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return -1;
     pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
@@ -1536,13 +1119,13 @@ int isCR3l_v0(vector<int> tightlep, bool preselect, int nj, int nb, LorentzVecto
     if(OS12&&SF12&&fabs((lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<20.) { atleastoneSFOSZ = true; }
     if(!atleastoneSFOSZ) pass2X = false;
   }
-  if(DPhilllMET>=2.5&&pass0X ) return 0;//2.7 --> 2.5 changed from original function
+  if(DPhilllMET>=2.7&&pass0X ) return 0;
   if(DPhilllMET>=2.5&&pass1X ) return 1;
   if(DPhilllMET>=2.5&&pass2X ) return 2;
   return -1;
 }
 
-bool checkbothSRCR3l_v0(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
+bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect, int nj, int nb, LorentzVector MET, int jec, bool btag, int version){
   isSR3l = -1; isCR3l = -1;//assume no match
   int numj = nj;
   int numb = nb;
@@ -1557,10 +1140,11 @@ bool checkbothSRCR3l_v0(int &isSR3l, int &isCR3l, vector<int> tightlep, bool pre
   LorentzVector met = LorentzVector(0,0,0,0);
   if(!preselect){
     if(MET.Pt()>0)     met = MET;
-    else if(jec==1)    met.SetPxPyPzE(met_up_pt()*std::cos(met_up_phi()),met_up_pt()*std::sin(met_up_phi()),0,met_up_pt());
-    else if(jec==(-1)) met.SetPxPyPzE(met_dn_pt()*std::cos(met_dn_phi()),met_dn_pt()*std::sin(met_dn_phi()),0,met_dn_pt());
+    else if(jec==1)    met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_up_pt()*std::cos(met_T1CHS_miniAOD_CORE_up_phi()),met_T1CHS_miniAOD_CORE_up_pt()*std::sin(met_T1CHS_miniAOD_CORE_up_phi()),0,met_T1CHS_miniAOD_CORE_up_pt());
+    else if(jec==(-1)) met.SetPxPyPzE(met_T1CHS_miniAOD_CORE_dn_pt()*std::cos(met_T1CHS_miniAOD_CORE_dn_phi()),met_T1CHS_miniAOD_CORE_dn_pt()*std::sin(met_T1CHS_miniAOD_CORE_dn_phi()),0,met_T1CHS_miniAOD_CORE_dn_pt());
     else               met.SetPxPyPzE(met_pt()*std::cos(met_phi()),met_pt()*std::sin(met_phi()),0,met_pt());
     if(fabs((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).M()-MZ)<10.) return true;
+    //if(     (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt()   <60.) return true;
     pTlll = (lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Pt();
     DPhilllMET = deltaPhi((lep_p4()[tightlep[0] ]+lep_p4()[tightlep[1] ]+lep_p4()[tightlep[2] ]).Phi(),met.Phi());
   }
@@ -1630,11 +1214,11 @@ bool checkbothSRCR3l_v0(int &isSR3l, int &isCR3l, vector<int> tightlep, bool pre
     if(!atleastoneSFOSZ) pass2X = false;
   }
   //SR
-  if(DPhilllMET>=2.5&&pass0 ) isSR3l = 0;//2.7 --> 2.5 changed from original function
+  if(DPhilllMET>=2.7&&pass0 ) isSR3l = 0;
   if(DPhilllMET>=2.5&&pass1 ) isSR3l = 1;
   if(DPhilllMET>=2.5&&pass2 ) isSR3l = 2;
   //CR
-  if(DPhilllMET>=2.5&&pass0X) isCR3l = 0;//2.7 --> 2.5 changed from original function
+  if(DPhilllMET>=2.7&&pass0X) isCR3l = 0;
   if(DPhilllMET>=2.5&&pass1X) isCR3l = 1;
   if(DPhilllMET>=2.5&&pass2X) isCR3l = 2;
   return true;
@@ -1653,25 +1237,15 @@ vector<float> allMSFOS(vector<int> tightlep, vector<int> looselep){
   sort(MSFOS.begin(),MSFOS.end(),sortMSFOS);
   return MSFOS;
 }
-vector<float> allMSFOS(){
-  vector<float> MSFOS;
-  if(isSFOS01()==1) MSFOS.push_back(M01());
-  if(isSFOS02()==1) MSFOS.push_back(M02());
-  if(isSFOS12()==1) MSFOS.push_back(M12());
-  sort(MSFOS.begin(),MSFOS.end(),sortMSFOS);
-  return MSFOS;
-}
 
 map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir){
   map<string, TH1D*> histos;
   if(histonames.size()!=hbins.size()) return histos;
-  if(histonames.size()!=hlow.size())  return histos;
-  if(histonames.size()!=hup.size())   return histos;
+  if(histonames.size()!=hlow.size()) return histos;
+  if(histonames.size()!=hup.size()) return histos;
   for(unsigned int i = 0; i<histonames.size(); ++i){
     string mapname = histonames[i];
     mapname = histonames[i] + "_"+samplename;
-    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    mapname = histonames[i] + "_WHtoWWW";//splitted of of 'Other'
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     mapname = histonames[i] + "_bfake";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
@@ -1697,13 +1271,11 @@ map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames,
 map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir, int splitWW){
   map<string, TH1D*> histos;
   if(histonames.size()!=hbins.size()) return histos;
-  if(histonames.size()!=hlow.size())  return histos;
-  if(histonames.size()!=hup.size())   return histos;
+  if(histonames.size()!=hlow.size()) return histos;
+  if(histonames.size()!=hup.size()) return histos;
   for(unsigned int i = 0; i<histonames.size(); ++i){
     string mapname = histonames[i];
     mapname = histonames[i] + "_"+samplename;
-    if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
-    mapname = histonames[i] + "_fakesPredMC";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
     mapname = histonames[i] + "_fakesPred";
     if(histos.count(mapname) == 0 ) histos[mapname] = new TH1D(mapname.c_str(), "", hbins[i], hlow[i], hup[i]);
@@ -1766,7 +1338,6 @@ bool deleteHistograms(map<string, TH1D*> histos){
 }
 
 bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l, bool fillsample){
-  if(SRSS<0&&SR3l<0) return true;
   float weight2 = weight3l;
   if(weight3l<-1e6) weight2 = weight;
   if(fillsample){
@@ -1787,7 +1358,8 @@ bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, str
     if(SR3l==1) histos[histoname+"_"+sn2   ]->Fill(4.,weight2);
     if(SR3l==2) histos[histoname+"_"+sn2   ]->Fill(5.,weight2);
   }
-  return true;
+  if(SRSS>=0||SR3l>=0) return true;
+  else return false;
 }
 
 bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample){
@@ -1837,6 +1409,143 @@ bool fileexists(string filename){
   ifstream f(filename.c_str());
   return f.good();
 }
+
+/*
+int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F *&hEltrigger, string filename, string muIDname, string mutrigname, string elIDname, string eltrigname){
+
+  if(filename=="") return -1;
+  if(!fileexists(filename)) return -1;
+  f = new TFile(filename.c_str(),"read");
+  int id = 0;
+  if(f->GetListOfKeys()->Contains(muIDname.c_str()  ))  hMuID      = (TH2F*)f->Get(muIDname.c_str());
+  else id += 10;
+  //if(f->GetListOfKeys()->Contains(mutrigname.c_str())) hMutrigger = (TH2F*)f->Get(mutrigname.c_str());
+  //else id += 100;
+  if(f->GetListOfKeys()->Contains(elIDname.c_str()  ))  hElID      = (TH2F*)f->Get(elIDname.c_str());
+  else id +=1000;
+  if(f->GetListOfKeys()->Contains(eltrigname.c_str()))  hEltrigger = (TH2F*)f->Get(eltrigname.c_str());
+  else id +=10000;
+  return id;
+
+}
+*/
+/*
+bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename, string muname, string elname){
+
+  if(filename=="") {
+    cout << "Filename for FR not specified - return false" << endl;
+    return false;
+  }
+  if(!fileexists(filename)){
+    cout << "FR File " << filename << " does not exist - couldn't load FR" << endl;
+    return false;
+  }
+  f = new TFile(filename.c_str(),"read");
+  if(!(f->GetListOfKeys()->Contains(muname.c_str()))){
+    cout << "FRHistogram " << muname << " does not exist - couldn't load FR" << endl;
+    delete f;
+    return false;
+  }
+  if(!(f->GetListOfKeys()->Contains(elname.c_str()))){
+    cout << "FRHistogram " << elname << " does not exist - couldn't load FR" << endl;
+    delete f;
+    return false;
+  }
+  hMuFR = (TH2D*)f->Get(muname.c_str());
+  hElFR = (TH2D*)f->Get(elname.c_str());
+  return true;
+
+}
+*/
+/*
+bool deleteFiles(bool SF, TFile *&fSF){
+  if(SF) { fSF->Close(); delete fSF; }
+  return true;
+}
+*/
+/*
+float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin,float muIDptmax, float muIDetamin, float muIDetamax, float muTrptmin,float muTrptmax, float muTretamin, float muTretamax, float elIDptmin,float elIDptmax, float elIDetamin, float elIDetamax, float elTrptmin,float elTrptmax, float elTretamin, float elTretamax){
+  float SF1 = 1.;
+  float SF1err2 = 0;
+  float SF2 = 1.;
+  float SF2err2 = 0;
+  if(index<0) return -1.;
+  if((unsigned int)index>=lep_pdgId().size()) return -1;
+  int bin;
+  float binx,biny;
+  if(abs(lep_pdgId()[index])==11){
+    if(!(hElID==0)){
+      if(elIDetamin<0)   binx = std::max(elIDetamin,std::min(elIDetamax,lep_etaSC()[index]));
+      else               binx = std::max(elIDetamin,std::min(elIDetamax,fabs(lep_etaSC()[index])));
+      biny = std::max(elIDptmin,std::min(elIDptmax, lep_p4()[index].Pt()));
+      bin = hElID->FindBin(binx, biny);
+      SF1 = hElID->GetBinContent(bin);
+      SF1err2 = pow(hElID->GetBinError(bin),2);
+    }
+    if(!(hEltrigger==0)){
+      if(elTretamin<0)   binx = std::max(elTretamin,std::min(elTretamax,lep_etaSC()[index]));
+      else               binx = std::max(elTretamin,std::min(elTretamax,fabs(lep_etaSC()[index])));
+      biny = std::max(elTrptmin,std::min(elTrptmax, lep_p4()[index].Pt()));
+      bin = hEltrigger->FindBin(binx, biny);
+      SF2 = hEltrigger->GetBinContent(bin);
+      SF2err2 = pow(hEltrigger->GetBinError(bin),2);
+    }
+  }
+  if(abs(lep_pdgId()[index])==13){
+    if(!(hMuID==0)){
+      if(muIDetamin<0)   binx = std::max(muIDetamin,std::min(muIDetamax,lep_p4()[index].Eta()));
+      else               binx = std::max(muIDetamin,std::min(muIDetamax,fabs(lep_p4()[index].Eta())));
+      biny = std::max(muIDptmin,std::min(muIDptmax, lep_p4()[index].Pt()));
+      bin = hMuID->FindBin(binx, biny);
+      SF1 = hMuID->GetBinContent(bin);
+      SF1err2 = pow(hMuID->GetBinError(bin),2);
+    }
+    //if(!(hMutrigger==0)){
+    //  if(muTretamin<0)   binx = std::max(muTretamin,std::min(muTretamax,lep_p4()[index].Eta()));
+    //  else               binx = std::max(muTretamin,std::min(muTretamax,fabs(lep_p4()[index].Eta())));
+    //  biny = std::max(muTrptmin,std::min(muTrptmax, lep_p4()[index].Pt()));
+    //  bin = hMutrigger->FindBin(binx, biny);
+    //  SF2 = hMutrigger->GetBinContent(bin);
+    //  SF2err2 = pow(hMutrigger->GetBinError(bin),2);
+    //}
+  }
+  error = sqrt(pow(SF1,2)*SF2err2+pow(SF2,2)*SF1err2);
+ 
+  return SF1*SF2;
+}
+
+float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin,float muIDptmax, float muIDetamin, float muIDetamax, float muTrptmin,float muTrptmax, float muTretamin, float muTretamax, float elIDptmin,float elIDptmax, float elIDetamin, float elIDetamax, float elTrptmin,float elTrptmax, float elTretamin, float elTretamax){
+  vector <float> SF;
+  vector <float> SFerr;
+  float tempSF, temperr;
+  for(unsigned int i = 0; i<tightlep.size(); ++i){
+    tempSF = getlepSFandError(temperr, tightlep[i], hMuID, hMutrigger, hElID, hEltrigger, muIDptmin, muIDptmax, muIDetamin, muIDetamax, muTrptmin, muTrptmax, muTretamin, muTretamax, elIDptmin, elIDptmax, elIDetamin, elIDetamax, elTrptmin, elTrptmax, elTretamin, elTretamax);
+    SF.push_back(tempSF);
+    SFerr.push_back(temperr);
+  }
+  for(unsigned int i = 0; i<looselep.size(); ++i){
+    tempSF = getlepSFandError(temperr, looselep[i], hMuID, hMutrigger, hElID, hEltrigger, muIDptmin, muIDptmax, muIDetamin, muIDetamax, muTrptmin, muTrptmax, muTretamin, muTretamax, elIDptmin, elIDptmax, elIDetamin, elIDetamax, elTrptmin, elTrptmax, elTretamin, elTretamax);
+    SF.push_back(tempSF);
+    SFerr.push_back(temperr);
+  }
+  return getlepSFWeightandError(error,SF,SFerr);
+}
+
+float getlepSFWeightandError(float &error, vector<float> efftight, vector<float> errtight, vector<float> effloose, vector<float> errloose){
+
+  vector<float> SF = efftight;
+  SF.insert(    SF.end(),    effloose.begin(), effloose.end() );
+  vector<float> SFerr = errtight;
+  SFerr.insert( SFerr.end(), errloose.begin(), errloose.end() );
+  float SFsum = 1;
+  float errsum2 = 0;
+  for(unsigned int i = 0; i<SF   .size();++i) { if(SF[i]>0) SFsum *=SF[i]; }
+  for(unsigned int i = 0; i<SFerr.size();++i) { if(SF[i]>0) errsum2 +=pow(SFsum/SF[i]*SFerr[i],2); }
+  error = sqrt(errsum2);
+  return SFsum;
+
+}
+*/
 
 //only used for tight right now - loose region is completely data driven
 float getlepSFandError(float &error, int index){

@@ -24,7 +24,7 @@
 #define USE_CMS3_WWW100 
 // CMS3
 #ifdef USE_CMS3_WWW100
-#include "CMS3_WWW100.h"
+#include "CMS3_WWW106.h"
 #else
 #include "CMS3_WWW0118.h"
 #endif
@@ -42,69 +42,86 @@ struct myevt{
 
 #define MZ 91.1876
 
+float  dR(LorentzVector vec1,LorentzVector vec2 );
+float  dEta(LorentzVector vec1,LorentzVector vec2 );
+float  dPhi(LorentzVector vec1,LorentzVector vec2 );
+float  deltaPhi(float phi1,float phi2 );
+float  mT(LorentzVector p4, LorentzVector met);
+int    numJ(float jetpt=20., float jeteta=2.4, float csv=-1, int jec=0);//loose: 0.5426, medium: 0.8484, if csv < 0 - count Njets, else Nbjets
+
+bool  sortMSFOS(float M1, float M2);
+bool  sortPt(int i1, int i2);
+bool  sortDecreasing(double i1, double i2);
+
 vector<string> split(string mystring, string c="/");
 string leptype(unsigned lep_index);
-int gentype_v2(unsigned lep1_index=0,unsigned lep2_index=1, int lep3_index=-1);
-float dR(LorentzVector vec1,LorentzVector vec2 );
-float dEta(LorentzVector vec1,LorentzVector vec2 );
-float dPhi(LorentzVector vec1,LorentzVector vec2 );
-float deltaPhi(float phi1,float phi2 );
-float mT(LorentzVector p4, LorentzVector met);
-bool sortMSFOS(float M1, float M2);
-bool sortPt(int i1, int i2);
-bool sortDecreasing(double i1, double i2);
-int numJ(float jetpt=20., float jeteta=2.4, float csv=-1, int jec=0);//loose: 0.5426, medium: 0.8484, if csv < 0 - count Njets, else Nbjets
-bool getalljetnumbers(int &nj, int &nj30, int &nb, int jec=0);
-bool getleptonindices(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version=0, float pTSS=30., float pT3l=20.);
+int    gentype_v2(unsigned lep1_index=0,unsigned lep2_index=1, int lep3_index=-1);
+bool   splitVH(string filename);//true is WHtoWWW, false everything else
+string whatWW(string filename, string samplename);
+string process(string filename, bool SS, vector<int> tightlep, vector<int> looselep={});//not needed for new
+bool   vetophotonprocess(string filename, bool process);//true if W,DY,tt,etc. is photonfake; true if Wg,Zg,ttg,etc. is not photonfake. else false.
+
+bool  getleptonindices_v0(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version=0, float pTSS=30., float pT3l=20.);//deprecated
 #ifdef USE_CMS3_WWW100
-bool getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, float pTSS=25., float pT3l=20.);
+bool  getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, float pTSS=25., float pT3l=20.);
+int   NtightSS(float pTSS=25);
+int   NlooseSS(float pTSS=25);
+int   Ntight3l(float pT3l=20);
+int   Nloose3l(float pT3l=20);
 #endif
-bool istightlepton(int i, int version);
-bool islooselepton(int i, int version);
+bool  istightlepton(int i, int version);
+bool  islooselepton(int i, int version);
 float coneCorrPt(int lepi, int version=0);//apply only to loose but not tight leptons
-//float loadFR(float &FRSSerr,int index, TH2D *hMuFR, TH2D *hElFR, float muFRptmin=10.1, float muFRptmax=119.9, float muFRetamin=0.01, float muFRetamax=2.39, float elFRptmin=10.1, float elFRptmax=119.9, float elFRetamin=0.01, float elFRetamax=2.49, bool conecorrected=true);
+
+bool  getalljetnumbers(int &nj, int &nj30, int &nb, int jec=0);
 float calcMjj(bool closestDR=true, int jec=0);//Mjj or MjjL
 float Detajj(int jec=0);
-bool getMjjAndDeta(float &Mjj, float &MjjL, float &Detajj, int jec=0);
+bool  getMjjAndDeta(float &Mjj, float &MjjL, float &Detajj, int jec=0);
+
 float calcMTmax(vector<int> lepindex, LorentzVector MET, bool compareSSpairs=false);
 float calcMTmax(int index1, int index2, LorentzVector MET);
-bool passofflineTriggers(vector<int> tightlep, vector<int> looselep={});
-bool passonlineTriggers(vector<int> tightlep, vector<int> looselep={});//I'll duplicate and goodrun selection by hand - I think this way it is easier
-bool passFilters();
-bool splitVH(string filename);//true is WHtoWWW, false everything else
-string whatWW(string filename, string samplename);
-string process(string filename, bool SS, vector<int> tightlep, vector<int> looselep={});
-bool vetophotonprocess(string filename, bool process);//true if W,DY,tt,etc. is photonfake; true if Wg,Zg,ttg,etc. is not photonfake. else false.
-int isSRSS(vector<int> tightlep, vector<int> vetolep,                        bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
-int isARSS(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
-int isCRSS(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=0);
-bool passJetSSstate(bool preselect=false, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, bool is3lCR=false, int jec=0, bool btag=false, bool Mjjside=false, int version=0);
-int isSR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
-int isAR3l(vector<int> tightlep, vector<int> looselep,               bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
-int isCR3l(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
-bool checkbothSRCR3l(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+
+bool  passTriggers(bool MCoffline=true, bool MCtrigger=false, float leadleppt=25., float trailleppt=20.);
+bool  passofflineTriggers(vector<int> tightlep, vector<int> looselep={});
+bool  passonlineTriggers(vector<int> tightlep, vector<int> looselep={});//I'll duplicate and goodrun selection by hand - I think this way it is easier
+bool  passFilters_v0();
+bool  passFilters();
+
+bool  passJetSSstate_v0(bool preselect=false, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, bool is3lCR=false, int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+bool  passJetSSstate(bool preselect=false, bool is3lCR=false, int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int   isSRSS_v0(vector<int> tightlep, vector<int> vetolep,                        bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int   isARSS_v0(vector<int> tightlep, vector<int> looselep, vector<int> vetolep,  bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, bool Mjjside=false, int version=0);
+int   isCRSS_v0(vector<int> tightlep, vector<int> selectlep, vector<int> vetolep, bool preselect=false, float maxMT=-1, int nj=-1, int nb=-1, float Mjj=-1, float MjjL=-1, float Detajj=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=0);
+int    isSRSS(                              bool preselect=false, int jec=0,                 bool btag=false, bool Mjjside=false, int version=1);
+int    isARSS(                              bool preselect=false, int jec=0,                 bool btag=false, bool Mjjside=false, int version=1);
+int    isCRSS(                              bool preselect=false, int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=1);
+bool   passAnySS(int &SR, int &AR, int &CR, bool preselect=false, int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=1);
+
+bool   passJet3lstate(int jec=0);
+int    isSR3l_v0(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+int    isAR3l_v0(vector<int> tightlep, vector<int> looselep,               bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+int    isCR3l_v0(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
+bool    checkbothSRCR3l_v0(int &isSR3l, int &isCR3l, vector<int> tightlep, bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
 vector<float> allMSFOS(vector<int> tightlep, vector<int> looselep={});
+vector<float> allMSFOS();
+int    isSR3l(                              bool preselect=false, int jec=0, bool btag=false, int version=1);
+int    isAR3l(                              bool preselect=false, int jec=0, bool btag=false, int version=1);
+int    isCR3l(                              bool preselect=false, int jec=0, bool btag=false, int version=1);
+bool   passAny3l(int &SR, int &AR, int &CR, bool preselect=false, int jec=0, bool btag=false, int version=1);
+
 map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir, int splitWW=0);
 map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir);
-bool deleteHistograms(map<string, TH1D*> histos);
-bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l=-2e6, bool fillsample=true);
-bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample=true);
-bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow=true, bool addoverflow=true, bool deletefile=false);
+bool  deleteHistograms(map<string, TH1D*> histos);
+bool  fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l=-2e6, bool fillsample=true);
+bool  fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample=true);
+bool  SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow=true, bool addoverflow=true, bool deletefile=false);
+bool  fileexists(string filename);
 
-bool fileexists(string filename);
-//int loadlepSFfile(TFile *&f, TH2F *&hMuID, TH2F *&hMutrigger, TH2F *&hElID, TH2F *&hEltrigger, string filename="rootfiles/SF_TnP.root", string muIDname="muSF", string mutrigname="", string elIDname="elSFreco", string eltrigname="elSF_ID");
-//bool loadFakeRates(TFile *&f, TH2D *&hMuFR, TH2D *&hElFR, string filename="rootfiles/fakerate_pt_v_eta.root", string muname="muon_fakerate_conecorrpt_v_eta", string elname="elec_fakerate_conecorrpt_v_eta");
-//bool deleteFiles(bool SF, TFile *&fSF);
-
-//float getlepSFandError(float &error, int index, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);
-//float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep, TH2F *hMuID, TH2F *hMutrigger, TH2F *hElID, TH2F *hEltrigger, float muIDptmin=20.1,float muIDptmax=199.9, float muIDetamin=0.01, float muIDetamax=2.49, float muTrptmin=20.1,float muTrptmax=199.9, float muTretamin=0.01, float muTretamax=2.49, float elIDptmin=10.1,float elIDptmax=199.9, float elIDetamin=0.01, float elIDetamax=2.49, float elTrptmin=25.1,float elTrptmax=199.9, float elTretamin=0.01, float elTretamax=2.49);//need to feed looselep here :/
-//float getlepSFWeightandError(float &error, vector<float> efftight, vector<float> errtight, vector<float> effloose={}, vector<float> errloose={});
-float getlepSFandError(float &error, int index);//so far assumes tight ID as only those SF are implemented.
 float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
-float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});
 float getlepFakeRateandError(float &error, int index, bool data=true, bool conecorr=true, int version=0);
 float getlepFRWeightandError(float &error, int index, bool data=true, bool conecorr=true, bool addclosureunc=false, int version=0);
 float getlepFRClosureError(int index, bool data=true, bool conecorr=true, int version=0);
+float getTriggerWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});
 
 float getPUWeight(int variation=0);
 float getPUWeightAndError(float &errorup, float &errordown);
@@ -119,7 +136,7 @@ void storeeventlist(string output, string sample, bool isSS, std::ostringstream 
 void storeeventlist(string output, string sample, std::ostringstream *&streamEE, std::ostringstream *&streamEM, std::ostringstream *&streamMM, std::ostringstream *&stream0SFOS, std::ostringstream *&stream1SFOS, std::ostringstream *&stream2SFOS);
 
 // Calculating SFOS pair number and invariant masses
-int calcNSFOS(std::vector<int> tightlep);
+int   calcNSFOS(std::vector<int> tightlep);
 float get0SFOSMll(std::vector<int> lepidx);
 float get0SFOSMee(std::vector<int> lepidx);
 float get1SFOSMll(std::vector<int> lepidx);

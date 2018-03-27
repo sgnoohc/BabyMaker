@@ -5,14 +5,7 @@
   TChain *ch[chainsize];
   string dataset[chainsize];
 
-  //lightly skimmed babies
-  //string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.16/skim/";
-  string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.17/skim/";
-  
-  //fully skimmed babies
-  //string babylocation = "/nfs-7/userdata/haweber/WWWskims/WWW_v0.1.16/";
-  //string babylocation = "/hadoop/cms/store/user/phchang/metis/wwwlooper/v16_skim_v2_5/WWW_v0_1_16_v16_skim_v2_5/";
-  //string babylocation = "/hadoop/cms/store/user/phchang/AutoTwopler_babies/merged/VVV/WWW_v0.1.16_bdtbranchv2/skim/";
+  string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.11/skim/";
   string myhelper;
   
   dataset[0] = "tt1l";

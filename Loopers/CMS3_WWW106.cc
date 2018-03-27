@@ -1,4 +1,4 @@
-#include "CMS3_WWW105.h"
+#include "CMS3_WWW106.h"
 CMS3 cms3;
 
 void CMS3::Init(TTree *tree) {
@@ -25,6 +25,8 @@ void CMS3::Init(TTree *tree) {
   if (isData_branch) isData_branch->SetAddress(&isData_);
   evt_scale1fb_branch = tree->GetBranch("evt_scale1fb");
   if (evt_scale1fb_branch) evt_scale1fb_branch->SetAddress(&evt_scale1fb_);
+  evt_passgoodrunlist_branch = tree->GetBranch("evt_passgoodrunlist");
+  if (evt_passgoodrunlist_branch) evt_passgoodrunlist_branch->SetAddress(&evt_passgoodrunlist_);
   HLT_DoubleMu_branch = tree->GetBranch("HLT_DoubleMu");
   if (HLT_DoubleMu_branch) HLT_DoubleMu_branch->SetAddress(&HLT_DoubleMu_);
   HLT_DoubleEl_branch = tree->GetBranch("HLT_DoubleEl");
@@ -35,6 +37,22 @@ void CMS3::Init(TTree *tree) {
   if (HLT_DoubleEl_DZ_2_branch) HLT_DoubleEl_DZ_2_branch->SetAddress(&HLT_DoubleEl_DZ_2_);
   HLT_MuEG_branch = tree->GetBranch("HLT_MuEG");
   if (HLT_MuEG_branch) HLT_MuEG_branch->SetAddress(&HLT_MuEG_);
+  mc_HLT_DoubleMu_branch = tree->GetBranch("mc_HLT_DoubleMu");
+  if (mc_HLT_DoubleMu_branch) mc_HLT_DoubleMu_branch->SetAddress(&mc_HLT_DoubleMu_);
+  mc_HLT_DoubleEl_branch = tree->GetBranch("mc_HLT_DoubleEl");
+  if (mc_HLT_DoubleEl_branch) mc_HLT_DoubleEl_branch->SetAddress(&mc_HLT_DoubleEl_);
+  mc_HLT_DoubleEl_DZ_branch = tree->GetBranch("mc_HLT_DoubleEl_DZ");
+  if (mc_HLT_DoubleEl_DZ_branch) mc_HLT_DoubleEl_DZ_branch->SetAddress(&mc_HLT_DoubleEl_DZ_);
+  mc_HLT_DoubleEl_DZ_2_branch = tree->GetBranch("mc_HLT_DoubleEl_DZ_2");
+  if (mc_HLT_DoubleEl_DZ_2_branch) mc_HLT_DoubleEl_DZ_2_branch->SetAddress(&mc_HLT_DoubleEl_DZ_2_);
+  mc_HLT_MuEG_branch = tree->GetBranch("mc_HLT_MuEG");
+  if (mc_HLT_MuEG_branch) mc_HLT_MuEG_branch->SetAddress(&mc_HLT_MuEG_);
+  lep_pt_branch = tree->GetBranch("lep_pt");
+  if (lep_pt_branch) lep_pt_branch->SetAddress(&lep_pt_);
+  lep_eta_branch = tree->GetBranch("lep_eta");
+  if (lep_eta_branch) lep_eta_branch->SetAddress(&lep_eta_);
+  lep_phi_branch = tree->GetBranch("lep_phi");
+  if (lep_phi_branch) lep_phi_branch->SetAddress(&lep_phi_);
   lep_coneCorrPt_branch = tree->GetBranch("lep_coneCorrPt");
   if (lep_coneCorrPt_branch) lep_coneCorrPt_branch->SetAddress(&lep_coneCorrPt_);
   lep_ip3d_branch = tree->GetBranch("lep_ip3d");
@@ -115,18 +133,14 @@ void CMS3::Init(TTree *tree) {
   if (met_pt_branch) met_pt_branch->SetAddress(&met_pt_);
   met_phi_branch = tree->GetBranch("met_phi");
   if (met_phi_branch) met_phi_branch->SetAddress(&met_phi_);
-  met_T1CHS_miniAOD_CORE_pt_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_pt");
-  if (met_T1CHS_miniAOD_CORE_pt_branch) met_T1CHS_miniAOD_CORE_pt_branch->SetAddress(&met_T1CHS_miniAOD_CORE_pt_);
-  met_T1CHS_miniAOD_CORE_phi_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_phi");
-  if (met_T1CHS_miniAOD_CORE_phi_branch) met_T1CHS_miniAOD_CORE_phi_branch->SetAddress(&met_T1CHS_miniAOD_CORE_phi_);
-  met_T1CHS_miniAOD_CORE_up_pt_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_up_pt");
-  if (met_T1CHS_miniAOD_CORE_up_pt_branch) met_T1CHS_miniAOD_CORE_up_pt_branch->SetAddress(&met_T1CHS_miniAOD_CORE_up_pt_);
-  met_T1CHS_miniAOD_CORE_up_phi_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_up_phi");
-  if (met_T1CHS_miniAOD_CORE_up_phi_branch) met_T1CHS_miniAOD_CORE_up_phi_branch->SetAddress(&met_T1CHS_miniAOD_CORE_up_phi_);
-  met_T1CHS_miniAOD_CORE_dn_pt_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_dn_pt");
-  if (met_T1CHS_miniAOD_CORE_dn_pt_branch) met_T1CHS_miniAOD_CORE_dn_pt_branch->SetAddress(&met_T1CHS_miniAOD_CORE_dn_pt_);
-  met_T1CHS_miniAOD_CORE_dn_phi_branch = tree->GetBranch("met_T1CHS_miniAOD_CORE_dn_phi");
-  if (met_T1CHS_miniAOD_CORE_dn_phi_branch) met_T1CHS_miniAOD_CORE_dn_phi_branch->SetAddress(&met_T1CHS_miniAOD_CORE_dn_phi_);
+  met_up_pt_branch = tree->GetBranch("met_up_pt");
+  if (met_up_pt_branch) met_up_pt_branch->SetAddress(&met_up_pt_);
+  met_up_phi_branch = tree->GetBranch("met_up_phi");
+  if (met_up_phi_branch) met_up_phi_branch->SetAddress(&met_up_phi_);
+  met_dn_pt_branch = tree->GetBranch("met_dn_pt");
+  if (met_dn_pt_branch) met_dn_pt_branch->SetAddress(&met_dn_pt_);
+  met_dn_phi_branch = tree->GetBranch("met_dn_phi");
+  if (met_dn_phi_branch) met_dn_phi_branch->SetAddress(&met_dn_phi_);
   firstgoodvertex_branch = tree->GetBranch("firstgoodvertex");
   if (firstgoodvertex_branch) firstgoodvertex_branch->SetAddress(&firstgoodvertex_);
   nTrueInt_branch = tree->GetBranch("nTrueInt");
@@ -159,6 +173,8 @@ void CMS3::Init(TTree *tree) {
   if (ngenLep_branch) ngenLep_branch->SetAddress(&ngenLep_);
   ngenLepFromTau_branch = tree->GetBranch("ngenLepFromTau");
   if (ngenLepFromTau_branch) ngenLepFromTau_branch->SetAddress(&ngenLepFromTau_);
+  Flag_AllEventFilters_branch = tree->GetBranch("Flag_AllEventFilters");
+  if (Flag_AllEventFilters_branch) Flag_AllEventFilters_branch->SetAddress(&Flag_AllEventFilters_);
   Flag_EcalDeadCellTriggerPrimitiveFilter_branch = tree->GetBranch("Flag_EcalDeadCellTriggerPrimitiveFilter");
   if (Flag_EcalDeadCellTriggerPrimitiveFilter_branch) Flag_EcalDeadCellTriggerPrimitiveFilter_branch->SetAddress(&Flag_EcalDeadCellTriggerPrimitiveFilter_);
   Flag_HBHEIsoNoiseFilter_branch = tree->GetBranch("Flag_HBHEIsoNoiseFilter");
@@ -199,6 +215,12 @@ void CMS3::Init(TTree *tree) {
   if (nj30_up_branch) nj30_up_branch->SetAddress(&nj30_up_);
   nj30_dn_branch = tree->GetBranch("nj30_dn");
   if (nj30_dn_branch) nj30_dn_branch->SetAddress(&nj30_dn_);
+  nb_branch = tree->GetBranch("nb");
+  if (nb_branch) nb_branch->SetAddress(&nb_);
+  nb_up_branch = tree->GetBranch("nb_up");
+  if (nb_up_branch) nb_up_branch->SetAddress(&nb_up_);
+  nb_dn_branch = tree->GetBranch("nb_dn");
+  if (nb_dn_branch) nb_dn_branch->SetAddress(&nb_dn_);
   Mjj_branch = tree->GetBranch("Mjj");
   if (Mjj_branch) Mjj_branch->SetAddress(&Mjj_);
   Mjj_up_branch = tree->GetBranch("Mjj_up");
@@ -267,12 +289,62 @@ void CMS3::Init(TTree *tree) {
   if (MTmax_up_branch) MTmax_up_branch->SetAddress(&MTmax_up_);
   MTmax_dn_branch = tree->GetBranch("MTmax_dn");
   if (MTmax_dn_branch) MTmax_dn_branch->SetAddress(&MTmax_dn_);
+  MTmin_branch = tree->GetBranch("MTmin");
+  if (MTmin_branch) MTmin_branch->SetAddress(&MTmin_);
+  MTmin_up_branch = tree->GetBranch("MTmin_up");
+  if (MTmin_up_branch) MTmin_up_branch->SetAddress(&MTmin_up_);
+  MTmin_dn_branch = tree->GetBranch("MTmin_dn");
+  if (MTmin_dn_branch) MTmin_dn_branch->SetAddress(&MTmin_dn_);
   MT3rd_branch = tree->GetBranch("MT3rd");
   if (MT3rd_branch) MT3rd_branch->SetAddress(&MT3rd_);
   MT3rd_up_branch = tree->GetBranch("MT3rd_up");
   if (MT3rd_up_branch) MT3rd_up_branch->SetAddress(&MT3rd_up_);
   MT3rd_dn_branch = tree->GetBranch("MT3rd_dn");
   if (MT3rd_dn_branch) MT3rd_dn_branch->SetAddress(&MT3rd_dn_);
+  passSSee_branch = tree->GetBranch("passSSee");
+  if (passSSee_branch) passSSee_branch->SetAddress(&passSSee_);
+  passSSem_branch = tree->GetBranch("passSSem");
+  if (passSSem_branch) passSSem_branch->SetAddress(&passSSem_);
+  passSSmm_branch = tree->GetBranch("passSSmm");
+  if (passSSmm_branch) passSSmm_branch->SetAddress(&passSSmm_);
+  lep_idx0_SS_branch = tree->GetBranch("lep_idx0_SS");
+  if (lep_idx0_SS_branch) lep_idx0_SS_branch->SetAddress(&lep_idx0_SS_);
+  lep_idx1_SS_branch = tree->GetBranch("lep_idx1_SS");
+  if (lep_idx1_SS_branch) lep_idx1_SS_branch->SetAddress(&lep_idx1_SS_);
+  bkgtype_branch = tree->GetBranch("bkgtype");
+  if (bkgtype_branch) bkgtype_branch->SetAddress(&bkgtype_);
+  vetophoton_branch = tree->GetBranch("vetophoton");
+  if (vetophoton_branch) vetophoton_branch->SetAddress(&vetophoton_);
+  purewgt_branch = tree->GetBranch("purewgt");
+  if (purewgt_branch) purewgt_branch->SetAddress(&purewgt_);
+  purewgt_up_branch = tree->GetBranch("purewgt_up");
+  if (purewgt_up_branch) purewgt_up_branch->SetAddress(&purewgt_up_);
+  purewgt_dn_branch = tree->GetBranch("purewgt_dn");
+  if (purewgt_dn_branch) purewgt_dn_branch->SetAddress(&purewgt_dn_);
+  ffwgt_branch = tree->GetBranch("ffwgt");
+  if (ffwgt_branch) ffwgt_branch->SetAddress(&ffwgt_);
+  ffwgt_up_branch = tree->GetBranch("ffwgt_up");
+  if (ffwgt_up_branch) ffwgt_up_branch->SetAddress(&ffwgt_up_);
+  ffwgt_dn_branch = tree->GetBranch("ffwgt_dn");
+  if (ffwgt_dn_branch) ffwgt_dn_branch->SetAddress(&ffwgt_dn_);
+  ffwgtqcd_branch = tree->GetBranch("ffwgtqcd");
+  if (ffwgtqcd_branch) ffwgtqcd_branch->SetAddress(&ffwgtqcd_);
+  ffwgtqcd_up_branch = tree->GetBranch("ffwgtqcd_up");
+  if (ffwgtqcd_up_branch) ffwgtqcd_up_branch->SetAddress(&ffwgtqcd_up_);
+  ffwgtqcd_dn_branch = tree->GetBranch("ffwgtqcd_dn");
+  if (ffwgtqcd_dn_branch) ffwgtqcd_dn_branch->SetAddress(&ffwgtqcd_dn_);
+  lepsf_branch = tree->GetBranch("lepsf");
+  if (lepsf_branch) lepsf_branch->SetAddress(&lepsf_);
+  lepsf_up_branch = tree->GetBranch("lepsf_up");
+  if (lepsf_up_branch) lepsf_up_branch->SetAddress(&lepsf_up_);
+  lepsf_dn_branch = tree->GetBranch("lepsf_dn");
+  if (lepsf_dn_branch) lepsf_dn_branch->SetAddress(&lepsf_dn_);
+  trigeff_branch = tree->GetBranch("trigeff");
+  if (trigeff_branch) trigeff_branch->SetAddress(&trigeff_);
+  trigeff_up_branch = tree->GetBranch("trigeff_up");
+  if (trigeff_up_branch) trigeff_up_branch->SetAddress(&trigeff_up_);
+  trigeff_dn_branch = tree->GetBranch("trigeff_dn");
+  if (trigeff_dn_branch) trigeff_dn_branch->SetAddress(&trigeff_dn_);
 
   tree->SetMakeClass(0);
 }
@@ -285,12 +357,21 @@ void CMS3::GetEntry(unsigned int idx) {
   evt_isLoaded = false;
   isData_isLoaded = false;
   evt_scale1fb_isLoaded = false;
+  evt_passgoodrunlist_isLoaded = false;
   HLT_DoubleMu_isLoaded = false;
   HLT_DoubleEl_isLoaded = false;
   HLT_DoubleEl_DZ_isLoaded = false;
   HLT_DoubleEl_DZ_2_isLoaded = false;
   HLT_MuEG_isLoaded = false;
+  mc_HLT_DoubleMu_isLoaded = false;
+  mc_HLT_DoubleEl_isLoaded = false;
+  mc_HLT_DoubleEl_DZ_isLoaded = false;
+  mc_HLT_DoubleEl_DZ_2_isLoaded = false;
+  mc_HLT_MuEG_isLoaded = false;
   lep_p4_isLoaded = false;
+  lep_pt_isLoaded = false;
+  lep_eta_isLoaded = false;
+  lep_phi_isLoaded = false;
   lep_coneCorrPt_isLoaded = false;
   lep_ip3d_isLoaded = false;
   lep_ip3derr_isLoaded = false;
@@ -334,12 +415,10 @@ void CMS3::GetEntry(unsigned int idx) {
   jets_dn_csv_isLoaded = false;
   met_pt_isLoaded = false;
   met_phi_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_pt_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_phi_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_up_pt_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_up_phi_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_dn_pt_isLoaded = false;
-  met_T1CHS_miniAOD_CORE_dn_phi_isLoaded = false;
+  met_up_pt_isLoaded = false;
+  met_up_phi_isLoaded = false;
+  met_dn_pt_isLoaded = false;
+  met_dn_phi_isLoaded = false;
   firstgoodvertex_isLoaded = false;
   nTrueInt_isLoaded = false;
   nVert_isLoaded = false;
@@ -357,6 +436,7 @@ void CMS3::GetEntry(unsigned int idx) {
   genPart_status_isLoaded = false;
   ngenLep_isLoaded = false;
   ngenLepFromTau_isLoaded = false;
+  Flag_AllEventFilters_isLoaded = false;
   Flag_EcalDeadCellTriggerPrimitiveFilter_isLoaded = false;
   Flag_HBHEIsoNoiseFilter_isLoaded = false;
   Flag_HBHENoiseFilter_isLoaded = false;
@@ -377,6 +457,9 @@ void CMS3::GetEntry(unsigned int idx) {
   nj30_isLoaded = false;
   nj30_up_isLoaded = false;
   nj30_dn_isLoaded = false;
+  nb_isLoaded = false;
+  nb_up_isLoaded = false;
+  nb_dn_isLoaded = false;
   Mjj_isLoaded = false;
   Mjj_up_isLoaded = false;
   Mjj_dn_isLoaded = false;
@@ -411,9 +494,34 @@ void CMS3::GetEntry(unsigned int idx) {
   MTmax_isLoaded = false;
   MTmax_up_isLoaded = false;
   MTmax_dn_isLoaded = false;
+  MTmin_isLoaded = false;
+  MTmin_up_isLoaded = false;
+  MTmin_dn_isLoaded = false;
   MT3rd_isLoaded = false;
   MT3rd_up_isLoaded = false;
   MT3rd_dn_isLoaded = false;
+  passSSee_isLoaded = false;
+  passSSem_isLoaded = false;
+  passSSmm_isLoaded = false;
+  lep_idx0_SS_isLoaded = false;
+  lep_idx1_SS_isLoaded = false;
+  bkgtype_isLoaded = false;
+  vetophoton_isLoaded = false;
+  purewgt_isLoaded = false;
+  purewgt_up_isLoaded = false;
+  purewgt_dn_isLoaded = false;
+  ffwgt_isLoaded = false;
+  ffwgt_up_isLoaded = false;
+  ffwgt_dn_isLoaded = false;
+  ffwgtqcd_isLoaded = false;
+  ffwgtqcd_up_isLoaded = false;
+  ffwgtqcd_dn_isLoaded = false;
+  lepsf_isLoaded = false;
+  lepsf_up_isLoaded = false;
+  lepsf_dn_isLoaded = false;
+  trigeff_isLoaded = false;
+  trigeff_up_isLoaded = false;
+  trigeff_dn_isLoaded = false;
 }
 
 void CMS3::LoadAllBranches() {
@@ -423,12 +531,21 @@ void CMS3::LoadAllBranches() {
   if (evt_branch != 0) evt();
   if (isData_branch != 0) isData();
   if (evt_scale1fb_branch != 0) evt_scale1fb();
+  if (evt_passgoodrunlist_branch != 0) evt_passgoodrunlist();
   if (HLT_DoubleMu_branch != 0) HLT_DoubleMu();
   if (HLT_DoubleEl_branch != 0) HLT_DoubleEl();
   if (HLT_DoubleEl_DZ_branch != 0) HLT_DoubleEl_DZ();
   if (HLT_DoubleEl_DZ_2_branch != 0) HLT_DoubleEl_DZ_2();
   if (HLT_MuEG_branch != 0) HLT_MuEG();
+  if (mc_HLT_DoubleMu_branch != 0) mc_HLT_DoubleMu();
+  if (mc_HLT_DoubleEl_branch != 0) mc_HLT_DoubleEl();
+  if (mc_HLT_DoubleEl_DZ_branch != 0) mc_HLT_DoubleEl_DZ();
+  if (mc_HLT_DoubleEl_DZ_2_branch != 0) mc_HLT_DoubleEl_DZ_2();
+  if (mc_HLT_MuEG_branch != 0) mc_HLT_MuEG();
   if (lep_p4_branch != 0) lep_p4();
+  if (lep_pt_branch != 0) lep_pt();
+  if (lep_eta_branch != 0) lep_eta();
+  if (lep_phi_branch != 0) lep_phi();
   if (lep_coneCorrPt_branch != 0) lep_coneCorrPt();
   if (lep_ip3d_branch != 0) lep_ip3d();
   if (lep_ip3derr_branch != 0) lep_ip3derr();
@@ -472,12 +589,10 @@ void CMS3::LoadAllBranches() {
   if (jets_dn_csv_branch != 0) jets_dn_csv();
   if (met_pt_branch != 0) met_pt();
   if (met_phi_branch != 0) met_phi();
-  if (met_T1CHS_miniAOD_CORE_pt_branch != 0) met_T1CHS_miniAOD_CORE_pt();
-  if (met_T1CHS_miniAOD_CORE_phi_branch != 0) met_T1CHS_miniAOD_CORE_phi();
-  if (met_T1CHS_miniAOD_CORE_up_pt_branch != 0) met_T1CHS_miniAOD_CORE_up_pt();
-  if (met_T1CHS_miniAOD_CORE_up_phi_branch != 0) met_T1CHS_miniAOD_CORE_up_phi();
-  if (met_T1CHS_miniAOD_CORE_dn_pt_branch != 0) met_T1CHS_miniAOD_CORE_dn_pt();
-  if (met_T1CHS_miniAOD_CORE_dn_phi_branch != 0) met_T1CHS_miniAOD_CORE_dn_phi();
+  if (met_up_pt_branch != 0) met_up_pt();
+  if (met_up_phi_branch != 0) met_up_phi();
+  if (met_dn_pt_branch != 0) met_dn_pt();
+  if (met_dn_phi_branch != 0) met_dn_phi();
   if (firstgoodvertex_branch != 0) firstgoodvertex();
   if (nTrueInt_branch != 0) nTrueInt();
   if (nVert_branch != 0) nVert();
@@ -495,6 +610,7 @@ void CMS3::LoadAllBranches() {
   if (genPart_status_branch != 0) genPart_status();
   if (ngenLep_branch != 0) ngenLep();
   if (ngenLepFromTau_branch != 0) ngenLepFromTau();
+  if (Flag_AllEventFilters_branch != 0) Flag_AllEventFilters();
   if (Flag_EcalDeadCellTriggerPrimitiveFilter_branch != 0) Flag_EcalDeadCellTriggerPrimitiveFilter();
   if (Flag_HBHEIsoNoiseFilter_branch != 0) Flag_HBHEIsoNoiseFilter();
   if (Flag_HBHENoiseFilter_branch != 0) Flag_HBHENoiseFilter();
@@ -515,6 +631,9 @@ void CMS3::LoadAllBranches() {
   if (nj30_branch != 0) nj30();
   if (nj30_up_branch != 0) nj30_up();
   if (nj30_dn_branch != 0) nj30_dn();
+  if (nb_branch != 0) nb();
+  if (nb_up_branch != 0) nb_up();
+  if (nb_dn_branch != 0) nb_dn();
   if (Mjj_branch != 0) Mjj();
   if (Mjj_up_branch != 0) Mjj_up();
   if (Mjj_dn_branch != 0) Mjj_dn();
@@ -549,9 +668,34 @@ void CMS3::LoadAllBranches() {
   if (MTmax_branch != 0) MTmax();
   if (MTmax_up_branch != 0) MTmax_up();
   if (MTmax_dn_branch != 0) MTmax_dn();
+  if (MTmin_branch != 0) MTmin();
+  if (MTmin_up_branch != 0) MTmin_up();
+  if (MTmin_dn_branch != 0) MTmin_dn();
   if (MT3rd_branch != 0) MT3rd();
   if (MT3rd_up_branch != 0) MT3rd_up();
   if (MT3rd_dn_branch != 0) MT3rd_dn();
+  if (passSSee_branch != 0) passSSee();
+  if (passSSem_branch != 0) passSSem();
+  if (passSSmm_branch != 0) passSSmm();
+  if (lep_idx0_SS_branch != 0) lep_idx0_SS();
+  if (lep_idx1_SS_branch != 0) lep_idx1_SS();
+  if (bkgtype_branch != 0) bkgtype();
+  if (vetophoton_branch != 0) vetophoton();
+  if (purewgt_branch != 0) purewgt();
+  if (purewgt_up_branch != 0) purewgt_up();
+  if (purewgt_dn_branch != 0) purewgt_dn();
+  if (ffwgt_branch != 0) ffwgt();
+  if (ffwgt_up_branch != 0) ffwgt_up();
+  if (ffwgt_dn_branch != 0) ffwgt_dn();
+  if (ffwgtqcd_branch != 0) ffwgtqcd();
+  if (ffwgtqcd_up_branch != 0) ffwgtqcd_up();
+  if (ffwgtqcd_dn_branch != 0) ffwgtqcd_dn();
+  if (lepsf_branch != 0) lepsf();
+  if (lepsf_up_branch != 0) lepsf_up();
+  if (lepsf_dn_branch != 0) lepsf_dn();
+  if (trigeff_branch != 0) trigeff();
+  if (trigeff_up_branch != 0) trigeff_up();
+  if (trigeff_dn_branch != 0) trigeff_dn();
 }
 
 const int &CMS3::run() {
@@ -619,6 +763,19 @@ const float &CMS3::evt_scale1fb() {
   return evt_scale1fb_;
 }
 
+const int &CMS3::evt_passgoodrunlist() {
+  if (not evt_passgoodrunlist_isLoaded) {
+    if (evt_passgoodrunlist_branch != 0) {
+      evt_passgoodrunlist_branch->GetEntry(index);
+    } else {
+      printf("branch evt_passgoodrunlist_branch does not exist!\n");
+      exit(1);
+    }
+    evt_passgoodrunlist_isLoaded = true;
+  }
+  return evt_passgoodrunlist_;
+}
+
 const int &CMS3::HLT_DoubleMu() {
   if (not HLT_DoubleMu_isLoaded) {
     if (HLT_DoubleMu_branch != 0) {
@@ -684,6 +841,71 @@ const int &CMS3::HLT_MuEG() {
   return HLT_MuEG_;
 }
 
+const int &CMS3::mc_HLT_DoubleMu() {
+  if (not mc_HLT_DoubleMu_isLoaded) {
+    if (mc_HLT_DoubleMu_branch != 0) {
+      mc_HLT_DoubleMu_branch->GetEntry(index);
+    } else {
+      printf("branch mc_HLT_DoubleMu_branch does not exist!\n");
+      exit(1);
+    }
+    mc_HLT_DoubleMu_isLoaded = true;
+  }
+  return mc_HLT_DoubleMu_;
+}
+
+const int &CMS3::mc_HLT_DoubleEl() {
+  if (not mc_HLT_DoubleEl_isLoaded) {
+    if (mc_HLT_DoubleEl_branch != 0) {
+      mc_HLT_DoubleEl_branch->GetEntry(index);
+    } else {
+      printf("branch mc_HLT_DoubleEl_branch does not exist!\n");
+      exit(1);
+    }
+    mc_HLT_DoubleEl_isLoaded = true;
+  }
+  return mc_HLT_DoubleEl_;
+}
+
+const int &CMS3::mc_HLT_DoubleEl_DZ() {
+  if (not mc_HLT_DoubleEl_DZ_isLoaded) {
+    if (mc_HLT_DoubleEl_DZ_branch != 0) {
+      mc_HLT_DoubleEl_DZ_branch->GetEntry(index);
+    } else {
+      printf("branch mc_HLT_DoubleEl_DZ_branch does not exist!\n");
+      exit(1);
+    }
+    mc_HLT_DoubleEl_DZ_isLoaded = true;
+  }
+  return mc_HLT_DoubleEl_DZ_;
+}
+
+const int &CMS3::mc_HLT_DoubleEl_DZ_2() {
+  if (not mc_HLT_DoubleEl_DZ_2_isLoaded) {
+    if (mc_HLT_DoubleEl_DZ_2_branch != 0) {
+      mc_HLT_DoubleEl_DZ_2_branch->GetEntry(index);
+    } else {
+      printf("branch mc_HLT_DoubleEl_DZ_2_branch does not exist!\n");
+      exit(1);
+    }
+    mc_HLT_DoubleEl_DZ_2_isLoaded = true;
+  }
+  return mc_HLT_DoubleEl_DZ_2_;
+}
+
+const int &CMS3::mc_HLT_MuEG() {
+  if (not mc_HLT_MuEG_isLoaded) {
+    if (mc_HLT_MuEG_branch != 0) {
+      mc_HLT_MuEG_branch->GetEntry(index);
+    } else {
+      printf("branch mc_HLT_MuEG_branch does not exist!\n");
+      exit(1);
+    }
+    mc_HLT_MuEG_isLoaded = true;
+  }
+  return mc_HLT_MuEG_;
+}
+
 const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &CMS3::lep_p4() {
   if (not lep_p4_isLoaded) {
     if (lep_p4_branch != 0) {
@@ -695,6 +917,45 @@ const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &CMS3::l
     lep_p4_isLoaded = true;
   }
   return *lep_p4_;
+}
+
+const vector<float> &CMS3::lep_pt() {
+  if (not lep_pt_isLoaded) {
+    if (lep_pt_branch != 0) {
+      lep_pt_branch->GetEntry(index);
+    } else {
+      printf("branch lep_pt_branch does not exist!\n");
+      exit(1);
+    }
+    lep_pt_isLoaded = true;
+  }
+  return *lep_pt_;
+}
+
+const vector<float> &CMS3::lep_eta() {
+  if (not lep_eta_isLoaded) {
+    if (lep_eta_branch != 0) {
+      lep_eta_branch->GetEntry(index);
+    } else {
+      printf("branch lep_eta_branch does not exist!\n");
+      exit(1);
+    }
+    lep_eta_isLoaded = true;
+  }
+  return *lep_eta_;
+}
+
+const vector<float> &CMS3::lep_phi() {
+  if (not lep_phi_isLoaded) {
+    if (lep_phi_branch != 0) {
+      lep_phi_branch->GetEntry(index);
+    } else {
+      printf("branch lep_phi_branch does not exist!\n");
+      exit(1);
+    }
+    lep_phi_isLoaded = true;
+  }
+  return *lep_phi_;
 }
 
 const vector<float> &CMS3::lep_coneCorrPt() {
@@ -1256,82 +1517,56 @@ const float &CMS3::met_phi() {
   return met_phi_;
 }
 
-const float &CMS3::met_T1CHS_miniAOD_CORE_pt() {
-  if (not met_T1CHS_miniAOD_CORE_pt_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_pt_branch != 0) {
-      met_T1CHS_miniAOD_CORE_pt_branch->GetEntry(index);
+const float &CMS3::met_up_pt() {
+  if (not met_up_pt_isLoaded) {
+    if (met_up_pt_branch != 0) {
+      met_up_pt_branch->GetEntry(index);
     } else {
-      printf("branch met_T1CHS_miniAOD_CORE_pt_branch does not exist!\n");
+      printf("branch met_up_pt_branch does not exist!\n");
       exit(1);
     }
-    met_T1CHS_miniAOD_CORE_pt_isLoaded = true;
+    met_up_pt_isLoaded = true;
   }
-  return met_T1CHS_miniAOD_CORE_pt_;
+  return met_up_pt_;
 }
 
-const float &CMS3::met_T1CHS_miniAOD_CORE_phi() {
-  if (not met_T1CHS_miniAOD_CORE_phi_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_phi_branch != 0) {
-      met_T1CHS_miniAOD_CORE_phi_branch->GetEntry(index);
+const float &CMS3::met_up_phi() {
+  if (not met_up_phi_isLoaded) {
+    if (met_up_phi_branch != 0) {
+      met_up_phi_branch->GetEntry(index);
     } else {
-      printf("branch met_T1CHS_miniAOD_CORE_phi_branch does not exist!\n");
+      printf("branch met_up_phi_branch does not exist!\n");
       exit(1);
     }
-    met_T1CHS_miniAOD_CORE_phi_isLoaded = true;
+    met_up_phi_isLoaded = true;
   }
-  return met_T1CHS_miniAOD_CORE_phi_;
+  return met_up_phi_;
 }
 
-const float &CMS3::met_T1CHS_miniAOD_CORE_up_pt() {
-  if (not met_T1CHS_miniAOD_CORE_up_pt_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_up_pt_branch != 0) {
-      met_T1CHS_miniAOD_CORE_up_pt_branch->GetEntry(index);
+const float &CMS3::met_dn_pt() {
+  if (not met_dn_pt_isLoaded) {
+    if (met_dn_pt_branch != 0) {
+      met_dn_pt_branch->GetEntry(index);
     } else {
-      printf("branch met_T1CHS_miniAOD_CORE_up_pt_branch does not exist!\n");
+      printf("branch met_dn_pt_branch does not exist!\n");
       exit(1);
     }
-    met_T1CHS_miniAOD_CORE_up_pt_isLoaded = true;
+    met_dn_pt_isLoaded = true;
   }
-  return met_T1CHS_miniAOD_CORE_up_pt_;
+  return met_dn_pt_;
 }
 
-const float &CMS3::met_T1CHS_miniAOD_CORE_up_phi() {
-  if (not met_T1CHS_miniAOD_CORE_up_phi_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_up_phi_branch != 0) {
-      met_T1CHS_miniAOD_CORE_up_phi_branch->GetEntry(index);
+const float &CMS3::met_dn_phi() {
+  if (not met_dn_phi_isLoaded) {
+    if (met_dn_phi_branch != 0) {
+      met_dn_phi_branch->GetEntry(index);
     } else {
-      printf("branch met_T1CHS_miniAOD_CORE_up_phi_branch does not exist!\n");
+      printf("branch met_dn_phi_branch does not exist!\n");
       exit(1);
     }
-    met_T1CHS_miniAOD_CORE_up_phi_isLoaded = true;
+    met_dn_phi_isLoaded = true;
   }
-  return met_T1CHS_miniAOD_CORE_up_phi_;
-}
-
-const float &CMS3::met_T1CHS_miniAOD_CORE_dn_pt() {
-  if (not met_T1CHS_miniAOD_CORE_dn_pt_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_dn_pt_branch != 0) {
-      met_T1CHS_miniAOD_CORE_dn_pt_branch->GetEntry(index);
-    } else {
-      printf("branch met_T1CHS_miniAOD_CORE_dn_pt_branch does not exist!\n");
-      exit(1);
-    }
-    met_T1CHS_miniAOD_CORE_dn_pt_isLoaded = true;
-  }
-  return met_T1CHS_miniAOD_CORE_dn_pt_;
-}
-
-const float &CMS3::met_T1CHS_miniAOD_CORE_dn_phi() {
-  if (not met_T1CHS_miniAOD_CORE_dn_phi_isLoaded) {
-    if (met_T1CHS_miniAOD_CORE_dn_phi_branch != 0) {
-      met_T1CHS_miniAOD_CORE_dn_phi_branch->GetEntry(index);
-    } else {
-      printf("branch met_T1CHS_miniAOD_CORE_dn_phi_branch does not exist!\n");
-      exit(1);
-    }
-    met_T1CHS_miniAOD_CORE_dn_phi_isLoaded = true;
-  }
-  return met_T1CHS_miniAOD_CORE_dn_phi_;
+  return met_dn_phi_;
 }
 
 const int &CMS3::firstgoodvertex() {
@@ -1553,6 +1788,19 @@ const int &CMS3::ngenLepFromTau() {
     ngenLepFromTau_isLoaded = true;
   }
   return ngenLepFromTau_;
+}
+
+const int &CMS3::Flag_AllEventFilters() {
+  if (not Flag_AllEventFilters_isLoaded) {
+    if (Flag_AllEventFilters_branch != 0) {
+      Flag_AllEventFilters_branch->GetEntry(index);
+    } else {
+      printf("branch Flag_AllEventFilters_branch does not exist!\n");
+      exit(1);
+    }
+    Flag_AllEventFilters_isLoaded = true;
+  }
+  return Flag_AllEventFilters_;
 }
 
 const int &CMS3::Flag_EcalDeadCellTriggerPrimitiveFilter() {
@@ -1813,6 +2061,45 @@ const int &CMS3::nj30_dn() {
     nj30_dn_isLoaded = true;
   }
   return nj30_dn_;
+}
+
+const int &CMS3::nb() {
+  if (not nb_isLoaded) {
+    if (nb_branch != 0) {
+      nb_branch->GetEntry(index);
+    } else {
+      printf("branch nb_branch does not exist!\n");
+      exit(1);
+    }
+    nb_isLoaded = true;
+  }
+  return nb_;
+}
+
+const int &CMS3::nb_up() {
+  if (not nb_up_isLoaded) {
+    if (nb_up_branch != 0) {
+      nb_up_branch->GetEntry(index);
+    } else {
+      printf("branch nb_up_branch does not exist!\n");
+      exit(1);
+    }
+    nb_up_isLoaded = true;
+  }
+  return nb_up_;
+}
+
+const int &CMS3::nb_dn() {
+  if (not nb_dn_isLoaded) {
+    if (nb_dn_branch != 0) {
+      nb_dn_branch->GetEntry(index);
+    } else {
+      printf("branch nb_dn_branch does not exist!\n");
+      exit(1);
+    }
+    nb_dn_isLoaded = true;
+  }
+  return nb_dn_;
 }
 
 const float &CMS3::Mjj() {
@@ -2257,6 +2544,45 @@ const float &CMS3::MTmax_dn() {
   return MTmax_dn_;
 }
 
+const float &CMS3::MTmin() {
+  if (not MTmin_isLoaded) {
+    if (MTmin_branch != 0) {
+      MTmin_branch->GetEntry(index);
+    } else {
+      printf("branch MTmin_branch does not exist!\n");
+      exit(1);
+    }
+    MTmin_isLoaded = true;
+  }
+  return MTmin_;
+}
+
+const float &CMS3::MTmin_up() {
+  if (not MTmin_up_isLoaded) {
+    if (MTmin_up_branch != 0) {
+      MTmin_up_branch->GetEntry(index);
+    } else {
+      printf("branch MTmin_up_branch does not exist!\n");
+      exit(1);
+    }
+    MTmin_up_isLoaded = true;
+  }
+  return MTmin_up_;
+}
+
+const float &CMS3::MTmin_dn() {
+  if (not MTmin_dn_isLoaded) {
+    if (MTmin_dn_branch != 0) {
+      MTmin_dn_branch->GetEntry(index);
+    } else {
+      printf("branch MTmin_dn_branch does not exist!\n");
+      exit(1);
+    }
+    MTmin_dn_isLoaded = true;
+  }
+  return MTmin_dn_;
+}
+
 const float &CMS3::MT3rd() {
   if (not MT3rd_isLoaded) {
     if (MT3rd_branch != 0) {
@@ -2296,6 +2622,292 @@ const float &CMS3::MT3rd_dn() {
   return MT3rd_dn_;
 }
 
+const int &CMS3::passSSee() {
+  if (not passSSee_isLoaded) {
+    if (passSSee_branch != 0) {
+      passSSee_branch->GetEntry(index);
+    } else {
+      printf("branch passSSee_branch does not exist!\n");
+      exit(1);
+    }
+    passSSee_isLoaded = true;
+  }
+  return passSSee_;
+}
+
+const int &CMS3::passSSem() {
+  if (not passSSem_isLoaded) {
+    if (passSSem_branch != 0) {
+      passSSem_branch->GetEntry(index);
+    } else {
+      printf("branch passSSem_branch does not exist!\n");
+      exit(1);
+    }
+    passSSem_isLoaded = true;
+  }
+  return passSSem_;
+}
+
+const int &CMS3::passSSmm() {
+  if (not passSSmm_isLoaded) {
+    if (passSSmm_branch != 0) {
+      passSSmm_branch->GetEntry(index);
+    } else {
+      printf("branch passSSmm_branch does not exist!\n");
+      exit(1);
+    }
+    passSSmm_isLoaded = true;
+  }
+  return passSSmm_;
+}
+
+const int &CMS3::lep_idx0_SS() {
+  if (not lep_idx0_SS_isLoaded) {
+    if (lep_idx0_SS_branch != 0) {
+      lep_idx0_SS_branch->GetEntry(index);
+    } else {
+      printf("branch lep_idx0_SS_branch does not exist!\n");
+      exit(1);
+    }
+    lep_idx0_SS_isLoaded = true;
+  }
+  return lep_idx0_SS_;
+}
+
+const int &CMS3::lep_idx1_SS() {
+  if (not lep_idx1_SS_isLoaded) {
+    if (lep_idx1_SS_branch != 0) {
+      lep_idx1_SS_branch->GetEntry(index);
+    } else {
+      printf("branch lep_idx1_SS_branch does not exist!\n");
+      exit(1);
+    }
+    lep_idx1_SS_isLoaded = true;
+  }
+  return lep_idx1_SS_;
+}
+
+const TString &CMS3::bkgtype() {
+  if (not bkgtype_isLoaded) {
+    if (bkgtype_branch != 0) {
+      bkgtype_branch->GetEntry(index);
+    } else {
+      printf("branch bkgtype_branch does not exist!\n");
+      exit(1);
+    }
+    bkgtype_isLoaded = true;
+  }
+  return *bkgtype_;
+}
+
+const int &CMS3::vetophoton() {
+  if (not vetophoton_isLoaded) {
+    if (vetophoton_branch != 0) {
+      vetophoton_branch->GetEntry(index);
+    } else {
+      printf("branch vetophoton_branch does not exist!\n");
+      exit(1);
+    }
+    vetophoton_isLoaded = true;
+  }
+  return vetophoton_;
+}
+
+const float &CMS3::purewgt() {
+  if (not purewgt_isLoaded) {
+    if (purewgt_branch != 0) {
+      purewgt_branch->GetEntry(index);
+    } else {
+      printf("branch purewgt_branch does not exist!\n");
+      exit(1);
+    }
+    purewgt_isLoaded = true;
+  }
+  return purewgt_;
+}
+
+const float &CMS3::purewgt_up() {
+  if (not purewgt_up_isLoaded) {
+    if (purewgt_up_branch != 0) {
+      purewgt_up_branch->GetEntry(index);
+    } else {
+      printf("branch purewgt_up_branch does not exist!\n");
+      exit(1);
+    }
+    purewgt_up_isLoaded = true;
+  }
+  return purewgt_up_;
+}
+
+const float &CMS3::purewgt_dn() {
+  if (not purewgt_dn_isLoaded) {
+    if (purewgt_dn_branch != 0) {
+      purewgt_dn_branch->GetEntry(index);
+    } else {
+      printf("branch purewgt_dn_branch does not exist!\n");
+      exit(1);
+    }
+    purewgt_dn_isLoaded = true;
+  }
+  return purewgt_dn_;
+}
+
+const float &CMS3::ffwgt() {
+  if (not ffwgt_isLoaded) {
+    if (ffwgt_branch != 0) {
+      ffwgt_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgt_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgt_isLoaded = true;
+  }
+  return ffwgt_;
+}
+
+const float &CMS3::ffwgt_up() {
+  if (not ffwgt_up_isLoaded) {
+    if (ffwgt_up_branch != 0) {
+      ffwgt_up_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgt_up_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgt_up_isLoaded = true;
+  }
+  return ffwgt_up_;
+}
+
+const float &CMS3::ffwgt_dn() {
+  if (not ffwgt_dn_isLoaded) {
+    if (ffwgt_dn_branch != 0) {
+      ffwgt_dn_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgt_dn_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgt_dn_isLoaded = true;
+  }
+  return ffwgt_dn_;
+}
+
+const float &CMS3::ffwgtqcd() {
+  if (not ffwgtqcd_isLoaded) {
+    if (ffwgtqcd_branch != 0) {
+      ffwgtqcd_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgtqcd_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgtqcd_isLoaded = true;
+  }
+  return ffwgtqcd_;
+}
+
+const float &CMS3::ffwgtqcd_up() {
+  if (not ffwgtqcd_up_isLoaded) {
+    if (ffwgtqcd_up_branch != 0) {
+      ffwgtqcd_up_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgtqcd_up_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgtqcd_up_isLoaded = true;
+  }
+  return ffwgtqcd_up_;
+}
+
+const float &CMS3::ffwgtqcd_dn() {
+  if (not ffwgtqcd_dn_isLoaded) {
+    if (ffwgtqcd_dn_branch != 0) {
+      ffwgtqcd_dn_branch->GetEntry(index);
+    } else {
+      printf("branch ffwgtqcd_dn_branch does not exist!\n");
+      exit(1);
+    }
+    ffwgtqcd_dn_isLoaded = true;
+  }
+  return ffwgtqcd_dn_;
+}
+
+const float &CMS3::lepsf() {
+  if (not lepsf_isLoaded) {
+    if (lepsf_branch != 0) {
+      lepsf_branch->GetEntry(index);
+    } else {
+      printf("branch lepsf_branch does not exist!\n");
+      exit(1);
+    }
+    lepsf_isLoaded = true;
+  }
+  return lepsf_;
+}
+
+const float &CMS3::lepsf_up() {
+  if (not lepsf_up_isLoaded) {
+    if (lepsf_up_branch != 0) {
+      lepsf_up_branch->GetEntry(index);
+    } else {
+      printf("branch lepsf_up_branch does not exist!\n");
+      exit(1);
+    }
+    lepsf_up_isLoaded = true;
+  }
+  return lepsf_up_;
+}
+
+const float &CMS3::lepsf_dn() {
+  if (not lepsf_dn_isLoaded) {
+    if (lepsf_dn_branch != 0) {
+      lepsf_dn_branch->GetEntry(index);
+    } else {
+      printf("branch lepsf_dn_branch does not exist!\n");
+      exit(1);
+    }
+    lepsf_dn_isLoaded = true;
+  }
+  return lepsf_dn_;
+}
+
+const float &CMS3::trigeff() {
+  if (not trigeff_isLoaded) {
+    if (trigeff_branch != 0) {
+      trigeff_branch->GetEntry(index);
+    } else {
+      printf("branch trigeff_branch does not exist!\n");
+      exit(1);
+    }
+    trigeff_isLoaded = true;
+  }
+  return trigeff_;
+}
+
+const float &CMS3::trigeff_up() {
+  if (not trigeff_up_isLoaded) {
+    if (trigeff_up_branch != 0) {
+      trigeff_up_branch->GetEntry(index);
+    } else {
+      printf("branch trigeff_up_branch does not exist!\n");
+      exit(1);
+    }
+    trigeff_up_isLoaded = true;
+  }
+  return trigeff_up_;
+}
+
+const float &CMS3::trigeff_dn() {
+  if (not trigeff_dn_isLoaded) {
+    if (trigeff_dn_branch != 0) {
+      trigeff_dn_branch->GetEntry(index);
+    } else {
+      printf("branch trigeff_dn_branch does not exist!\n");
+      exit(1);
+    }
+    trigeff_dn_isLoaded = true;
+  }
+  return trigeff_dn_;
+}
+
 
 void CMS3::progress( int nEventsTotal, int nEventsChain ){
   int period = 1000;
@@ -2324,12 +2936,21 @@ const int &lumi() { return cms3.lumi(); }
 const unsigned long long &evt() { return cms3.evt(); }
 const int &isData() { return cms3.isData(); }
 const float &evt_scale1fb() { return cms3.evt_scale1fb(); }
+const int &evt_passgoodrunlist() { return cms3.evt_passgoodrunlist(); }
 const int &HLT_DoubleMu() { return cms3.HLT_DoubleMu(); }
 const int &HLT_DoubleEl() { return cms3.HLT_DoubleEl(); }
 const int &HLT_DoubleEl_DZ() { return cms3.HLT_DoubleEl_DZ(); }
 const int &HLT_DoubleEl_DZ_2() { return cms3.HLT_DoubleEl_DZ_2(); }
 const int &HLT_MuEG() { return cms3.HLT_MuEG(); }
+const int &mc_HLT_DoubleMu() { return cms3.mc_HLT_DoubleMu(); }
+const int &mc_HLT_DoubleEl() { return cms3.mc_HLT_DoubleEl(); }
+const int &mc_HLT_DoubleEl_DZ() { return cms3.mc_HLT_DoubleEl_DZ(); }
+const int &mc_HLT_DoubleEl_DZ_2() { return cms3.mc_HLT_DoubleEl_DZ_2(); }
+const int &mc_HLT_MuEG() { return cms3.mc_HLT_MuEG(); }
 const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &lep_p4() { return cms3.lep_p4(); }
+const vector<float> &lep_pt() { return cms3.lep_pt(); }
+const vector<float> &lep_eta() { return cms3.lep_eta(); }
+const vector<float> &lep_phi() { return cms3.lep_phi(); }
 const vector<float> &lep_coneCorrPt() { return cms3.lep_coneCorrPt(); }
 const vector<float> &lep_ip3d() { return cms3.lep_ip3d(); }
 const vector<float> &lep_ip3derr() { return cms3.lep_ip3derr(); }
@@ -2373,12 +2994,10 @@ const vector<float> &jets_up_csv() { return cms3.jets_up_csv(); }
 const vector<float> &jets_dn_csv() { return cms3.jets_dn_csv(); }
 const float &met_pt() { return cms3.met_pt(); }
 const float &met_phi() { return cms3.met_phi(); }
-const float &met_T1CHS_miniAOD_CORE_pt() { return cms3.met_T1CHS_miniAOD_CORE_pt(); }
-const float &met_T1CHS_miniAOD_CORE_phi() { return cms3.met_T1CHS_miniAOD_CORE_phi(); }
-const float &met_T1CHS_miniAOD_CORE_up_pt() { return cms3.met_T1CHS_miniAOD_CORE_up_pt(); }
-const float &met_T1CHS_miniAOD_CORE_up_phi() { return cms3.met_T1CHS_miniAOD_CORE_up_phi(); }
-const float &met_T1CHS_miniAOD_CORE_dn_pt() { return cms3.met_T1CHS_miniAOD_CORE_dn_pt(); }
-const float &met_T1CHS_miniAOD_CORE_dn_phi() { return cms3.met_T1CHS_miniAOD_CORE_dn_phi(); }
+const float &met_up_pt() { return cms3.met_up_pt(); }
+const float &met_up_phi() { return cms3.met_up_phi(); }
+const float &met_dn_pt() { return cms3.met_dn_pt(); }
+const float &met_dn_phi() { return cms3.met_dn_phi(); }
 const int &firstgoodvertex() { return cms3.firstgoodvertex(); }
 const int &nTrueInt() { return cms3.nTrueInt(); }
 const int &nVert() { return cms3.nVert(); }
@@ -2396,6 +3015,7 @@ const vector<int> &genPart_charge() { return cms3.genPart_charge(); }
 const vector<int> &genPart_status() { return cms3.genPart_status(); }
 const int &ngenLep() { return cms3.ngenLep(); }
 const int &ngenLepFromTau() { return cms3.ngenLepFromTau(); }
+const int &Flag_AllEventFilters() { return cms3.Flag_AllEventFilters(); }
 const int &Flag_EcalDeadCellTriggerPrimitiveFilter() { return cms3.Flag_EcalDeadCellTriggerPrimitiveFilter(); }
 const int &Flag_HBHEIsoNoiseFilter() { return cms3.Flag_HBHEIsoNoiseFilter(); }
 const int &Flag_HBHENoiseFilter() { return cms3.Flag_HBHENoiseFilter(); }
@@ -2416,6 +3036,9 @@ const int &nj_dn() { return cms3.nj_dn(); }
 const int &nj30() { return cms3.nj30(); }
 const int &nj30_up() { return cms3.nj30_up(); }
 const int &nj30_dn() { return cms3.nj30_dn(); }
+const int &nb() { return cms3.nb(); }
+const int &nb_up() { return cms3.nb_up(); }
+const int &nb_dn() { return cms3.nb_dn(); }
 const float &Mjj() { return cms3.Mjj(); }
 const float &Mjj_up() { return cms3.Mjj_up(); }
 const float &Mjj_dn() { return cms3.Mjj_dn(); }
@@ -2450,8 +3073,33 @@ const float &DPhi3lMET_dn() { return cms3.DPhi3lMET_dn(); }
 const float &MTmax() { return cms3.MTmax(); }
 const float &MTmax_up() { return cms3.MTmax_up(); }
 const float &MTmax_dn() { return cms3.MTmax_dn(); }
+const float &MTmin() { return cms3.MTmin(); }
+const float &MTmin_up() { return cms3.MTmin_up(); }
+const float &MTmin_dn() { return cms3.MTmin_dn(); }
 const float &MT3rd() { return cms3.MT3rd(); }
 const float &MT3rd_up() { return cms3.MT3rd_up(); }
 const float &MT3rd_dn() { return cms3.MT3rd_dn(); }
+const int &passSSee() { return cms3.passSSee(); }
+const int &passSSem() { return cms3.passSSem(); }
+const int &passSSmm() { return cms3.passSSmm(); }
+const int &lep_idx0_SS() { return cms3.lep_idx0_SS(); }
+const int &lep_idx1_SS() { return cms3.lep_idx1_SS(); }
+const TString &bkgtype() { return cms3.bkgtype(); }
+const int &vetophoton() { return cms3.vetophoton(); }
+const float &purewgt() { return cms3.purewgt(); }
+const float &purewgt_up() { return cms3.purewgt_up(); }
+const float &purewgt_dn() { return cms3.purewgt_dn(); }
+const float &ffwgt() { return cms3.ffwgt(); }
+const float &ffwgt_up() { return cms3.ffwgt_up(); }
+const float &ffwgt_dn() { return cms3.ffwgt_dn(); }
+const float &ffwgtqcd() { return cms3.ffwgtqcd(); }
+const float &ffwgtqcd_up() { return cms3.ffwgtqcd_up(); }
+const float &ffwgtqcd_dn() { return cms3.ffwgtqcd_dn(); }
+const float &lepsf() { return cms3.lepsf(); }
+const float &lepsf_up() { return cms3.lepsf_up(); }
+const float &lepsf_dn() { return cms3.lepsf_dn(); }
+const float &trigeff() { return cms3.trigeff(); }
+const float &trigeff_up() { return cms3.trigeff_up(); }
+const float &trigeff_dn() { return cms3.trigeff_dn(); }
 
 }
