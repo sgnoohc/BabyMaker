@@ -32,3 +32,5 @@ sync
 !dilepbabymaker/batchsubmit/job_input/libMiniFWLite.so
 !dilepbabymaker/batchsubmit/job_input/processBaby.C
 
+Loopers/qscripts/cutflows*
+Loopers/qscripts/*.txt
