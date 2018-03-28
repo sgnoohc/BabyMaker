@@ -21,7 +21,7 @@
 #include <fstream>
 
 // CMS3
-#define USE_CMS3_WWW100 
+//#define USE_CMS3_WWW100 
 
 #include "Functions_v0.h"
 #ifdef USE_CMS3_WWW100
@@ -250,8 +250,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
       //getleptonindices_BDT(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l, 1, 0.85);
-      //getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
-      getleptonindices_v2(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,25,20);
+      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
 	lepSF = getlepSFWeightandError(lepSFerr,i3l,ia3l);
@@ -337,7 +336,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	vector<int> temp; temp.push_back(iSS[0]); temp.push_back(iaSS[0]);
 	MTmax = calcMTmax(temp,MET);
       }
-      if(checkevent) cout << "MET " << MET.Pt() << " MTmax " << MTmax << " MTmax3l " << MTmax3l << endl;
+      if(checkevent) cout << "MET " << MET.Pt() << " MTmax " << MTmax << endl;
       float MTmax_up(-1), MTmax_dn(-1), MTmax3l_up(-1), MTmax3l_dn(-1);
       if(getJECunc) {
 	MTmax_up   = calcMTmax(iSS,MET_up);

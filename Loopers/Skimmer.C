@@ -69,7 +69,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     TTree *tree = (TTree*)file->Get("t");
     if(fast) TTreeCache::SetLearnEntries(10);
     if(fast) tree->SetCacheSize(128*1024*1024);
-    cms3.Init(tree);
+    cms3.Init(tree); 
     tree->SetBranchStatus("*",0);
     tree->SetBranchStatus("run",1);
     tree->SetBranchStatus("lumi",1);
@@ -99,6 +99,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     tree->SetBranchStatus("lep_isFromW",1);
     tree->SetBranchStatus("lep_isFromZ",1);
     tree->SetBranchStatus("lep_genPart_index",1);
+    tree->SetBranchStatus("lep_charge",1);
+    tree->SetBranchStatus("lep_relIso03EAv2",1);
     tree->SetBranchStatus("jets_p4*",1);
     tree->SetBranchStatus("jets_up_p4*",1);
     tree->SetBranchStatus("jets_dn_p4*",1);
@@ -125,6 +127,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     tree->SetBranchStatus("genPart_motherId",1);
     tree->SetBranchStatus("genPart_pdgId",1);
     tree->SetBranchStatus("genPart_status",1);
+    tree->SetBranchStatus("genPart_charge",1);
     tree->SetBranchStatus("ngenLep",1);
     tree->SetBranchStatus("ngenLepFromTau",1);
     tree->SetBranchStatus("Flag_AllEventFilters",1);
@@ -246,7 +249,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(vetophoton()) continue;
 
 	//need to activate all branches
-      tas::run(); tas::lumi(); tas::evt(); tas::isData(); tas::evt_scale1fb(); tas::evt_passgoodrunlist(); tas::HLT_DoubleMu(); tas::HLT_DoubleEl(); tas::HLT_DoubleEl_DZ(); tas::HLT_MuEG(); tas::lep_p4(); tas::lep_coneCorrPt(); tas::lep_ip3d(); tas::lep_isTriggerSafe_v1(); tas::lep_motherIdSS(); tas::lep_pass_VVV_cutbased_3l_fo(); tas::lep_pass_VVV_cutbased_3l_tight(); tas::lep_pass_VVV_cutbased_fo(); tas::lep_pass_VVV_cutbased_tight(); tas::lep_pass_VVV_cutbased_veto(); tas::lep_pdgId(); tas::lep_ptRatio(); tas::lep_tightCharge(); tas::lep_etaSC(); tas::lep_MVA(); tas::lep_isFromW(); tas::lep_isFromZ(); tas::lep_genPart_index(); tas::jets_p4(); tas::jets_up_p4(); tas::jets_dn_p4(); tas::jets_csv(); tas::jets_up_csv(); tas::jets_dn_csv(); tas::met_pt(); tas::met_phi(); tas::met_up_pt(); tas::met_up_phi(); tas::met_dn_pt(); tas::met_dn_phi(); tas::firstgoodvertex(); tas::nTrueInt(); tas::nVert(); tas::nisoTrack_mt2_cleaned_VVV_cutbased_veto(); tas::weight_btagsf(); tas::weight_btagsf_heavy_DN(); tas::weight_btagsf_heavy_UP(); tas::weight_btagsf_light_DN(); tas::weight_btagsf_light_UP(); tas::gen_ht(); tas::genPart_p4(); tas::genPart_motherId(); tas::genPart_pdgId(); tas::genPart_status(); tas::ngenLep(); tas::ngenLepFromTau(); tas::Flag_AllEventFilters(); tas::nVlep(); tas::nTlep(); tas::nTlepSS(); tas::nLlep(); tas::nSFOS(); tas::nSFOSinZ(); tas::nj(); tas::nj_up(); tas::nj_dn(); tas::nj30(); tas::nj30_up(); tas::nj30_dn(); tas::nb(); tas::nb_up(); tas::nb_dn(); tas::Mjj(); tas::Mjj_up(); tas::Mjj_dn(); tas::MjjL(); tas::MjjL_up(); tas::MjjL_dn(); tas::DetajjL(); tas::DetajjL_up(); tas::DetajjL_dn(); tas::MllSS(); tas::MeeSS(); tas::Mll3L(); tas::Mee3L(); tas::Mll3L1(); tas::M3l(); tas::Pt3l(); tas::DPhi3lMET(); tas::DPhi3lMET_up(); tas::DPhi3lMET_dn(); tas::MTmax(); tas::MTmax_up(); tas::MTmax_dn(); tas::MT3rd(); tas::MT3rd_up(); tas::MT3rd_dn(); tas::passSSee(); tas::passSSem(); tas::passSSmm(); tas::lep_idx0_SS(); tas::lep_idx1_SS(); tas::bkgtype(); tas::vetophoton(); tas::purewgt(); tas::purewgt_up(); tas::purewgt_dn(); tas::ffwgt(); tas::ffwgt_up(); tas::ffwgt_dn(); tas::ffwgtqcd(); tas::ffwgtqcd_up(); tas::ffwgtqcd_dn(); tas::lepsf(); tas::lepsf_up(); tas::lepsf_dn(); tas::trigeff(); tas::trigeff_up(); tas::trigeff_dn(); tas::M01(); tas::M02(); tas::M12(); tas::isSFOS01(); tas::isSFOS02(); tas::isSFOS12();
+      tas::run(); tas::lumi(); tas::evt(); tas::isData(); tas::evt_scale1fb(); tas::evt_passgoodrunlist(); tas::HLT_DoubleMu(); tas::HLT_DoubleEl(); tas::HLT_DoubleEl_DZ(); tas::HLT_MuEG(); tas::lep_p4(); tas::lep_coneCorrPt(); tas::lep_ip3d(); tas::lep_isTriggerSafe_v1(); tas::lep_motherIdSS(); tas::lep_pass_VVV_cutbased_3l_fo(); tas::lep_pass_VVV_cutbased_3l_tight(); tas::lep_pass_VVV_cutbased_fo(); tas::lep_pass_VVV_cutbased_tight(); tas::lep_pass_VVV_cutbased_veto(); tas::lep_pdgId(); tas::lep_ptRatio(); tas::lep_tightCharge(); tas::lep_etaSC(); tas::lep_MVA(); tas::lep_isFromW(); tas::lep_isFromZ(); tas::lep_genPart_index(); tas::lep_charge(); tas::lep_relIso03EAv2(); tas::jets_p4(); tas::jets_up_p4(); tas::jets_dn_p4(); tas::jets_csv(); tas::jets_up_csv(); tas::jets_dn_csv(); tas::met_pt(); tas::met_phi(); tas::met_up_pt(); tas::met_up_phi(); tas::met_dn_pt(); tas::met_dn_phi(); tas::firstgoodvertex(); tas::nTrueInt(); tas::nVert(); tas::nisoTrack_mt2_cleaned_VVV_cutbased_veto(); tas::weight_btagsf(); tas::weight_btagsf_heavy_DN(); tas::weight_btagsf_heavy_UP(); tas::weight_btagsf_light_DN(); tas::weight_btagsf_light_UP(); tas::gen_ht(); tas::genPart_p4(); tas::genPart_motherId(); tas::genPart_pdgId(); tas::genPart_status(); tas::genPart_charge(); tas::ngenLep(); tas::ngenLepFromTau(); tas::Flag_AllEventFilters(); tas::nVlep(); tas::nTlep(); tas::nTlepSS(); tas::nLlep(); tas::nSFOS(); tas::nSFOSinZ(); tas::nj(); tas::nj_up(); tas::nj_dn(); tas::nj30(); tas::nj30_up(); tas::nj30_dn(); tas::nb(); tas::nb_up(); tas::nb_dn(); tas::Mjj(); tas::Mjj_up(); tas::Mjj_dn(); tas::MjjL(); tas::MjjL_up(); tas::MjjL_dn(); tas::DetajjL(); tas::DetajjL_up(); tas::DetajjL_dn(); tas::MllSS(); tas::MeeSS(); tas::Mll3L(); tas::Mee3L(); tas::Mll3L1(); tas::M3l(); tas::Pt3l(); tas::DPhi3lMET(); tas::DPhi3lMET_up(); tas::DPhi3lMET_dn(); tas::MTmax(); tas::MTmax_up(); tas::MTmax_dn(); tas::MT3rd(); tas::MT3rd_up(); tas::MT3rd_dn(); tas::passSSee(); tas::passSSem(); tas::passSSmm(); tas::lep_idx0_SS(); tas::lep_idx1_SS(); tas::bkgtype(); tas::vetophoton(); tas::purewgt(); tas::purewgt_up(); tas::purewgt_dn(); tas::ffwgt(); tas::ffwgt_up(); tas::ffwgt_dn(); tas::ffwgtqcd(); tas::ffwgtqcd_up(); tas::ffwgtqcd_dn(); tas::lepsf(); tas::lepsf_up(); tas::lepsf_dn(); tas::trigeff(); tas::trigeff_up(); tas::trigeff_dn(); tas::M01(); tas::M02(); tas::M12(); tas::isSFOS01(); tas::isSFOS02(); tas::isSFOS12();
 
       newtree->Fill();
     }//event loop

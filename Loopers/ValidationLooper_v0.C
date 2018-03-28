@@ -21,7 +21,7 @@
 #include <fstream>
 
 // CMS3
-#define USE_CMS3_WWW100 
+//#define USE_CMS3_WWW100 
 
 #include "Functions_v0.h"
 #ifdef USE_CMS3_WWW100
@@ -159,7 +159,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
       vector<int> vSS,   v3l,   iSS,   i3l; //lepton indices for both the SS and 3l signal regions
       vector<int> vaSS,  va3l,  iaSS,  ia3l;//loose, but not tight leptons.
-      getleptonindices_v2(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,25,20);
+      getleptonindices(iSS, i3l, iaSS, ia3l, vSS, v3l, vaSS, va3l,1,25,20);
       float lepSFSS(1.), lepSFerrSS(0.), lepSF3l(1.), lepSFerr3l(0.);
       float lepSF(1.), lepSFerr(0.);//i3l and iSS have same ID
       if(applylepSF&&!isData()){
