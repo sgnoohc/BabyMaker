@@ -10,7 +10,10 @@
 #job_tag = "WWW_v1.0.9" # Added lepton scale factors
 #job_tag = "WWW_v1.0.10" # Added trigger efficiencies
 #job_tag = "WWW_v1.0.11" # Clean up some varialbes and turn on the met filters
-job_tag = "WWW_v1.0.12" # Zpeak window fixed to 20, pt requirements on leptons
+#job_tag = "WWW_v1.0.12" # Zpeak window fixed to 20, pt requirements on leptons
+#job_tag = "WWW_v1.0.13" # Switch to reliso03 0.4
+#job_tag = "WWW_v1.0.14" # Added matched jet pt different corrections only for ttbar and www
+job_tag = "WWW_v1.0.15" # Redefined a mixed ptratio/reliso isolation for better modeling
 
 ###################################################################################################################
 ###################################################################################################################
@@ -36,7 +39,7 @@ import subprocess
 
 # Will be using dis_client
 import sys
-sys.path.append('/home/users/namin/public_html/makers/disMaker')
+sys.path.append('/home/users/phchang/public_html/makers/disMaker')
 import dis_client
 import json
 
@@ -115,6 +118,8 @@ samples = {
 "/DoubleMuon/Run2016B-03Feb2017_ver2-v2/CMS3"                                                                                                                                   : "data_Run2016B_03feb2017rereco_unmerged_mm_v2",
 "/DoubleEG/Run2016C-03Feb2017-v1/CMS3"                                                                                                                                          : "data_Run2016C_03feb2017rereco_unmerged_ee_v1",
 "/DoubleMuon/Run2016C-03Feb2017-v1/CMS3"                                                                                                                                        : "data_Run2016C_03feb2017rereco_unmerged_mm_v1",
+"/DoubleEG/Run2016D-03Feb2017-v1/CMS3"                                                                                                                                          : "data_Run2016D_03feb2017rereco_unmerged_ee_v1",
+"/DoubleMuon/Run2016D-03Feb2017-v1/CMS3"                                                                                                                                        : "data_Run2016D_03feb2017rereco_unmerged_mm_v1",
 "/DoubleEG/Run2016E-03Feb2017-v1/CMS3"                                                                                                                                          : "data_Run2016E_03feb2017rereco_unmerged_ee_v1",
 "/DoubleMuon/Run2016E-03Feb2017-v1/CMS3"                                                                                                                                        : "data_Run2016E_03feb2017rereco_unmerged_mm_v1",
 "/DoubleEG/Run2016F-03Feb2017-v1/CMS3"                                                                                                                                          : "data_Run2016F_03feb2017rereco_unmerged_ee_v1",
@@ -268,7 +273,7 @@ while True:
                 special_dir          = hadoop_path,
                 output_name          = "output.root",
                 files_per_output     = 4,
-                condor_submit_params = {"sites" : "T2_US_UCSD"},
+                condor_submit_params = {"sites" : "T2_US_UCSD, UAF"},
                 open_dataset         = False,
                 flush                = True,
                 #no_load_from_backup  = True,
