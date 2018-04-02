@@ -13,7 +13,8 @@
 #job_tag = "WWW_v1.0.12" # Zpeak window fixed to 20, pt requirements on leptons
 #job_tag = "WWW_v1.0.13" # Switch to reliso03 0.4
 #job_tag = "WWW_v1.0.14" # Added matched jet pt different corrections only for ttbar and www
-job_tag = "WWW_v1.0.15" # Redefined a mixed ptratio/reliso isolation for better modeling
+#job_tag = "WWW_v1.0.15" # Redefined a mixed ptratio/reliso isolation for better modeling
+job_tag = "WWW_v1.0.15" # Added ptratioEA
 
 ###################################################################################################################
 ###################################################################################################################
