@@ -7,11 +7,6 @@ import errno
 import sys
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob, TQNFCalculator, TQCounter
 
-try:
-    samples = TQSampleFolder.loadSampleFolder("{}:samples".format(sys.argv[1]))
-except:
-    samples = TQSampleFolder.loadSampleFolder("output.root:samples")
-
 
 ########################################################################################
 def addCuts(base, prefix_base, cutdefs, doNm1=True):
@@ -42,16 +37,25 @@ def createTQCut(cutname, cutdefs):
     for i, cutdef in enumerate(cutdefs):
 
         # Create cut name
-        this_cut_name = "cut{}_{}".format(i, cutname)
+        this_cut_name = "cut{}_{}_{}".format(i, cutname, cutdef[0])
 
-        # If last cut, then the cut name is the "cutname"
-        if i == len(cutdefs) - 1: this_cut_name = "{}".format(cutname)
+        ## If last cut, then the cut name is the "cutname"
+        #if i == len(cutdefs) - 1: this_cut_name = "{}".format(cutname)
 
         # Create TQCut instance
-        cut = TQCut(this_cut_name, this_cut_name, cutdef[0], cutdef[1])
+        cut = TQCut(this_cut_name, "{} ".format(i) + cutdef[1] + " ({})".format(cutdef[0]), cutdef[2], cutdef[3])
 
         # Aggregate cuts
         cuts.append(cut)
+
+    # Add the last cut again
+    cutdef = cutdefs[-1]
+
+    # Create TQCut instance
+    cut = TQCut(cutname, cutname, cutdef[2], cutdef[3])
+
+    # Aggregate cuts
+    cuts.append(cut)
 
     # Link all the cuts in steps
     for i in xrange(len(cuts)-1):
@@ -79,7 +83,7 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 ########################################################################################
-def blind():
+def blind(samples):
     cutnames = []
     for i in samples.getListOfCounterNames():
         cutnames.append(str(i))
@@ -90,21 +94,10 @@ def blind():
 
 ########################################################################################
 def addProcesses(printer, showdata, prettyversion=True):
+    printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
+#    printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bkg/top/singletop", "1top")
-    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
-    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
-    printer.addCutflowProcess("/bkg/ttV", "ttV")
-    printer.addCutflowProcess("/bkg/VVV", "VVV")
-    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
-    printer.addCutflowProcess("/bkg/VV/WW", "WW")
-    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
-    printer.addCutflowProcess("/bkg/W", "W")
-    printer.addCutflowProcess("/bkg/Z", "Z")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg/prompt", "Prompt")
     printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
@@ -112,14 +105,25 @@ def addProcesses(printer, showdata, prettyversion=True):
     printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
     printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
-    printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
-    printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/bkg/top/singletop", "1top")
+#    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
+#    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
+#    printer.addCutflowProcess("/bkg/ttV", "ttV")
+#    printer.addCutflowProcess("/bkg/VVV", "VVV")
+#    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
+#    printer.addCutflowProcess("/bkg/VV/WW", "WW")
+#    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
+#    printer.addCutflowProcess("/bkg/W", "W")
+#    printer.addCutflowProcess("/bkg/Z", "Z")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
+#    printer.addCutflowProcess("|", "|")
     if showdata:
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("/data", "Data")
@@ -130,27 +134,19 @@ def addProcesses(printer, showdata, prettyversion=True):
 ########################################################################################
 #_______________________________________________________________________________
 # Supports only printing out by process boundaries
-def printSummaryCutflow(output_name="srcutflow"):
+def printSummaryCutflow(samples, output_name="srcutflow"):
+    cuts = {}
+    cutnames = []
+    for counter in samples.getListOfCounterNames():
+        if str(counter).find("cut") == -1 and str(counter).find("BaseCut") == -1:
+            title = samples.getCounter("/data", str(counter)).GetTitle()
+            cutnames.append(str(counter))
+            cuts[str(counter)] = str(title)
+    cutnames.sort(key=natural_keys)
     # Cutflow printing
     printer = TQCutflowPrinter(samples)
-    printer.addCutflowCut("SSee", "SSee", True)
-    printer.addCutflowCut("SSem", "SSem", True)
-    printer.addCutflowCut("SSmm", "SSmm", True)
-    printer.addCutflowCut("|","|")
-    printer.addCutflowCut("TL0SFOS", "TL0SFOS", True)
-    printer.addCutflowCut("TL1SFOS", "TL1SFOS", True)
-    printer.addCutflowCut("TL2SFOS", "TL2SFOS", True)
-    printer.addCutflowCut("|","|")
-    printer.addCutflowCut("SSWZee", "SSWZee", True)
-    printer.addCutflowCut("SSWZem", "SSWZem", True)
-    printer.addCutflowCut("SSWZmm", "SSWZmm", True)
-    printer.addCutflowCut("|","|")
-#    printer.addCutflowCut("WZCRee", "WZCRee")
-#    printer.addCutflowCut("WZCRem", "WZCRem")
-#    printer.addCutflowCut("WZCRmm", "WZCRmm")
-#    printer.addCutflowCut("|","|")
-#    printer.addCutflowCut("TLWZ1SFOS", "TLWZ1SFOS")
-#    printer.addCutflowCut("TLWZ2SFOS", "TLWZ2SFOS")
+    for cut in cutnames:
+        printer.addCutflowCut(cut, cuts[cut], True)
     addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")
     path = "cutflows/"
@@ -165,4 +161,36 @@ def printSummaryCutflow(output_name="srcutflow"):
     table.writeHTML("cutflows/{}.html".format(output_name))
     table.writeLaTeX("cutflows/{}.tex".format(output_name))
     table.writePlain("cutflows/{}.txt".format(output_name))
+
+
+########################################################################################
+#_______________________________________________________________________________
+# Supports only printing out by process boundaries
+def printCutflow(samples, regionname):
+    cuts = {}
+    cutnames = []
+    for counter in samples.getListOfCounterNames():
+        if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
+            title = samples.getCounter("/data", str(counter)).GetTitle()
+            cutnames.append(str(counter))
+            cuts[str(counter)] = str(title)
+    cutnames.sort(key=natural_keys)
+    # Cutflow printing
+    printer = TQCutflowPrinter(samples)
+    for cut in cutnames:
+        printer.addCutflowCut(cut, cuts[cut], True)
+    addProcesses(printer, showdata=True)
+    table = printer.createTable("style.firstColumnAlign=l")
+    path = "cutflows/"
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    table.writeCSV("cutflows/{}.csv".format(regionname))
+    table.writeHTML("cutflows/{}.html".format(regionname))
+    table.writeLaTeX("cutflows/{}.tex".format(regionname))
+    table.writePlain("cutflows/{}.txt".format(regionname))
 
