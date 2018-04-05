@@ -54,10 +54,7 @@ histojob.importJobsFromTextFiles("histo.cfg", cuts, "*", True)
 vis = TQAnalysisSampleVisitor(cuts,True)
 
 # Run the job!
-#samples.visitSampleFolders(vis)
-samples.visitSampleFolders(vis, "/sig")
-samples.visitSampleFolders(vis, "/typebkg")
-samples.visitSampleFolders(vis, "/data")
+samples.visitSampleFolders(vis)
 
 # Write the output histograms and cutflow cut values and etc.
 samples.writeToFile("output.root", True)
