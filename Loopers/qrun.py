@@ -15,7 +15,7 @@ parser = TQXSecParser(samples);
 # Read the configuration file that contains what sample names are and how to categorize them
 parser.readCSVfile("samples.cfg")
 parser.readMappingFromColumn("*path*")
-parser.enableSamplesWithPriorityLessThan("priority", 2)
+parser.enableSamplesWithPriorityLessThan("priority", 3)
 parser.addAllSamples(True)
 
 # Connect to a set of babies
