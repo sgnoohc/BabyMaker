@@ -74,16 +74,16 @@
 #include "coreutil/met.h"
 #include "coreutil/track.h"
 
-#define VVV_TIGHT_SS VVV_cutbased_tight_v2
-#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v2
-#define VVV_TIGHT_NOISO VVV_cutbased_tight_noiso_v2
+#define VVV_TIGHT_SS VVV_cutbased_tight_v3
+#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v3
+#define VVV_TIGHT_NOISO VVV_cutbased_tight_noiso_v3
 
-#define VVV_FO_SS VVV_cutbased_fo_v2
-#define VVV_FO_3L VVV_cutbased_3l_fo_v2
-#define VVV_FO_NOISO VVV_cutbased_fo_noiso_v2
+#define VVV_FO_SS VVV_cutbased_fo_v3
+#define VVV_FO_3L VVV_cutbased_3l_fo_v3
+#define VVV_FO_NOISO VVV_cutbased_fo_noiso_v3
 
-#define VVV_VETO VVV_cutbased_veto_v2
-#define VVV_VETO_NOISO VVV_cutbased_veto_noiso_v2
+#define VVV_VETO VVV_cutbased_veto_v3
+#define VVV_VETO_NOISO VVV_cutbased_veto_noiso_v3
 
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;

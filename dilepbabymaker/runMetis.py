@@ -14,7 +14,7 @@
 #job_tag = "WWW_v1.0.13" # Switch to reliso03 0.4
 #job_tag = "WWW_v1.0.14" # Added matched jet pt different corrections only for ttbar and www
 #job_tag = "WWW_v1.0.15" # Redefined a mixed ptratio/reliso isolation for better modeling
-#job_tag = "WWW_v1.0.17" # Added ptratioEA Incorrectly ran over with v3 id which are not what i want
+#job_tag = "WWW_v1.0.16" # Added ptratioEA Incorrectly ran over with v3 id which are not what i want
 job_tag = "WWW_v1.0.17" # Added ptratioEA
 
 ###################################################################################################################
