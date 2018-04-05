@@ -509,7 +509,6 @@ void babyMaker_v2::FillElectrons()
         const LorentzVector& temp_jet_p4_v0 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */0);
         const LorentzVector& temp_jet_p4_v1 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */1);
         int jetidx = closestJetIdx(cms3.els_p4()[idx], 0.4, 3.0);
-        float area = jetidx >= 0 ? cms3.pfjets_area()[jetidx] : 0;
         float closeJetPt = temp_jet_p4.pt();
         float ptratio = (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.);
         float ptratioEA = (temp_jet_p4_v0.pt() > 0. ? cms3.els_p4()[idx].pt() / (temp_jet_p4_v0.pt() - (elEA03(idx, 2) * cms3.evt_fixgridfastjet_all_rho() * (cms3.pfjets_area()[jetidx] / 0.3 * 0.3 * TMath::Pi()))) : 1.);
@@ -605,7 +604,6 @@ void babyMaker_v2::FillMuons()
         const LorentzVector& temp_jet_p4_v0 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */0);
         const LorentzVector& temp_jet_p4_v1 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */1);
         int jetidx = closestJetIdx(cms3.mus_p4()[idx], 0.4, 3.0);
-        float area = jetidx >= 0 ? cms3.pfjets_area()[jetidx] : 0;
         float closeJetPt = temp_jet_p4.pt();
         float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
         float ptratioEA = (temp_jet_p4_v0.pt() > 0. ?  cms3.mus_p4()[idx].pt() / (temp_jet_p4_v0.pt() - (muEA03(idx, 2) * cms3.evt_fixgridfastjet_all_rho() * (cms3.pfjets_area()[jetidx] / 0.3 * 0.3 * TMath::Pi()))) : 1.);

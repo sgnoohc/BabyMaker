@@ -14,7 +14,8 @@
 #job_tag = "WWW_v1.0.13" # Switch to reliso03 0.4
 #job_tag = "WWW_v1.0.14" # Added matched jet pt different corrections only for ttbar and www
 #job_tag = "WWW_v1.0.15" # Redefined a mixed ptratio/reliso isolation for better modeling
-job_tag = "WWW_v1.0.15" # Added ptratioEA
+#job_tag = "WWW_v1.0.16" # Added ptratioEA Incorrectly ran over with v3 id which are not what i want
+job_tag = "WWW_v1.0.17" # Added ptratioEA
 
 ###################################################################################################################
 ###################################################################################################################
@@ -274,7 +275,7 @@ while True:
                 special_dir          = hadoop_path,
                 output_name          = "output.root",
                 files_per_output     = 4,
-                condor_submit_params = {"sites" : "T2_US_UCSD, UAF"},
+                condor_submit_params = {"sites" : "T2_US_UCSD"},
                 open_dataset         = False,
                 flush                = True,
                 #no_load_from_backup  = True,
