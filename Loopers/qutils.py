@@ -106,29 +106,30 @@ def addProcesses(printer, showdata, prettyversion=True):
     printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
-#    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
-#    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
-#    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/bkg/top/singletop", "1top")
-#    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
-#    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
-#    printer.addCutflowProcess("/bkg/ttV", "ttV")
-#    printer.addCutflowProcess("/bkg/VVV", "VVV")
-#    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
-#    printer.addCutflowProcess("/bkg/VV/WW", "WW")
-#    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
-#    printer.addCutflowProcess("/bkg/W", "W")
-#    printer.addCutflowProcess("/bkg/Z", "Z")
-#    printer.addCutflowProcess("|", "|")
-#    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
-#    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/bkg/top/singletop", "1top")
+    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
+    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
+    printer.addCutflowProcess("/bkg/ttV", "ttV")
+    printer.addCutflowProcess("/bkg/VVV", "VVV")
+    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
+    printer.addCutflowProcess("/bkg/VV/WW", "WW")
+    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
+    printer.addCutflowProcess("/bkg/W", "W")
+    printer.addCutflowProcess("/bkg/Z", "Z")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
+    printer.addCutflowProcess("|", "|")
     if showdata:
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("/data", "Data")
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("$ratio(/data,/fake+typebkg-typebkg/fakes)", "Ratio")
+        printer.addCutflowProcess("$ratio(/data,/typebkg)", "Ratio")
 
 
 ########################################################################################
@@ -194,3 +195,43 @@ def printCutflow(samples, regionname):
     table.writeLaTeX("cutflows/{}.tex".format(regionname))
     table.writePlain("cutflows/{}.txt".format(regionname))
 
+########################################################################################
+def getSampleLists(samples):
+    # Get all sample lists
+    sample_names = []
+    sample_full_names = {}
+    for i in samples.getListOfSamples():
+        if i.getNSamples(True) == 0:
+            sample_name = i.GetName()
+            nice_name = sample_name.replace(".root", "")
+            sample_names.append(nice_name)
+            sample_full_names[nice_name] = sample_name
+    return sample_names, sample_full_names
+
+
+########################################################################################
+def connectNtuples(samples, config, path, priority="<2"):
+    parser = TQXSecParser(samples);
+    parser.readCSVfile(config)
+    parser.readMappingFromColumn("*path*")
+    if priority.find(">"):
+        priority_value = int(priority.split(">")[1])
+        parser.enableSamplesWithPriorityGreaterThan("priority", priority_value)
+    elif priority.find("<"):
+        priority_value = int(priority.split(">")[1])
+        parser.enableSamplesWithPriorityLessThan("priority", priority_value)
+    parser.addAllSamples(True)
+
+    # Decide that path where the root files are sitting
+    import socket
+    if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
+        samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
+    else:
+        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.20/skim/"
+
+    # By "visiting" the samples with the initializer we actually hook up the samples with root files
+    init = TQSampleInitializer(samplepath, 1)
+    samples.visitMe(init)
+
+    # Print the content for debugging purpose
+    #samples.printContents("rtd")
