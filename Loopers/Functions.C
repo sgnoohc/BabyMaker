@@ -1760,44 +1760,64 @@ map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, 
   return histos;
 }
 
-bool deleteHistograms(map<string, TH1D*> histos){
+bool deleteHistograms(map<string, TH1D*> &histos){
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h) delete h->second;
   return true;
 }
 
-bool fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l, bool fillsample){
+bool  fillSRhisto(map<string, TH1D*> &histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, double weight, double weight3l, bool fillsample){
   if(SRSS<0&&SR3l<0) return true;
-  float weight2 = weight3l;
-  if(weight3l<-1e6) weight2 = weight;
+  float weight2 = weight3l<-1e6 ? weight : weight3l;
+  
   if(fillsample){
-    if(SRSS==0)   histos[histoname+"_"+sample]->Fill(0.,weight);
-    if(SRSS==1)   histos[histoname+"_"+sample]->Fill(1.,weight);
-    if(SRSS==2)   histos[histoname+"_"+sample]->Fill(2.,weight);
-    if(SR3l==0)   histos[histoname+"_"+sample]->Fill(3.,weight2);
-    if(SR3l==1)   histos[histoname+"_"+sample]->Fill(4.,weight2);
-    if(SR3l==2)   histos[histoname+"_"+sample]->Fill(5.,weight2);
+    if(SRSS==0) histos[histoname+"_"+sample]->Fill(0.5,weight);
+    if(SRSS==1) histos[histoname+"_"+sample]->Fill(1.5,weight);
+    if(SRSS==2) histos[histoname+"_"+sample]->Fill(2.5,weight);
+    if(SR3l==0) histos[histoname+"_"+sample]->Fill(3.5,weight2);
+    if(SR3l==1) histos[histoname+"_"+sample]->Fill(4.5,weight2);
+    if(SR3l==2) histos[histoname+"_"+sample]->Fill(5.5,weight2);
   }
   if(sample!=sn){
-    if(SRSS==0) histos[histoname+"_"+sn    ]->Fill(0.,weight);
-    if(SRSS==1) histos[histoname+"_"+sn    ]->Fill(1.,weight);
-    if(SRSS==2) histos[histoname+"_"+sn    ]->Fill(2.,weight);
+    if(SRSS==0) histos[histoname+"_"+sn    ]->Fill(0.5,weight);
+    if(SRSS==1) histos[histoname+"_"+sn    ]->Fill(1.5,weight);
+    if(SRSS==2) histos[histoname+"_"+sn    ]->Fill(2.5,weight);
   }
   if(sample!=sn2){
-    if(SR3l==0) histos[histoname+"_"+sn2   ]->Fill(3.,weight2);
-    if(SR3l==1) histos[histoname+"_"+sn2   ]->Fill(4.,weight2);
-    if(SR3l==2) histos[histoname+"_"+sn2   ]->Fill(5.,weight2);
+    if(SR3l==0) histos[histoname+"_"+sn2   ]->Fill(3.5,weight2);
+    if(SR3l==1) histos[histoname+"_"+sn2   ]->Fill(4.5,weight2);
+    if(SR3l==2) histos[histoname+"_"+sn2   ]->Fill(5.5,weight2);
   }
   return true;
 }
 
-bool fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample){
+bool  fillSRhisto(map<string, TH1D*> &histos, string histoname, string sample, string sn, int SRSS, int SR3l, double weight, bool fillsample){
+  if(fillsample){
+    if(SRSS==0) histos[histoname+"_"+sample]->Fill(0.5,weight);
+    if(SRSS==1) histos[histoname+"_"+sample]->Fill(1.5,weight);
+    if(SRSS==2) histos[histoname+"_"+sample]->Fill(2.5,weight);
+    if(SR3l==0) histos[histoname+"_"+sample]->Fill(3.5,weight);
+    if(SR3l==1) histos[histoname+"_"+sample]->Fill(4.5,weight);
+    if(SR3l==2) histos[histoname+"_"+sample]->Fill(5.5,weight);
+  }
+  if(sample!=sn){
+    if(SRSS==0) histos[histoname+"_"+sn    ]->Fill(0.5,weight);
+    if(SRSS==1) histos[histoname+"_"+sn    ]->Fill(1.5,weight);
+    if(SRSS==2) histos[histoname+"_"+sn    ]->Fill(2.5,weight);
+    if(SR3l==0) histos[histoname+"_"+sn    ]->Fill(3.5,weight);
+    if(SR3l==1) histos[histoname+"_"+sn    ]->Fill(4.5,weight);
+    if(SR3l==2) histos[histoname+"_"+sn    ]->Fill(5.5,weight);
+  }
+  return true;
+}
+
+bool fillhisto(map<string, TH1D*> &histos, string histoname, string sample, string sn, double value, double weight, bool fillsample){
   if(fillsample) histos[  histoname+"_"+sample]->Fill(value,weight);
   if(sample!=sn)
     histos[histoname+"_"+sn    ]->Fill(value,weight);
   return true;
 }
 
-bool SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow, bool addoverflow, bool deletefile){
+bool SaveHistosToFile(string filename, map<string, TH1D*> &histos, bool addunderflow, bool addoverflow, bool deletefile){
   for(map<string,TH1D*>::iterator h=histos.begin(); h!=histos.end();++h){
     //add overflow
     if(addoverflow){

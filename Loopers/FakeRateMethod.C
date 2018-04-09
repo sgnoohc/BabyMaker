@@ -279,67 +279,67 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       }
       
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",                         sample, sn, sn, SRSS[ 0], SR3l[ 0], weight,                 weight);
-	fillSRhisto(histos, "PreselSRyield",                   sample, sn, sn, SRSS[ 1], SR3l[ 1], weight,                 weight);
+	fillSRhisto(histos, "SRyield",                         sample, sn, SRSS[ 0], SR3l[ 0], weight);
+	fillSRhisto(histos, "PreselSRyield",                   sample, sn, SRSS[ 1], SR3l[ 1], weight);
       }
-      fillSRhisto(histos, "ARyield",                           sample, sn, sn, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "FakeEstimation",                    sample, sn, sn, SRSS[ 2], SR3l[ 2], weight* SF,             weight* SF);
-      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, sn, SRSS[ 2], SR3l[ 2], weight*(SF+SFerr),      weight*(SF+SFerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, sn, SRSS[ 2], SR3l[ 2], weight*(SF-SFerr),      weight*(SF-SFerr));
-      fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, sn, SRSS[ 2], SR3l[ 2], weight*(SF+closureerr), weight*(SF+closureerr));
-      fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, sn, SRSS[ 2], SR3l[ 2], weight*(SF-closureerr), weight*(SF-closureerr));
-      fillSRhisto(histos, "PreselARyield",                     sample, sn, sn, SRSS[ 3], SR3l[ 3], weight,                 weight);
-      fillSRhisto(histos, "PreselFakeEstimation",              sample, sn, sn, SRSS[ 3], SR3l[ 3], weight* SF,             weight* SF);
-      fillSRhisto(histos, "PreselFakeEstimationFRup",          sample, sn, sn, SRSS[ 3], SR3l[ 3], weight*(SF+SFerr),      weight*(SF+SFerr));
-      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sample, sn, sn, SRSS[ 3], SR3l[ 3], weight*(SF-SFerr),      weight*(SF-SFerr));
-      fillSRhisto(histos, "PreselFakeEstimationClosureup",     sample, sn, sn, SRSS[ 3], SR3l[ 3], weight*(SF+closureerr), weight*(SF+closureerr));
-      fillSRhisto(histos, "PreselFakeEstimationClosuredn",     sample, sn, sn, SRSS[ 3], SR3l[ 3], weight*(SF-closureerr), weight*(SF-closureerr));
+      fillSRhisto(histos, "ARyield",                           sample, sn, SRSS[ 2], SR3l[ 2], weight);
+      fillSRhisto(histos, "FakeEstimation",                    sample, sn, SRSS[ 2], SR3l[ 2], weight* SF);
+      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn, SRSS[ 2], SR3l[ 2], weight*(SF+SFerr));
+      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn, SRSS[ 2], SR3l[ 2], weight*(SF-SFerr));
+      fillSRhisto(histos, "FakeEstimationClosureup",           sample, sn, SRSS[ 2], SR3l[ 2], weight*(SF+closureerr));
+      fillSRhisto(histos, "FakeEstimationClosuredn",           sample, sn, SRSS[ 2], SR3l[ 2], weight*(SF-closureerr));
+      fillSRhisto(histos, "PreselARyield",                     sample, sn, SRSS[ 3], SR3l[ 3], weight);
+      fillSRhisto(histos, "PreselFakeEstimation",              sample, sn, SRSS[ 3], SR3l[ 3], weight* SF);
+      fillSRhisto(histos, "PreselFakeEstimationFRup",          sample, sn, SRSS[ 3], SR3l[ 3], weight*(SF+SFerr));
+      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sample, sn, SRSS[ 3], SR3l[ 3], weight*(SF-SFerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosureup",     sample, sn, SRSS[ 3], SR3l[ 3], weight*(SF+closureerr));
+      fillSRhisto(histos, "PreselFakeEstimationClosuredn",     sample, sn, SRSS[ 3], SR3l[ 3], weight*(SF-closureerr));
 
       if(checkMjjSB){
-	fillSRhisto(histos, "SRyield_Mjjsideband",                           sample, sn, sn, SRSS[ 4], SR3l[ 4], weight,                weight);
-	fillSRhisto(histos, "PreselSRyield_Mjjsideband",                     sample, sn, sn, SRSS[ 5], SR3l[ 5], weight,                weight);
-	fillSRhisto(histos, "ARyield_Mjjsideband",                           sample, sn, sn, SRSS[ 6], SR3l[ 6], weight,                weight);
-	fillSRhisto(histos, "FakeEstimation_Mjjsideband",                    sample, sn, sn, SRSS[ 6], SR3l[ 6], weight* SF,            weight* SF);
-	fillSRhisto(histos, "FakeEstimationUp_Mjjsideband",                  sample, sn, sn, SRSS[ 6], SR3l[ 6], weight*(SF+toterr),    weight*(SF+toterr));
-	fillSRhisto(histos, "FakeEstimationDn_Mjjsideband",                  sample, sn, sn, SRSS[ 6], SR3l[ 6], weight*(SF-toterr),    weight*(SF-toterr));
-	fillSRhisto(histos, "PreselARyield_Mjjsideband",                     sample, sn, sn, SRSS[ 7], SR3l[ 7], weight,                weight);
-	fillSRhisto(histos, "PreselFakeEstimation_Mjjsideband",              sample, sn, sn, SRSS[ 7], SR3l[ 7], weight* SF,            weight* SF);
-	fillSRhisto(histos, "PreselFakeEstimationUp_Mjjsideband",            sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr),    weight*(SF+toterr));
-	fillSRhisto(histos, "PreselFakeEstimationDn_Mjjsideband",            sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr),    weight*(SF-toterr));
+	fillSRhisto(histos, "SRyield_Mjjsideband",                           sample, sn, SRSS[ 4], SR3l[ 4], weight);
+	fillSRhisto(histos, "PreselSRyield_Mjjsideband",                     sample, sn, SRSS[ 5], SR3l[ 5], weight);
+	fillSRhisto(histos, "ARyield_Mjjsideband",                           sample, sn, SRSS[ 6], SR3l[ 6], weight);
+	fillSRhisto(histos, "FakeEstimation_Mjjsideband",                    sample, sn, SRSS[ 6], SR3l[ 6], weight* SF);
+	fillSRhisto(histos, "FakeEstimationUp_Mjjsideband",                  sample, sn, SRSS[ 6], SR3l[ 6], weight*(SF+toterr));
+	fillSRhisto(histos, "FakeEstimationDn_Mjjsideband",                  sample, sn, SRSS[ 6], SR3l[ 6], weight*(SF-toterr));
+	fillSRhisto(histos, "PreselARyield_Mjjsideband",                     sample, sn, SRSS[ 7], SR3l[ 7], weight);
+	fillSRhisto(histos, "PreselFakeEstimation_Mjjsideband",              sample, sn, SRSS[ 7], SR3l[ 7], weight* SF);
+	fillSRhisto(histos, "PreselFakeEstimationUp_Mjjsideband",            sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr));
+	fillSRhisto(histos, "PreselFakeEstimationDn_Mjjsideband",            sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr));
       }
       bool passMETsbloose = (fabs(Mjj()-80.)>=15.) && (met_pt()<40.);
       bool passMETsbtight = passMETsbloose && (MjjL()<400.) && (DetajjL()<1.5) && ( passSSem() ? (MllSS()>30.) : (MllSS()>40.)) && ( passSSem() ? (MTmax()>90.) : (true));
       if(checkMjjlowMETSB&&passMETsbtight){
-	fillSRhisto(histos, "SRyield_MjjsidebandlowMET",                           sample, sn, sn, SRSS[ 5], SR3l[ 5], weight,                 weight);
-	fillSRhisto(histos, "ARyield_MjjsidebandlowMET",                           sample, sn, sn, SRSS[ 7], SR3l[ 7], weight,                 weight);
-	fillSRhisto(histos, "FakeEstimation_MjjsidebandlowMET",                    sample, sn, sn, SRSS[ 7], SR3l[ 7], weight* SF,             weight* SF);
-	fillSRhisto(histos, "FakeEstimationUp_MjjsidebandlowMET",                  sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr),     weight*(SF+toterr));
-	fillSRhisto(histos, "FakeEstimationDn_MjjsidebandlowMET",                  sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr),     weight*(SF-toterr));
+	fillSRhisto(histos, "SRyield_MjjsidebandlowMET",                           sample, sn, SRSS[ 5], SR3l[ 5], weight);
+	fillSRhisto(histos, "ARyield_MjjsidebandlowMET",                           sample, sn, SRSS[ 7], SR3l[ 7], weight);
+	fillSRhisto(histos, "FakeEstimation_MjjsidebandlowMET",                    sample, sn, SRSS[ 7], SR3l[ 7], weight* SF);
+	fillSRhisto(histos, "FakeEstimationUp_MjjsidebandlowMET",                  sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr));
+	fillSRhisto(histos, "FakeEstimationDn_MjjsidebandlowMET",                  sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr));
       }
       if(checkMjjlowMETSB&&passMETsbloose){
-	fillSRhisto(histos, "PreselSRyield_MjjsidebandlowMET",                     sample, sn, sn, SRSS[ 5], SR3l[ 5], weight,                 weight);
-	fillSRhisto(histos, "PreselARyield_MjjsidebandlowMET",                     sample, sn, sn, SRSS[ 7], SR3l[ 7], weight,                 weight);
-	fillSRhisto(histos, "PreselFakeEstimation_MjjsidebandlowMET",              sample, sn, sn, SRSS[ 7], SR3l[ 7], weight* SF,             weight* SF);
-	fillSRhisto(histos, "PreselFakeEstimationUp_MjjsidebandlowMET",            sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr),     weight*(SF+toterr));
-	fillSRhisto(histos, "PreselFakeEstimationDn_MjjsidebandlowMET",            sample, sn, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr),     weight*(SF-toterr));
+	fillSRhisto(histos, "PreselSRyield_MjjsidebandlowMET",                     sample, sn, SRSS[ 5], SR3l[ 5], weight);
+	fillSRhisto(histos, "PreselARyield_MjjsidebandlowMET",                     sample, sn, SRSS[ 7], SR3l[ 7], weight);
+	fillSRhisto(histos, "PreselFakeEstimation_MjjsidebandlowMET",              sample, sn, SRSS[ 7], SR3l[ 7], weight* SF);
+	fillSRhisto(histos, "PreselFakeEstimationUp_MjjsidebandlowMET",            sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF+toterr));
+	fillSRhisto(histos, "PreselFakeEstimationDn_MjjsidebandlowMET",            sample, sn, SRSS[ 7], SR3l[ 7], weight*(SF-toterr));
       }
 
       if(!isfake&&sample.find("WWW")==string::npos){ //skip fakes when filling in fake estimations from data
 
-	fillSRhisto(histos, "SRyield",                                   sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight* SF,             weight* SF,             false);
-	fillSRhisto(histos, "FakeEstimationFRup",                        sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF+SFerr),      weight*(SF+SFerr),      false);
-	fillSRhisto(histos, "FakeEstimationFRdn",                        sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF-SFerr),      weight*(SF-SFerr),      false);
-	fillSRhisto(histos, "FakeEstimationClosureup",                   sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF+closureerr), weight*(SF+closureerr), false);
-	fillSRhisto(histos, "FakeEstimationClosuredn",                   sample, "fakesPred", "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF-closureerr), weight*(SF-closureerr), false);
+	fillSRhisto(histos, "SRyield",                                   sample, "fakesPred", SRSS[ 2], SR3l[ 2], weight* SF,             false);
+	fillSRhisto(histos, "FakeEstimationFRup",                        sample, "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF+SFerr),      false);
+	fillSRhisto(histos, "FakeEstimationFRdn",                        sample, "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF-SFerr),      false);
+	fillSRhisto(histos, "FakeEstimationClosureup",                   sample, "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF+closureerr), false);
+	fillSRhisto(histos, "FakeEstimationClosuredn",                   sample, "fakesPred", SRSS[ 2], SR3l[ 2], weight*(SF-closureerr), false);
 	if(checkMjjSB){
-	  fillSRhisto(histos, "SRyield_Mjjsideband",                       sample, "fakesPred", "fakesPred", SRSS[ 6], SR3l[ 6], weight* SF,             weight* SF,             false);
-	  fillSRhisto(histos, "FakeEstimationUp_Mjjsideband",              sample, "fakesPred", "fakesPred", SRSS[ 6], SR3l[ 6], weight*(SF+toterr),     weight*(SF+toterr),     false);
-	  fillSRhisto(histos, "FakeEstimationDn_Mjjsideband",              sample, "fakesPred", "fakesPred", SRSS[ 6], SR3l[ 6], weight*(SF-toterr),     weight*(SF-toterr),     false);
+	  fillSRhisto(histos, "SRyield_Mjjsideband",                     sample, "fakesPred", SRSS[ 6], SR3l[ 6], weight* SF,             false);
+	  fillSRhisto(histos, "FakeEstimationUp_Mjjsideband",            sample, "fakesPred", SRSS[ 6], SR3l[ 6], weight*(SF+toterr),     false);
+	  fillSRhisto(histos, "FakeEstimationDn_Mjjsideband",            sample, "fakesPred", SRSS[ 6], SR3l[ 6], weight*(SF-toterr),     false);
 	}
 	if(checkMjjlowMETSB&&passMETsbtight){
-	  fillSRhisto(histos, "SRyield_MjjsidebandlowMET",               sample, "fakesPred", "fakesPred", SRSS[ 7], SR3l[ 7], weight* SF,             weight* SF,             false);
-	  fillSRhisto(histos, "FakeEstimationUp_MjjsidebandlowMET",      sample, "fakesPred", "fakesPred", SRSS[ 7], SR3l[ 7], weight*(SF+toterr),     weight*(SF+toterr),     false);
-	  fillSRhisto(histos, "FakeEstimationDn_MjjsidebandlowMET",      sample, "fakesPred", "fakesPred", SRSS[ 7], SR3l[ 7], weight*(SF-toterr),     weight*(SF-toterr),     false);
+	  fillSRhisto(histos, "SRyield_MjjsidebandlowMET",               sample, "fakesPred", SRSS[ 7], SR3l[ 7], weight* SF,             false);
+	  fillSRhisto(histos, "FakeEstimationUp_MjjsidebandlowMET",      sample, "fakesPred", SRSS[ 7], SR3l[ 7], weight*(SF+toterr),     false);
+	  fillSRhisto(histos, "FakeEstimationDn_MjjsidebandlowMET",      sample, "fakesPred", SRSS[ 7], SR3l[ 7], weight*(SF-toterr),     false);
 	}
 	if(fillshapes){
 	  if(SRSS[2]>=0) {

@@ -257,17 +257,17 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
      }
 
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "SRyield",                         sample, sn_evt, sn_evt, SRSS[ 0], -1, weight,                 weight);
-	fillSRhisto(histos, "PreselSRyield",                   sample, sn_evt, sn_evt, SRSS[ 1], -1, weight,                 weight);
+	fillSRhisto(histos, "SRyield",                         sample, sn_evt, SRSS[ 0], -1, weight);
+	fillSRhisto(histos, "PreselSRyield",                   sample, sn_evt, SRSS[ 1], -1, weight);
       }
-      fillSRhisto(histos, "ARyield",                           sample, sn_fo,  sn_fo,  SRSS[ 2], -1, weight, weight);
-      fillSRhisto(histos, "FakeEstimation",                    sample, sn_fo,  sn_fo,  SRSS[ 2], -1, weight* SF,             weight* SF);
-      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn_fo,  sn_fo,  SRSS[ 2], -1, weight*(SF+SFerr),      weight*(SF+SFerr));
-      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn_fo,  sn_fo,  SRSS[ 2], -1, weight*(SF-SFerr),      weight*(SF-SFerr));
-      fillSRhisto(histos, "PreselARyield",                     sample, sn_fo,  sn_fo,  SRSS[ 3], -1, weight, weight);
-      fillSRhisto(histos, "PreselFakeEstimation",              sample, sn_fo,  sn_fo,  SRSS[ 3], -1, weight* SF,             weight* SF);
-      fillSRhisto(histos, "PreselFakeEstimationFRup",          sample, sn_fo,  sn_fo,  SRSS[ 3], -1, weight*(SF+SFerr),      weight*(SF+SFerr));
-      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sample, sn_fo,  sn_fo,  SRSS[ 3], -1, weight*(SF-SFerr),      weight*(SF-SFerr));
+      fillSRhisto(histos, "ARyield",                           sample, sn_fo,  SRSS[ 2], -1, weight);
+      fillSRhisto(histos, "FakeEstimation",                    sample, sn_fo,  SRSS[ 2], -1, weight* SF);
+      fillSRhisto(histos, "FakeEstimationFRup",                sample, sn_fo,  SRSS[ 2], -1, weight*(SF+SFerr));
+      fillSRhisto(histos, "FakeEstimationFRdn",                sample, sn_fo,  SRSS[ 2], -1, weight*(SF-SFerr));
+      fillSRhisto(histos, "PreselARyield",                     sample, sn_fo,  SRSS[ 3], -1, weight);
+      fillSRhisto(histos, "PreselFakeEstimation",              sample, sn_fo,  SRSS[ 3], -1, weight* SF);
+      fillSRhisto(histos, "PreselFakeEstimationFRup",          sample, sn_fo,  SRSS[ 3], -1, weight*(SF+SFerr));
+      fillSRhisto(histos, "PreselFakeEstimationFRdn",          sample, sn_fo,  SRSS[ 3], -1, weight*(SF-SFerr));
 
       
     }//event loop

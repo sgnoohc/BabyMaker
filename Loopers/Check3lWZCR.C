@@ -236,20 +236,20 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       vector <float> MSFOSvec = allMSFOS();
       //cout << sn << endl;
       if(!(blindSR&&isData())){
-	fillSRhisto(histos, "YieldsSR",           sample, sn, sn, SRSS[ 0], SR3l[ 0], weight, weight);
-	fillSRhisto(histos, "YieldsSR_raw",       sample, sn, sn, SRSS[ 0], SR3l[ 0], 1., 1.);
-	fillSRhisto(histos, "YieldsSR_rawweight", sample, sn, sn, SRSS[ 0], SR3l[ 0], rawweight, rawweight);
-	fillSRhisto(histos, "YieldsSR_jesup",     sample, sn, sn, SRSS[ 6], SR3l[ 6], weight, weight);
-	fillSRhisto(histos, "YieldsSR_jesdn",     sample, sn, sn, SRSS[10], SR3l[10], weight, weight);
-	fillSRhisto(histos, "YieldsSR_PUup",      sample, sn, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_up()/purewgt(), weight*purewgt_up()/purewgt());
-	fillSRhisto(histos, "YieldsSR_PUdn",      sample, sn, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_dn()/purewgt(), weight*purewgt_dn()/purewgt());
-	fillSRhisto(histos, "YieldsSR_lepSFup",   sample, sn, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_up()/lepsf(), weight*lepsf_up()/lepsf());
-	fillSRhisto(histos, "YieldsSR_lepSFdn",   sample, sn, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_dn()/lepsf(), weight*lepsf_dn()/lepsf());
-	fillSRhisto(histos, "YieldsSR_dropMjj",        sample, sn, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight, weight);
-	fillSRhisto(histos, "YieldsSR_dropMjj_PUup",   sample, sn, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_up()/purewgt(), weight*purewgt_up()/purewgt());
-	fillSRhisto(histos, "YieldsSR_dropMjj_PUdn",   sample, sn, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_dn()/purewgt(), weight*purewgt_dn()/purewgt());
-	fillSRhisto(histos, "YieldsSR_dropMjj_jesup",  sample, sn, sn, (SRSS[6]>=0 ? SRSS[6] : SRSS[26]), SR3l[ 6], weight, weight);
-	fillSRhisto(histos, "YieldsSR_dropMjj_jesdn",  sample, sn, sn, (SRSS[10]>=0 ? SRSS[10] : SRSS[30]), SR3l[10], weight, weight);
+	fillSRhisto(histos, "YieldsSR",           sample, sn, SRSS[ 0], SR3l[ 0], weight);
+	fillSRhisto(histos, "YieldsSR_raw",       sample, sn, SRSS[ 0], SR3l[ 0], 1.);
+	fillSRhisto(histos, "YieldsSR_rawweight", sample, sn, SRSS[ 0], SR3l[ 0], rawweight);
+	fillSRhisto(histos, "YieldsSR_jesup",     sample, sn, SRSS[ 6], SR3l[ 6], weight);
+	fillSRhisto(histos, "YieldsSR_jesdn",     sample, sn, SRSS[10], SR3l[10], weight);
+	fillSRhisto(histos, "YieldsSR_PUup",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_up()/purewgt());
+	fillSRhisto(histos, "YieldsSR_PUdn",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_dn()/purewgt());
+	fillSRhisto(histos, "YieldsSR_lepSFup",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_up()/lepsf());
+	fillSRhisto(histos, "YieldsSR_lepSFdn",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_dn()/lepsf());
+	fillSRhisto(histos, "YieldsSR_dropMjj",        sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight);
+	fillSRhisto(histos, "YieldsSR_dropMjj_PUup",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_up()/purewgt());
+	fillSRhisto(histos, "YieldsSR_dropMjj_PUdn",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_dn()/purewgt());
+	fillSRhisto(histos, "YieldsSR_dropMjj_jesup",  sample, sn, (SRSS[6]>=0 ? SRSS[6] : SRSS[26]), SR3l[ 6], weight);
+	fillSRhisto(histos, "YieldsSR_dropMjj_jesdn",  sample, sn, (SRSS[10]>=0 ? SRSS[10] : SRSS[30]), SR3l[10], weight);
 	//MSFOS - SR blinded
 	if(SR3l[ 0]>=0&&MSFOSvec.size()>0){
 	  fillhisto(    histos, "MSFOS_all3l",            sample, sn, MSFOSvec[0], weight);
@@ -304,7 +304,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	}//for MSFOS
       }//MSFOS>=0
       //Mjj sideband
-      fillSRhisto(histos, "YieldsSR_Mjjsideband",   sample, sn, sn, SRSS[20], -1, weight, weight);
+      fillSRhisto(histos, "YieldsSR_Mjjsideband",   sample, sn, SRSS[20], -1, weight);
       if(SRSS[ 1]>=0){
 	int t = SRSS[ 1];
 	if(MjjL()>400.||DetajjL()>1.5) t = -1;
@@ -312,32 +312,32 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	if(SRSS[ 1]==0&&(met_pt()>40.||MllSS()<=40.)              ) t = -1;
 	if(SRSS[ 1]==1&&(met_pt()>40.||MllSS()<=30.||MTmax()<=90.)) t = -1;
 	if(SRSS[ 1]==2&&(met_pt()>40.||MllSS()<=40.)              ) t = -1;
-	fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMET",   sample, sn, sn, t, -1, weight, weight);
+	fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMET",   sample, sn, t, -1, weight);
 	t = ((SRSS[ 1]==1) ? SRSS[ 1] : -1);
 	if(MjjL()>400.||DetajjL()>1.5) t = -1;
 	if(fabs(Mjj()     -80.)<=15.)  t = -1;
 	if(SRSS[ 1]==1&&(met_pt()<=60.||MllSS()<=30.||MTmax()>90.)) t = -1;
-	fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMTmax", sample, sn, sn, t, -1, weight, weight);
+	fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMTmax", sample, sn, t, -1, weight);
       }
       
-      fillSRhisto(histos, "YieldsCR",           sample, sn,sn, SRSS[ 2], SR3l[ 2], weight, weight);
-      fillSRhisto(histos, "YieldsCR_jesup",     sample, sn,sn, SRSS[ 8], SR3l[ 8], weight, weight);
-      fillSRhisto(histos, "YieldsCR_jesdn",     sample, sn,sn, SRSS[12], SR3l[12], weight, weight);
-      fillSRhisto(histos, "YieldsCR_PUup",      sample, sn,sn, SRSS[ 8], SR3l[ 8], weight*purewgt_up()/purewgt(), weight*purewgt_up()/purewgt());
-      fillSRhisto(histos, "YieldsCR_PUdn",      sample, sn,sn, SRSS[12], SR3l[12], weight*purewgt_dn()/purewgt(), weight*purewgt_dn()/purewgt());
-      fillSRhisto(histos, "YieldsCR_lepSFup",   sample, sn,sn, SRSS[ 2], SR3l[ 2], weight*lepsf_up()/lepsf(), weight*lepsf_up()/lepsf());
-      fillSRhisto(histos, "YieldsCR_lepSFdn",   sample, sn,sn, SRSS[ 2], SR3l[ 2], weight*lepsf_dn()/lepsf(), weight*lepsf_dn()/lepsf());
-      if(fabs(Mjj()   -80.)<20.||SR3l[ 2]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj",       sample, sn,sn, SRSS[ 2], SR3l[ 2], weight, weight);
-      if(fabs(Mjj_up()-80.)<20.||SR3l[ 8]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesup", sample, sn,sn, SRSS[ 8], SR3l[ 8], weight, weight);
-      if(fabs(Mjj_dn()-80.)<20.||SR3l[12]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesdn", sample, sn,sn, SRSS[12], SR3l[12], weight, weight);
+      fillSRhisto(histos, "YieldsCR",           sample, sn, SRSS[ 2], SR3l[ 2], weight);
+      fillSRhisto(histos, "YieldsCR_jesup",     sample, sn, SRSS[ 8], SR3l[ 8], weight);
+      fillSRhisto(histos, "YieldsCR_jesdn",     sample, sn, SRSS[12], SR3l[12], weight);
+      fillSRhisto(histos, "YieldsCR_PUup",      sample, sn, SRSS[ 8], SR3l[ 8], weight*purewgt_up()/purewgt());
+      fillSRhisto(histos, "YieldsCR_PUdn",      sample, sn, SRSS[12], SR3l[12], weight*purewgt_dn()/purewgt());
+      fillSRhisto(histos, "YieldsCR_lepSFup",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_up()/lepsf());
+      fillSRhisto(histos, "YieldsCR_lepSFdn",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_dn()/lepsf());
+      if(fabs(Mjj()   -80.)<20.||SR3l[ 2]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj",       sample, sn, SRSS[ 2], SR3l[ 2], weight);
+      if(fabs(Mjj_up()-80.)<20.||SR3l[ 8]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesup", sample, sn, SRSS[ 8], SR3l[ 8], weight);
+      if(fabs(Mjj_dn()-80.)<20.||SR3l[12]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesdn", sample, sn, SRSS[12], SR3l[12], weight);
       if(SRSS[ 2]>=0) fillhisto(histos, "Mjj_CRlike_allSS",       sample, sn, Mjj(),    weight);
       if(SRSS[ 8]>=0) fillhisto(histos, "Mjj_CRlike_allSS_jesup", sample, sn, Mjj_up(), weight);
       if(SRSS[12]>=0) fillhisto(histos, "Mjj_CRlike_allSS_jesdn", sample, sn, Mjj_dn(), weight);
       if(SRSS[ 4]>=0&&MSFOSvec.size()>0){
-	fillSRhisto(histos, "YieldsCR_noMSFOSsel_SS",        sample, sn,sn, SRSS[ 4], -1, weight, weight);
-	fillhisto(  histos, "MSFOS_CRlike_allSS",            sample, sn, MSFOSvec[0],     weight);
-	fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFup",    sample, sn, MSFOSvec[0],     weight*lepsf_up()/lepsf());
-	fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFdn",    sample, sn, MSFOSvec[0],     weight*lepsf_dn()/lepsf());
+	fillSRhisto(histos, "YieldsCR_noMSFOSsel_SS",        sample, sn, SRSS[ 4], -1, weight);
+	fillhisto(  histos, "MSFOS_CRlike_allSS",            sample, sn, MSFOSvec[0],  weight);
+	fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFup",    sample, sn, MSFOSvec[0],  weight*lepsf_up()/lepsf());
+	fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFdn",    sample, sn, MSFOSvec[0],  weight*lepsf_dn()/lepsf());
 	for(unsigned int i = 0; i<MSFOSvec.size();++i){
 	  fillhisto(histos, "MSFOSall_CRlike_allSS",         sample, sn, MSFOSvec[i], weight);
 	  fillhisto(histos, "MSFOSall_CRlike_allSS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
@@ -359,8 +359,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	bool invertMT3rd           =   passMET&& passPTlll&& passDPhilllMET&&!passMT3rd;
 	
 	if(passneither){
-	  fillSRhisto(histos, "YieldsSR_invertMETdPhiPt",         sample, sn, sn, -1, SR3l[ 1],  weight, weight);
-	  fillSRhisto(histos, "YieldsCR_invertMETdPhiPt",         sample, sn, sn, -1, SR3l[ 3],  weight, weight);
+	  fillSRhisto(histos, "YieldsSR_invertMETdPhiPt",         sample, sn, -1, SR3l[ 1],      weight);
+	  fillSRhisto(histos, "YieldsCR_invertMETdPhiPt",         sample, sn, -1, SR3l[ 3],      weight);
 	  fillhisto(  histos, "MSFOS_all3l_invertMETdPhiPt",      sample, sn, MSFOSvec[0],       weight);
 	  if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_invertMETdPhiPt",    sample, sn, MSFOSvec[0], weight);
 	  if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_invertMETdPhiPt",    sample, sn, MSFOSvec[0], weight);
@@ -370,8 +370,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  }
 	}
 	if(passnotall){
-	  fillSRhisto(histos, "YieldsSR_inverteitherMETdPhiPt",            sample, sn, sn, -1, SR3l[ 1], weight, weight);
-	  fillSRhisto(histos, "YieldsCR_inverteitherMETdPhiPt",            sample, sn, sn, -1, SR3l[ 3], weight, weight);
+	  fillSRhisto(histos, "YieldsSR_inverteitherMETdPhiPt",            sample, sn, -1, SR3l[ 1],     weight);
+	  fillSRhisto(histos, "YieldsCR_inverteitherMETdPhiPt",            sample, sn, -1, SR3l[ 3],     weight);
 	  fillhisto(  histos, "MSFOS_all3l_inverteitherMETdPhiPt",         sample, sn, MSFOSvec[0],      weight);
 	  if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_inverteitherMETdPhiPt",      sample, sn, MSFOSvec[0], weight);
 	  if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_inverteitherMETdPhiPt",      sample, sn, MSFOSvec[0], weight);
@@ -383,19 +383,19 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	//new start
 	if((SR3l[ 1]==1)||(SR3l[ 3]==1)){
 	  if(invertMT3rd){
-	    fillSRhisto(histos, "YieldsSR_invertMT3rd",                   sample, sn, sn, -1, SR3l[ 1], weight, weight);
-	    fillSRhisto(histos, "YieldsCR_invertMT3rd",                   sample, sn, sn, -1, SR3l[ 3], weight, weight);
-	    fillhisto(  histos, "MSFOS_1SFOS_invertMT3rd",                sample, sn, MSFOSvec[0],      weight);
+	    fillSRhisto(histos, "YieldsSR_invertMT3rd",                   sample, sn, -1, SR3l[ 1], weight);
+	    fillSRhisto(histos, "YieldsCR_invertMT3rd",                   sample, sn, -1, SR3l[ 3], weight);
+	    fillhisto(  histos, "MSFOS_1SFOS_invertMT3rd",                sample, sn, MSFOSvec[0],  weight);
 	  }
 	  if(passneitherInclMT3rd){
-	    fillSRhisto(histos, "YieldsSR_invertMT3rdMETdPhiPt",          sample, sn, sn, -1, SR3l[ 1], weight, weight);
-	    fillSRhisto(histos, "YieldsCR_invertMT3rdMETdPhiPt",          sample, sn, sn, -1, SR3l[ 3], weight, weight);
-	    fillhisto(  histos, "MSFOS_1SFOS_invertMT3rdMETdPhiPt",       sample, sn, MSFOSvec[0],      weight);
+	    fillSRhisto(histos, "YieldsSR_invertMT3rdMETdPhiPt",          sample, sn, -1, SR3l[ 1], weight);
+	    fillSRhisto(histos, "YieldsCR_invertMT3rdMETdPhiPt",          sample, sn, -1, SR3l[ 3], weight);
+	    fillhisto(  histos, "MSFOS_1SFOS_invertMT3rdMETdPhiPt",       sample, sn, MSFOSvec[0],  weight);
 	  }
 	  if(passnotallInclMT3rd){
-	    fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETdPhiPt",    sample, sn, sn, -1, SR3l[ 1], weight, weight);
-	    fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETdPhiPt",    sample, sn, sn, -1, SR3l[ 3], weight, weight);
-	    fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0],      weight);
+	    fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 1], weight);
+	    fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 3], weight);
+	    fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0],  weight);
 	  }
 	}
 	//new end

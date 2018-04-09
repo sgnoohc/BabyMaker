@@ -42,9 +42,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   vector<myevt> e;
   addeventtocheck(e,1, 2842, 1443084);
 
-  bool blindSR         = false;
+  bool blindSR         = true;
   bool btagreweighting = true;
-  bool applylepSF      = true;
+  bool applylepSF      = false;
   bool applytrigSF     = true;
   bool applyPUrewgt    = true;
   bool getJECunc       = true;
@@ -242,38 +242,40 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(getJECunc) SR3l[6] = isSR3l(false, 1);//6: SR JEC up
       if(getJECunc) SR3l[7] = isSR3l(false,-1);//7: SR JEC dn
 
+
+
       if(!isData()||!blindSR){//SR is blinded
-	fillSRhisto(histos, "SignalRegion",               sample, sn, sn, SRSS[0], SR3l[0], weight, weight);
-	fillSRhisto(histos, "SignalRegionPresel",         sample, sn, sn, SRSS[1], SR3l[1], weight, weight);
-	fillSRhisto(histos, "RawSignalRegion",            sample, sn, sn, SRSS[0], SR3l[0], 1.,     1.);
-	fillSRhisto(histos, "RawSignalRegionPresel",      sample, sn, sn, SRSS[1], SR3l[1], 1.,     1.);
+	fillSRhisto(histos, "SignalRegion",               sample, sn, SRSS[0], SR3l[0], weight);
+	fillSRhisto(histos, "SignalRegionPresel",         sample, sn, SRSS[1], SR3l[1], weight);
+	fillSRhisto(histos, "RawSignalRegion",            sample, sn, SRSS[0], SR3l[0], 1.);
+	fillSRhisto(histos, "RawSignalRegionPresel",      sample, sn, SRSS[1], SR3l[1], 1.);
 	if(!isData()&&getJECunc) {
-	  fillSRhisto(histos, "SignalRegion_JECup",       sample, sn, sn, SRSS[6], SR3l[6], weight, weight);
-	  fillSRhisto(histos, "SignalRegion_JECdn",       sample, sn, sn, SRSS[7], SR3l[7], weight, weight);
+	  fillSRhisto(histos, "SignalRegion_JECup",       sample, sn, SRSS[6], SR3l[6], weight);
+	  fillSRhisto(histos, "SignalRegion_JECdn",       sample, sn, SRSS[7], SR3l[7], weight);
 	}
 	if(!isData()&&applylepSF&&lepsf()!=0){
-	  fillSRhisto(histos, "SignalRegion_lepSFup",     sample, sn, sn, SRSS[0], SR3l[0], weight*lepsf_up()/lepsf(),                       weight*lepsf_up()/lepsf());
-	  fillSRhisto(histos, "SignalRegion_lepSFdn",     sample, sn, sn, SRSS[0], SR3l[0], weight*lepsf_dn()/lepsf(),                       weight*lepsf_dn()/lepsf());
+	  fillSRhisto(histos, "SignalRegion_lepSFup",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_up()/lepsf());
+	  fillSRhisto(histos, "SignalRegion_lepSFdn",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_dn()/lepsf());
 	}
 	if(!isData()&&btagreweighting&&weight_btagsf()!=0){
-	  fillSRhisto(histos, "SignalRegion_bHFSFup",     sample, sn, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_UP()/weight_btagsf(), weight*weight_btagsf_heavy_UP()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bHFSFdn",     sample, sn, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_DN()/weight_btagsf(), weight*weight_btagsf_heavy_DN()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bLFSFup",     sample, sn, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_UP()/weight_btagsf(), weight*weight_btagsf_light_UP()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bLFSFdn",     sample, sn, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_DN()/weight_btagsf(), weight*weight_btagsf_light_DN()/weight_btagsf());
+	  fillSRhisto(histos, "SignalRegion_bHFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_UP()/weight_btagsf());
+	  fillSRhisto(histos, "SignalRegion_bHFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_DN()/weight_btagsf());
+	  fillSRhisto(histos, "SignalRegion_bLFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_UP()/weight_btagsf());
+	  fillSRhisto(histos, "SignalRegion_bLFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_DN()/weight_btagsf());
 	}
 	if(!isData()&&applyPUrewgt&&!isData()&&purewgt()!=0){
-	  fillSRhisto(histos, "SignalRegion_PUup",        sample, sn, sn, SRSS[0], SR3l[0], weight*purewgt_up()/purewgt(),                   weight*purewgt_up()/purewgt());
-	  fillSRhisto(histos, "SignalRegion_PUdn",        sample, sn, sn, SRSS[0], SR3l[0], weight*purewgt_dn()/purewgt(),                   weight*purewgt_dn()/purewgt());
+	  fillSRhisto(histos, "SignalRegion_PUup",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_up()/purewgt());
+	  fillSRhisto(histos, "SignalRegion_PUdn",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_dn()/purewgt());
 	}	
       }
-      fillSRhisto(  histos, "ApplicationRegion",          sample, sn, sn, SRSS[2], SR3l[2], weight, weight);
-      fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, sn, SRSS[3], SR3l[3], weight, weight);
-      fillSRhisto(  histos, "WZControlRegion",            sample, sn, sn, SRSS[4], SR3l[4], weight, weight);
-      fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, sn, SRSS[5], SR3l[5], weight, weight);
-      fillSRhisto(  histos, "RawApplicationRegion",       sample, sn, sn, SRSS[2], SR3l[2], 1.,     1.);
-      fillSRhisto(  histos, "RawApplicationRegionPresel", sample, sn, sn, SRSS[3], SR3l[3], 1.,     1.);
-      fillSRhisto(  histos, "RawWZControlRegion",         sample, sn, sn, SRSS[4], SR3l[4], 1.,     1.);
-      fillSRhisto(  histos, "RawWZControlRegionPresel",   sample, sn, sn, SRSS[5], SR3l[5], 1.,     1.);
+      fillSRhisto(  histos, "ApplicationRegion",          sample, sn, SRSS[2], SR3l[2], weight);
+      fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, SRSS[3], SR3l[3], weight);
+      fillSRhisto(  histos, "WZControlRegion",            sample, sn, SRSS[4], SR3l[4], weight);
+      fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, SRSS[5], SR3l[5], weight);
+      fillSRhisto(  histos, "RawApplicationRegion",       sample, sn, SRSS[2], SR3l[2], 1.);
+      fillSRhisto(  histos, "RawApplicationRegionPresel", sample, sn, SRSS[3], SR3l[3], 1.);
+      fillSRhisto(  histos, "RawWZControlRegion",         sample, sn, SRSS[4], SR3l[4], 1.);
+      fillSRhisto(  histos, "RawWZControlRegionPresel",   sample, sn, SRSS[5], SR3l[5], 1.);
 
       if(storeeventnumbers){
 	addeventtolist(SRSS[0], SR3l[0], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
@@ -303,14 +305,14 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   
   SaveHistosToFile("rootfiles/SRLooper.root",histos,true,true,(chainnumber==0));
   deleteHistograms(histos);
-
+  
   // return
   bmark->Stop("benchmark");
   cout << endl;
   cout << nEventsTotal << " Events Processed" << endl;
   cout << "------------------------------" << endl;
-  cout << "CPU  Time:	" << Form( "%.01f", bmark->GetCpuTime("benchmark")  ) << endl;
-  cout << "Real Time:	" << Form( "%.01f", bmark->GetRealTime("benchmark") ) << endl;
+  cout << "CPU  Time:	" << Form( "%.02f", bmark->GetCpuTime("benchmark")  ) << endl;
+  cout << "Real Time:	" << Form( "%.02f", bmark->GetRealTime("benchmark") ) << endl;
   cout << endl;
   delete bmark;
   return 0;

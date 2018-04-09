@@ -7,6 +7,7 @@
 #include <map>
 
 // ROOT
+#include "TStopwatch.h"
 #include "TBenchmark.h"
 #include "TChain.h"
 #include "TDirectory.h"
@@ -111,10 +112,11 @@ bool   passAny3l(int &SR, int &AR, int &CR, bool preselect=false, int jec=0, boo
 
 map<string, TH1D*> bookhistograms(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir, int splitWW=0);
 map<string, TH1D*> bookhistclosure(string samplename, vector<string> histonames, vector<int> hbins, vector<float> hlow, vector<float> hup, TDirectory *rootdir);
-bool  deleteHistograms(map<string, TH1D*> histos);
-bool  fillSRhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, float weight, float weight3l=-2e6, bool fillsample=true);
-bool  fillhisto(map<string, TH1D*> histos, string histoname, string sample, string sn, float value, float weight, bool fillsample=true);
-bool  SaveHistosToFile(string filename, map<string, TH1D*> histos, bool addunderflow=true, bool addoverflow=true, bool deletefile=false);
+bool  deleteHistograms(map<string, TH1D*> &histos);
+bool  fillSRhisto(map<string, TH1D*> &histos, string histoname, string sample, string sn, string sn2, int SRSS, int SR3l, double weight, double weight3l=-2e6, bool fillsample=true);
+bool  fillSRhisto(map<string, TH1D*> &histos, string histoname, string sample, string sn, int SRSS, int SR3l, double weight, bool fillsample=true);
+bool  fillhisto(  map<string, TH1D*> &histos, string histoname, string sample, string sn, double value, double weight, bool fillsample=true);
+bool  SaveHistosToFile(string filename, map<string, TH1D*> &histos, bool addunderflow=true, bool addoverflow=true, bool deletefile=false);
 bool  fileexists(string filename);
 
 float getlepSFWeightandError(float &error, vector<int> tightlep, vector<int> looselep={});//loose not implemented yet
