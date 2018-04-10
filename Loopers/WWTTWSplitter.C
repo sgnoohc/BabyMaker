@@ -141,12 +141,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       bool isTTX = (fname.find("ttg_")  !=string::npos)||(fname.find("tth_")  !=string::npos)||(fname.find("ttw_")  !=string::npos)||(fname.find("ttz_")  !=string::npos);
       string sn2 = sn;
       
-      if(     NtightSS()==2&&NVlep()==2&&(fname.find("wpwpjj_ewk-")      !=string::npos)&&trueSS){ sn = "WWVBS";     sn2 = "WWRest"; }
-      else if(NtightSS()==2&&NVlep()==2&&(fname.find("ww_2l2nu_dbl_scat")!=string::npos)&&trueSS){ sn = "WWDPS";     sn2 = "WWRest"; }
-      else if(NtightSS()==2&&NVlep()==2&&isWWnotVBSDPS&&                                  trueSS){ sn = "otherWWSS"; sn2 = "WWRest"; }
+      if(     NtightSS()==2&&nVlep()==2&&(fname.find("wpwpjj_ewk-")      !=string::npos)&&trueSS){ sn = "WWVBS";     sn2 = "WWRest"; }
+      else if(NtightSS()==2&&nVlep()==2&&(fname.find("ww_2l2nu_dbl_scat")!=string::npos)&&trueSS){ sn = "WWDPS";     sn2 = "WWRest"; }
+      else if(NtightSS()==2&&nVlep()==2&&isWWnotVBSDPS&&                                  trueSS){ sn = "otherWWSS"; sn2 = "WWRest"; }
       else if(                           isWWnotVBSDPS                                          ){ sn = "WWRest";    sn2 = "WWRest"; }
-      if(     NtightSS()==2&&NVlep()==2&&isTTX&&trueSS){ sn  = "ttVSS";                 sn2 = "OtherttV"; }
-      else if(Ntight3l()==3&&NVlep()==3&&isTTX&&true3l){ sn2 = "ttV3l"; if(sn!="ttVSS") sn  = "OtherttV"; }
+      if(     NtightSS()==2&&nVlep()==2&&isTTX&&trueSS){ sn  = "ttVSS";                 sn2 = "OtherttV"; }
+      else if(Ntight3l()==3&&nVlep()==3&&isTTX&&true3l){ sn2 = "ttV3l"; if(sn!="ttVSS") sn  = "OtherttV"; }
       else if(                           isTTX        ){ sn  = "OtherttV";              sn2 = "OtherttV"; }
 
       if(!(blindSR&&isData())) fillSRhisto(histos, "SRyield",       sample, sn, sn2, SRSS, SR3l, weight, weight);      
