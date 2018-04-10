@@ -54,6 +54,7 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
         }
         catch (const std::ios_base::failure& e)
         {
+            break;
             tx->clear(); // clear the TTree of any residual stuff
             if (!looper.handleBadEvent())
                 break;
@@ -290,23 +291,28 @@ void babyMaker_v2::SaveOutput()
 {
     ofile->cd();
 
-    t_www     = t->CopyTree("(bkgtype==\"WWW\")||(bkgtype==\"WHtoWWW\")");
-    t_qflip   = t->CopyTree("(bkgtype==\"chargeflips\")");
-    t_photon  = t->CopyTree("(bkgtype==\"photonfakes\")");
-    t_fakes   = t->CopyTree("(bkgtype==\"fakes\")");
+    t_os      = t->CopyTree("((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]<0))");
+    t_ss      = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))");
+
+    t_www     = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"WWW\")||(bkgtype==\"WHtoWWW\")");
+    t_qflip   = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"chargeflips\")");
+    t_photon  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"photonfakes\")");
+    t_fakes   = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"fakes\")");
     if (filename.find("wz_") == 0) // to check whether it is a WZ sample
     {
         // This is so that the majority of WZ events go to "lostlep" category
         // This way the histogram can share the same color across SS and 3L to more or less indicate "WZ" bkg
-        t_prompt  = t->CopyTree("(nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&bkgtype==\"trueWWW\")");
-        t_lostlep = t->CopyTree("(nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&(bkgtype==\"3lLL\"||bkgtype==\"true3L\"))");
+        t_prompt  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&bkgtype==\"trueWWW\"))");
+        t_lostlep = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&(bkgtype==\"3lLL\"||bkgtype==\"true3L\")))");
     }
     else
     {
-        t_prompt  = t->CopyTree("(nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&(bkgtype==\"true3L\"||bkgtype==\"trueWWW\"))");
-        t_lostlep = t->CopyTree("(nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&bkgtype==\"3lLL\")");
+        t_prompt  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&(bkgtype==\"true3L\"||bkgtype==\"trueWWW\")))");
+        t_lostlep = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&bkgtype==\"3lLL\"))");
     }
 
+    t_os->SetName("t_os");
+    t_ss->SetName("t_ss");
     t_www->SetName("t_www");
     t_qflip->SetName("t_qflip");
     t_photon->SetName("t_photon");
@@ -314,6 +320,8 @@ void babyMaker_v2::SaveOutput()
     t_prompt->SetName("t_prompt");
     t_lostlep->SetName("t_lostlep");
 
+    t_os->SetTitle("Opposite Sign Events");
+    t_ss->SetTitle("Same Sign Events");
     t_www->SetTitle("Signal Events");
     t_qflip->SetTitle("Charge Flip Events");
     t_photon->SetTitle("Prompt Photon Events");
@@ -322,6 +330,8 @@ void babyMaker_v2::SaveOutput()
     t_lostlep->SetTitle("Lost Lepton Events or WZ in 3-lepton categories");
 
     t->Write();
+    t_os->Write();
+    t_ss->Write();
     t_www->Write();
     t_qflip->Write();
     t_photon->Write();
@@ -402,6 +412,7 @@ bool babyMaker_v2::PassPresel()
     }
     if (nloose != 2)
         return false;
+    return true;
     if (mu_idx.size() == 2)
     {
         if (cms3.mus_charge()[mu_idx[0]] * cms3.mus_charge()[mu_idx[1]] > 0)

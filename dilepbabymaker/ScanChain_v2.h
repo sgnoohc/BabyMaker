@@ -119,6 +119,8 @@ private:
 
     TFile* ofile;
     TTree* t;
+    TTree* t_os;
+    TTree* t_ss;
     TTree* t_www;
     TTree* t_prompt;
     TTree* t_qflip;
