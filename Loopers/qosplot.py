@@ -11,6 +11,8 @@ ROOT.gROOT.SetBatch(True)
 #samples = TQSampleFolder.loadSampleFolder("output_w_purewgt.root:samples")
 samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 
+output_plot_dir = "plots_powheg"
+
 #_____________________________________________________________________________________
 def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
     # Options
@@ -20,7 +22,7 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
                 "autobin": True,
                 "legend_scalex": 1.4,
                 "legend_scaley": 1.1,
-                "output_name": "plots/{}.pdf".format(output_name)
+                "output_name": "{}/{}.pdf".format(output_plot_dir, output_name)
                 }
     alloptions.update(options)
     sigs = [ samples.getHistogram("/os/sig", histname).Clone("WWW") ]
@@ -47,7 +49,7 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
                 "autobin": True,
                 "legend_scalex": 1.4,
                 "legend_scaley": 1.1,
-                "output_name": "plots/{}.png".format(output_name)
+                "output_name": "{}/{}.png".format(output_plot_dir, output_name)
                 }
     alloptions.update(options)
     sigs = [ samples.getHistogram("/os/sig", histname).Clone("WWW") ]
@@ -76,8 +78,10 @@ if __name__ == "__main__":
         jobs = []
         for histname in samples.getListOfHistogramNames():
             hname = str(histname)
+            if hname.find("_vs_") != -1:
+                continue
             hfilename = hname.replace("/", "_")
-            proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":180, "lumi_value":35.9, "yaxis_log":True, "yaxis_range":[1e-2, 1e13]}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True, "yaxis_range":[1e-2, 1e13]}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
@@ -87,7 +91,8 @@ if __name__ == "__main__":
     else:
         hname = str(sys.argv[1])
         hfilename = hname.replace("/", "_")
-        ratio = plot(hname, hfilename, options={"legend_scalex":1.5, "autobin":False, "blind":False, "nbins":180, "signal_scale":7, "yaxis_log":False, "yaxis_range":[float(sys.argv[2]),float(sys.argv[3])]}, plotfunc=p.plot_hist).Clone("nvtx")
+        ratio = plot(hname, hfilename, options={"legend_scalex":1.5, "autobin":False, "blind":False, "nbins":1, "signal_scale":7, "yaxis_log":False, "yaxis_range":[float(sys.argv[2]),float(sys.argv[3])]}, plotfunc=p.plot_hist).Clone("nvtx")
+        ratio.Print("all")
 
-        f = ROOT.TFile("nvtx_rewgt.root","recreate")
+        f = ROOT.TFile("nvtx_rewgt_mm.root","recreate")
         ratio.Write()
