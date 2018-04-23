@@ -121,6 +121,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<float>>("lep_pterr");
     tx->createBranch<vector<float>>("lep_relIso03EAv2");
     tx->createBranch<vector<float>>("lep_relIso04EAv2");
+    tx->createBranch<vector<float>>("lep_relIso03EAv2Lep");
     tx->createBranch<vector<int>>("lep_tightCharge");
     tx->createBranch<vector<float>>("lep_trk_pt");
     tx->createBranch<vector<int>>("lep_charge");
@@ -563,6 +564,7 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.els_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.els_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , eleRelIso03EA(idx, 2));
+        tx->pushbackToBranch<float>         ("lep_relIso03EAv2Lep"              , eleRelIso03EA(idx, 2, true));
         tx->pushbackToBranch<int>           ("lep_tightCharge"                  , tightChargeEle(idx));
         tx->pushbackToBranch<float>         ("lep_trk_pt"                       , cms3.els_trk_p4()[idx].pt());
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.els_charge()[idx]);
@@ -658,6 +660,7 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.mus_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.mus_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , muRelIso03EA(idx, 2));
+        tx->pushbackToBranch<float>         ("lep_relIso03EAv2Lep"              , muRelIso03EA(idx, 2, true));
         tx->pushbackToBranch<int>           ("lep_tightCharge"                  , tightChargeMuon(idx));
         tx->pushbackToBranch<float>         ("lep_trk_pt"                       , cms3.mus_trk_p4()[idx].pt());
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.mus_charge()[idx]);
@@ -732,6 +735,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_ptRel",
             "lep_pterr",
             "lep_relIso03EAv2",
+            "lep_relIso03EAv2Lep",
             "lep_relIso04EAv2",
             "lep_trk_pt",
             "lep_etaSC",
