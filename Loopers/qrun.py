@@ -23,7 +23,7 @@ import socket
 if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
     samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
 else:
-    samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.12/skim/"
+    samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.20/skim/"
 
 print samplepath
 
@@ -60,6 +60,9 @@ samples.visitSampleFolders(vis)
 samples.writeToFile("output.root", True)
 
 # Print cutflow table
+printCutflow(samples, "SSWZee")
+printCutflow(samples, "SSWZem")
+printCutflow(samples, "SSWZmm")
 blind(samples)
 printSummaryCutflow(samples)
 printCutflow(samples, "SSee")
@@ -68,6 +71,3 @@ printCutflow(samples, "SSmm")
 printCutflow(samples, "TL0SFOS")
 printCutflow(samples, "TL1SFOS")
 printCutflow(samples, "TL2SFOS")
-printCutflow(samples, "SSWZee")
-printCutflow(samples, "SSWZem")
-printCutflow(samples, "SSWZmm")

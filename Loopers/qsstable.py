@@ -14,7 +14,7 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/os/sig", "WWW")
+    printer.addCutflowProcess("/sig", "WWW")
     #printer.addCutflowProcess("|", "|")
     #printer.addCutflowProcess("/typebkg/prompt", "Prompt")
     #printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
@@ -28,25 +28,26 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("|", "|")
     #printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/os/bkg/top/singletop", "1top")
-    printer.addCutflowProcess("/os/bkg/top/ttbar", "ttincl")
-    printer.addCutflowProcess("/os/bkg/ttV", "ttV")
-    printer.addCutflowProcess("/os/bkg/VVV", "VVV")
-    printer.addCutflowProcess("/os/bkg/VV/ZZ", "ZZ")
-    printer.addCutflowProcess("/os/bkg/VV/WW", "WW")
-    printer.addCutflowProcess("/os/bkg/VV/WZ,sys", "WZ")
-    printer.addCutflowProcess("/os/bkg/W", "W")
-    printer.addCutflowProcess("/os/bkg/Z", "Z")
+    printer.addCutflowProcess("/bkg/top/singletop", "1top")
+    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
+    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
+    printer.addCutflowProcess("/bkg/ttV", "ttV")
+    printer.addCutflowProcess("/bkg/VVV", "VVV")
+    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
+    printer.addCutflowProcess("/bkg/VV/WW", "WW")
+    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
+    printer.addCutflowProcess("/bkg/W", "W")
+    printer.addCutflowProcess("/bkg/Z", "Z")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/os/bkg", "Bkg. (MC)")
+    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
     printer.addCutflowProcess("|", "|")
     if showdata:
         printer.addCutflowProcess("|", "|")
-        printer.addCutflowProcess("/os/data", "Data")
+        printer.addCutflowProcess("/data", "Data")
         printer.addCutflowProcess("|", "|")
         #printer.addCutflowProcess("$ratio(/data,/fake+typebkg-typebkg/fakes)", "Ratio")
         #printer.addCutflowProcess("$ratio(/data,/typebkg)", "Ratio")
-        printer.addCutflowProcess("$ratio(/os/data,/os/bkg)", "Ratio")
+        printer.addCutflowProcess("$ratio(/data,/bkg)", "Ratio")
 
 ########################################################################################
 #_______________________________________________________________________________
@@ -55,10 +56,9 @@ def printCutflow(samples, regionname):
     cuts = {}
     cutnames = []
     for counter in samples.getListOfCounterNames():
-        print counter
         #if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
         if str(counter).find(regionname) != -1:
-            title = samples.getCounter("/os/data", str(counter)).GetTitle()
+            title = samples.getCounter("/data", str(counter)).GetTitle()
             cutnames.append(str(counter))
             cuts[str(counter)] = str(title)
     cutnames.sort(key=natural_keys)
@@ -81,7 +81,6 @@ def printCutflow(samples, regionname):
     table.writeLaTeX("cutflows/{}.tex".format(regionname))
     table.writePlain("cutflows/{}.txt".format(regionname))
 
-samples.printContents("r")
 
 # Print cutflow table
 printCutflow(samples, "LepSF")

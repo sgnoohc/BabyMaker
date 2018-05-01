@@ -18,8 +18,7 @@ BkgTypeCutExpr, BkgTypeWgtExpr = combexpr(BkgTypeCuts)
 BaseCuts = [
 ["1"                    , "evt_scale1fb"                   ] , 
 ["1"                    , "purewgt"                        ] , 
-["1"                    , "weight_btagsf"                  ] , 
-["1"                    , "lepsf"                          ] , 
+#["1"                    , "lepsf"                          ] , 
 ["1"                    , "trigeff"                        ] , 
 ["1"                    , "{$(usefakeweight)?ffwgt:35.9}"  ] , 
 ["Flag_AllEventFilters" , "1"                              ] , 
@@ -85,11 +84,14 @@ SSmmPreselCuts.extend([
 TLpreselCuts = [
 [BkgTypeCutExpr                              , BkgTypeWgtExpr] , 
 [BaseCutExpr                                 , BaseWgtExpr   ] , 
-["HLT_DoubleEl_DZ_2||HLT_MuEG||HLT_DoubleMu" , "1"           ] , 
+["(HLT_DoubleEl_DZ_2==1)||(HLT_MuEG==1)||(HLT_DoubleMu==1)" , "1"           ] , 
 ["nVlep==3"                                  , "1"           ] , 
 ["nLlep==3"                                  , "1"           ] , 
-["nTlep=={$(usefakeweight)?2:3}"             , "1"           ] , 
+#["nTlep=={$(usefakeweight)?2:3}"             , "1"           ] , 
+["nTlep>=2"                                  , "1"           ] , 
 ["vetophoton==0"                             , "1"           ] , 
+["met_pt>30."                                , "1"           ] , 
+["nb==0"                                     , "weight_btagsf"] , 
 ]
 TLpreselCutExpr, TLpreselWgtExpr = combexpr(TLpreselCuts)
 
@@ -159,20 +161,20 @@ SSWZmmPreselCuts.extend([
 SSeeCuts = []
 SSeeCuts.extend(SSeePreselCuts)
 SSeeCuts.append(["SSeeZeeVt", "SSee: Mee-MZ veto"   , "abs(MeeSS-91.1876)>10" , "1"])
-SSeeCuts.append(["SSeeNjet2", "SSee: njet #geq 2"   , "nj30>=2"               , "1"])
-SSeeCuts.append(["SSeeBVeto", "SSee: nb = 0"        , "nb==0"                 , "1"])
-SSeeCuts.append(["SSeeWmass", "SSee: |Mjj-MW| < 15" , "abs(Mjj-80)<15."       , "1"])
 SSeeCuts.append(["SSeeMll40", "SSee: Mll > 40"      , "MllSS>40."             , "1"])
+SSeeCuts.append(["SSeeNjet2", "SSee: njet #geq 2"   , "nj30>=2"               , "1"])
+SSeeCuts.append(["SSeeBVeto", "SSee: nb = 0"        , "nb==0"                 , "weight_btagsf"])
+SSeeCuts.append(["SSeeWmass", "SSee: |Mjj-MW| < 15" , "abs(Mjj-80)<15."       , "1"])
 SSeeCuts.append(["SSeeMET60", "SSee: MET > 60"      , "met_pt>60."            , "1"])
 SSeeCuts.append(["SSeeMjj"  , "SSee: MjjL < 400"    , "MjjL<400."             , "1"])
 SSeeCuts.append(["SSeeDEta" , "SSee: DetajjL < 1.5" , "DetajjL<1.5"           , "1"])
 
 SSemCuts = []
 SSemCuts.extend(SSemPreselCuts)
-SSemCuts.append(["SSemNjet2", "SSem: njet #geq 2"   , "nj30>=2"              , "1"])
-SSemCuts.append(["SSemBVeto", "SSem: nb = 0"        , "nb==0"                , "1"])
-SSemCuts.append(["SSemWmass", "SSem: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSemCuts.append(["SSemMll40", "SSem: Mll > 40"      , "MllSS>40."            , "1"])
+SSemCuts.append(["SSemNjet2", "SSem: njet #geq 2"   , "nj30>=2"              , "1"])
+SSemCuts.append(["SSemBVeto", "SSem: nb = 0"        , "nb==0"                , "weight_btagsf"])
+SSemCuts.append(["SSemWmass", "SSem: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSemCuts.append(["SSemMET60", "SSem: MET > 60"      , "met_pt>60."           , "1"])
 SSemCuts.append(["SSemMTmax", "SSem: MTmax > 90"    , "MTmax>90."            , "1"])
 SSemCuts.append(["SSemMjj"  , "SSem: MjjL < 400"    , "MjjL<400."            , "1"])
@@ -180,20 +182,20 @@ SSemCuts.append(["SSemDEta" , "SSem: DetajjL < 1.5" , "DetajjL<1.5"          , "
 
 SSmmCuts = []
 SSmmCuts.extend(SSmmPreselCuts)
-SSmmCuts.append(["SSmmNjet2", "SSmm: njet #geq 2"   , "nj30>=2"              , "1"])
-SSmmCuts.append(["SSmmBVeto", "SSmm: nb = 0"        , "nb==0"                , "1"])
-SSmmCuts.append(["SSmmWmass", "SSmm: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSmmCuts.append(["SSmmMll40", "SSmm: Mll > 40"      , "MllSS>40."            , "1"])
+SSmmCuts.append(["SSmmNjet2", "SSmm: njet #geq 2"   , "nj30>=2"              , "1"])
+SSmmCuts.append(["SSmmBVeto", "SSmm: nb = 0"        , "nb==0"                , "weight_btagsf"])
+SSmmCuts.append(["SSmmWmass", "SSmm: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSmmCuts.append(["SSmmMjj"  , "SSmm: MjjL < 400"    , "MjjL<400."            , "1"])
 SSmmCuts.append(["SSmmDEta" , "SSmm: DetajjL < 1.5" , "DetajjL<1.5"          , "1"])
 
 SSWZeeCuts = []
 SSWZeeCuts.extend(SSWZeePreselCuts)
 SSWZeeCuts.append(["SSWZeeZeeVt", "SSWZee: Mee-MZ veto"   , "abs(MeeSS-91.1876)>10" , "1"])
-SSWZeeCuts.append(["SSWZeeNjet2", "SSWZee: njet #geq 2"   , "nj30>=2"               , "1"])
-SSWZeeCuts.append(["SSWZeeBVeto", "SSWZee: nb = 0"        , "nb==0"                 , "1"])
-SSWZeeCuts.append(["SSWZeeWmass", "SSWZee: |Mjj-MW| < 15" , "abs(Mjj-80)<15."       , "1"])
 SSWZeeCuts.append(["SSWZeeMll40", "SSWZee: Mll > 40"      , "MllSS>40."             , "1"])
+SSWZeeCuts.append(["SSWZeeNjet2", "SSWZee: njet #geq 2"   , "nj30>=2"               , "1"])
+SSWZeeCuts.append(["SSWZeeBVeto", "SSWZee: nb = 0"        , "nb==0"                 , "weight_btagsf"])
+SSWZeeCuts.append(["SSWZeeWmass", "SSWZee: |Mjj-MW| < 15" , "abs(Mjj-80)<15."       , "1"])
 SSWZeeCuts.append(["SSWZeeMET60", "SSWZee: MET > 60"      , "met_pt>60."            , "1"])
 SSWZeeCuts.append(["SSWZeeMjj"  , "SSWZee: MjjL < 400"    , "MjjL<400."             , "1"])
 SSWZeeCuts.append(["SSWZeeDEta" , "SSWZee: DetajjL < 1.5" , "DetajjL<1.5"           , "1"])
@@ -201,10 +203,10 @@ SSWZeeCuts.append(["SSWZeeZVeto", "SSWZee: Z veto"        , "nSFOSinZ>0"        
 
 SSWZemCuts = []
 SSWZemCuts.extend(SSWZemPreselCuts)
-SSWZemCuts.append(["SSWZemNjet2", "SSWZem: njet #geq 2"   , "nj30>=2"              , "1"])
-SSWZemCuts.append(["SSWZemBVeto", "SSWZem: nb = 0"        , "nb==0"                , "1"])
-SSWZemCuts.append(["SSWZemWMass", "SSWZem: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSWZemCuts.append(["SSWZemMll40", "SSWZem: Mll > 40"      , "MllSS>40."            , "1"])
+SSWZemCuts.append(["SSWZemNjet2", "SSWZem: njet #geq 2"   , "nj30>=2"              , "1"])
+SSWZemCuts.append(["SSWZemBVeto", "SSWZem: nb = 0"        , "nb==0"                , "weight_btagsf"])
+SSWZemCuts.append(["SSWZemWMass", "SSWZem: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSWZemCuts.append(["SSWZemMET60", "SSWZem: MET > 60"      , "met_pt>60."           , "1"])
 SSWZemCuts.append(["SSWZemMTmax", "SSWZem: MTmax > 90"    , "MTmax>90."            , "1"])
 SSWZemCuts.append(["SSWZemMjj"  , "SSWZem: MjjL < 400"    , "MjjL<400."            , "1"])
@@ -213,13 +215,29 @@ SSWZemCuts.append(["SSWZemZVeto", "SSWZem: Z veto"        , "nSFOSinZ>0"        
 
 SSWZmmCuts = []
 SSWZmmCuts.extend(SSWZmmPreselCuts)
-SSWZmmCuts.append(["SSWZmmNjet2", "SSWZmm: njet #geq 2"   , "nj30>=2"              , "1"])
-SSWZmmCuts.append(["SSWZmmBveto", "SSWZmm: nb = 0"        , "nb==0"                , "1"])
-SSWZmmCuts.append(["SSWZmmWmass", "SSWZmm: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSWZmmCuts.append(["SSWZmmMll40", "SSWZmm: Mll > 40"      , "MllSS>40."            , "1"])
+SSWZmmCuts.append(["SSWZmmNjet2", "SSWZmm: njet #geq 2"   , "nj30>=2"              , "1"])
+SSWZmmCuts.append(["SSWZmmBveto", "SSWZmm: nb = 0"        , "nb==0"                , "weight_btagsf"])
+SSWZmmCuts.append(["SSWZmmWmass", "SSWZmm: |Mjj-MW| < 15" , "abs(Mjj-80)<15."      , "1"])
 SSWZmmCuts.append(["SSWZmmMjj"  , "SSWZmm: MjjL < 400"    , "MjjL<400."            , "1"])
 SSWZmmCuts.append(["SSWZmmDEta" , "SSWZmm: DetajjL < 1.5" , "DetajjL<1.5"          , "1"])
 SSWZmmCuts.append(["SSWZmmZVeto", "SSWZmm: Z veto"        , "nSFOSinZ>0"           , "1"])
+
+SSincleeCuts = []
+SSincleeCuts.extend(SSeePreselCuts)
+SSincleeCuts.append(["SSincleeZeeVt", "SSinclee: Mee-MZ veto" , "abs(MeeSS-91.1876)>10" , "1"])
+SSincleeCuts.append(["SSincleeMll40", "SSinclee: Mll > 40"    , "MllSS>40."             , "1"])
+SSincleeCuts.append(["SSincleeBVeto", "SSinclee: nb = 0"      , "nb==0"                 , "weight_btagsf"])
+
+SSinclemCuts = []
+SSinclemCuts.extend(SSemPreselCuts)
+SSinclemCuts.append(["SSinclemMll40", "SSinclem: Mll > 40"    , "MllSS>40." , "1"])
+SSinclemCuts.append(["SSinclemBVeto", "SSinclem: nb = 0"      , "nb==0"     , "weight_btagsf"])
+
+SSinclmmCuts = []
+SSinclmmCuts.extend(SSmmPreselCuts)
+SSinclmmCuts.append(["SSinclmmMll40", "SSinclmm: Mll > 40"    , "MllSS>40." , "1"])
+SSinclmmCuts.append(["SSinclmmBVeto", "SSinclmm: nb = 0"      , "nb==0"     , "weight_btagsf"])
 
 ########################################################################################
 # Three Lepton Regions
@@ -228,7 +246,7 @@ SSWZmmCuts.append(["SSWZmmZVeto", "SSWZmm: Z veto"        , "nSFOSinZ>0"        
 TL0SFOSCuts = []
 TL0SFOSCuts.extend(TL0SFOSPreselCuts)
 TL0SFOSCuts.append(["TL0SFOSNjet1", "TL0SFOS: njet #leq 1"     , "nj<=1"                  , "1"])
-TL0SFOSCuts.append(["TL0SFOSBVeto", "TL0SFOS: nb = 0"          , "nb==0"                  , "1"])
+TL0SFOSCuts.append(["TL0SFOSBVeto", "TL0SFOS: nb = 0"          , "nb==0"                  , "weight_btagsf"])
 TL0SFOSCuts.append(["TL0SFOSMET30", "TL0SFOS: MET > 30"        , "met_pt>30."             , "1"])
 TL0SFOSCuts.append(["TL0SFOSDPhiM", "TL0SFOS: dPhi3lMET > 2.7" , "DPhi3lMET>2.7"          , "1"])
 TL0SFOSCuts.append(["TL0SFOSM3lVt", "TL0SFOS: M3l Z veto"      , "abs(M3l-91.1876)>10."   , "1"])
@@ -238,7 +256,7 @@ TL0SFOSCuts.append(["TL0SFOSMee15", "TL0SFOS: Mee3L > 15"      , "abs(Mee3L-91.1
 TL1SFOSCuts = []
 TL1SFOSCuts.extend(TL1SFOSPreselCuts)
 TL1SFOSCuts.append(["TL1SFOSNjet1", "TL1SFOS: njet #leq 1"     , "nj<=1"                   , "1"])
-TL1SFOSCuts.append(["TL1SFOSBVeto", "TL1SFOS: nb = 0"          , "nb==0"                   , "1"])
+TL1SFOSCuts.append(["TL1SFOSBVeto", "TL1SFOS: nb = 0"          , "nb==0"                   , "weight_btagsf"])
 TL1SFOSCuts.append(["TL1SFOSPt3l" , "TL1SFOS: PT3l > 60"       , "Pt3l>60."                , "1"])
 TL1SFOSCuts.append(["TL1SFOSDPhiM", "TL1SFOS: dPhi3lMET > 2.5" , "DPhi3lMET>2.5"           , "1"])
 TL1SFOSCuts.append(["TL1SFOSMT3rd", "TL1SFOS: MT3rd > 90"      , "MT3rd>90."               , "1"])
@@ -250,7 +268,7 @@ TL1SFOSCuts.append(["TL1SFOSZVeto", "TL1SFOS: Z veto"          , "nSFOSinZ==0"  
 TL2SFOSCuts = []
 TL2SFOSCuts.extend(TL2SFOSPreselCuts)
 TL2SFOSCuts.append(["TL2SFOSNjet1"  , "TL2SFOS: njet #leq 1"     , "nj<=1"                , "1"])
-TL2SFOSCuts.append(["TL2SFOSBVeto"  , "TL2SFOS: nb = 0"          , "nb==0"                , "1"])
+TL2SFOSCuts.append(["TL2SFOSBVeto"  , "TL2SFOS: nb = 0"          , "nb==0"                , "weight_btagsf"])
 TL2SFOSCuts.append(["TL2SFOSPt3l"   , "TL2SFOS: PT3l > 60"       , "Pt3l>60."             , "1"])
 TL2SFOSCuts.append(["TL2SFOSDPhiM"  , "TL2SFOS: dPhi3lMET > 2.5" , "DPhi3lMET>2.5"        , "1"])
 TL2SFOSCuts.append(["TL2SFOSM3lVt"  , "TL2SFOS: M3l Z veto"      , "abs(M3l-91.1876)>10." , "1"])
@@ -274,6 +292,9 @@ TL2SFOSCuts.append(["TL2SFOSZVeto"  , "TL2SFOS: Z veto"          , "nSFOSinZ==0"
 SSeeCut = createTQCut("SSee", SSeeCuts)
 SSemCut = createTQCut("SSem", SSemCuts)
 SSmmCut = createTQCut("SSmm", SSmmCuts)
+SSincleeCut = createTQCut("SSinclee", SSincleeCuts)
+SSinclemCut = createTQCut("SSinclem", SSinclemCuts)
+SSinclmmCut = createTQCut("SSinclmm", SSinclmmCuts)
 SSWZeeCut = createTQCut("SSWZee", SSWZeeCuts)
 SSWZemCut = createTQCut("SSWZem", SSWZemCuts)
 SSWZmmCut = createTQCut("SSWZmm", SSWZmmCuts)
@@ -285,10 +306,13 @@ cuts = TQCut("BaseCut", "BaseCut", "1", "1")
 cuts.addCut(SSeeCut)
 cuts.addCut(SSemCut)
 cuts.addCut(SSmmCut)
+cuts.addCut(SSincleeCut)
+cuts.addCut(SSinclemCut)
+cuts.addCut(SSinclmmCut)
 cuts.addCut(SSWZeeCut)
 cuts.addCut(SSWZemCut)
 cuts.addCut(SSWZmmCut)
 cuts.addCut(TL0SFOSCut)
 cuts.addCut(TL1SFOSCut)
 cuts.addCut(TL2SFOSCut)
-#cuts.printCuts("trd")
+cuts.printCuts("trd")

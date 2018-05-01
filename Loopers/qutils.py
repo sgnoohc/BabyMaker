@@ -130,6 +130,7 @@ def addProcesses(printer, showdata, prettyversion=True):
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("$ratio(/data,/fake+typebkg-typebkg/fakes)", "Ratio")
         printer.addCutflowProcess("$ratio(/data,/typebkg)", "Ratio")
+        printer.addCutflowProcess("$ratio(/data,/bkg)", "Ratio")
 
 
 ########################################################################################
@@ -171,7 +172,8 @@ def printCutflow(samples, regionname):
     cuts = {}
     cutnames = []
     for counter in samples.getListOfCounterNames():
-        if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
+        #if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
+        if str(counter).find(regionname) != -1:
             title = samples.getCounter("/data", str(counter)).GetTitle()
             cutnames.append(str(counter))
             cuts[str(counter)] = str(title)
@@ -206,6 +208,8 @@ def getSampleLists(samples):
             nice_name = sample_name.replace(".root", "")
             sample_names.append(nice_name)
             sample_full_names[nice_name] = sample_name
+#    for sample_name in sample_names:
+#        print sample_name
     return sample_names, sample_full_names
 
 
@@ -214,23 +218,15 @@ def connectNtuples(samples, config, path, priority="<2"):
     parser = TQXSecParser(samples);
     parser.readCSVfile(config)
     parser.readMappingFromColumn("*path*")
-    if priority.find(">"):
+    if priority.find(">") != -1:
         priority_value = int(priority.split(">")[1])
         parser.enableSamplesWithPriorityGreaterThan("priority", priority_value)
-    elif priority.find("<"):
-        priority_value = int(priority.split(">")[1])
+    elif priority.find("<") != -1:
+        priority_value = int(priority.split("<")[1])
         parser.enableSamplesWithPriorityLessThan("priority", priority_value)
     parser.addAllSamples(True)
-
-    # Decide that path where the root files are sitting
-    import socket
-    if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
-        samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
-    else:
-        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.20/skim/"
-
     # By "visiting" the samples with the initializer we actually hook up the samples with root files
-    init = TQSampleInitializer(samplepath, 1)
+    init = TQSampleInitializer(path, 1)
     samples.visitMe(init)
 
     # Print the content for debugging purpose
