@@ -3,7 +3,9 @@
 
 #include "fakerate_baseline_v2_ss.C"
 #include "fakerate_baseline_v2_3l.C"
+#include "fakerate_v3.h"
 
+// Commented out as it is old
 float trigeff_dimu_dz(float etatrail, float etalead, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -515,6 +517,70 @@ float lepsf_MuMediumPOG_MuTightVVV3l_v2(float pt, float eta, int isyst=0)
     return 1;
 }
 
+float lepsf_MuMediumPOG_MuTightVVV_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.957033455372 + isyst * 0.0273258648813;
+    if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.969407081604 + isyst * 0.0117262657732;
+    if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.972197830677 + isyst * 0.00572965759784;
+    if ((pt) < 50.0 && fabs(eta) < 0.9) return 0.974360883236 + isyst * 0.00567124830559;
+    if ((pt) < 60.0 && fabs(eta) < 0.9) return 0.983807206154 + isyst * 0.00943034049124;
+    if ((pt) < 200.0 && fabs(eta) < 0.9) return 0.98809581995 + isyst * 0.00743705453351;
+    if ((pt) < 25.0 && fabs(eta) < 1.2) return 0.974665522575 + isyst * 0.0305873099715;
+    if ((pt) < 30.0 && fabs(eta) < 1.2) return 0.993548929691 + isyst * 0.0148099223152;
+    if ((pt) < 40.0 && fabs(eta) < 1.2) return 0.991381108761 + isyst * 0.0103353532031;
+    if ((pt) < 50.0 && fabs(eta) < 1.2) return 0.986710488796 + isyst * 0.00587030919269;
+    if ((pt) < 60.0 && fabs(eta) < 1.2) return 0.988096535206 + isyst * 0.0071763987653;
+    if ((pt) < 200.0 && fabs(eta) < 1.2) return 0.995521485806 + isyst * 0.00889215618372;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 1.00234997272 + isyst * 0.0187554508448;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.9999319911 + isyst * 0.00884008780122;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 1.00043547153 + isyst * 0.0101939104497;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.994007408619 + isyst * 0.00574738392606;
+    if ((pt) < 60.0 && fabs(eta) < 2.1) return 0.996202290058 + isyst * 0.00716154044494;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 1.00737679005 + isyst * 0.00699514942244;
+    if ((pt) < 25.0) return 0.973362624645 + isyst * 0.0133408084512;
+    if ((pt) < 30.0) return 0.973800718784 + isyst * 0.00934141408652;
+    if ((pt) < 40.0) return 0.9801440835 + isyst * 0.0101231131703;
+    if ((pt) < 50.0) return 0.98609817028 + isyst * 0.00847894139588;
+    if ((pt) < 60.0) return 0.974988341331 + isyst * 0.00966404564679;
+    if ((pt) < 200.0) return 0.992269873619 + isyst * 0.0127696096897;
+    printf("WARNING in lepsf_MuMediumPOG_MuTightVVV_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_MuMediumPOG_MuTightVVV3l_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 25.0 && fabs(eta) < 0.9) return 0.980066180229 + isyst * 0.0348992832005;
+    if ((pt) < 30.0 && fabs(eta) < 0.9) return 0.983518302441 + isyst * 0.0121328588575;
+    if ((pt) < 40.0 && fabs(eta) < 0.9) return 0.985425829887 + isyst * 0.0056755002588;
+    if ((pt) < 50.0 && fabs(eta) < 0.9) return 0.989767849445 + isyst * 0.00558190839365;
+    if ((pt) < 60.0 && fabs(eta) < 0.9) return 0.989802598953 + isyst * 0.00590769620612;
+    if ((pt) < 200.0 && fabs(eta) < 0.9) return 0.994454026222 + isyst * 0.00607071490958;
+    if ((pt) < 25.0 && fabs(eta) < 1.2) return 0.981684088707 + isyst * 0.0291706901044;
+    if ((pt) < 30.0 && fabs(eta) < 1.2) return 0.989168167114 + isyst * 0.00941023789346;
+    if ((pt) < 40.0 && fabs(eta) < 1.2) return 0.991053760052 + isyst * 0.00590242026374;
+    if ((pt) < 50.0 && fabs(eta) < 1.2) return 0.994001507759 + isyst * 0.00555418105796;
+    if ((pt) < 60.0 && fabs(eta) < 1.2) return 0.993303418159 + isyst * 0.007096957881;
+    if ((pt) < 200.0 && fabs(eta) < 1.2) return 0.999513506889 + isyst * 0.00838844384998;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 1.01257061958 + isyst * 0.0270769204944;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 1.01111412048 + isyst * 0.0130612328649;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.999891281128 + isyst * 0.00550344213843;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 1.00323843956 + isyst * 0.00562182161957;
+    if ((pt) < 60.0 && fabs(eta) < 2.1) return 1.00625753403 + isyst * 0.00769581506029;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 1.01454889774 + isyst * 0.00830468256027;
+    if ((pt) < 25.0) return 0.992817699909 + isyst * 0.018002236262;
+    if ((pt) < 30.0) return 0.987845003605 + isyst * 0.00904605630785;
+    if ((pt) < 40.0) return 0.990353882313 + isyst * 0.00795413833112;
+    if ((pt) < 50.0) return 0.993920981884 + isyst * 0.007227353286;
+    if ((pt) < 60.0) return 0.986302554607 + isyst * 0.00683919154108;
+    if ((pt) < 200.0) return 1.00726425648 + isyst * 0.0171289723366;
+    printf("WARNING in lepsf_MuMediumPOG_MuTightVVV3l_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
 float lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(float pt, float eta, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -611,7 +677,6 @@ float lepsf_EGammaReco(float PT, float Eta)
 
 float lepsf_EGammaReco_unc(float PT, float Eta)
 {
-    float pt  = std::min((float)499.,PT);
     float eta = std::min((float)2.49,Eta);
     if(eta< -2.45) return 0.0182387;
     if(eta<  -2.4) return 0.0110667;
@@ -809,16 +874,225 @@ float lepsf_EGammaTightPOG_EGammaVVV_v1(float PT, float Eta)
     return 1;
 }
 
-float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta, int version=0)
+float lepsf_EGammaTightPOGMVA_EGammaVVV_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && (eta) < -2.0) return 0.883120417595 + isyst * 0.0410085655749;
+    if ((pt) < 40.0 && (eta) < -2.0) return 0.853896558285 + isyst * 0.0103351194412;
+    if ((pt) < 50.0 && (eta) < -2.0) return 0.856656908989 + isyst * 0.0113700097427;
+    if ((pt) < 150.0 && (eta) < -2.0) return 0.825048804283 + isyst * 0.0183184538037;
+    if ((pt) < 30.0 && (eta) < -1.6) return 0.865676999092 + isyst * 0.0345521941781;
+    if ((pt) < 40.0 && (eta) < -1.6) return 0.860525727272 + isyst * 0.00779991224408;
+    if ((pt) < 50.0 && (eta) < -1.6) return 0.876830995083 + isyst * 0.00693106791005;
+    if ((pt) < 150.0 && (eta) < -1.6) return 0.879117190838 + isyst * 0.0126133970916;
+    if ((pt) < 30.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < -1.0) return 0.97531837225 + isyst * 0.0142965959385;
+    if ((pt) < 40.0 && (eta) < -1.0) return 0.963118612766 + isyst * 0.00627171760425;
+    if ((pt) < 50.0 && (eta) < -1.0) return 0.960432350636 + isyst * 0.00440022535622;
+    if ((pt) < 150.0 && (eta) < -1.0) return 0.959265232086 + isyst * 0.00955545529723;
+    if ((pt) < 30.0 && (eta) < 0.0) return 0.972009539604 + isyst * 0.00476625701413;
+    if ((pt) < 40.0 && (eta) < 0.0) return 0.973181843758 + isyst * 0.00174642540514;
+    if ((pt) < 50.0 && (eta) < 0.0) return 0.975591123104 + isyst * 0.00152740336489;
+    if ((pt) < 150.0 && (eta) < 0.0) return 0.970666646957 + isyst * 0.00300887506455;
+    if ((pt) < 30.0 && (eta) < 1.0) return 0.975555300713 + isyst * 0.00561808887869;
+    if ((pt) < 40.0 && (eta) < 1.0) return 0.975286841393 + isyst * 0.00203314679675;
+    if ((pt) < 50.0 && (eta) < 1.0) return 0.973451316357 + isyst * 0.00148495228495;
+    if ((pt) < 150.0 && (eta) < 1.0) return 0.973623454571 + isyst * 0.00247845542617;
+    if ((pt) < 30.0 && (eta) < 1.4) return 0.934657216072 + isyst * 0.0143183209002;
+    if ((pt) < 40.0 && (eta) < 1.4) return 0.953929543495 + isyst * 0.00982355233282;
+    if ((pt) < 50.0 && (eta) < 1.4) return 0.945206224918 + isyst * 0.0040404223837;
+    if ((pt) < 150.0 && (eta) < 1.4) return 0.952377796173 + isyst * 0.00700347404927;
+    if ((pt) < 30.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < 2.0) return 0.871681392193 + isyst * 0.0152326272801;
+    if ((pt) < 40.0 && (eta) < 2.0) return 0.876524329185 + isyst * 0.00619420781732;
+    if ((pt) < 50.0 && (eta) < 2.0) return 0.884553015232 + isyst * 0.00710215047002;
+    if ((pt) < 150.0 && (eta) < 2.0) return 0.885300338268 + isyst * 0.0111562777311;
+    if ((pt) < 30.0) return 0.85907959938 + isyst * 0.0226758494973;
+    if ((pt) < 40.0) return 0.862013459206 + isyst * 0.00867820624262;
+    if ((pt) < 50.0) return 0.835528969765 + isyst * 0.00863196700811;
+    if ((pt) < 150.0) return 0.880295813084 + isyst * 0.0221429113299;
+    printf("WARNING in lepsf_EGammaTightPOGMVA_EGammaVVV_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && (eta) < -2.0) return 0.850992679596 + isyst * 0.0136673385277;
+    if ((pt) < 40.0 && (eta) < -2.0) return 0.870309829712 + isyst * 0.00867538619787;
+    if ((pt) < 50.0 && (eta) < -2.0) return 0.885897278786 + isyst * 0.00825638417155;
+    if ((pt) < 150.0 && (eta) < -2.0) return 0.886022746563 + isyst * 0.0154493553564;
+    if ((pt) < 30.0 && (eta) < -1.6) return 0.844911515713 + isyst * 0.0121827758849;
+    if ((pt) < 40.0 && (eta) < -1.6) return 0.863641440868 + isyst * 0.00668212166056;
+    if ((pt) < 50.0 && (eta) < -1.6) return 0.882588028908 + isyst * 0.00628372561187;
+    if ((pt) < 150.0 && (eta) < -1.6) return 0.90222120285 + isyst * 0.0103280115873;
+    if ((pt) < 30.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < -1.0) return 0.952842175961 + isyst * 0.00859240069985;
+    if ((pt) < 40.0 && (eta) < -1.0) return 0.94608014822 + isyst * 0.00498400675133;
+    if ((pt) < 50.0 && (eta) < -1.0) return 0.949365019798 + isyst * 0.0041166478768;
+    if ((pt) < 150.0 && (eta) < -1.0) return 0.949845910072 + isyst * 0.00687224790454;
+    if ((pt) < 30.0 && (eta) < 0.0) return 0.967399954796 + isyst * 0.0065890494734;
+    if ((pt) < 40.0 && (eta) < 0.0) return 0.970137059689 + isyst * 0.00460708839819;
+    if ((pt) < 50.0 && (eta) < 0.0) return 0.973913311958 + isyst * 0.00176400714554;
+    if ((pt) < 150.0 && (eta) < 0.0) return 0.968318223953 + isyst * 0.00237361504696;
+    if ((pt) < 30.0 && (eta) < 1.0) return 0.979539036751 + isyst * 0.00783915538341;
+    if ((pt) < 40.0 && (eta) < 1.0) return 0.979172468185 + isyst * 0.00417774915695;
+    if ((pt) < 50.0 && (eta) < 1.0) return 0.979311406612 + isyst * 0.00151191279292;
+    if ((pt) < 150.0 && (eta) < 1.0) return 0.97188526392 + isyst * 0.00289487629198;
+    if ((pt) < 30.0 && (eta) < 1.4) return 0.939766466618 + isyst * 0.0129429949448;
+    if ((pt) < 40.0 && (eta) < 1.4) return 0.934776186943 + isyst * 0.0072449343279;
+    if ((pt) < 50.0 && (eta) < 1.4) return 0.938164770603 + isyst * 0.00355068268254;
+    if ((pt) < 150.0 && (eta) < 1.4) return 0.938271284103 + isyst * 0.00774512067437;
+    if ((pt) < 30.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < 2.0) return 0.866164386272 + isyst * 0.013075822033;
+    if ((pt) < 40.0 && (eta) < 2.0) return 0.88133251667 + isyst * 0.00521183945239;
+    if ((pt) < 50.0 && (eta) < 2.0) return 0.889661312103 + isyst * 0.00506126368418;
+    if ((pt) < 150.0 && (eta) < 2.0) return 0.901180744171 + isyst * 0.0113095538691;
+    if ((pt) < 30.0) return 0.871748626232 + isyst * 0.0300047937781;
+    if ((pt) < 40.0) return 0.875420570374 + isyst * 0.00870532728732;
+    if ((pt) < 50.0) return 0.86614793539 + isyst * 0.00887836329639;
+    if ((pt) < 150.0) return 0.912270307541 + isyst * 0.0202183779329;
+    printf("WARNING in lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaTightPOG_EGammaVVV(float PT, float Eta, int version=0, int syst=0)
 {
     float pt  = std::min((float)1199.,PT);
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if (abs(version) >= 2)
+        pt = std::min((float)119.,PT);
     if (version == 0)
         return lepsf_EGammaTightPOG_EGammaVVV_v1(pt, eta);
     else if (version == 1)
         return lepsf_EGammaTightPOGMVA_EGammaVVV_v2(pt, eta);
     else if (version == -1)
         return lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v2(pt, eta);
+    else if (version == 2)
+        return lepsf_EGammaTightPOGMVA_EGammaVVV_v3(pt, eta, syst);
+    else if (version == -2)
+        return lepsf_EGammaMediumPOGMVA_EGammaVVV3l_v3(pt, eta, syst);
+    else return 1;
+}
+
+float lepsf_EGammaVVV_Isolation_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && (eta) < -2.0) return 0.908459424973 + isyst * 0.0203018579632;
+    if ((pt) < 40.0 && (eta) < -2.0) return 0.919513642788 + isyst * 0.0074216062203;
+    if ((pt) < 50.0 && (eta) < -2.0) return 0.918370842934 + isyst * 0.00827861391008;
+    if ((pt) < 150.0 && (eta) < -2.0) return 0.941241204739 + isyst * 0.0152767291293;
+    if ((pt) < 30.0 && (eta) < -1.6) return 0.981559216976 + isyst * 0.0190107543021;
+    if ((pt) < 40.0 && (eta) < -1.6) return 1.00143146515 + isyst * 0.00766854686663;
+    if ((pt) < 50.0 && (eta) < -1.6) return 0.984350144863 + isyst * 0.00566048687324;
+    if ((pt) < 150.0 && (eta) < -1.6) return 0.998670339584 + isyst * 0.00893246848136;
+    if ((pt) < 30.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < -1.0) return 1.00658631325 + isyst * 0.0213408730924;
+    if ((pt) < 40.0 && (eta) < -1.0) return 0.997109651566 + isyst * 0.00634079333395;
+    if ((pt) < 50.0 && (eta) < -1.0) return 0.998712599277 + isyst * 0.00387201085687;
+    if ((pt) < 150.0 && (eta) < -1.0) return 0.992906808853 + isyst * 0.00566856795922;
+    if ((pt) < 30.0 && (eta) < 0.0) return 0.984210371971 + isyst * 0.0183327179402;
+    if ((pt) < 40.0 && (eta) < 0.0) return 0.983319997787 + isyst * 0.00545469345525;
+    if ((pt) < 50.0 && (eta) < 0.0) return 0.983346402645 + isyst * 0.00169947580434;
+    if ((pt) < 150.0 && (eta) < 0.0) return 0.989158213139 + isyst * 0.00274461344816;
+    if ((pt) < 30.0 && (eta) < 1.0) return 0.989642679691 + isyst * 0.0230825021863;
+    if ((pt) < 40.0 && (eta) < 1.0) return 0.980925619602 + isyst * 0.00474510621279;
+    if ((pt) < 50.0 && (eta) < 1.0) return 0.987295031548 + isyst * 0.00195701303892;
+    if ((pt) < 150.0 && (eta) < 1.0) return 0.983801782131 + isyst * 0.00247796950862;
+    if ((pt) < 30.0 && (eta) < 1.4) return 1.00412034988 + isyst * 0.0195435658097;
+    if ((pt) < 40.0 && (eta) < 1.4) return 0.994419872761 + isyst * 0.00474335439503;
+    if ((pt) < 50.0 && (eta) < 1.4) return 0.998956561089 + isyst * 0.00344797736034;
+    if ((pt) < 150.0 && (eta) < 1.4) return 0.989374756813 + isyst * 0.00618094438687;
+    if ((pt) < 30.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < 2.0) return 1.00445044041 + isyst * 0.0173443686217;
+    if ((pt) < 40.0 && (eta) < 2.0) return 0.983183503151 + isyst * 0.00769854290411;
+    if ((pt) < 50.0 && (eta) < 2.0) return 0.980841457844 + isyst * 0.00524699361995;
+    if ((pt) < 150.0 && (eta) < 2.0) return 0.976681888103 + isyst * 0.00868929177523;
+    if ((pt) < 30.0) return 0.914859950542 + isyst * 0.0151402018964;
+    if ((pt) < 40.0) return 0.922606050968 + isyst * 0.0136738996953;
+    if ((pt) < 50.0) return 0.912222087383 + isyst * 0.00715025886893;
+    if ((pt) < 150.0) return 0.931365907192 + isyst * 0.016236141324;
+    printf("WARNING in lepsf_EGammaVVV_Isolation_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaVVV3l_Isolation_v3(float pt, float eta, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    if ((pt) < 30.0 && (eta) < -2.0) return 0.935190916061 + isyst * 0.0195467583835;
+    if ((pt) < 40.0 && (eta) < -2.0) return 0.93671810627 + isyst * 0.00472788000479;
+    if ((pt) < 50.0 && (eta) < -2.0) return 0.947656035423 + isyst * 0.00519610196352;
+    if ((pt) < 150.0 && (eta) < -2.0) return 0.966931164265 + isyst * 0.00804648920894;
+    if ((pt) < 30.0 && (eta) < -1.6) return 0.992152273655 + isyst * 0.014723110944;
+    if ((pt) < 40.0 && (eta) < -1.6) return 0.996329843998 + isyst * 0.00551635632291;
+    if ((pt) < 50.0 && (eta) < -1.6) return 0.990847408772 + isyst * 0.00332310609519;
+    if ((pt) < 150.0 && (eta) < -1.6) return 1.0049649477 + isyst * 0.00561818853021;
+    if ((pt) < 30.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < -1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < -1.0) return 0.997118651867 + isyst * 0.0143043091521;
+    if ((pt) < 40.0 && (eta) < -1.0) return 1.00067949295 + isyst * 0.00437404680997;
+    if ((pt) < 50.0 && (eta) < -1.0) return 0.999887704849 + isyst * 0.00231113168411;
+    if ((pt) < 150.0 && (eta) < -1.0) return 0.997676253319 + isyst * 0.00379535206594;
+    if ((pt) < 30.0 && (eta) < 0.0) return 0.991037845612 + isyst * 0.0195161364973;
+    if ((pt) < 40.0 && (eta) < 0.0) return 0.98912101984 + isyst * 0.00317544280551;
+    if ((pt) < 50.0 && (eta) < 0.0) return 0.990068554878 + isyst * 0.00121353229042;
+    if ((pt) < 150.0 && (eta) < 0.0) return 0.996105372906 + isyst * 0.00267374445684;
+    if ((pt) < 30.0 && (eta) < 1.0) return 0.994829773903 + isyst * 0.0213389266282;
+    if ((pt) < 40.0 && (eta) < 1.0) return 0.989152491093 + isyst * 0.0039043452125;
+    if ((pt) < 50.0 && (eta) < 1.0) return 0.993024647236 + isyst * 0.0014128361363;
+    if ((pt) < 150.0 && (eta) < 1.0) return 0.995310664177 + isyst * 0.00227889884263;
+    if ((pt) < 30.0 && (eta) < 1.4) return 1.01305508614 + isyst * 0.0195604078472;
+    if ((pt) < 40.0 && (eta) < 1.4) return 0.99732875824 + isyst * 0.00382308196276;
+    if ((pt) < 50.0 && (eta) < 1.4) return 0.997213184834 + isyst * 0.00220580212772;
+    if ((pt) < 150.0 && (eta) < 1.4) return 0.993747234344 + isyst * 0.00367907946929;
+    if ((pt) < 30.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 150.0 && (eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && (eta) < 2.0) return 0.994179010391 + isyst * 0.0102722523734;
+    if ((pt) < 40.0 && (eta) < 2.0) return 0.97640478611 + isyst * 0.00671232398599;
+    if ((pt) < 50.0 && (eta) < 2.0) return 0.983581423759 + isyst * 0.00317137362435;
+    if ((pt) < 150.0 && (eta) < 2.0) return 0.990202724934 + isyst * 0.00854556448758;
+    if ((pt) < 30.0) return 0.924050092697 + isyst * 0.00998185761273;
+    if ((pt) < 40.0) return 0.93977022171 + isyst * 0.00463026156649;
+    if ((pt) < 50.0) return 0.943002402782 + isyst * 0.0042942869477;
+    if ((pt) < 150.0) return 0.962206125259 + isyst * 0.0109452595934;
+    printf("WARNING in lepsf_EGammaVVV3l_Isolation_v3(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta);
+    return 1;
+}
+
+float lepsf_EGammaVVV_Isolation(float PT, float Eta, int version=0, int syst=0)
+{
+    float pt  = std::min((float)119.,PT);
+    float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
+    if (version == 2)
+        return lepsf_EGammaVVV_Isolation_v3(pt, eta, syst);
+    else if (version == -2)
+        return lepsf_EGammaVVV3l_Isolation_v3(pt, eta, syst);
     else return 1;
 }
 
@@ -1129,9 +1403,11 @@ float lepsf_MuMediumPOG_MuTightVVV_v1(float PT, float Eta)
     return 1;
 }
 
-float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta, int version=0)
+float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta, int version=0, int syst=0)
 {
     float pt  = std::min((float)1199.,PT);
+    if (abs(version) >= 2)
+        pt = std::min((float)199.,PT); // version 3 has binning boundary at 200
     float eta = std::min((float)2.39,std::max((float)-2.39,Eta));
     if (version == 0)
         return lepsf_MuMediumPOG_MuTightVVV_v1(pt, eta);
@@ -1139,6 +1415,10 @@ float lepsf_MuMediumPOG_MuTightVVV(float PT, float Eta, int version=0)
         return lepsf_MuMediumPOG_MuTightVVV_v2(pt, eta);
     else if (version == -1)
         return lepsf_MuMediumPOG_MuTightVVV3l_v2(pt, eta);
+    else if (version == 2)
+        return lepsf_MuMediumPOG_MuTightVVV_v3(pt, eta, syst);
+    else if (version == -2)
+        return lepsf_MuMediumPOG_MuTightVVV3l_v3(pt, eta, syst);
     else return 1;
 }
 
@@ -1594,6 +1874,14 @@ float fakerate_mu_data(float Eta, float conecorrPT, int version=0)
     {
         return fakerate_baseline_v2_ss_mu_data(Eta, conecorrPT);
     }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_mu_data(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_mu_data(Eta, conecorrPT);
+    }
     return fakerate_baseline_v1_mu_data(Eta, conecorrPT);
 }
 float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
@@ -1605,6 +1893,14 @@ float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
     if (version == 1)
     {
         return fakerate_baseline_v2_ss_mu_data_unc(Eta, conecorrPT);
+    }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_mu_data_unc(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_mu_data_unc(Eta, conecorrPT);
     }
     return fakerate_baseline_v1_mu_data_unc(Eta, conecorrPT);
 }
@@ -1619,6 +1915,14 @@ float fakerate_mu_qcd(float Eta, float conecorrPT, int version=0)
     {
         return fakerate_baseline_v2_ss_mu_qcd(Eta, conecorrPT);
     }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_mu_qcd(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_mu_qcd(Eta, conecorrPT);
+    }
     return fakerate_baseline_v1_mu_qcd(Eta, conecorrPT);
 }
 float fakerate_mu_qcd_unc(float Eta, float conecorrPT, int version=0)
@@ -1630,6 +1934,14 @@ float fakerate_mu_qcd_unc(float Eta, float conecorrPT, int version=0)
     if (version == 1)
     {
         return fakerate_baseline_v2_ss_mu_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_mu_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_mu_qcd_unc(Eta, conecorrPT);
     }
     return fakerate_baseline_v1_mu_qcd_unc(Eta, conecorrPT);
 }
@@ -1645,6 +1957,14 @@ float fakerate_el_data(float Eta, float conecorrPT, int version=0)
     {
         return fakerate_baseline_v2_ss_el_data(Eta, conecorrPT);
     }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_el_data(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_el_data(Eta, conecorrPT);
+    }
     return fakerate_baseline_v1_el_data(Eta, conecorrPT);
 }
 float fakerate_el_data_unc(float Eta, float conecorrPT, int version=0)
@@ -1656,6 +1976,14 @@ float fakerate_el_data_unc(float Eta, float conecorrPT, int version=0)
     if (version == 1)
     {
         return fakerate_baseline_v2_ss_el_data_unc(Eta, conecorrPT);
+    }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_el_data_unc(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_el_data_unc(Eta, conecorrPT);
     }
     return fakerate_baseline_v1_el_data_unc(Eta, conecorrPT);
 }
@@ -1670,6 +1998,14 @@ float fakerate_el_qcd(float Eta, float conecorrPT, int version=0)
     {
         return fakerate_baseline_v2_ss_el_qcd(Eta, conecorrPT);
     }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_el_qcd(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_el_qcd(Eta, conecorrPT);
+    }
     return fakerate_baseline_v1_el_qcd(Eta, conecorrPT);
 }
 float fakerate_el_qcd_unc(float Eta, float conecorrPT, int version=0)
@@ -1681,6 +2017,14 @@ float fakerate_el_qcd_unc(float Eta, float conecorrPT, int version=0)
     if (version == 1)
     {
         return fakerate_baseline_v2_ss_el_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == -2)
+    {
+        return fakerate_baseline_v3_3l_el_qcd_unc(Eta, conecorrPT);
+    }
+    if (version == 2)
+    {
+        return fakerate_baseline_v3_ss_el_qcd_unc(Eta, conecorrPT);
     }
     return fakerate_baseline_v1_el_qcd_unc(Eta, conecorrPT);
 }

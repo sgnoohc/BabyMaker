@@ -76,15 +76,20 @@ def printCutflow(samples, regionname):
             pass
         else:
             raise
+    print "here"
     table.writeCSV("cutflows/{}.csv".format(regionname))
+    print "here"
     table.writeHTML("cutflows/{}.html".format(regionname))
+    print "here"
     table.writeLaTeX("cutflows/{}.tex".format(regionname))
+    print "here"
     table.writePlain("cutflows/{}.txt".format(regionname))
+    print "here"
 
-samples.printContents("r")
+#samples.printContents("r")
 
 # Print cutflow table
-printCutflow(samples, "LepSF")
+printCutflow(samples, "OS")
 #blind(samples)
 #printSummaryCutflow(samples)
 #printCutflow(samples, "SSee")

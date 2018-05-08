@@ -27,7 +27,7 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    connectNtuples(samples, "samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.20/skim/", "<0")
+    connectNtuples(samples, "samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/", "<0")
 
     #
     #
@@ -40,64 +40,68 @@ def main(index):
     ["1"                                          , "{$(usefakeweight)?ffwgt:35.9}" ] ,
     ["Flag_AllEventFilters"                       , "1"                             ] ,
     ["vetophoton==0"                              , "1"                             ] ,
-    ["lep_pdgId[0]*lep_pdgId[1]>0"                , "1"                             ] ,
+    ["lep_pdgId[0]*lep_pdgId[1]>0"                , "trigsf*lepsf"                  ] ,
     ["MllSS > 10"                                 , "1"                             ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
 
     tqcuts = {}
-    tqcuts["Base"] = TQCut("Base", "Base", "(nVlep==2)*(nLlep==2)*((abs(lep_pdgId[0])==13)*(lep_ptRatio[0]>0.9)+(abs(lep_pdgId[0])==11)*(lep_ptRatio[0]>0.84))*((abs(lep_pdgId[1])==13)*(lep_ptRatio[1]>0.9)+(abs(lep_pdgId[1])==11)*(lep_ptRatio[1]>0.84))", "1")
+    #tqcuts["Base"] = TQCut("Base", "Base", "(nVlep==2)*(nLlep==2)*((abs(lep_pdgId[0])==13)*(lep_ptRatio[0]>0.9)+(abs(lep_pdgId[0])==11)*(lep_ptRatio[0]>0.84))*((abs(lep_pdgId[1])==13)*(lep_ptRatio[1]>0.9)+(abs(lep_pdgId[1])==11)*(lep_ptRatio[1]>0.84))", "1")
+    tqcuts["Base"] = TQCut("Base", "Base", "(nVlep==2)*(nLlep==2)*(nTlep==2)", "1")
     tqcuts["Presel"] = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
+    tqcuts["CutSSee"] = TQCut("CutSSee" , "SS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==121)*(mc_HLT_DoubleEl_DZ_2==1)" , "trigsf")
+    tqcuts["CutSSem"] = TQCut("CutSSem" , "SS: em" , "(lep_pdgId[0]*lep_pdgId[1]==143)*(mc_HLT_MuEG==1)" , "trigsf")
+    tqcuts["CutSSmm"] = TQCut("CutSSmm" , "SS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==169)*(mc_HLT_DoubleMu==1)" , "trigsf")
 
-    tqcuts["CutSSee"] = TQCut("CutSSee" , "SS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==121)*(mc_HLT_DoubleEl_DZ_2==1)" , 
-    """[TH2Map:lepsfrootfiles/trigeff.root:diel_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
+    #tqcuts["CutSSee"] = TQCut("CutSSee" , "SS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==121)*(mc_HLT_DoubleEl_DZ_2==1)" , 
+    #"""[TH2Map:lepsfrootfiles/trigeff.root:diel_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
 
-    tqcuts["CutSSem"] = TQCut("CutSSem" , "SS: em" , "(lep_pdgId[0]*lep_pdgId[1]==143)*(mc_HLT_MuEG==1)" , 
-    """[abs(lep_pdgId[0])==11]*
-       [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]
-       +[abs(lep_pdgId[0])==13]*
-       [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
+    #tqcuts["CutSSem"] = TQCut("CutSSem" , "SS: em" , "(lep_pdgId[0]*lep_pdgId[1]==143)*(mc_HLT_MuEG==1)" , 
+    #"""[abs(lep_pdgId[0])==11]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]
+    #   +[abs(lep_pdgId[0])==13]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
 
-    tqcuts["CutSSmm"] = TQCut("CutSSmm" , "SS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==169)*(mc_HLT_DoubleMu==1)" , 
-    """[TH2Map:lepsfrootfiles/trigeff.root:dimu_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""")
+    #tqcuts["CutSSmm"] = TQCut("CutSSmm" , "SS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==169)*(mc_HLT_DoubleMu==1)" , 
+    #"""[TH2Map:lepsfrootfiles/trigeff.root:dimu_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""")
 
-    tqcuts["CutSSeeLepSF"] = TQCut("CutSSeeLepSF" , "SS: LepSF" , "1" , 
-    """[TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
+    #tqcuts["CutSSeeLepSF"] = TQCut("CutSSeeLepSF" , "SS: LepSF" , "1" , 
+    #"""[TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
 
-    tqcuts["CutSSemLepSF"] = TQCut("CutSSemLepSF" , "SS: LepSF" , "1" ,
-    """[abs(lep_pdgId[0])==11]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-       [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]
-       +[abs(lep_pdgId[0])==13]*
-       [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-       [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
+    #tqcuts["CutSSemLepSF"] = TQCut("CutSSemLepSF" , "SS: LepSF" , "1" ,
+    #"""[abs(lep_pdgId[0])==11]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
+    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]
+    #   +[abs(lep_pdgId[0])==13]*
+    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
+    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
 
-    tqcuts["CutSSmmLepSF"] = TQCut("CutSSmmLepSF", "SS: LepSF" , "1",
-    """[TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-       [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-       [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-       [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-       [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
+    #tqcuts["CutSSmmLepSF"] = TQCut("CutSSmmLepSF", "SS: LepSF" , "1",
+    #"""[TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
+    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
+    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
+    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
+    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
 
     tqcuts["CutSSeeZeeVt"] = TQCut("CutSSeeZeeVt", "SS: ZeeVt" , "abs(MllSS-91.1876)>10.", "1");
 
@@ -106,10 +110,7 @@ def main(index):
     tqcuts["Presel"].addCut(tqcuts["CutSSee"])
     tqcuts["Presel"].addCut(tqcuts["CutSSem"])
     tqcuts["Presel"].addCut(tqcuts["CutSSmm"])
-    tqcuts["CutSSee"].addCut(tqcuts["CutSSeeLepSF"])
-    tqcuts["CutSSem"].addCut(tqcuts["CutSSemLepSF"])
-    tqcuts["CutSSmm"].addCut(tqcuts["CutSSmmLepSF"])
-    tqcuts["CutSSeeLepSF"].addCut(tqcuts["CutSSeeZeeVt"])
+    tqcuts["CutSSee"].addCut(tqcuts["CutSSeeZeeVt"])
 
     #
     #

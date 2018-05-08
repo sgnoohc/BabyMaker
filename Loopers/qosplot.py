@@ -11,7 +11,7 @@ ROOT.gROOT.SetBatch(True)
 #samples = TQSampleFolder.loadSampleFolder("output_w_purewgt.root:samples")
 samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 
-output_plot_dir = "plots_powheg"
+output_plot_dir = "plots_os"
 
 #_____________________________________________________________________________________
 def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
@@ -81,7 +81,8 @@ if __name__ == "__main__":
             if hname.find("_vs_") != -1:
                 continue
             hfilename = hname.replace("/", "_")
-            proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True, "yaxis_range":[1e-2, 1e13]}, "plotfunc": p.plot_hist})
+            #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True, "yaxis_range":[1e-2, 1e13]}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
@@ -91,8 +92,8 @@ if __name__ == "__main__":
     else:
         hname = str(sys.argv[1])
         hfilename = hname.replace("/", "_")
-        ratio = plot(hname, hfilename, options={"legend_scalex":1.5, "autobin":False, "blind":False, "nbins":1, "signal_scale":7, "yaxis_log":False, "yaxis_range":[float(sys.argv[2]),float(sys.argv[3])]}, plotfunc=p.plot_hist).Clone("nvtx")
-        ratio.Print("all")
+        ratio = plot(hname, hfilename, options={"legend_scalex":1.5, "autobin":False, "blind":False, "nbins":60, "signal_scale":7, "yaxis_log":False, "yaxis_range":[float(sys.argv[2]),float(sys.argv[3])]}, plotfunc=p.plot_hist)
+        #ratio.Print("all")
 
-        f = ROOT.TFile("nvtx_rewgt_mm.root","recreate")
-        ratio.Write()
+        #f = ROOT.TFile("nvtx_rewgt_mm.root","recreate")
+        #ratio.Write()
