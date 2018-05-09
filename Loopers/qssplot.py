@@ -69,6 +69,114 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
             syst = systs,
             options=alloptions)
 
+#_____________________________________________________________________________________
+def plot_typebkg(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    # Options
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_typebkg.pdf".format(output_plot_dir, output_name)
+                }
+    alloptions.update(options)
+    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    bgs  = [ samples.getHistogram("/typebkg/fakes", histname).Clone("Fakes"),
+             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
+             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
+             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+    # Do it twice for png and pdf (TODO should be fixed in plottery)
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_typebkg.png".format(output_plot_dir, output_name)
+                }
+    alloptions.update(options)
+    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    bgs  = [ samples.getHistogram("/typebkg/fakes", histname).Clone("Fakes"),
+             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
+             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
+             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    return plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    # Options
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_frmethod.pdf".format(output_plot_dir, output_name)
+                }
+    alloptions.update(options)
+    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    bgs  = [ samples.getHistogram("/fake", histname).Clone("Fakes"),
+             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
+             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
+             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+    # Do it twice for png and pdf (TODO should be fixed in plottery)
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_frmethod.png".format(output_plot_dir, output_name)
+                }
+    alloptions.update(options)
+    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    bgs  = [ samples.getHistogram("/fake", histname).Clone("Fakes"),
+             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
+             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
+             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    return plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -82,6 +190,12 @@ if __name__ == "__main__":
                 continue
             hfilename = hname.replace("/", "_")
             proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            jobs.append(proc)
+            proc.start()
+            proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            jobs.append(proc)
+            proc.start()
+            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 

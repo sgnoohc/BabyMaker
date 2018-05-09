@@ -40,77 +40,127 @@ def main(index):
     ["1"                                          , "{$(usefakeweight)?ffwgt:35.9}" ] ,
     ["Flag_AllEventFilters"                       , "1"                             ] ,
     ["vetophoton==0"                              , "1"                             ] ,
-    ["lep_pdgId[0]*lep_pdgId[1]>0"                , "trigsf*lepsf"                  ] ,
     ["MllSS > 10"                                 , "1"                             ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
 
     tqcuts = {}
-    #tqcuts["Base"] = TQCut("Base", "Base", "(nVlep==2)*(nLlep==2)*((abs(lep_pdgId[0])==13)*(lep_ptRatio[0]>0.9)+(abs(lep_pdgId[0])==11)*(lep_ptRatio[0]>0.84))*((abs(lep_pdgId[1])==13)*(lep_ptRatio[1]>0.9)+(abs(lep_pdgId[1])==11)*(lep_ptRatio[1]>0.84))", "1")
-    tqcuts["Base"] = TQCut("Base", "Base", "(nVlep==2)*(nLlep==2)*(nTlep==2)", "1")
-    tqcuts["Presel"] = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
-    tqcuts["CutSSee"] = TQCut("CutSSee" , "SS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==121)*(mc_HLT_DoubleEl_DZ_2==1)" , "trigsf")
-    tqcuts["CutSSem"] = TQCut("CutSSem" , "SS: em" , "(lep_pdgId[0]*lep_pdgId[1]==143)*(mc_HLT_MuEG==1)" , "trigsf")
-    tqcuts["CutSSmm"] = TQCut("CutSSmm" , "SS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==169)*(mc_HLT_DoubleMu==1)" , "trigsf")
+    tqcuts["Presel"]         = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
-    #tqcuts["CutSSee"] = TQCut("CutSSee" , "SS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==121)*(mc_HLT_DoubleEl_DZ_2==1)" , 
-    #"""[TH2Map:lepsfrootfiles/trigeff.root:diel_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
+    tqcuts["CutDilep"]       = TQCut("CutDilep"       , "CutDilep"               , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf}")
+    tqcuts["CutSSee"]        = TQCut("CutSSee"        , "SSee:"                  , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf")
+    tqcuts["CutSSem"]        = TQCut("CutSSem"        , "SSem:"                  , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf")
+    tqcuts["CutSSmm"]        = TQCut("CutSSmm"        , "SSmm:"                  , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf")
+    tqcuts["CutSSeeNj2"]     = TQCut("CutSSeeNj2"     , "SSee: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSemNj2"]     = TQCut("CutSSemNj2"     , "SSem: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSmmNj2"]     = TQCut("CutSSmmNj2"     , "SSmm: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSeeNb0"]     = TQCut("CutSSeeNb0"     , "SSee: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSemNb0"]     = TQCut("CutSSemNb0"     , "SSem: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSmmNb0"]     = TQCut("CutSSmmNb0"     , "SSmm: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSeeMjjW"]    = TQCut("CutSSeeMjjW"    , "SSee: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSemMjjW"]    = TQCut("CutSSemMjjW"    , "SSem: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSmmMjjW"]    = TQCut("CutSSmmMjjW"    , "SSmm: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSeeMjjL"]    = TQCut("CutSSeeMjjL"    , "SSee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSemMjjL"]    = TQCut("CutSSemMjjL"    , "SSem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSmmMjjL"]    = TQCut("CutSSmmMjjL"    , "SSmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSeeDetajjL"] = TQCut("CutSSeeDetajjL" , "SSee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSemDetajjL"] = TQCut("CutSSemDetajjL" , "SSem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSmmDetajjL"] = TQCut("CutSSmmDetajjL" , "SSmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSeeMET"]     = TQCut("CutSSeeMET"     , "SSee: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
+    tqcuts["CutSSemMET"]     = TQCut("CutSSemMET"     , "SSem: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
+    tqcuts["CutSSmmMET"]     = TQCut("CutSSmmMET"     , "SSmm: 6. MET > 0"       , "1."                                                                                   , "1")
+    tqcuts["CutSSeeMllSS"]   = TQCut("CutSSeeMllSS"   , "SSee: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSemMllSS"]   = TQCut("CutSSemMllSS"   , "SSem: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSmmMllSS"]   = TQCut("CutSSmmMllSS"   , "SSmm: 7. MllSS > 40"    , "MllSS>40."                                                                            , "1")
 
-    #tqcuts["CutSSem"] = TQCut("CutSSem" , "SS: em" , "(lep_pdgId[0]*lep_pdgId[1]==143)*(mc_HLT_MuEG==1)" , 
-    #"""[abs(lep_pdgId[0])==11]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]
-    #   +[abs(lep_pdgId[0])==13]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
+    tqcuts["CutSSeeZeeVt"] = TQCut("CutSSeeZeeVt", "SSee0: Z veto" , "abs(MllSS-91.1876)>10.", "1");
+    tqcuts["CutSSemMTmax"] = TQCut("CutSSemMTmax", "SSem0: MTmax" , "MTmax>90.", "1");
 
-    #tqcuts["CutSSmm"] = TQCut("CutSSmm" , "SS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==169)*(mc_HLT_DoubleMu==1)" , 
-    #"""[TH2Map:lepsfrootfiles/trigeff.root:dimu_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""")
+    tqcuts["CutTrilep"]        = TQCut("CutTrilep"        , "CutTrilep"                , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf}")
+    tqcuts["CutSSWZee"]        = TQCut("CutSSWZee"        , "SSWZee: "                 , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf")
+    tqcuts["CutSSWZem"]        = TQCut("CutSSWZem"        , "SSWZem: "                 , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf")
+    tqcuts["CutSSWZmm"]        = TQCut("CutSSWZmm"        , "SSWZmm: "                 , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf")
+    tqcuts["CutSSWZeeNj2"]     = TQCut("CutSSWZeeNj2"     , "SSWZee: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSWZemNj2"]     = TQCut("CutSSWZemNj2"     , "SSWZem: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSWZmmNj2"]     = TQCut("CutSSWZmmNj2"     , "SSWZmm: 1. n_{j} #geq 2"  , "nj30>= 2"                                                                             , "1")
+    tqcuts["CutSSWZeeNb0"]     = TQCut("CutSSWZeeNb0"     , "SSWZee: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSWZemNb0"]     = TQCut("CutSSWZemNb0"     , "SSWZem: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSWZmmNb0"]     = TQCut("CutSSWZmmNb0"     , "SSWZmm: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
+    tqcuts["CutSSWZeeMjjW"]    = TQCut("CutSSWZeeMjjW"    , "SSWZee: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZemMjjW"]    = TQCut("CutSSWZemMjjW"    , "SSWZem: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZmmMjjW"]    = TQCut("CutSSWZmmMjjW"    , "SSWZmm: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZeeMjjL"]    = TQCut("CutSSWZeeMjjL"    , "SSWZee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSWZemMjjL"]    = TQCut("CutSSWZemMjjL"    , "SSWZem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSWZmmMjjL"]    = TQCut("CutSSWZmmMjjL"    , "SSWZmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+    tqcuts["CutSSWZeeDetajjL"] = TQCut("CutSSWZeeDetajjL" , "SSWZee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSWZemDetajjL"] = TQCut("CutSSWZemDetajjL" , "SSWZem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSWZmmDetajjL"] = TQCut("CutSSWZmmDetajjL" , "SSWZmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSWZeeMET"]     = TQCut("CutSSWZeeMET"     , "SSWZee: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
+    tqcuts["CutSSWZemMET"]     = TQCut("CutSSWZemMET"     , "SSWZem: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
+    tqcuts["CutSSWZmmMET"]     = TQCut("CutSSWZmmMET"     , "SSWZmm: 6. MET > 0"       , "1."                                                                                   , "1")
+    tqcuts["CutSSWZeeMllSS"]   = TQCut("CutSSWZeeMllSS"   , "SSWZee: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSWZemMllSS"]   = TQCut("CutSSWZemMllSS"   , "SSWZem: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSWZmmMllSS"]   = TQCut("CutSSWZmmMllSS"   , "SSWZmm: 7. MllSS > 40"    , "MllSS>40."                                                                            , "1")
 
-    #tqcuts["CutSSeeLepSF"] = TQCut("CutSSeeLepSF" , "SS: LepSF" , "1" , 
-    #"""[TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
+    tqcuts["CutSSWZeeZeeVt"] = TQCut("CutSSWZeeZeeVt", "SSWZee: 0. Z veto" , "abs(MllSS-91.1876)>10.", "1");
+    tqcuts["CutSSWZemMTmax"] = TQCut("CutSSWZemMTmax", "SSWZem: 0. MTmax" , "MTmax>90.", "1");
 
-    #tqcuts["CutSSemLepSF"] = TQCut("CutSSemLepSF" , "SS: LepSF" , "1" ,
-    #"""[abs(lep_pdgId[0])==11]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]
-    #   +[abs(lep_pdgId[0])==13]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
+    cuts = tqcuts["Presel"]
+    tqcuts["Presel"].addCut(tqcuts["CutDilep"])
+    tqcuts["CutDilep"].addCut(tqcuts["CutSSeeZeeVt"])
+    tqcuts["CutDilep"].addCut(tqcuts["CutSSemMTmax"])
+    tqcuts["CutSSeeZeeVt"].addCut(tqcuts["CutSSee"])
+    tqcuts["CutSSemMTmax"].addCut(tqcuts["CutSSem"])
+    tqcuts["CutDilep"].addCut(tqcuts["CutSSmm"])
+    tqcuts["CutSSee"].addCut(tqcuts["CutSSeeNj2"])
+    tqcuts["CutSSem"].addCut(tqcuts["CutSSemNj2"])
+    tqcuts["CutSSmm"].addCut(tqcuts["CutSSmmNj2"])
+    tqcuts["CutSSeeNj2"].addCut(tqcuts["CutSSeeNb0"])
+    tqcuts["CutSSemNj2"].addCut(tqcuts["CutSSemNb0"])
+    tqcuts["CutSSmmNj2"].addCut(tqcuts["CutSSmmNb0"])
+    tqcuts["CutSSeeNb0"].addCut(tqcuts["CutSSeeMjjW"])
+    tqcuts["CutSSemNb0"].addCut(tqcuts["CutSSemMjjW"])
+    tqcuts["CutSSmmNb0"].addCut(tqcuts["CutSSmmMjjW"])
+    tqcuts["CutSSeeMjjW"].addCut(tqcuts["CutSSeeMjjL"])
+    tqcuts["CutSSemMjjW"].addCut(tqcuts["CutSSemMjjL"])
+    tqcuts["CutSSmmMjjW"].addCut(tqcuts["CutSSmmMjjL"])
+    tqcuts["CutSSeeMjjL"].addCut(tqcuts["CutSSeeDetajjL"])
+    tqcuts["CutSSemMjjL"].addCut(tqcuts["CutSSemDetajjL"])
+    tqcuts["CutSSmmMjjL"].addCut(tqcuts["CutSSmmDetajjL"])
+    tqcuts["CutSSeeDetajjL"].addCut(tqcuts["CutSSeeMET"])
+    tqcuts["CutSSemDetajjL"].addCut(tqcuts["CutSSemMET"])
+    tqcuts["CutSSmmDetajjL"].addCut(tqcuts["CutSSmmMET"])
+    tqcuts["CutSSeeMET"].addCut(tqcuts["CutSSeeMllSS"])
+    tqcuts["CutSSemMET"].addCut(tqcuts["CutSSemMllSS"])
+    tqcuts["CutSSmmMET"].addCut(tqcuts["CutSSmmMllSS"])
 
-    #tqcuts["CutSSmmLepSF"] = TQCut("CutSSmmLepSF", "SS: LepSF" , "1",
-    #"""[TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
-
-    tqcuts["CutSSeeZeeVt"] = TQCut("CutSSeeZeeVt", "SS: ZeeVt" , "abs(MllSS-91.1876)>10.", "1");
-
-    cuts = tqcuts["Base"]
-    tqcuts["Base"].addCut(tqcuts["Presel"])
-    tqcuts["Presel"].addCut(tqcuts["CutSSee"])
-    tqcuts["Presel"].addCut(tqcuts["CutSSem"])
-    tqcuts["Presel"].addCut(tqcuts["CutSSmm"])
-    tqcuts["CutSSee"].addCut(tqcuts["CutSSeeZeeVt"])
+    tqcuts["Presel"].addCut(tqcuts["CutTrilep"])
+    tqcuts["CutTrilep"].addCut(tqcuts["CutSSWZeeZeeVt"])
+    tqcuts["CutTrilep"].addCut(tqcuts["CutSSWZemMTmax"])
+    tqcuts["CutSSWZeeZeeVt"].addCut(tqcuts["CutSSWZee"])
+    tqcuts["CutSSWZemMTmax"].addCut(tqcuts["CutSSWZem"])
+    tqcuts["CutTrilep"].addCut(tqcuts["CutSSWZmm"])
+    tqcuts["CutSSWZee"].addCut(tqcuts["CutSSWZeeNj2"])
+    tqcuts["CutSSWZem"].addCut(tqcuts["CutSSWZemNj2"])
+    tqcuts["CutSSWZmm"].addCut(tqcuts["CutSSWZmmNj2"])
+    tqcuts["CutSSWZeeNj2"].addCut(tqcuts["CutSSWZeeNb0"])
+    tqcuts["CutSSWZemNj2"].addCut(tqcuts["CutSSWZemNb0"])
+    tqcuts["CutSSWZmmNj2"].addCut(tqcuts["CutSSWZmmNb0"])
+    tqcuts["CutSSWZeeNb0"].addCut(tqcuts["CutSSWZeeMjjW"])
+    tqcuts["CutSSWZemNb0"].addCut(tqcuts["CutSSWZemMjjW"])
+    tqcuts["CutSSWZmmNb0"].addCut(tqcuts["CutSSWZmmMjjW"])
+    tqcuts["CutSSWZeeMjjW"].addCut(tqcuts["CutSSWZeeMjjL"])
+    tqcuts["CutSSWZemMjjW"].addCut(tqcuts["CutSSWZemMjjL"])
+    tqcuts["CutSSWZmmMjjW"].addCut(tqcuts["CutSSWZmmMjjL"])
+    tqcuts["CutSSWZeeMjjL"].addCut(tqcuts["CutSSWZeeDetajjL"])
+    tqcuts["CutSSWZemMjjL"].addCut(tqcuts["CutSSWZemDetajjL"])
+    tqcuts["CutSSWZmmMjjL"].addCut(tqcuts["CutSSWZmmDetajjL"])
+    tqcuts["CutSSWZeeDetajjL"].addCut(tqcuts["CutSSWZeeMET"])
+    tqcuts["CutSSWZemDetajjL"].addCut(tqcuts["CutSSWZemMET"])
+    tqcuts["CutSSWZmmDetajjL"].addCut(tqcuts["CutSSWZmmMET"])
+    tqcuts["CutSSWZeeMET"].addCut(tqcuts["CutSSWZeeMllSS"])
+    tqcuts["CutSSWZemMET"].addCut(tqcuts["CutSSWZemMllSS"])
+    tqcuts["CutSSWZmmMET"].addCut(tqcuts["CutSSWZmmMllSS"])
 
     #
     #
@@ -131,11 +181,8 @@ def main(index):
     TH1F('nvtx' , '' , 60 , 0. , 60. ) << (nVert : 'Nvtx');
     @*/*: nvtx;
 
-    #TH1F('Mjj' , '' , 180 , 0. , 300.) << (Mjj : '\#it{m}_{jj} [GeV]');
-    #@*/*: Mjj;
-
-    #TH1F('MllSS' , '' , 180 , 0. , 300.) << (MllSS : '\#it{m}_{ll} [GeV]');
-    #@*/*: MllSS;
+    TH1F('Mjj' , '' , 180 , 0. , 300.) << (Mjj : '\#it{m}_{jj} [GeV]');
+    @*/*: Mjj;
 
     TH1F('MET' , '' , 180 , 0. , 180.) << (met_pt : 'MET [GeV]');
     @*/*: MET;
@@ -167,11 +214,11 @@ def main(index):
     TH1F('lep_phi1' , '' , 180 , -3.1416, 3.1416 ) << (lep_phi[1] : '\#phi_{trail-lep}');
     @*/*: lep_phi1;
 
-    TH1F('lep_ptRatio0' , '' , 180 , 0.6 , 1.2 ) << (lep_ptRatio[0] : '\#it{p}_{T, Ratio}');
-    @*/*: lep_ptRatio0;
+    TH1F('lep_relIso03EAv2Lep0' , '' , 180 , 0.6 , 1.2 ) << (lep_relIso03EAv2Lep[0] : 'I_{R=0.3,EA,Lep, lead-lep}');
+    @*/*: lep_relIso03EAv2Lep0;
 
-    TH1F('lep_ptRatio1' , '' , 180 , 0.6 , 1.2 ) << (lep_ptRatio[1] : '\#it{p}_{T, Ratio}');
-    @*/*: lep_ptRatio1;
+    TH1F('lep_relIso03EAv2Lep1' , '' , 180 , 0.6 , 1.2 ) << (lep_relIso03EAv2Lep[1] : 'I_{R=0.3,EA,Lep, trail-lep}');
+    @*/*: lep_relIso03EAv2Lep1;
 
     TH1F('nj' , '' , 7 , 0. , 7. ) << (nj : 'N_{jet}');
     @*/*: nj;
@@ -216,8 +263,8 @@ def main(index):
     cuts.addAnalysisJob(cutflowjob, "*")
 
     # Eventlist jobs
-    eventlistjob = TQEventlistAnalysisJob("eventlist")
-    eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
+    #eventlistjob = TQEventlistAnalysisJob("eventlist")
+    #eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     if index < 0:
@@ -256,23 +303,25 @@ def main(index):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
+    main(-1)
 
-        import multiprocessing
+    #if len(sys.argv) < 2:
 
-        jobs = []
-        for i in range(55):
-            p = multiprocessing.Process(target=main, args=(i,))
-            jobs.append(p)
-            p.start()
+    #    import multiprocessing
 
-        for index, job in enumerate(jobs):
-            #print "{} jobs done out of {}".format(index, len(jobs))
-            job.join()
+    #    jobs = []
+    #    for i in range(55):
+    #        p = multiprocessing.Process(target=main, args=(i,))
+    #        jobs.append(p)
+    #        p.start()
 
-        os.system("rooutil/qframework/share/tqmerge -o output.root -t analysis .qss_output_*.root")
+    #    for index, job in enumerate(jobs):
+    #        #print "{} jobs done out of {}".format(index, len(jobs))
+    #        job.join()
 
-    else:
+    #    os.system("rooutil/qframework/share/tqmerge -o output.root -t analysis .qss_output_*.root")
 
-        main(int(sys.argv[1]))
+    #else:
 
+    #    main(int(sys.argv[1]))
+#

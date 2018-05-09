@@ -15,18 +15,18 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
-    #printer.addCutflowProcess("|", "|")
-    #printer.addCutflowProcess("/typebkg/prompt", "Prompt")
-    #printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
-    #printer.addCutflowProcess("/typebkg/photon", "Photon")
-    #printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
-    #printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
-    #printer.addCutflowProcess("|", "|")
-    #printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
-    #printer.addCutflowProcess("|", "|")
-    #printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
-    #printer.addCutflowProcess("|", "|")
-    #printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/prompt", "Prompt")
+    printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
+    printer.addCutflowProcess("/typebkg/photon", "Photon")
+    printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
+    printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/bkg/top/singletop", "1top")
     printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
@@ -54,17 +54,21 @@ def addProcesses(printer, showdata, prettyversion=True):
 # Supports only printing out by process boundaries
 def printCutflow(samples, regionname):
     cuts = {}
-    cutnames = []
+    cutkeys = []
+    cutnames = {}
     for counter in samples.getListOfCounterNames():
         #if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
         if str(counter).find(regionname) != -1:
             title = samples.getCounter("/sig", str(counter)).GetTitle()
-            cutnames.append(str(counter))
+            cutkeys.append(str(title)+str(counter))
+            cutnames[cutkeys[-1]] = str(counter)
             cuts[str(counter)] = str(title)
-    cutnames.sort(key=natural_keys)
+    cutkeys.sort(key=natural_keys)
+    #cutnames.sort()
     # Cutflow printing
     printer = TQCutflowPrinter(samples)
-    for cut in cutnames:
+    for key in cutkeys:
+        cut = cutnames[key]
         printer.addCutflowCut(cut, cuts[cut], True)
     addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")

@@ -19,7 +19,9 @@
 #job_tag = "WWW_v1.0.18" # Failed Campaign
 #job_tag = "WWW_v1.0.19" # v3 id with two ptratio cut values for electron and muons
 #job_tag = "WWW_v1.0.20" # v3 id with two ptratio cut values for electron and muons and OS events saved as well
-job_tag = "WWW_v1.0.21" # v4 id place holder with fake and veto set to relisolep 1.4 cut value but the tight is somewhat aribtrary.
+#job_tag = "WWW_v1.0.21" # v4 id place holder with fake and veto set to relisolep 1.4 cut value but the tight is somewhat aribtrary.
+#job_tag = "WWW_v1.0.22" # v4 id with new sf new trigeff new fakerate (seemed bugged)
+job_tag = "WWW_v1.0.23" # v4 id with new sf new trigeff new fakerate
 
 ###################################################################################################################
 ###################################################################################################################
@@ -145,9 +147,9 @@ samples = {
 "/MuonEG/Run2016H-03Feb2017_ver2-v1/CMS3"                                                                                                                                       : "data_Run2016H_03feb2017rereco_unmerged_em_v2",
 "/MuonEG/Run2016H-03Feb2017_ver3-v1/CMS3"                                                                                                                                       : "data_Run2016H_03feb2017rereco_unmerged_em_v3",
 
-# Extra samples
+## Extra samples
 "/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                                              : "ttbar_incl_powheg",
-"/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                   : "dy_m50_amcnlo",
+#"/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"                   : "dy_m50_amcnlo",
 
 
 
@@ -322,6 +324,7 @@ tar_gz_path = tar_path + ".gz"
 metis_dashboard_path = os.path.join(metis_path, "dashboard")
 exec_path = os.path.join(main_dir, "metis.sh")
 merge_exec_path = os.path.join(main_dir, "merge.sh")
+#hadoop_path = "metis/wwwbaby/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
 hadoop_path = "metis/wwwbaby" # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
 args = ""
 

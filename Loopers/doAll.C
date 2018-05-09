@@ -17,7 +17,7 @@
   string dataset[chainsize];
 
   //lightly skimmed babies
-  string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.11/skim/";
+  string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.12/skim/";
 
   string myhelper;
 
@@ -130,7 +130,7 @@
   int j = 0;
   for(int i = 0; i<chainsize; ++i){
     //if(i>=3&&i<=15) continue;//don't run over individual samples (but for signal) - run over combined background instead
-    //if (i != 16) continue;
+    if (i != 0) continue;
     TChain *mych = ch[i];
     string mydataset = dataset[i];
     cout << "Now entering " << mydataset << endl;

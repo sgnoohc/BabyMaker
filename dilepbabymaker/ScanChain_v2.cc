@@ -1,5 +1,7 @@
 #include "ScanChain_v2.h"
-#include "../Loopers/LeptonAndTriggerSF.h"
+#include "LeptonScaleFactors.h"
+#include "fakerate_v3.h"
+#include "puWeight.h"
 
 using namespace std;
 
@@ -180,9 +182,19 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("Flag_HBHENoiseFilter");
     tx->createBranch<int>("Flag_badChargedCandidateFilter");
     tx->createBranch<int>("Flag_badMuonFilter");
+    tx->createBranch<int>("Flag_badMuonFilterv2");
+    tx->createBranch<int>("Flag_badChargedCandidateFilterv2");
     tx->createBranch<int>("Flag_eeBadScFilter");
     tx->createBranch<int>("Flag_globalTightHalo2016");
     tx->createBranch<int>("Flag_goodVertices");
+    tx->createBranch<int>("Flag_ecalLaserCorrFilter");
+    tx->createBranch<int>("Flag_hcalLaserEventFilter");
+    tx->createBranch<int>("Flag_trackingFailureFilter");
+    tx->createBranch<int>("Flag_CSCTightHaloFilter");
+    tx->createBranch<int>("Flag_CSCTightHalo2015Filter");
+    tx->createBranch<int>("Flag_badMuons");
+    tx->createBranch<int>("Flag_duplicateMuons");
+    tx->createBranch<int>("Flag_noBadMuons");
 
     // Summary variables
     tx->createBranch<int>("nVlep");
@@ -282,6 +294,10 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("trigeff");
     tx->createBranch<float>("trigeff_up");
     tx->createBranch<float>("trigeff_dn");
+
+    tx->createBranch<float>("trigsf");
+    tx->createBranch<float>("trigsf_up");
+    tx->createBranch<float>("trigsf_dn");
 
     tx->clear();
 }
@@ -1440,18 +1456,30 @@ void babyMaker_v2::FillWeights()
     // trigger eff
     if (!cms3.evt_isRealData())
     {
-        float trigeff;
-        float trigefferr;
-        std::tie(trigeff, trigefferr) = getTrigEffandError();
-        tx->setBranch<float>("trigeff", trigeff);
-        tx->setBranch<float>("trigeff_up", trigeff + trigefferr);
-        tx->setBranch<float>("trigeff_dn", trigeff - trigefferr);
+//        float trigeff;
+//        float trigefferr;
+//        std::tie(trigeff, trigefferr) = getTrigEffandError();
+//        tx->setBranch<float>("trigeff", trigeff);
+//        tx->setBranch<float>("trigeff_up", trigeff + trigefferr);
+//        tx->setBranch<float>("trigeff_dn", trigeff - trigefferr);
+        tx->setBranch<float>("trigeff", 1);
+        tx->setBranch<float>("trigeff_up", 1);
+        tx->setBranch<float>("trigeff_dn", 1);
+        float trigsf;
+        float trigsferr;
+        std::tie(trigsf, trigsferr) = getTrigSFandError();
+        tx->setBranch<float>("trigsf", trigsf);
+        tx->setBranch<float>("trigsf_up", trigsf + trigsferr);
+        tx->setBranch<float>("trigsf_dn", trigsf - trigsferr);
     }
     else
     {
         tx->setBranch<float>("trigeff", 1);
         tx->setBranch<float>("trigeff_up", 1);
         tx->setBranch<float>("trigeff_dn", 1);
+        tx->setBranch<float>("trigsf", 1);
+        tx->setBranch<float>("trigsf_up", 1);
+        tx->setBranch<float>("trigsf_dn", 1);
     }
 }
 
@@ -1968,47 +1996,149 @@ std::tuple<float, float> babyMaker_v2::getlepFakeRateandError(bool data, int lep
     return make_tuple(faker, error);
 }
 
+////##############################################################################################################
+//std::tuple<float, float> babyMaker_v2::getlepSFandError(int index, int lepton_id_version) // deprecated
+//{
+//    // Retrieve relevant variables
+//    const vector<int>&   lep_pdgId = tx->getBranch<vector<int>>  ("lep_pdgId");
+//    const vector<LV>&    lep_p4    = tx->getBranch<vector<LV>>   ("lep_p4");
+//    const vector<float>& lep_etaSC = tx->getBranch<vector<float>>("lep_etaSC");
+//
+//    // If the provided index is out of bound return null
+//    if (index < 0) return make_tuple(1., 0.);
+//    if (index >= (int) lep_pdgId.size()) return make_tuple(1., 0.);
+//
+//    // If electron
+//    if (abs(lep_pdgId[index]) == 11)
+//    {
+//        // Parametrized kinematic quantity for scale factors
+//        float pt = lep_p4[index].Pt();
+//        float eta = lep_etaSC[index];
+//        // Scale Factors
+//        float sfreco   = lepsf_EGammaReco               (pt, eta);
+//        float sftight  = lepsf_EGammaTightID            (pt, eta);
+//        float sfWWW    = lepsf_EGammaTightPOG_EGammaVVV (pt, eta, lepton_id_version);
+//        float sfWWWIso = lepsf_EGammaVVV_Isolation      (pt, eta, lepton_id_version);
+//        float sf       = sfreco * sftight * sfWWW * sfWWWIso;
+//        // Errors
+//        float errreco   = lepsf_EGammaReco_unc           (pt, eta);
+//        float errtight  = lepsf_EGammaTightID_unc        (pt, eta);
+//        float errWWW    = fabs(lepsf_EGammaTightPOG_EGammaVVV(pt, eta, lepton_id_version, 1) - sfWWW   ); // difference against syst = +1 is the error
+//        float errWWWIso = fabs(lepsf_EGammaVVV_Isolation     (pt, eta, lepton_id_version, 1) - sfWWWIso); // difference against syst = +1 is the error 
+//        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
+//        float fracerrreco   = sfreco   > 0 ? errreco   / sfreco   : 0;
+//        float fracerrtight  = sftight  > 0 ? errtight  / sftight  : 0;
+//        float fracerrWWW    = sfWWW    > 0 ? errWWW    / sfWWW    : 0;
+//        float fracerrWWWIso = sfWWWIso > 0 ? errWWWIso / sfWWWIso : 0;
+//        float fracerrtotal  = sqrt(pow(fracerrreco, 2) + pow(fracerrtight, 2) + pow(fracerrWWW, 2) + pow(fracerrWWWIso, 2));
+//        // Assume the "tight" and "WWW" error (which are MVA based for lepton_id_version >= 2) are 100% correlated
+//        if (lepton_id_version >= 2)
+//            fracerrtotal = sqrt(pow(fracerrreco, 2) + pow(fracerrtight + fracerrWWW, 2) + pow(fracerrWWWIso, 2));
+//        float error         = fracerrtotal * sf;
+//        // Return the value
+//        return make_tuple(sf, error);
+//    }
+//    else  //muon
+//    {
+//        // Parametrized kinematic quantity for scale factors
+//        float pt = lep_p4[index].Pt();
+//        float eta = lep_p4[index].Eta();
+//        // Scale Factors
+//        float sfreco   = lepsf_MuReco                (pt, eta);
+//        float sftight1 = lepsf_MuMediumID_BtoF       (pt, eta);
+//        float sftight2 = lepsf_MuMediumID_GH         (pt, eta);
+//        float sfWWW    = lepsf_MuMediumPOG_MuTightVVV(pt, eta, lepton_id_version);
+//        float sftight  = sftight1 * 0.549833 + sftight2 * 0.450167; //luminosity weights B-F vs. G+H
+//        float sf       = sftight * sfWWW;
+//        // Errors
+//        // Recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults and linked twiki
+//        // From the recommendations what we conclude is to add is a 1% additional uncertainty.
+//        float errreco   = lepsf_MuReco_unc         (pt, eta);
+//        float errtight1 = lepsf_MuMediumID_BtoF_unc(pt, eta); // Additional 1%
+//        float errtight2 = lepsf_MuMediumID_GH_unc  (pt, eta); // Additional 1%
+//        float errWWW    = fabs(lepsf_MuMediumPOG_MuTightVVV(pt, eta, lepton_id_version, 1) - sfWWW); // difference against syst = +1 is the error 
+//        float errtight  = sqrt(pow(errtight1 * 0.549833, 2) + pow(errtight2 * 0.450167, 2));
+//        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
+//        float fracerrreco  = sfreco  > 0 ? errreco  / sfreco : 0;
+//        float fracerrtight = sftight > 0 ? errtight / sftight : 0;
+//        float fracerrWWW   = sfWWW   > 0 ? errWWW   / sfWWW   : 0;
+//        float fracerrtotal = sqrt(pow(fracerrreco, 2) + pow(fracerrtight, 2) + pow(fracerrWWW, 2) + pow(0.01, 2)); // flat additional 1% uncertainty
+//        float error        = fracerrtotal * sf;
+//        // Return the value
+//        return make_tuple(sf, error);
+//    }
+//}
+
 //##############################################################################################################
 std::tuple<float, float> babyMaker_v2::getlepSFandError(int index, int lepton_id_version)
 {
     // Retrieve relevant variables
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>&   lep_pdgId = tx->getBranch<vector<int>>  ("lep_pdgId");
+    const vector<LV>&    lep_p4    = tx->getBranch<vector<LV>>   ("lep_p4");
     const vector<float>& lep_etaSC = tx->getBranch<vector<float>>("lep_etaSC");
 
     // If the provided index is out of bound return null
     if (index < 0) return make_tuple(1., 0.);
     if (index >= (int) lep_pdgId.size()) return make_tuple(1., 0.);
 
+    // Warning message if the leptonid version is not 2
+    if (abs(lepton_id_version) != 2)
+        RooUtil::error("getlepSFandError: lepton_id_version != 2");
+
     // If electron
     if (abs(lep_pdgId[index]) == 11)
     {
-        float effreco  = lepsf_EGammaReco(lep_p4[index].Pt(), lep_etaSC[index]);
-        float efftight = lepsf_EGammaTightID(lep_p4[index].Pt(), lep_etaSC[index]);
-        float effWWW   = lepsf_EGammaTightPOG_EGammaVVV(lep_p4[index].Pt(), lep_etaSC[index], lepton_id_version);
-        float errreco  = lepsf_EGammaReco_unc(lep_p4[index].Pt(), lep_etaSC[index]);
-        float errtight = lepsf_EGammaTightID_unc(lep_p4[index].Pt(), lep_etaSC[index]);
-        float errWWW   = 0.01 * fabs(1. - effWWW); //add 1% of difference to 1.
-        float error = sqrt(pow(errreco * efftight * effWWW, 2) + pow(errtight * effreco * effWWW, 2) + pow(errWWW * effreco * efftight, 2));
-//        std::cout <<  " effreco: " << effreco <<  " efftight: " << efftight <<  " effWWW: " << effWWW <<  " effreco*efftight*effWWW: " << effreco*efftight*effWWW <<  std::endl;
-        return make_tuple(effreco * efftight * effWWW, error);
+        // Parametrized kinematic quantity for scale factors
+        float pt = lep_p4[index].Pt();
+        float eta = lep_etaSC[index];
+        // Scale Factors
+        float sfreco   = lepsf_elec_reco(pt, eta);
+        float sfpogid  = lepton_id_version > 0 ? lepsf_elec_mva80 (pt, eta) : lepsf_elec_mva90 (pt, eta);
+        float sfWWW    = lepton_id_version > 0 ? lepsf_elec_ss_id (pt, eta) : lepsf_elec_3l_id (pt, eta);
+        float sfWWWIso = lepton_id_version > 0 ? lepsf_elec_ss_iso(pt, eta) : lepsf_elec_3l_iso(pt, eta);
+        float sf       = sfreco * sfpogid * sfWWW * sfWWWIso;
+        // Errors
+        float errreco   = lepsf_elec_reco(pt, eta, 1) - sfreco;
+        float errpogid  = (lepton_id_version > 0 ? lepsf_elec_mva80 (pt, eta, 1) : lepsf_elec_mva90 (pt, eta, 1)) - sfpogid;
+        float errWWW    = (lepton_id_version > 0 ? lepsf_elec_ss_id (pt, eta, 1) : lepsf_elec_3l_id (pt, eta, 1)) - sfWWW; // difference against syst = +1 is the error
+        float errWWWIso = (lepton_id_version > 0 ? lepsf_elec_ss_iso(pt, eta, 1) : lepsf_elec_3l_iso(pt, eta, 1)) - sfWWWIso; // difference against syst = +1 is the error 
+        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
+        float fracerrreco   = sfreco   > 0 ? errreco   / sfreco   : 0;
+        float fracerrpogid  = sfpogid  > 0 ? errpogid  / sfpogid  : 0;
+        float fracerrWWW    = sfWWW    > 0 ? errWWW    / sfWWW    : 0;
+        float fracerrWWWIso = sfWWWIso > 0 ? errWWWIso / sfWWWIso : 0;
+        float fracerrtotal  = sqrt(pow(fracerrreco, 2) + pow(fracerrpogid, 2) + pow(fracerrWWW, 2) + pow(fracerrWWWIso, 2));
+        // Assume the "tight" and "WWW" error (which are MVA based for lepton_id_version >= 2) are 100% correlated
+        if (lepton_id_version >= 2)
+            fracerrtotal = sqrt(pow(fracerrreco, 2) + pow(fracerrpogid + fracerrWWW, 2) + pow(fracerrWWWIso, 2));
+        float error         = fracerrtotal * sf;
+        // Return the value
+        return make_tuple(sf, error);
     }
     else  //muon
     {
-        float effreco   = lepsf_MuReco(lep_p4[index].Pt(), lep_p4[index].Eta());
-        float efftight1 = lepsf_MuMediumID_BtoF(lep_p4[index].Pt(), lep_p4[index].Eta());
-        float efftight2 = lepsf_MuMediumID_GH(lep_p4[index].Pt(), lep_p4[index].Eta());
-        float efftight  = efftight1 * 0.549833 + efftight2 * 0.450167; //luminosity weights B-F vs. G+H
-        float effWWW    = lepsf_MuMediumPOG_MuTightVVV(lep_p4[index].Pt(), lep_p4[index].Eta(), lepton_id_version);
-        float errreco   = lepsf_MuReco_unc(lep_p4[index].Pt(), lep_p4[index].Eta());
-        //recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults and linked twiki
-        float errtight1 = sqrt(pow(lepsf_MuMediumID_BtoF_unc(lep_p4[index].Pt(), lep_p4[index].Eta()), 2) + pow(0.01 * fabs(1. - efftight1), 2));
-        float errtight2 = sqrt(pow(lepsf_MuMediumID_GH_unc(lep_p4[index].Pt(), lep_p4[index].Eta()), 2) + pow(0.01 * fabs(1. - efftight2), 2));
-        float errtight  = sqrt(pow(errtight1 * 0.549833, 2) + pow(errtight2 * 0.450167, 2));
-        float errWWW    = 0.01 * fabs(1. - effWWW); //add 1% of difference to 1.
-        float error = sqrt(pow(errreco * efftight * effWWW, 2) + pow(errtight * effreco * effWWW, 2) + pow(errWWW * effreco * efftight, 2));
-//        std::cout <<  " effreco: " << effreco <<  " efftight: " << efftight <<  " effWWW: " << effWWW <<  " effreco*efftight*effWWW: " << effreco*efftight*effWWW <<  std::endl;
-        return make_tuple(effreco * efftight * effWWW, error);
+        // Parametrized kinematic quantity for scale factors
+        float pt = lep_p4[index].Pt();
+        float eta = lep_p4[index].Eta();
+        // Scale Factors
+        float sftrk    = lepsf_muon_trk(pt, eta);
+        float sfpogid  = lepsf_muon_id (pt, eta);
+        float sfWWW    = lepton_id_version > 0 ? lepsf_muon_ss(pt, eta) : lepsf_muon_3l(pt, eta);
+        float sf       = sftrk * sfpogid * sfWWW;
+        // Errors
+        // Recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults and linked twiki
+        // From the recommendations what we conclude is to add is a 1% additional uncertainty.
+        float errtrk    = lepsf_muon_trk(pt, eta, 1) - sftrk;
+        float errpogid  = lepsf_muon_id (pt, eta, 1) - sfpogid;
+        float errWWW    = (lepton_id_version > 0 ? lepsf_muon_ss(pt, eta, 1) : lepsf_muon_3l(pt, eta, 1)) - sfWWW;
+        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
+        float fracerrtrk   = sftrk   > 0 ? errtrk   / sftrk   : 0;
+        float fracerrpogid = sfpogid > 0 ? errpogid / sfpogid : 0;
+        float fracerrWWW   = sfWWW   > 0 ? errWWW   / sfWWW   : 0;
+        float fracerrtotal = sqrt(pow(fracerrtrk, 2) + pow(fracerrpogid, 2) + pow(fracerrWWW, 2) + pow(0.01, 2)); // flat additional 1% uncertainty
+        float error        = fracerrtotal * sf;
+        // Return the value
+        return make_tuple(sf, error);
     }
 }
 
@@ -2075,6 +2205,124 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
     float eff = 1.0;
     float err = 0.0;
 
+//    // even if there are more than 2 leptons apply to the first two only
+//    float pt0 = lep_p4[0].pt();
+//    float pt1 = lep_p4[1].pt();
+//    float eta0 = lep_p4[0].eta();
+//    float eta1 = lep_p4[1].eta();
+//    float leadeta  = std::min(fabs(eta0), (float)2.39);
+//    float traileta = std::min(fabs(eta1), (float)2.39);
+//    float leadpt   = std::min(pt0, (float)499.);
+//    float trailpt  = std::min(pt1, (float)499.);
+//
+//    float bigeta   = leadeta > traileta ? leadeta  : traileta;
+//    float smalleta = leadeta > traileta ? traileta : leadeta;
+//
+//    // is ee events
+//    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+//    {
+//        // related to lepton legs
+//        float e_l0 = trigeff_el_lead(leadeta, leadpt);
+//        float e_t1 = trigeff_el_trail(traileta, trailpt);
+//        float e_l1 = trigeff_el_lead(traileta, trailpt);
+//        float e_t0 = trigeff_el_trail(leadeta, leadpt);
+//        float d_l0 = trigeff_el_lead(leadeta, leadpt, 1) - trigeff_el_lead(leadeta, leadpt);
+//        float d_t1 = trigeff_el_trail(traileta, trailpt, 1) - trigeff_el_trail(traileta, trailpt);
+//        float d_l1 = trigeff_el_lead(traileta, trailpt, 1) - trigeff_el_lead(traileta, trailpt);
+//        float d_t0 = trigeff_el_trail(leadeta, leadpt, 1) - trigeff_el_trail(leadeta, leadpt);
+//        float tempeff = 1.0;
+//        float temperr = 0.0;
+//        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, e_l1, e_t0, e_t1, d_l0, d_l1, d_t0, d_t1);
+//        // dz
+//        float dzeff = trigeff_diel_dz(smalleta, bigeta);
+//        float dzerr = trigeff_diel_dz(smalleta, bigeta, 1) - trigeff_diel_dz(smalleta, bigeta, 1);
+//        eff = tempeff * dzeff;
+//        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+//    }
+//
+//    // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
+//    // So apply only a flat err of 2%
+//
+//    // is em events
+//    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+//    {
+//        // related to lepton legs
+//        float e_l0 = trigeff_el_lead(leadeta, leadpt);
+//        float e_t1 = trigeff_mu_trail(traileta, trailpt);
+//        float d_l0 = trigeff_el_lead(leadeta, leadpt, 1) - trigeff_el_lead(leadeta, leadpt);
+//        float d_t1 = trigeff_mu_trail(traileta, trailpt, 1) - trigeff_mu_trail(traileta, trailpt);
+//        float tempeff = 1.0;
+//        float temperr = 0.0;
+//        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+//        // dz
+//        float dzeff = 1.0;
+//        float dzerr = 0.02;
+//        eff = tempeff * dzeff;
+//        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+//    }
+//
+//    // is me events
+//    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
+//    {
+//        // nominal
+//        float e_l0 = trigeff_mu_lead(leadeta, leadpt);
+//        float e_t1 = trigeff_el_trail(traileta, trailpt);
+//        float d_l0 = trigeff_mu_lead(leadeta, leadpt, 1) - trigeff_mu_lead(leadeta, leadpt);
+//        float d_t1 = trigeff_el_trail(traileta, trailpt, 1) - trigeff_el_trail(traileta, trailpt);
+//        float tempeff = 1.0;
+//        float temperr = 0.0;
+//        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+//        // dz
+//        float dzeff = 1.0;
+//        float dzerr = 0.02;
+//        eff = tempeff * dzeff;
+//        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+//    }
+//
+//    // is mm events
+//    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
+//    {
+//        // related to lepton legs
+//        float e_l0 = trigeff_mu_lead(leadeta, leadpt);
+//        float e_t1 = trigeff_mu_trail(traileta, trailpt);
+//        float e_l1 = trigeff_mu_lead(traileta, trailpt);
+//        float e_t0 = trigeff_mu_trail(leadeta, leadpt);
+//        float d_l0 = trigeff_mu_lead(leadeta, leadpt, 1) - trigeff_mu_lead(leadeta, leadpt);
+//        float d_t1 = trigeff_mu_trail(traileta, trailpt, 1) - trigeff_mu_trail(traileta, trailpt);
+//        float d_l1 = trigeff_mu_lead(traileta, trailpt, 1) - trigeff_mu_lead(traileta, trailpt);
+//        float d_t0 = trigeff_mu_trail(leadeta, leadpt, 1) - trigeff_mu_trail(leadeta, leadpt);
+//        float tempeff = 1.0;
+//        float temperr = 0.0;
+//        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, e_l1, e_t0, e_t1, d_l0, d_l1, d_t0, d_t1);
+//        // dz
+//        float dzeff = 0.241 * trigeff_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+//        float dzerr = 0.241 * (trigeff_dimu_dz(smalleta, bigeta, 1) - trigeff_dimu_dz(smalleta, bigeta));
+//        eff = tempeff * dzeff;
+//        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+//        // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
+//        // 8.636 + 0.221 / 36.814 = 0.241
+//    }
+    
+    // Return result
+    return make_tuple(eff, err);
+}
+
+//##############################################################################################################
+std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
+{
+    // Retrieve relevant variables
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+
+    // If less than two leptons (should never happen anyways)
+    // return dummy value
+    if (lep_pdgId.size() < 2)
+        return make_tuple(0.0, 0.0);
+
+    // Return values
+    float eff = 1.0;
+    float err = 0.0;
+
     // even if there are more than 2 leptons apply to the first two only
     float pt0 = lep_p4[0].pt();
     float pt1 = lep_p4[1].pt();
@@ -2082,30 +2330,28 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
     float eta1 = lep_p4[1].eta();
     float leadeta  = std::min(fabs(eta0), (float)2.39);
     float traileta = std::min(fabs(eta1), (float)2.39);
-    float leadpt   = std::min(pt0, (float)499.);
-    float trailpt  = std::min(pt1, (float)499.);
+    float leadpt   = std::min(pt0, (float)199.);
+    float trailpt  = std::min(pt1, (float)199.);
 
     float bigeta   = leadeta > traileta ? leadeta  : traileta;
     float smalleta = leadeta > traileta ? traileta : leadeta;
+
+    // NOTE: "eff" variable names are really "efficiency scale factors"
 
     // is ee events
     if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
     {
         // related to lepton legs
-        float e_l0 = trigeff_el_lead(leadeta, leadpt);
-        float e_t1 = trigeff_el_trail(traileta, trailpt);
-        float e_l1 = trigeff_el_lead(traileta, trailpt);
-        float e_t0 = trigeff_el_trail(leadeta, leadpt);
-        float d_l0 = trigeff_el_lead(leadeta, leadpt, 1) - trigeff_el_lead(leadeta, leadpt);
-        float d_t1 = trigeff_el_trail(traileta, trailpt, 1) - trigeff_el_trail(traileta, trailpt);
-        float d_l1 = trigeff_el_lead(traileta, trailpt, 1) - trigeff_el_lead(traileta, trailpt);
-        float d_t0 = trigeff_el_trail(leadeta, leadpt, 1) - trigeff_el_trail(leadeta, leadpt);
+        float e_l0 = trigsf_el_lead(leadpt, leadeta);
+        float e_t1 = trigsf_el_trail(trailpt, traileta);
+        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
         float tempeff = 1.0;
         float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, e_l1, e_t0, e_t1, d_l0, d_l1, d_t0, d_t1);
+        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
         // dz
-        float dzeff = trigeff_diel_dz(smalleta, bigeta);
-        float dzerr = trigeff_diel_dz(smalleta, bigeta, 1) - trigeff_diel_dz(smalleta, bigeta, 1);
+        float dzeff = trigsf_diel_dz(smalleta, bigeta);
+        float dzerr = trigsf_diel_dz(smalleta, bigeta, 1) - trigsf_diel_dz(smalleta, bigeta);
         eff = tempeff * dzeff;
         err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
     }
@@ -2117,10 +2363,10 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
     if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
     {
         // related to lepton legs
-        float e_l0 = trigeff_el_lead(leadeta, leadpt);
-        float e_t1 = trigeff_mu_trail(traileta, trailpt);
-        float d_l0 = trigeff_el_lead(leadeta, leadpt, 1) - trigeff_el_lead(leadeta, leadpt);
-        float d_t1 = trigeff_mu_trail(traileta, trailpt, 1) - trigeff_mu_trail(traileta, trailpt);
+        float e_l0 = trigsf_el_lead(leadpt, leadeta);
+        float e_t1 = trigsf_mu_trail(trailpt, traileta);
+        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
         float tempeff = 1.0;
         float temperr = 0.0;
         std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
@@ -2135,10 +2381,10 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
     if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
     {
         // nominal
-        float e_l0 = trigeff_mu_lead(leadeta, leadpt);
-        float e_t1 = trigeff_el_trail(traileta, trailpt);
-        float d_l0 = trigeff_mu_lead(leadeta, leadpt, 1) - trigeff_mu_lead(leadeta, leadpt);
-        float d_t1 = trigeff_el_trail(traileta, trailpt, 1) - trigeff_el_trail(traileta, trailpt);
+        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+        float e_t1 = trigsf_el_trail(trailpt, traileta);
+        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
         float tempeff = 1.0;
         float temperr = 0.0;
         std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
@@ -2153,20 +2399,16 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
     if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
     {
         // related to lepton legs
-        float e_l0 = trigeff_mu_lead(leadeta, leadpt);
-        float e_t1 = trigeff_mu_trail(traileta, trailpt);
-        float e_l1 = trigeff_mu_lead(traileta, trailpt);
-        float e_t0 = trigeff_mu_trail(leadeta, leadpt);
-        float d_l0 = trigeff_mu_lead(leadeta, leadpt, 1) - trigeff_mu_lead(leadeta, leadpt);
-        float d_t1 = trigeff_mu_trail(traileta, trailpt, 1) - trigeff_mu_trail(traileta, trailpt);
-        float d_l1 = trigeff_mu_lead(traileta, trailpt, 1) - trigeff_mu_lead(traileta, trailpt);
-        float d_t0 = trigeff_mu_trail(leadeta, leadpt, 1) - trigeff_mu_trail(leadeta, leadpt);
+        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+        float e_t1 = trigsf_mu_trail(trailpt, traileta);
+        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
         float tempeff = 1.0;
         float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, e_l1, e_t0, e_t1, d_l0, d_l1, d_t0, d_t1);
+        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
         // dz
-        float dzeff = 0.241 * trigeff_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
-        float dzerr = 0.241 * (trigeff_dimu_dz(smalleta, bigeta, 1) - trigeff_dimu_dz(smalleta, bigeta));
+        float dzeff = 0.241 * trigsf_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+        float dzerr = 0.241 * (trigsf_dimu_dz(smalleta, bigeta, 1) - trigsf_dimu_dz(smalleta, bigeta));
         eff = tempeff * dzeff;
         err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
         // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
