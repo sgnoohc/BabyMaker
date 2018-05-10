@@ -1,4 +1,4 @@
-This repository is used to produce babies for the VVV analysis. It makes use of AutoTwopler from NTupleTools and CORE.
+TUAFhis repository is used to produce babies for the VVV analysis. It makes use of AutoTwopler from NTupleTools and CORE.
 
 To make babies, first checkout this repository
 

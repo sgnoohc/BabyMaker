@@ -27,7 +27,7 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    connectNtuples(samples, "samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/", ">2")
+    connectNtuples(samples, "samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/", ">2", ">3")
 
     #
     #
@@ -55,9 +55,13 @@ def main(index):
     tqcuts["CutOSem"] = TQCut("CutOSem" , "OS: em" , "(lep_pdgId[0]*lep_pdgId[1]==-143)*(mc_HLT_MuEG==1)" , "trigsf")
     tqcuts["CutOSmm"] = TQCut("CutOSmm" , "OS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==-169)*(mc_HLT_DoubleMu==1)" , "trigsf")
 
-    tqcuts["CutOSeeNjet1"] = TQCut("CutOSeeNjet1" , "OSee: n_{jet,all} = 1" , "nj==1" , "1")
-    tqcuts["CutOSemNjet1"] = TQCut("CutOSemNjet1" , "OSem: n_{jet,all} = 1" , "nj==1" , "1")
-    tqcuts["CutOSmmNjet1"] = TQCut("CutOSmmNjet1" , "OSmm: n_{jet,all} = 1" , "nj==1" , "1")
+    tqcuts["CutOSeeNjet0"] = TQCut("CutOSeeNjet1" , "OSee: n_{jet,central,30 GeV} = 0" , "nj30==0" , "1")
+    tqcuts["CutOSemNjet0"] = TQCut("CutOSemNjet1" , "OSem: n_{jet,central,30 GeV} = 0" , "nj30==0" , "1")
+    tqcuts["CutOSmmNjet0"] = TQCut("CutOSmmNjet1" , "OSmm: n_{jet,central,30 GeV} = 0" , "nj30==0" , "1")
+
+    tqcuts["CutOSeeNjet1"] = TQCut("CutOSeeNjet1" , "OSee: n_{jet,central,30 GeV} = 1" , "nj30==1" , "1")
+    tqcuts["CutOSemNjet1"] = TQCut("CutOSemNjet1" , "OSem: n_{jet,central,30 GeV} = 1" , "nj30==1" , "1")
+    tqcuts["CutOSmmNjet1"] = TQCut("CutOSmmNjet1" , "OSmm: n_{jet,central,30 GeV} = 1" , "nj30==1" , "1")
 
     tqcuts["CutOSeeNjet2"] = TQCut("CutOSeeNjet2" , "OSee: n_{jet,central,30 GeV} #geq 2" , "nj30>=2" , "1")
     tqcuts["CutOSemNjet2"] = TQCut("CutOSemNjet2" , "OSem: n_{jet,central,30 GeV} #geq 2" , "nj30>=2" , "1")
@@ -139,6 +143,9 @@ def main(index):
     tqcuts["CutOSee"].addCut(tqcuts["CutOSeeNjet1"])
     tqcuts["CutOSem"].addCut(tqcuts["CutOSemNjet1"])
     tqcuts["CutOSmm"].addCut(tqcuts["CutOSmmNjet1"])
+    tqcuts["CutOSee"].addCut(tqcuts["CutOSeeNjet0"])
+    tqcuts["CutOSem"].addCut(tqcuts["CutOSemNjet0"])
+    tqcuts["CutOSmm"].addCut(tqcuts["CutOSmmNjet0"])
     tqcuts["CutOSeeNjet2"].addCut(tqcuts["CutOSeeNb0"])
     tqcuts["CutOSemNjet2"].addCut(tqcuts["CutOSemNb0"])
     tqcuts["CutOSmmNjet2"].addCut(tqcuts["CutOSmmNb0"])
@@ -174,6 +181,15 @@ def main(index):
     TH1F('MET' , '' , 180 , 0. , 180.) << (met_pt : 'MET [GeV]');
     @*/*: MET;
 
+    TH1F('METphi' , '' , 180 , -3.1416 , 3.1416) << (met_phi : 'METphi');
+    @*/*: METphi;
+
+    TH1F('MTmax' , '' , 180 , 0. , 180.) << (MTmax : 'MTmax [GeV]');
+    @*/*: MTmax;
+
+    TH1F('MTmax' , '' , 180 , 0. , 180.) << (MTmax : 'MTmax [GeV]');
+    @*/*: MTmax;
+
     TH2F('lep0_pt_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {20, 30, 40, 50, 60, 70, 150, 2000} ) << (lep_eta[0] : '\#eta_{lead-lep}', lep_pt[0] : '\#it{p}_{T, lead-lep} [GeV]');
     @*/*: lep0_pt_vs_eta;
 
@@ -201,17 +217,20 @@ def main(index):
     TH1F('lep_phi1' , '' , 180 , -3.1416, 3.1416 ) << (lep_phi[1] : '\#phi_{trail-lep}');
     @*/*: lep_phi1;
 
-    TH1F('lep_ptRatio0' , '' , 180 , 0.6 , 1.2 ) << (lep_ptRatio[0] : '\#it{p}_{T, Ratio}');
-    @*/*: lep_ptRatio0;
-
-    TH1F('lep_ptRatio1' , '' , 180 , 0.6 , 1.2 ) << (lep_ptRatio[1] : '\#it{p}_{T, Ratio}');
-    @*/*: lep_ptRatio1;
-
     TH1F('lep_relIso03EAv2Lep0' , '' , 180 , 0. , 1.2 ) << (lep_relIso03EAv2Lep[0] : '\#it{I}_{Rel,R=0.3,EA-v2,Lep}');
     @*/*: lep_relIso03EAv2Lep0;
 
     TH1F('lep_relIso03EAv2Lep1' , '' , 180 , 0. , 1.2 ) << (lep_relIso03EAv2Lep[1] : '\#it{I}_{Rel,R=0.3,EA-v2,Lep}');
     @*/*: lep_relIso03EAv2Lep1;
+
+    TH1F('lep_ip3d0' , '' , 180 , -0.05 , 0.05 ) << (lep_ip3d[0] : 'IP3D');
+    @*/*: lep_ip3d0;
+
+    TH1F('lep_ip3d1' , '' , 180 , -0.05 , 0.05 ) << (lep_ip3d[1] : 'IP3D');
+    @*/*: lep_ip3d1;
+
+    TH1F('ntrk' , '' , 3 , 0. , 3. ) << (nisoTrack_mt2_cleaned_VVV_cutbased_veto : 'N_{track}');
+    @*/*: ntrk;
 
     TH1F('nj' , '' , 7 , 0. , 7. ) << (nj : 'N_{jet}');
     @*/*: nj;
@@ -222,22 +241,22 @@ def main(index):
     TH1F('nb' , '' , 5 , 0. , 5. ) << (nb : 'N_{b-jet}');
     @*/*: nb;
 
-    TH1F('jets_pt0' , '' , 180 , 0. , 250 ) << (jets_p4[0].pt() : '\#it{p}_{T, lead-jet} [GeV]');
+    TH1F('jets_pt0' , '' , 180 , 0. , 250 ) << ((jets_p4[0].pt()>30.)*jets_p4[0].pt()+(jets_p4[0].pt()<30.)*(-999) : '\#it{p}_{T, lead-jet} [GeV]');
     @*/*: jets_pt0;
     
-    TH1F('jets_pt1' , '' , 180 , 0. , 150 ) << (jets_p4[1].pt() : '\#it{p}_{T, trail-jet} [GeV]');
+    TH1F('jets_pt1' , '' , 180 , 0. , 150 ) << ((jets_p4[1].pt()>30.)*jets_p4[1].pt()+(jets_p4[1].pt()<30.)*(-999) : '\#it{p}_{T, trail-jet} [GeV]');
     @*/*: jets_pt1;
     
-    TH1F('jets_eta0' , '' , 180 , -5.0 , 5.0 ) << (jets_p4[0].eta() : '\#eta_{lead-jet}');
+    TH1F('jets_eta0' , '' , 180 , -5.0 , 5.0 ) << ((jets_p4[0].pt()>30.)*jets_p4[0].eta()+(jets_p4[0].pt()<30.)*(-999) : '\#eta_{lead-jet}');
     @*/*: jets_eta0;
     
-    TH1F('jets_eta1' , '' , 180 , -5.0 , 5.0 ) << (jets_p4[1].eta() : '\#eta_{trail-jet}');
+    TH1F('jets_eta1' , '' , 180 , -5.0 , 5.0 ) << ((jets_p4[1].pt()>30.)*jets_p4[1].eta()+(jets_p4[1].pt()<30.)*(-999) : '\#eta_{trail-jet}');
     @*/*: jets_eta1;
     
-    TH1F('jets_phi0' , '' , 180 , -3.1416, 3.1416 ) << (jets_p4[0].phi() : '\#phi_{lead-jet}');
+    TH1F('jets_phi0' , '' , 180 , -3.1416, 3.1416 ) << ((jets_p4[0].pt()>30.)*jets_p4[0].phi()+(jets_p4[0].pt()<30.)*(-999) : '\#phi_{lead-jet}');
     @*/*: jets_phi0;
     
-    TH1F('jets_phi1' , '' , 180 , -3.1416, 3.1416 ) << (jets_p4[1].phi() : '\#phi_{trail-jet}');
+    TH1F('jets_phi1' , '' , 180 , -3.1416, 3.1416 ) << ((jets_p4[1].pt()>30.)*jets_p4[1].phi()+(jets_p4[1].pt()<30.)*(-999) : '\#phi_{trail-jet}');
     @*/*: jets_phi1;
 
     """)
@@ -313,7 +332,7 @@ def getNTotalSample():
     if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
         samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
     else:
-        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.22/skim/"
+        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/"
 
     # By "visiting" the samples with the initializer we actually hook up the samples with root files
     init = TQSampleInitializer(samplepath, 1)
@@ -350,6 +369,8 @@ if __name__ == "__main__":
             job.join()
 
         os.system("rooutil/qframework/share/tqmerge -o output.root -t analysis .qos_output_*.root")
+        os.system("rm .qos_output_*.root")
+        os.system("rm .histo.os.*.cfg")
 
     else:
 

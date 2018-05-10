@@ -155,6 +155,8 @@ public:
     void ProcessTracks();
 
     bool PassPresel();
+    bool PassPresel_v1();
+    bool PassPresel_v2();
 
     void FillOutput();
 
