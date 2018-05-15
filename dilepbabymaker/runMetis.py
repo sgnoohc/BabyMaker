@@ -23,7 +23,9 @@
 #job_tag = "WWW_v1.0.22" # v4 id with new sf new trigeff new fakerate (seemed bugged)
 #job_tag = "WWW_v1.0.23" # v4 id with new sf new trigeff new fakerate (conecorrpt bugged)
 #job_tag = "WWW_v1.0.23.patch1" # v4 id with new sf new trigeff new fakerate (conecorrpt fixed, submitted W/ttbar only) 
-job_tag = "WWW_v1.1.0" # Including single leptons with QCD samples (W, ttbar, QCD only) version for closure
+
+#job_tag = "WWW_v1.1.0" # Including single leptons with QCD samples (W, ttbar, QCD only) version for closure
+job_tag = "WWW_v1.1.1" # Included MediumPOG ID (W, ttbar, QCD only) for closure
 
 ###################################################################################################################
 ###################################################################################################################

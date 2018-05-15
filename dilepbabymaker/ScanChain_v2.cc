@@ -129,6 +129,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<int>>("lep_charge");
     tx->createBranch<vector<float>>("lep_etaSC");
     tx->createBranch<vector<float>>("lep_MVA");
+    tx->createBranch<vector<int>>("lep_isMediumPOG");
     tx->createBranch<vector<int>>("lep_isFromW");
     tx->createBranch<vector<int>>("lep_isFromZ");
     tx->createBranch<vector<int>>("lep_isFromB");
@@ -662,6 +663,7 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.els_charge()[idx]);
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.els_etaSC()[idx]);
         tx->pushbackToBranch<float>         ("lep_MVA"                          , getMVAoutput(idx));
+        tx->pushbackToBranch<int>           ("lep_isMediumPOG"                  , 1);
         tx->pushbackToBranch<float>         ("lep_jetpt_v0"                     , temp_jet_p4_v0.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v1"                     , temp_jet_p4_v1.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v2"                     , temp_jet_p4.pt());
@@ -760,6 +762,7 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<int>           ("lep_charge"                       , cms3.mus_charge()[idx]);
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.mus_p4()[idx].eta()); // Electron specific branch. Just take muon's regular eta.
         tx->pushbackToBranch<float>         ("lep_MVA"                          , -99);
+        tx->pushbackToBranch<int>           ("lep_isMediumPOG"                  , isMediumMuonPOG(idx));
         tx->pushbackToBranch<float>         ("lep_jetpt_v0"                     , temp_jet_p4_v0.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v1"                     , temp_jet_p4_v1.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v2"                     , temp_jet_p4.pt());
@@ -856,6 +859,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_pdgId",
             "lep_tightCharge",
             "lep_charge",
+            "lep_isMediumPOG",
             "lep_isFromW",
             "lep_isFromZ",
             "lep_isFromB",
