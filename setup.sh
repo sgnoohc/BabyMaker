@@ -6,10 +6,10 @@
 
 echo "Grabbing Dependancies..."
 
-git clone git@github.com:cmstas/CORE.git
-#cd CORE/
-#git checkout CMS3_archive
-#cd ..
+git clone git@github.com:sgnoohc/CORE.git
+cd CORE/
+git checkout 2017
+cd ..
 git clone git@github.com:cmstas/NtupleTools.git
 git clone git@github.com:cmstas/Software.git
 cd Software/
