@@ -1013,12 +1013,22 @@ void babyMaker_v2::FillMETFilter()
     // Compute whether this is a recent cms3 version
     bool recent_cms3_version = (cms3_version.Contains("V08-00") && small_cms3_version <= 12) ? false : true;
 
+    // Is it CMS4?
+    bool is_cms4 = cms3_version.Contains("CMS4");
+
     if (cms3.evt_isRealData())
     {
         tx->setBranch<int>("Flag_ecalLaserCorrFilter", cms3.filt_ecalLaser());
         tx->setBranch<int>("Flag_hcalLaserEventFilter", cms3.filt_hcalLaser());
         tx->setBranch<int>("Flag_trackingFailureFilter", cms3.filt_trackingFailure());
         tx->setBranch<int>("Flag_CSCTightHaloFilter", cms3.filt_cscBeamHalo());
+    }
+    else
+    {
+        tx->setBranch<int>("Flag_ecalLaserCorrFilter", 1);
+        tx->setBranch<int>("Flag_hcalLaserEventFilter", 1);
+        tx->setBranch<int>("Flag_trackingFailureFilter", 1);
+        tx->setBranch<int>("Flag_CSCTightHaloFilter", 1);
     }
 
     // in data and MC
@@ -1028,20 +1038,32 @@ void babyMaker_v2::FillMETFilter()
     tx->setBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter", cms3.filt_ecalTP());
     tx->setBranch<int>("Flag_goodVertices", cms3.filt_goodVertices());
     tx->setBranch<int>("Flag_eeBadScFilter", cms3.filt_eeBadSc());
-    tx->setBranch<int>("Flag_badChargedCandidateFilter", badChargedCandidateFilter());
+    if (!is_cms4)
+        tx->setBranch<int>("Flag_badChargedCandidateFilter", badChargedCandidateFilter());
+    else
+        tx->setBranch<int>("Flag_badChargedCandidateFilter", 1);
 
     // inputs for badMuonFilters in latest cms3 tags
     if (recent_cms3_version)
     {
         tx->setBranch<int>("Flag_globalTightHalo2016", cms3.filt_globalTightHalo2016());
-        tx->setBranch<int>("Flag_badMuonFilter", badMuonFilter());
+        if (!is_cms4)
+            tx->setBranch<int>("Flag_badMuonFilter", badMuonFilter());
+        else
+            tx->setBranch<int>("Flag_badMuonFilter", 1);
         tx->setBranch<int>("Flag_badMuonFilterv2", badMuonFilterV2());
         tx->setBranch<int>("Flag_badChargedCandidateFilterv2", badChargedCandidateFilterV2());
-        if (small_cms3_version >= 18)
+        if (small_cms3_version >= 18 && !is_cms4)
         {
             tx->setBranch<int>("Flag_badMuons", cms3.filt_badMuons());
             tx->setBranch<int>("Flag_duplicateMuons", cms3.filt_duplicateMuons());
             tx->setBranch<int>("Flag_noBadMuons", cms3.filt_noBadMuons());
+        }
+        else
+        {
+            tx->setBranch<int>("Flag_badMuons", 1);
+            tx->setBranch<int>("Flag_duplicateMuons", 1);
+            tx->setBranch<int>("Flag_noBadMuons", 1);
         }
     }
 
@@ -1859,6 +1881,7 @@ int babyMaker_v2::gentype_v2()
 //##############################################################################################################
 void babyMaker_v2::setFilename(TString fname)
 {
+    // 2016
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
         filename = "dy_m1050_mgmlm";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
@@ -2027,6 +2050,12 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "qcd_bctoe_pt170";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_250toInf_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
         filename = "qcd_bctoe_pt250";
+
+    // 2017
+    if (fname.Contains("Run2017"))
+        filename = "data";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "dy_m50_mgmlm";
 }
 
 //##############################################################################################################
