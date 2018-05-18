@@ -506,20 +506,32 @@ bool babyMaker_v2::PassPresel_v2()
     if (nveto == 2)
     {
         int ntight = 0;
+        int chargesum = 0;
         for (auto& iel : coreElectron.index)
         {
             if (cms3.els_p4()[iel].pt() > 25. && passElectronSelection_VVV(iel, VVV_TIGHT_SS))
                 ntight++;
+            chargesum += cms3.els_charge()[iel];
         }
         for (auto& imu : coreMuon.index)
         {
             if (cms3.mus_p4()[imu].pt() > 25. && passMuonSelection_VVV(imu, VVV_TIGHT_SS))
                 ntight++;
+            chargesum += cms3.mus_charge()[imu];
         }
         if (ntight >= 1)
-            return true;
+        {
+            if (abs(chargesum) == 2) // If same-sign accept
+                return true;
+            else if (ntight == 2) // If two-tight accept
+                return true;
+            else
+                return false; // If not same-sign and not two-tight discard
+        }
         else
+        {
             return false;
+        }
     }
 
     // If 1 veto lepton events, then write out the whole thing
