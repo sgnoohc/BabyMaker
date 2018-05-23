@@ -1,4 +1,4 @@
-# Measurement Region / Fake rate / Closure test code
+# Fake background estimation analysis code
 
 ## Setup and running the code
 
