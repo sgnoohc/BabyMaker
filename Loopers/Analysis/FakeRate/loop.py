@@ -46,7 +46,6 @@ def main(index, mode):
     ["evt_passgoodrunlist"                        , "1"                       ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
-    #["nVlep==1"                                            , "1"                       ] , 
 
     # complicated string construction
     mu_loosetemp = "(TMath::Abs(lep_eta[{idx}]<2.4))*(lep_dz[{idx}]<0.1)*(lep_dxy[{idx}]<0.05)*(lep_ip3d[{idx}]<0.015)*(abs(lep_ip3derr[{idx}]/lep_ip3d[{idx}])<4.)*(abs(lep_pterr[{idx}]/lep_trk_pt[{idx}])<0.2)*(lep_isMediumPOG[{idx}])*(lep_pt[{idx}]>20.)"
@@ -75,13 +74,11 @@ def main(index, mode):
     twolep_kinematic = "(lep_pdgId[0]*lep_pdgId[1]>0)*(nj30>=2)"
 
     # remove muons
-    #remove_prompt_mu = "(abs(genPart_motherId[])==24)*(abs(genPart_pdgId[])==11)" # require only real electrons
-    #remove_prompt_el = "(abs(genPart_motherId[])==24)*(abs(genPart_pdgId[])==13)" # require only real muons
+    #remove_prompt_mu = "(abs(genPart_motherId[])==24)*(abs(genPart_pdgId[])==11)" # require only real electrons # THIS DIDN'T WORK
+    #remove_prompt_el = "(abs(genPart_motherId[])==24)*(abs(genPart_pdgId[])==13)" # require only real muons # THIS DIDN'T WORK
     remove_prompt_mu = "1" # require only real electrons
     remove_prompt_el = "1" # require only real muons
 
-    #weight_el = "(abs(lep_pdgId[0])==11)*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[0])],[lep_pt[0]])])+(abs(lep_pdgId[1])==11)*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[1])],[lep_pt[1]])])"
-    #weight_mu = "(abs(lep_pdgId[0])==13)*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[0])],[lep_pt[0]])])+(abs(lep_pdgId[1])==13)*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[1])],[lep_pt[1]])])"
     weight_el = "([abs(lep_pdgId[0])==11])*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[0])],[lep_pt[0]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[0]-0.03))])])+([abs(lep_pdgId[1])==11])*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[1])],[lep_pt[1]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[1]-0.03))])])"
     weight_mu = "([abs(lep_pdgId[0])==13])*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[0])],[lep_pt[0]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[0]-0.03))])])+([abs(lep_pdgId[1])==13])*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[1])],[lep_pt[1]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[1]-0.03))])])"
 
@@ -268,7 +265,7 @@ def main(index, mode):
     cutflowjob = TQCutflowAnalysisJob("cutflow")
     cuts.addAnalysisJob(cutflowjob, "*")
 
-    # Eventlist jobs
+    # Eventlist jobs (use this if we want to print out some event information in a text format e.g. run, lumi, evt or other variables.)
     #eventlistjob = TQEventlistAnalysisJob("eventlist")
     #eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
 
@@ -284,7 +281,7 @@ def main(index, mode):
 
     # setup a visitor to actually loop over ROOT files
     vis = TQAnalysisSampleVisitor(cuts,True)
-    #vis.setMaxEvents(30000)
+    #vis.setMaxEvents(30000) # to debug by restricting the looping to 30k max events
 
     if index >= 0:
 
