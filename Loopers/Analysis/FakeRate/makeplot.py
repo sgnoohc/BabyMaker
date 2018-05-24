@@ -49,6 +49,46 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
             options=alloptions)
 
 #_____________________________________________________________________________________
+def plot_stack(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    # Options
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}.pdf".format(output_plot_dir, output_name)
+                }
+    alloptions.update(options)
+    sigs = []
+    bgs  = [
+           samples.getHistogram("/qcd/mu", histname).Clone("QCD"),
+           samples.getHistogram("/top", histname).Clone("Top"),
+           samples.getHistogram("/W", histname).Clone("W"),
+           samples.getHistogram("/Z", histname).Clone("DY"),
+           ]
+    dataname = "/data"
+    if histname.find("El") != -1: dataname = "/data/ee"
+    if histname.find("Mu") != -1: dataname = "/data/mm"
+    data = samples.getHistogram(dataname, histname).Clone("Data")
+    if histname.find("HLT") != -1:
+        totalbkg = p.get_total_hist(bgs)
+        ratio = samples.getHistogram(dataname, histname).Clone("Data")
+        ratio.Rebin(ratio.GetNbinsX())
+        totalbkg.Rebin(totalbkg.GetNbinsX())
+        totalbkg.Divide(ratio)
+        print histname
+        totalbkg.Print("all")
+    colors = [ 920, 2005, 2001, 2003 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
 def fakerate(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
     if str(histname).find("Loose") == -1: return
     isqcd = str(histname).find("One") != -1
@@ -255,9 +295,20 @@ if __name__ == "__main__":
         import multiprocessing
 
         jobs = []
+        print samples.getListOfHistogramNames()
         for histname in samples.getListOfHistogramNames():
             hname = str(histname)
-            if hname.find("_vs_") != -1:
+            if hname.find("EWKCR") != -1 and hname.find("_vs_") == -1:
+                hfilename = hname.replace("/", "_")
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                jobs.append(proc)
+                proc.start()
+            elif hname.find("HLT") != -1 and hname.find("_vs_") == -1:
+                hfilename = hname.replace("/", "_")
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
+                jobs.append(proc)
+                proc.start()
+            elif hname.find("_vs_") != -1:
                 hfilename = hname.replace("/", "_")
                 #proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{}, "plotfunc": ply.plot_hist_2d})
                 proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})

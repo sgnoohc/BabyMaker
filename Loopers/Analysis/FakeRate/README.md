@@ -26,3 +26,23 @@ In the ```loop.py``` there are lines that contains "TH2Map".
 This line tells the QFramework to open up the file and use the histogram and get the weights.  
 
 This above procedure is what is being done in ```run.sh```  
+
+## Checking statuses of samples and selections
+
+The following will check the sample connection status and print the cut selection structure and exit the code without looping
+
+     > python loop.py -1
+
+The key script is the following line in ```loop.py```
+
+    samples.printContents("t[*status]rd")
+    cuts.printCut("trd")
+
+Each samples should say ```"[  OK  ]"```
+
+## Few tips
+
+When writing down complex string expression sometimes the code will crash with warning about TQObservable etc.  
+What happens under the hood of the ```QFramework``` is that it parses the expression and creates TTreeFormula instances.  
+And by putting [] around certain element of expressions can help the code understand how to efficiently parse the expression.  
+    e.g. [lep_pt[0]>20.] * [lep_eta[0] < 2.4]
