@@ -138,5 +138,5 @@ def printCutflowSSWZExtrapolation(samples, variation=""):
 
 
 # Print cutflow table
-printCutflow(samples, "SS")
+#printCutflow(samples, "SS")
 printCutflowSSWZExtrapolation(samples, sys.argv[2])
