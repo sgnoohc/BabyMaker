@@ -1,5 +1,18 @@
 # Fake background estimation analysis code
 
+## Two versions for closure
+
+The closure test was performed with two different selection. (One is looser)  
+This was so that we have more statistics.  
+Both show pretty good closure test.  
+
+in loop.py there is "twolep_cuts" string that defines the cut applied for the application region.  
+ 
+    twolep_cuts = "(lep_pdgId[0]*lep_pdgId[1]>0)*(nj30>=2)" # if removing bveto
+    twolep_cuts = "(lep_pdgId[0]*lep_pdgId[1]>0)*(nj30>=2)*(nb==0)" # with bveto
+
+One should choose which one to run and run the below code  
+
 ## Setup and running the code
 
 First setup the code
