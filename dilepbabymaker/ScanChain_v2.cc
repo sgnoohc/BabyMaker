@@ -88,12 +88,20 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("HLT_DoubleEl_DZ");
     tx->createBranch<int>("HLT_DoubleEl_DZ_2");
     tx->createBranch<int>("HLT_MuEG");
+    tx->createBranch<int>("HLT_SingleIsoEl8");
+    tx->createBranch<int>("HLT_SingleIsoEl17");
+    tx->createBranch<int>("HLT_SingleIsoMu8");
+    tx->createBranch<int>("HLT_SingleIsoMu17");
 
     tx->createBranch<int>("mc_HLT_DoubleMu");
     tx->createBranch<int>("mc_HLT_DoubleEl");
     tx->createBranch<int>("mc_HLT_DoubleEl_DZ");
     tx->createBranch<int>("mc_HLT_DoubleEl_DZ_2");
     tx->createBranch<int>("mc_HLT_MuEG");
+    tx->createBranch<int>("mc_HLT_SingleIsoEl8");
+    tx->createBranch<int>("mc_HLT_SingleIsoEl17");
+    tx->createBranch<int>("mc_HLT_SingleIsoMu8");
+    tx->createBranch<int>("mc_HLT_SingleIsoMu17");
 
     tx->createBranch<vector<LorentzVector>>("lep_p4");
     tx->createBranch<vector<float>>("lep_pt");
@@ -130,6 +138,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<float>>("lep_etaSC");
     tx->createBranch<vector<float>>("lep_MVA");
     tx->createBranch<vector<int>>("lep_isMediumPOG");
+    tx->createBranch<vector<int>>("lep_isTightPOG");
     tx->createBranch<vector<int>>("lep_isFromW");
     tx->createBranch<vector<int>>("lep_isFromZ");
     tx->createBranch<vector<int>>("lep_isFromB");
@@ -382,7 +391,7 @@ void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
 //##############################################################################################################
 bool babyMaker_v2::PassPresel()
 {
-    return PassPresel_v2();
+    return PassPresel_v1();
 }
 
 //##############################################################################################################
@@ -426,12 +435,12 @@ bool babyMaker_v2::PassPresel_v1()
     int nloose = 0;
     for (auto& iel : coreElectron.index)
     {
-        if (cms3.els_p4()[iel].pt() > 25. && passElectronSelection_VVV(iel, VVV_FO_SS))
+        if (cms3.els_p4()[iel].pt() > 20. && passElectronSelection_VVV(iel, VVV_FO_SS))
             nloose++;
     }
     for (auto& imu : coreMuon.index)
     {
-        if (cms3.mus_p4()[imu].pt() > 25. && passMuonSelection_VVV(imu, VVV_FO_SS))
+        if (cms3.mus_p4()[imu].pt() > 20. && passMuonSelection_VVV(imu, VVV_FO_SS))
             nloose++;
     }
     if (nloose != 2)
@@ -537,8 +546,38 @@ bool babyMaker_v2::PassPresel_v2()
     // If 1 veto lepton events, then write out the whole thing
     if (nveto == 1)
     {
+        // Check if data,
+        bool isdata = filename.compare(0, 4, "data") == 0;
+        if (isdata)
+        {
+            // If data then check the triggers
+            // These triggers are checked in coreutil, but to optimize the code performance I hand check them if data
+            // I don't wish to run coreTrigger.process() for all events
+            if (el_idx.size() == 1)
+            {
+                int HLT_SingleIsoEl17 = passHLTTriggerPattern("HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30_v");
+                if (HLT_SingleIsoEl17 > 0) return true;
+                int HLT_SingleIsoEl8 = passHLTTriggerPattern("HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v");
+                if (HLT_SingleIsoEl8 > 0) return true;
+            }
+            else if (mu_idx.size() == 1)
+            {
+                int HLT_SingleIsoMu17 = passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_v");
+                if (HLT_SingleIsoMu17 > 0) return true;
+                int HLT_SingleIsoMu8 = passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_v");
+                if (HLT_SingleIsoMu8 > 0) return true;
+            }
+            // If it reaches this point, then it means that none of the trigger passed
+            return false;
+        }
         bool isqcd = filename.compare(0, 4, "qcd_") == 0;
-        return isqcd;
+        bool isttbar = filename.compare(0, 6, "ttbar_") == 0;
+        bool isW = filename.compare(0, 6, "wjets_") == 0;
+        bool isZ = filename.compare(0, 3, "dy_") == 0;
+        bool isWW = filename.compare(0, 3, "ww_") == 0;
+        bool isWZ = filename.compare(0, 3, "wz_") == 0;
+        bool isZZ = filename.compare(0, 3, "zz_") == 0;
+        return isqcd || isttbar || isW || isZ || isWW || isWZ || isZZ;
     }
 
     // Anything else dump
@@ -676,6 +715,7 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.els_etaSC()[idx]);
         tx->pushbackToBranch<float>         ("lep_MVA"                          , getMVAoutput(idx));
         tx->pushbackToBranch<int>           ("lep_isMediumPOG"                  , 1);
+        tx->pushbackToBranch<int>           ("lep_isTightPOG"                   , 1);
         tx->pushbackToBranch<float>         ("lep_jetpt_v0"                     , temp_jet_p4_v0.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v1"                     , temp_jet_p4_v1.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v2"                     , temp_jet_p4.pt());
@@ -775,6 +815,7 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<float>         ("lep_etaSC"                        , cms3.mus_p4()[idx].eta()); // Electron specific branch. Just take muon's regular eta.
         tx->pushbackToBranch<float>         ("lep_MVA"                          , -99);
         tx->pushbackToBranch<int>           ("lep_isMediumPOG"                  , isMediumMuonPOG(idx));
+        tx->pushbackToBranch<int>           ("lep_isTightPOG"                   , isTightMuonPOG(idx));
         tx->pushbackToBranch<float>         ("lep_jetpt_v0"                     , temp_jet_p4_v0.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v1"                     , temp_jet_p4_v1.pt());
         tx->pushbackToBranch<float>         ("lep_jetpt_v2"                     , temp_jet_p4.pt());
@@ -872,6 +913,7 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_tightCharge",
             "lep_charge",
             "lep_isMediumPOG",
+            "lep_isTightPOG",
             "lep_isFromW",
             "lep_isFromZ",
             "lep_isFromB",
@@ -983,6 +1025,10 @@ void babyMaker_v2::FillTrigger()
         tx->setBranch<int>("HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
         tx->setBranch<int>("HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
         tx->setBranch<int>("HLT_MuEG", coreTrigger.HLT_MuEG);
+        tx->setBranch<int>("HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
+        tx->setBranch<int>("HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
+        tx->setBranch<int>("HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
+        tx->setBranch<int>("HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
     }
     else
     {
@@ -991,12 +1037,20 @@ void babyMaker_v2::FillTrigger()
         tx->setBranch<int>("HLT_DoubleEl_DZ", 1);
         tx->setBranch<int>("HLT_DoubleEl_DZ_2", 1);
         tx->setBranch<int>("HLT_MuEG", 1);
+        tx->setBranch<int>("HLT_SingleIsoEl8", 1);
+        tx->setBranch<int>("HLT_SingleIsoEl17", 1);
+        tx->setBranch<int>("HLT_SingleIsoMu8", 1);
+        tx->setBranch<int>("HLT_SingleIsoMu17", 1);
     }
     tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
     tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
     tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
     tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
     tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
+    tx->setBranch<int>("mc_HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
+    tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
+    tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
+    tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
 }
 
 //##############################################################################################################
@@ -1769,11 +1823,11 @@ tuple<bool, int, int> babyMaker_v2::isSSCR()
 //##############################################################################################################
 TString babyMaker_v2::process()
 {
-    if (cms3.evt_isRealData())                             return "Data";
-    if (splitVH())                                         return "WHtoWWW";
-    if (filename.find("www_2l_")          != string::npos) return "WWW";
-    if (filename.find("www_incl_amcnlo_") != string::npos) return "WWWv2";
-    if (filename.find("data_")            != string::npos) return "Data";
+    if (cms3.evt_isRealData())                            return "Data";
+    if (splitVH())                                        return "WHtoWWW";
+    if (filename.find("www_2l_")         != string::npos) return "WWW";
+    if (filename.find("www_incl_amcnlo") != string::npos) return "WWWv2";
+    if (filename.find("data_")           != string::npos) return "Data";
     if (tx->getBranch<int>("nVlep") == 2 && tx->getBranch<int>("nLlep") == 2)
     {
         if (tx->getBranch<int>("nLlep") < 2) return "not2l";
@@ -1936,6 +1990,8 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "www_2l_ext1_mia";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
         filename = "ttg_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+        filename = "ttbar_incl_powheg";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
         filename = "ttbar_dilep_mgmlm_ext1";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
@@ -2064,10 +2120,106 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "qcd_bctoe_pt250";
 
     // 2017
-    if (fname.Contains("Run2017"))
-        filename = "data";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "dy_m1050_madgraph";
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "dy_m50_mgmlm";
+        filename = "dy_m50_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "dy_m50_madgraph_ext1";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ST_tW_antitop_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "sttw_incltop_powheg";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ST_tW_top_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "sttw_incltbr_powheg";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttg_1ltop_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8_RunIIFall17MiniAOD-PU2017_94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttg_1ltbr_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTHH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tthh_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttbar_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTJ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tttj_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTT_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_pilot_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tttt_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTW_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tttw_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttbar_1l_powheg";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttwh_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttw_ln_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWW_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttww_incl_madgraph_ext1";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWZ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttwz_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttzh_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttz_m10llnn_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZToLL_M-1to10_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttz_m1to10ll_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZZ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ttzz_incl_madgraph";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wjets_ln_madgraph_ext1";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "www_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WWZ_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wwz_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WW_DoubleScattering_13TeV-pythia8_TuneCP5_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ww_dblsctincl_pythia";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "ww_incl_pythia";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZG_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wzg_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wz_3lnu_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wzz_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "wz_incl_pythia";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ZZTo4L_13TeV_powheg_pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "zz_4l_powheg";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ZZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "zzz_incl_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//tZq_ll_4f_ckm_NLO_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tzq_ll_amcnlo";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13/"))
+        filename = "tth_nonbb_powheg";
+
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017B_ee";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017C_ee";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017D_ee";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017E_ee";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017F_ee";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017B_mm";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017C_mm";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017D_mm";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017E_mm";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017F_mm";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017B_em";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017C_em";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017D_em";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017E_em";
+    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
+        filename = "data_Run2017F_em";
+
 }
 
 //##############################################################################################################
@@ -2075,20 +2227,20 @@ bool babyMaker_v2::vetophotonprocess()
 {
     bool process = tx->getBranch<TString>("bkgtype").EqualTo("photonfakes");
     if (
-        (filename.find("wjets_") !=string::npos
-       ||filename.find("dy_")    !=string::npos
-       ||filename.find("ttbar_") !=string::npos
-       ||filename.find("ww_")    !=string::npos
-       ||filename.find("wz_")    !=string::npos)
+        (filename.find("wjets_") == 0
+       ||filename.find("dy_")    == 0
+       ||filename.find("ttbar_") == 0
+       ||filename.find("ww_")    == 0
+       ||filename.find("wz_")    == 0)
         &&(process)
        ) return true;
     if (
-        (filename.find("wgjets_")!=string::npos
-       ||filename.find("wgstar_")!=string::npos
-       ||filename.find("zgamma_")!=string::npos
-       ||filename.find("ttg_")   !=string::npos
-       ||filename.find("wwg_")   !=string::npos
-       ||filename.find("wzg_")   !=string::npos)
+        (filename.find("wgjets_") == 0
+       ||filename.find("wgstar_") == 0
+       ||filename.find("zgamma_") == 0
+       ||filename.find("ttg_")    == 0
+       ||filename.find("wwg_")    == 0
+       ||filename.find("wzg_")    == 0)
         &&(!process)
        )
         return true;
