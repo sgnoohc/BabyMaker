@@ -14,14 +14,21 @@ samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 output_plot_dir = "plots"
 
 doW = False
+docombinedqcdel = True
 
 testsample = "/top"
-testsamplename = "tt"
+testsamplename = "t#bar{t}"
 testsamplelegendname = "t#bar{t}"
 if doW:
-    testsample = "/W"
+    testsample = "/W/HT"
+    #testsample = "/W"
     testsamplename = "W"
     testsamplelegendname = "W"
+if docombinedqcdel:
+    testsample = "/top+W/HT"
+    #testsample = "/W"
+    testsamplename = "W and t#bar{t}"
+    testsamplelegendname = "W and t#bar{t}"
 
 #_____________________________________________________________________________________
 def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
@@ -99,14 +106,18 @@ def fakerate(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist
     if isqcd and ismu:
         sample = "/qcd/mu"
     elif isqcd and not ismu:
-        sample = "/qcd/el/bcToE"
-        #sample = "/qcd/el/EM"
+        if doW:
+            sample = "/qcd/el/EM"
+        else:
+            sample = "/qcd/el/bcToE"
         #sample = "/qcd/el"
-    samplename = "ttbar estimation" if ispredict else ("QCD Loose" if isqcd else "ttbar Loose")
-    color = 920 if isqcd else 2005
+        if docombinedqcdel:
+            sample = "/qcd/el"
+    samplename = (("t#bar{t} estimation" if not doW else "W estimation") if not docombinedqcdel else "W + t#bar{t} estimation") if ispredict else ("QCD Loose" if isqcd else ("ttbar Loose" if not doW else "W Loose"))
+    color = 920 if isqcd else (2005 if not doW else 2001)
     # Options
     alloptions= {
-                "ratio_range":[0.0, 2.0] if ispredict else [0.0,0.45],
+                "ratio_range":[0.0, 2.0] if ispredict else ([0.0,0.45] if not doW else [0.0, 1.0]),
                 #"nbins": 30,
                 "autobin": True,
                 "legend_scalex": 0.8,
@@ -122,6 +133,12 @@ def fakerate(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist
     bgs  = [ histden ]
     data = histnum
     colors = [ color ]
+    if docombinedqcdel:
+        bgs = [
+                samples.getHistogram("/top", histname).Clone("t#bar{t} estimation"),
+                samples.getHistogram("/W/HT", histname).Clone("W estimation")
+              ]
+        colors = [ 2005, 2001 ]
     try:
         plotfunc(
                 sigs = sigs,
@@ -144,11 +161,15 @@ def fakerate2d(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
     if isqcd and ismu:
         sample = "/qcd/mu"
     elif isqcd and not ismu:
-        #sample = "/qcd/el/bcToE"
-        #sample = "/qcd/el/EM"
-        sample = "/qcd/el"
-    samplename = "ttbar estimation" if ispredict else ("QCD Loose" if isqcd else "ttbar Loose")
-    color = 920 if isqcd else 2005
+        if doW:
+            sample = "/qcd/el/EM"
+        else:
+            sample = "/qcd/el/bcToE"
+        #sample = "/qcd/el"
+        if docombinedqcdel:
+            sample = "/qcd/el"
+    samplename = (("t#bar{t} estimation" if not doW else "W estimation") if not docombinedqcdel else "W + t#bar{t} estimation") if ispredict else ("QCD Loose" if isqcd else ("ttbar Loose" if not doW else "W Loose"))
+    color = 920 if isqcd else (2005 if not doW else 2001)
     # Options
     alloptions= {
                 "ratio_range":[0.0, 2.0] if ispredict else [0.0,0.3],
@@ -168,6 +189,12 @@ def fakerate2d(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
     bgs  = [ histden ]
     data = histnum
     colors = [ color ]
+    if docombinedqcdel:
+        bgs = [
+                p.flatten_th2(samples.getHistogram("/top", histname).Clone("t#bar{t} estimation")),
+                p.flatten_th2(samples.getHistogram("/W/HT", histname).Clone("W estimation"))
+              ]
+        colors = [ 2005, 2001 ]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -175,7 +202,7 @@ def fakerate2d(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
             colors = colors,
             syst = systs,
             options=alloptions)
-    histnum.Divide(histden)
+    #histnum.Divide(histden)
 
 #_____________________________________________________________________________________
 def fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
@@ -186,7 +213,7 @@ def fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_
 
     ispredict = str(histname).find("Predict") != -1
 
-    qcdsample = "/qcd/mu" if ismu else "/qcd/el/bcToE"
+    qcdsample = "/qcd/mu" if ismu else (("/qcd/el/bcToE" if not doW else "/qcd/el/EM") if not docombinedqcdel else "/qcd/el")
     ttbarsample = testsample
     qcdsamplename = "QCD" if ismu else "QCD"
     ttbarsamplename = testsamplename
@@ -195,7 +222,7 @@ def fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_
     ttbarhistname = histname.replace("One", "Two")
     ttbarhistname = ttbarhistname.replace("lep_", "mu_") if ismu else ttbarhistname.replace("lep_", "el_")
 
-    print qcdhistname, ttbarhistname
+    #print qcdhistname, ttbarhistname
 
     qcdhistnum = p.move_overflow(samples.getHistogram(qcdsample, str(qcdhistname).replace("Loose", "Tight")).Clone(qcdsamplename))
     qcdhistden = p.move_overflow(samples.getHistogram(qcdsample, qcdhistname).Clone(qcdsamplename))
@@ -207,8 +234,8 @@ def fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_
 
     # Options
     alloptions= {
-                "ratio_range":[0.0, 2.0] if ispredict else [0.5 if ismu else 0.0, 1.5 if ismu else 3.0],
-                "yaxis_range":[0.0,0.25 if ismu else 0.4],
+                "ratio_range":[0.0, 2.0] if ispredict else [0.5 if ismu else 0.0, 1.5 if ismu else 2.0],
+                "yaxis_range":[0.0,0.25 if ismu else (0.4 if qcdsample.find("bcToE") != -1 else 1.0)],
                 #"nbins": 30,
                 "yaxis_log": False,
                 "draw_points": True,
@@ -241,7 +268,7 @@ def fakerate2dcomp(histname, output_name, systs=None, options={}, plotfunc=p.plo
     if str(histname).find("corr") == -1: return
     ismu = str(histname).find("Mu") != -1
 
-    qcdsample = "/qcd/mu" if ismu else "/qcd/el/bcToE"
+    qcdsample = "/qcd/mu" if ismu else (("/qcd/el/bcToE" if not doW else "/qcd/el/EM") if not docombinedqcdel else "/qcd/el")
     ttbarsample = testsample
     qcdsamplename = "QCD" if ismu else "QCD"
     ttbarsamplename = testsamplename
@@ -250,7 +277,7 @@ def fakerate2dcomp(histname, output_name, systs=None, options={}, plotfunc=p.plo
     ttbarhistname = histname.replace("One", "Two")
     ttbarhistname = ttbarhistname.replace("lep_", "mu_") if ismu else ttbarhistname.replace("lep_", "el_")
 
-    print qcdhistname, ttbarhistname
+    #print qcdhistname, ttbarhistname
 
     qcdhistnum = p.flatten_th2(samples.getHistogram(qcdsample, str(qcdhistname).replace("Loose", "Tight")).Clone(qcdsamplename))
     qcdhistden = p.flatten_th2(samples.getHistogram(qcdsample, qcdhistname).Clone(qcdsamplename))
@@ -263,7 +290,7 @@ def fakerate2dcomp(histname, output_name, systs=None, options={}, plotfunc=p.plo
     # Options
     alloptions= {
                 "ratio_range":[0.0,2.0 if ismu else 3.0],
-                "yaxis_range":[0.0,0.15 if ismu else 0.3],
+                "yaxis_range":[0.0,0.35 if ismu else (0.6 if not doW else 1.0)],
                 #"nbins": 30,
                 "draw_points": True,
                 "autobin": True,
@@ -295,19 +322,18 @@ if __name__ == "__main__":
         import multiprocessing
 
         jobs = []
-        print samples.getListOfHistogramNames()
         for histname in samples.getListOfHistogramNames():
             hname = str(histname)
             if hname.find("EWKCR") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
-                jobs.append(proc)
-                proc.start()
+#                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+#                jobs.append(proc)
+#                proc.start()
             elif hname.find("HLT") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
-                jobs.append(proc)
-                proc.start()
+#                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
+#                jobs.append(proc)
+#                proc.start()
             elif hname.find("_vs_") != -1:
                 hfilename = hname.replace("/", "_")
                 #proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{}, "plotfunc": ply.plot_hist_2d})
@@ -319,10 +345,10 @@ if __name__ == "__main__":
                 proc.start()
             else:
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=fakerate, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                proc = multiprocessing.Process(target=fakerate, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":10, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
-                proc = multiprocessing.Process(target=fakeratecomp, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                proc = multiprocessing.Process(target=fakeratecomp, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":10, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
 
