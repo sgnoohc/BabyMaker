@@ -57,36 +57,184 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
 
 #_____________________________________________________________________________________
 def plot_stack(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    ismu = str(histname).find("Mu") != -1
+    is2d = str(histname).find("_vs_") != -1
     # Options
     alloptions= {
                 "ratio_range":[0.4,1.6],
                 #"nbins": 30,
-                "autobin": True,
+                #"autobin": True,
                 "legend_scalex": 1.4,
                 "legend_scaley": 1.1,
-                "output_name": "{}/{}.pdf".format(output_plot_dir, output_name)
+                "output_name": "{}/{}_stack.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
                 }
     alloptions.update(options)
     sigs = []
     bgs  = [
-           samples.getHistogram("/qcd/mu", histname).Clone("QCD"),
-           samples.getHistogram("/top", histname).Clone("Top"),
-           samples.getHistogram("/W", histname).Clone("W"),
-           samples.getHistogram("/Z", histname).Clone("DY"),
+           samples.getHistogram("/top", histname).Clone("Top") if not is2d else p.flatten_th2(samples.getHistogram("/top", histname).Clone("Top")),
+           samples.getHistogram("/Zonelep", histname).Clone("DY") if not is2d else p.flatten_th2(samples.getHistogram("/Zonelep", histname).Clone("DY")),
+           samples.getHistogram("/Wonelep", histname).Clone("W") if not is2d else p.flatten_th2(samples.getHistogram("/Wonelep", histname).Clone("W")),
+           samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD")),
            ]
     dataname = "/data"
     if histname.find("El") != -1: dataname = "/data/ee"
     if histname.find("Mu") != -1: dataname = "/data/mm"
-    data = samples.getHistogram(dataname, histname).Clone("Data")
+    data = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
     if histname.find("HLT") != -1:
         totalbkg = p.get_total_hist(bgs)
-        ratio = samples.getHistogram(dataname, histname).Clone("Data")
+        ratio = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
         ratio.Rebin(ratio.GetNbinsX())
         totalbkg.Rebin(totalbkg.GetNbinsX())
         totalbkg.Divide(ratio)
         print histname
         totalbkg.Print("all")
-    colors = [ 920, 2005, 2001, 2003 ]
+    if histname.find("OneMuTightEWKCR3/nvtx") != -1 or histname.find("OneElTightEWKCR3/nvtx") != -1:
+        totalbkg = p.get_total_hist(bgs[:-1])
+        nvtxweight = samples.getHistogram(dataname, histname).Clone(output_name) if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone(output_name))
+        scale = nvtxweight.Integral() / totalbkg.Integral()
+        nvtxweight.Divide(totalbkg)
+        nvtxweight.Scale(1./scale)
+        nvtxweight.Print("all")
+        #f = ROOT.TFile("{}.root".format(output_name),"recreate")
+        #nvtxweight.Write()
+        #f.Close()
+    if options["nbins"] == 5 and histname.find("TightEWKCR/MT") != -1:
+        totalbkg = p.get_total_hist(bgs[:-1])
+        ratio = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
+        ratio.Rebin(4)
+        totalbkg.Rebin(4)
+        ratio.Divide(totalbkg)
+        print histname, ratio.GetBinContent(3), ratio.GetBinError(3)
+    colors = [ 2005, 2003, 2001, 920 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plot_datadriven_fakerate(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    if str(histname).find("Loose") == -1: return
+    ismu = str(histname).find("Mu") != -1
+    is2d = str(histname).find("_vs_") != -1
+    # Options
+    alloptions= {
+                "ratio_range":[0.0,0.3],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "legend_datalabel": "Data Tight",
+                "output_name": "{}/{}_fakerate.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
+                }
+    alloptions.update(options)
+    sigs = []
+    # Loose
+    bgs  = [
+           samples.getHistogram("/top", histname).Clone("Top") if not is2d else p.flatten_th2(samples.getHistogram("/top", histname).Clone("Top")),
+           samples.getHistogram("/Zonelep", histname).Clone("DY") if not is2d else p.flatten_th2(samples.getHistogram("/Zonelep", histname).Clone("DY")),
+           samples.getHistogram("/Wonelep", histname).Clone("W") if not is2d else p.flatten_th2(samples.getHistogram("/Wonelep", histname).Clone("W")),
+           #samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD")),
+           ]
+    dataname = "/data"
+    if histname.find("El") != -1: dataname = "/data/ee"
+    if histname.find("Mu") != -1: dataname = "/data/mm"
+    ddqcd = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
+    totalbkg = p.get_total_hist(bgs)
+    # tight
+    bgstight  = [
+           samples.getHistogram("/top", str(histname).replace("Loose","Tight")).Clone("Top") if not is2d else p.flatten_th2(samples.getHistogram("/top", str(histname).replace("Loose","Tight")).Clone("Top")),
+           samples.getHistogram("/Zonelep", str(histname).replace("Loose","Tight")).Clone("DY") if not is2d else p.flatten_th2(samples.getHistogram("/Zonelep", str(histname).replace("Loose","Tight")).Clone("DY")),
+           samples.getHistogram("/Wonelep", str(histname).replace("Loose","Tight")).Clone("W") if not is2d else p.flatten_th2(samples.getHistogram("/Wonelep", str(histname).replace("Loose","Tight")).Clone("W")),
+           #samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD")),
+           ]
+    dataname = "/data"
+    if str(histname).replace("Loose","Tight").find("El") != -1: dataname = "/data/ee"
+    if str(histname).replace("Loose","Tight").find("Mu") != -1: dataname = "/data/mm"
+    ddqcdtight = samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data"))
+    totalbkgtight = p.get_total_hist(bgstight)
+    # Get data-QCD
+    sf = -1.09207928181 if ismu else -1.13498103619
+    ddqcd.Add(totalbkg, sf)
+    ddqcdtight.Add(totalbkgtight, sf)
+    bgs = [ ddqcd.Clone("Data Loose") ]
+    data = ddqcdtight
+    # Compute data driven fake rate
+    colors = [ 2005, 2003, 2001, 920 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plot_datadriven_fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    if str(histname).find("Loose") == -1: return
+    ismu = str(histname).find("Mu") != -1
+    is2d = str(histname).find("_vs_") != -1
+    # Options
+    alloptions= {
+                "ratio_range":[0.0,2.0],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.1,
+                "legend_datalabel": "Data fake rate",
+                "output_name": "{}/{}_fakeratecomp.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
+                "draw_points": True,
+                }
+    alloptions.update(options)
+    sigs = []
+    # Loose
+    bgs  = [
+           samples.getHistogram("/top", histname).Clone("Top") if not is2d else p.flatten_th2(samples.getHistogram("/top", histname).Clone("Top")),
+           samples.getHistogram("/Zonelep", histname).Clone("DY") if not is2d else p.flatten_th2(samples.getHistogram("/Zonelep", histname).Clone("DY")),
+           samples.getHistogram("/Wonelep", histname).Clone("W") if not is2d else p.flatten_th2(samples.getHistogram("/Wonelep", histname).Clone("W")),
+           #samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD")),
+           ]
+    dataname = "/data"
+    if histname.find("El") != -1: dataname = "/data/ee"
+    if histname.find("Mu") != -1: dataname = "/data/mm"
+    ddqcd = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
+    qcd = samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", histname).Clone("QCD"))
+    totalbkg = p.get_total_hist(bgs)
+    # tight
+    bgstight  = [
+           samples.getHistogram("/top", str(histname).replace("Loose","Tight")).Clone("Top") if not is2d else p.flatten_th2(samples.getHistogram("/top", str(histname).replace("Loose","Tight")).Clone("Top")),
+           samples.getHistogram("/Zonelep", str(histname).replace("Loose","Tight")).Clone("DY") if not is2d else p.flatten_th2(samples.getHistogram("/Zonelep", str(histname).replace("Loose","Tight")).Clone("DY")),
+           samples.getHistogram("/Wonelep", str(histname).replace("Loose","Tight")).Clone("W") if not is2d else p.flatten_th2(samples.getHistogram("/Wonelep", str(histname).replace("Loose","Tight")).Clone("W")),
+           #samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD")),
+           ]
+    dataname = "/data"
+    if str(histname).replace("Loose","Tight").find("El") != -1: dataname = "/data/ee"
+    if str(histname).replace("Loose","Tight").find("Mu") != -1: dataname = "/data/mm"
+    ddqcdtight = samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data"))
+    qcdtight = samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD") if not is2d else p.flatten_th2(samples.getHistogram("/qcd/mu" if ismu else "/qcd/el", str(histname).replace("Loose","Tight")).Clone("QCD"))
+    totalbkgtight = p.get_total_hist(bgstight)
+    # Get data fakerate
+    p.remove_overflow(totalbkg)
+    p.remove_overflow(totalbkgtight)
+    p.remove_overflow(ddqcd)
+    p.remove_overflow(ddqcdtight)
+    sf = -1.09207928181 if ismu else -1.13498103619
+    ddqcd.Add(totalbkg, sf)
+    ddqcdtight.Add(totalbkgtight, sf)
+    ddqcdtight.Divide(ddqcd)
+    # Get QCD fakerate
+    p.remove_overflow(qcd)
+    p.remove_overflow(qcdtight)
+    qcdtight.Divide(qcd)
+    bgs = [ qcdtight.Clone("QCD fake rate") ]
+    data = ddqcdtight
+    # Compute data driven fake rate
+    colors = [ 2 ]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -326,14 +474,18 @@ if __name__ == "__main__":
             hname = str(histname)
             if hname.find("EWKCR") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-#                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
-#                jobs.append(proc)
-#                proc.start()
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15 if hname.find("nvtx") == 1 else 60, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                jobs.append(proc)
+                proc.start()
+                hfilename = hname.replace("/", "_")
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename+"_5bins"], kwargs={"systs":None, "options":{"autobin":False, "nbins":5, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                jobs.append(proc)
+                proc.start()
             elif hname.find("HLT") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-#                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
-#                jobs.append(proc)
-#                proc.start()
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
+                jobs.append(proc)
+                proc.start()
             elif hname.find("_vs_") != -1:
                 hfilename = hname.replace("/", "_")
                 #proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{}, "plotfunc": ply.plot_hist_2d})
@@ -351,6 +503,24 @@ if __name__ == "__main__":
                 proc = multiprocessing.Process(target=fakeratecomp, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":10, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
+            if hname.find("EWKCR") == -1:
+                histnamepatterncheck = ["OneMuTight/", "OneMuLoose/", "OneElTight/", "OneElLoose/"]
+                pttn_matched = False
+                for pttn in histnamepatterncheck:
+                    if hname.find(pttn) != -1:
+                        pttn_matched = True
+                if pttn_matched:
+                    hfilename = hname.replace("/", "_")
+                    proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                    jobs.append(proc)
+                    proc.start()
+                    hfilename = hname.replace("/", "_")
+                    proc = multiprocessing.Process(target=plot_datadriven_fakerate, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                    jobs.append(proc)
+                    proc.start()
+                    proc = multiprocessing.Process(target=plot_datadriven_fakeratecomp, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                    jobs.append(proc)
+                    proc.start()
 
         for job in jobs:
             job.join()
