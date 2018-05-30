@@ -30,6 +30,16 @@ if docombinedqcdel:
     testsamplename = "W and t#bar{t}"
     testsamplelegendname = "W and t#bar{t}"
 
+#EWK NF OneMuTightEWKCR/MTOneLepFixed 1.09207928181 0.00717264009764
+#EWK NF OneElTightEWKCR/MTOneLepFixed 1.13498103619 0.0145031498869
+elsf = 1.13498103619
+elsf = 1.2110247612
+elsf = 1.2931368351
+musf = 1.09207928181
+musf = 1.11639511585
+#EWK NF OneMuTightEWKCR/MTOneLepFixed 1.11639511585 0.00733231534754
+#EWK NF OneElTightEWKCR/MTOneLepFixed 1.2931368351 0.0165240788594
+
 #_____________________________________________________________________________________
 def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
     # Options
@@ -37,8 +47,10 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
                 "ratio_range":[0.4,1.6],
                 #"nbins": 30,
                 "autobin": True,
-                "legend_scalex": 1.4,
-                "legend_scaley": 1.1,
+                "legend_scalex": 1.0,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "output_name": "{}/{}.pdf".format(output_plot_dir, output_name)
                 }
     alloptions.update(options)
@@ -64,10 +76,15 @@ def plot_stack(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
                 "ratio_range":[0.4,1.6],
                 #"nbins": 30,
                 #"autobin": True,
-                "legend_scalex": 1.4,
-                "legend_scaley": 1.1,
+                "legend_scalex": 1.0,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "output_name": "{}/{}_stack.pdf".format(output_plot_dir, output_name),
                 "bkg_sort_method": "unsorted",
+                "divide_by_bin_width": True if output_name.find("varbin") != -1 else False,
+                "yaxis_log": True if output_name.find("varbin") != -1 else False,
+                "yaxis_range": [1e3, 1e10] if output_name.find("varbin") != -1 else [],
                 }
     alloptions.update(options)
     sigs = []
@@ -89,24 +106,32 @@ def plot_stack(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
         totalbkg.Divide(ratio)
         print histname
         totalbkg.Print("all")
-    if histname.find("OneMuTightEWKCR3/nvtx") != -1 or histname.find("OneElTightEWKCR3/nvtx") != -1:
+    if (histname.find("OneMuTightEWKCR3NoNvtxRewgt/nvtx") != -1 or histname.find("OneElTightEWKCR3NoNvtxRewgt/nvtx") != -1) and options["nbins"] != 5:
         totalbkg = p.get_total_hist(bgs[:-1])
         nvtxweight = samples.getHistogram(dataname, histname).Clone(output_name) if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone(output_name))
         scale = nvtxweight.Integral() / totalbkg.Integral()
         nvtxweight.Divide(totalbkg)
         nvtxweight.Scale(1./scale)
-        nvtxweight.Print("all")
+        #nvtxweight.Print("all")
         #f = ROOT.TFile("{}.root".format(output_name),"recreate")
         #nvtxweight.Write()
         #f.Close()
     if options["nbins"] == 5 and histname.find("TightEWKCR/MT") != -1:
         totalbkg = p.get_total_hist(bgs[:-1])
         ratio = samples.getHistogram(dataname, histname).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, histname).Clone("Data"))
+        if not ismu: ratio.Scale(1.067)
         ratio.Rebin(4)
         totalbkg.Rebin(4)
         ratio.Divide(totalbkg)
-        print histname, ratio.GetBinContent(3), ratio.GetBinError(3)
+        print "EWK NF", histname, ratio.GetBinContent(3), ratio.GetBinError(3)
     colors = [ 2005, 2003, 2001, 920 ]
+    sf = musf if ismu else elsf
+    if histname.find("MTOneLep") == -1:
+        bgs[0].Scale(sf)
+        bgs[1].Scale(sf)
+        bgs[2].Scale(sf)
+    if histname.find("HLT") != -1:
+        bgs = bgs[:-1]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -125,8 +150,10 @@ def plot_datadriven_fakerate(histname, output_name, systs=None, options={}, plot
                 "ratio_range":[0.0,0.3],
                 #"nbins": 30,
                 "autobin": True,
-                "legend_scalex": 1.4,
-                "legend_scaley": 1.1,
+                "legend_scalex": 1.0,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "legend_datalabel": "Data Tight",
                 "output_name": "{}/{}_fakerate.pdf".format(output_plot_dir, output_name),
                 "bkg_sort_method": "unsorted",
@@ -158,7 +185,7 @@ def plot_datadriven_fakerate(histname, output_name, systs=None, options={}, plot
     ddqcdtight = samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data") if not is2d else p.flatten_th2(samples.getHistogram(dataname, str(histname).replace("Loose","Tight")).Clone("Data"))
     totalbkgtight = p.get_total_hist(bgstight)
     # Get data-QCD
-    sf = -1.09207928181 if ismu else -1.13498103619
+    sf = -musf if ismu else -elsf
     ddqcd.Add(totalbkg, sf)
     ddqcdtight.Add(totalbkgtight, sf)
     bgs = [ ddqcd.Clone("Data Loose") ]
@@ -183,9 +210,11 @@ def plot_datadriven_fakeratecomp(histname, output_name, systs=None, options={}, 
                 "ratio_range":[0.0,2.0],
                 #"nbins": 30,
                 "autobin": True,
-                "legend_scalex": 1.4,
-                "legend_scaley": 1.1,
-                "legend_datalabel": "Data fake rate",
+                "legend_scalex": 1.0,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
+                "legend_datalabel": "Data FR",
                 "output_name": "{}/{}_fakeratecomp.pdf".format(output_plot_dir, output_name),
                 "bkg_sort_method": "unsorted",
                 "draw_points": True,
@@ -223,7 +252,7 @@ def plot_datadriven_fakeratecomp(histname, output_name, systs=None, options={}, 
     p.remove_overflow(totalbkgtight)
     p.remove_overflow(ddqcd)
     p.remove_overflow(ddqcdtight)
-    sf = -1.09207928181 if ismu else -1.13498103619
+    sf = -musf if ismu else -elsf
     ddqcd.Add(totalbkg, sf)
     ddqcdtight.Add(totalbkgtight, sf)
     ddqcdtight.Divide(ddqcd)
@@ -231,7 +260,7 @@ def plot_datadriven_fakeratecomp(histname, output_name, systs=None, options={}, 
     p.remove_overflow(qcd)
     p.remove_overflow(qcdtight)
     qcdtight.Divide(qcd)
-    bgs = [ qcdtight.Clone("QCD fake rate") ]
+    bgs = [ qcdtight.Clone("QCD FR") ]
     data = ddqcdtight
     # Compute data driven fake rate
     colors = [ 2 ]
@@ -270,6 +299,8 @@ def fakerate(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist
                 "autobin": True,
                 "legend_scalex": 0.8,
                 "legend_scaley": 0.8,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "legend_datalabel": samplename.replace("estimation", "prediction") if ispredict else samplename.replace("Loose", "Tight"),
                 "output_name": "{}/fr_{}.pdf".format(output_plot_dir, output_name),
                 "hist_disable_xerrors": True if str(histname).find("varbin") != -1 else False,
@@ -325,6 +356,8 @@ def fakerate2d(histname, output_name, systs=None, options={}, plotfunc=p.plot_hi
                 "autobin": True,
                 "legend_scalex": 0.8,
                 "legend_scaley": 0.8,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "legend_datalabel": samplename.replace("estimation", "prediction") if ispredict else samplename.replace("Loose", "Tight"),
                 "output_name": "{}/fr_{}.pdf".format(output_plot_dir, output_name),
                 "hist_disable_xerrors": True if str(histname).find("varbin") != -1 else False,
@@ -390,6 +423,8 @@ def fakeratecomp(histname, output_name, systs=None, options={}, plotfunc=p.plot_
                 "autobin": True,
                 "legend_scalex": 0.8,
                 "legend_scaley": 0.8,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "legend_datalabel": testsamplelegendname,
                 "output_name": "{}/fr_closure_{}.pdf".format(output_plot_dir, output_name)
                 }
@@ -444,6 +479,8 @@ def fakerate2dcomp(histname, output_name, systs=None, options={}, plotfunc=p.plo
                 "autobin": True,
                 "legend_scalex": 0.8,
                 "legend_scaley": 0.8,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
                 "legend_datalabel": testsamplelegendname,
                 "output_name": "{}/fr_closure_{}.pdf".format(output_plot_dir, output_name)
                 }
@@ -470,28 +507,59 @@ if __name__ == "__main__":
         import multiprocessing
 
         jobs = []
+
+        histograms = [
+                "TwoMuHLT17/Mll_Z",
+                "TwoElHLT17/Mll_Z",
+                "OneMuTightEWKCR3NoNvtxRewgt/nvtx",
+                "OneElTightEWKCR3NoNvtxRewgt/nvtx",
+                "OneMuTightEWKCR3/nvtx",
+                "OneElTightEWKCR3/nvtx",
+#                "OneMuTightEWKCR3/nvtx",
+#                "OneElTightEWKCR3/nvtx",
+                "OneMuTightEWKCR/MTOneLepFixed",
+                "OneElTightEWKCR/MTOneLepFixed",
+                "OneMuLoose/lep_ptcorrvarbincoarse",
+                "OneElLoose/lep_ptcorrvarbincoarse",
+                "OneMuTight/lep_ptcorrvarbincoarse",
+                "OneElTight/lep_ptcorrvarbincoarse",
+                "OneElLoose/lep_ptcorrcoarse_vs_etacoarse",
+                "OneMuLoose/lep_ptcorrcoarse_vs_etacoarse",
+                "OneElTight/lep_ptcorrcoarse_vs_etacoarse",
+                "OneMuTight/lep_ptcorrcoarse_vs_etacoarse",
+#                "OneElLoose/lep_ptcorrvarbincoarse",
+#                "OneMuLoose/lep_ptcorrvarbincoarse",
+                ]
+
         for histname in samples.getListOfHistogramNames():
+
+            #if str(histname).find("OneMuLoose/lep_ptcorrcoarse_vs_etacoarse") == -1:
+            #    continue
+            if str(histname) not in histograms:
+                continue
+
             hname = str(histname)
             if hname.find("EWKCR") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15 if hname.find("nvtx") == 1 else 60, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15 if hname.find("nvtx") == 1 else 60, "lumi_value":35.9, "yaxis_log":False, "no_ratio": True, "xaxis_ndivisions": 505 if hname.find("MTOneLep") != -1 else 508}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename+"_5bins"], kwargs={"systs":None, "options":{"autobin":False, "nbins":5, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
-                jobs.append(proc)
-                proc.start()
+                if hname.find("MTOneLepFixed") != -1:
+                    proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename+"_5bins"], kwargs={"systs":None, "options":{"autobin":False, "nbins":5, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                    jobs.append(proc)
+                    proc.start()
             elif hname.find("HLT") != -1 and hname.find("_vs_") == -1:
                 hfilename = hname.replace("/", "_")
-                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
+                proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":60, "lumi_value":35.9, "yaxis_log":False, "no_ratio":True}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
             elif hname.find("_vs_") != -1:
                 hfilename = hname.replace("/", "_")
                 #proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{}, "plotfunc": ply.plot_hist_2d})
-                proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
-                jobs.append(proc)
-                proc.start()
+                #proc = multiprocessing.Process(target=fakerate2d, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":True}, "plotfunc": p.plot_hist})
+                #jobs.append(proc)
+                #proc.start()
                 proc = multiprocessing.Process(target=fakerate2dcomp, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
                 jobs.append(proc)
                 proc.start()
@@ -511,7 +579,7 @@ if __name__ == "__main__":
                         pttn_matched = True
                 if pttn_matched:
                     hfilename = hname.replace("/", "_")
-                    proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+                    proc = multiprocessing.Process(target=plot_stack, args=[hname, hfilename], kwargs={"systs":None, "options":{"autobin":False, "nbins":15, "lumi_value":35.9, "no_ratio":True}, "plotfunc": p.plot_hist})
                     jobs.append(proc)
                     proc.start()
                     hfilename = hname.replace("/", "_")

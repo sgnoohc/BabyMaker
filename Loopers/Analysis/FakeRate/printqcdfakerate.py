@@ -38,6 +38,8 @@ samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 
 qcdloosemu = samples.getHistogram("/qcd/mu", "OneMuLoose/lep_ptcorrcoarse_vs_etacoarse")
 qcdtightmu = samples.getHistogram("/qcd/mu", "OneMuTight/lep_ptcorrcoarse_vs_etacoarse")
+qcdloosemu.Print("all")
+qcdtightmu.Print("all")
 
 qcdlooseel = samples.getHistogram("/qcd/el", "OneElLoose/lep_ptcorrcoarse_vs_etacoarse")
 qcdtightel = samples.getHistogram("/qcd/el", "OneElTight/lep_ptcorrcoarse_vs_etacoarse")
@@ -53,6 +55,7 @@ qcdtightelEM1D = samples.getHistogram("/qcd/el/EM", "OneElTight/lep_ptcorrvarbin
 
 qcdtightmu.Divide(qcdloosemu)
 compute_fake_factor(qcdtightmu)
+qcdtightmu.Print("all")
 
 qcdtightel.Divide(qcdlooseel)
 compute_fake_factor(qcdtightel)
