@@ -21,14 +21,20 @@
 #include <fstream>
 
 // CMS3
-#define USE_CMS3_WWW100 
+//#define USE_CMS3_WWW100 
 
+//#include "Functions112.h"
+//#include "CMS3_WWW112.cc"
 #include "Functions.h"
-#ifdef USE_CMS3_WWW100
 #include "CMS3_WWW106.cc"
+/*
+#include "Functions112.h"
+#ifdef USE_CMS3_WWW100
+#include "CMS3_WWW112.cc"
 #else
 #include "CMS3_WWW0118.cc"
 #endif
+*/
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -44,7 +50,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
   bool blindSR         = true;
   bool btagreweighting = true;
-  bool applylepSF      = false;
+  bool applylepSF      = true;
   bool applytrigSF     = true;
   bool applyPUrewgt    = true;
   bool getJECunc       = true;
@@ -115,7 +121,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("RawSignalRegionPresel");               hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("RawApplicationRegionPresel");          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("RawWZControlRegionPresel");            hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
-  
+  histonames.push_back("SignalRegionv2");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("ApplicationRegionv2");                 hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+
+  histonames.push_back("SignalRegion_Mjjside");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("ApplicationRegion_Mjjside");           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("WZControlRegion_Mjjside");             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("SignalRegionPresel_Mjjside");          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("ApplicationRegionPresel_Mjjside");     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("WZControlRegionPresel_Mjjside");       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+
   histonames.push_back("SignalRegion_JECup");                  hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("SignalRegion_JECdn");                  hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("SignalRegion_lepSFup");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -127,6 +142,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("SignalRegion_PUup");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("SignalRegion_PUdn");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
 
+ 
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
 
@@ -185,39 +201,39 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(!isData()&&applytrigSF)     weight *= trigeff();
       bool checkevent = false;
       for(unsigned int i = 0; i<e.size();++i){
-	if(e[i].run!=tas::run() ) continue;
-	if(e[i].ls !=tas::lumi()) continue;
-	if(e[i].evt!=tas::evt() ) continue;
-	checkevent = true;
-	cout << "Check event " << tas::run() << ":" << tas::lumi() << ":" << tas::evt() << endl;
-	break;
+        if(e[i].run!=tas::run() ) continue;
+        if(e[i].ls !=tas::lumi()) continue;
+        if(e[i].evt!=tas::evt() ) continue;
+        checkevent = true;
+        cout << "Check event " << tas::run() << ":" << tas::lumi() << ":" << tas::evt() << endl;
+        break;
       }
       if(checkevent) {
-	cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << purewgt() << " trig " << trigeff() << " lep " << lepsf() << endl;
-	cout << "nj30 "   << nj30() << " nj " << nj() << " nb " << nb() << " Mjj " << Mjj() << " MjjL " << MjjL() << " Detajj " << DetajjL() << endl;
-	for(unsigned int i = 0; i<jets_p4().size(); ++i){
-	  cout << "jet pT " << jets_p4()[i].Pt() << " eta " << jets_p4()[i].Eta() << " CSV " << jets_csv()[i];
-	  for(unsigned int j = i+1; j<jets_p4().size(); ++j) cout << " M"<<i<<j<< " " << (jets_p4()[i]+jets_p4()[j]).M() << " (dR " << dR(jets_p4()[i],jets_p4()[j]) << ")";
-	  cout << endl;
-	}
-	for(unsigned int i = 0; i<lep_pdgId().size();++i){
-	  cout << "lep " << lep_pdgId()[i] << " Pt " << lep_p4()[i].Pt() << " eta " << lep_p4()[i].Eta();
-	  cout << " ID SSt/SSl/3lt/3ll " << lep_pass_VVV_cutbased_tight()[i] << "/" << lep_pass_VVV_cutbased_fo()[i] << "/" << lep_pass_VVV_cutbased_3l_tight()[i] << "/" << lep_pass_VVV_cutbased_3l_fo()[i];
-	  cout << " iso " << lep_relIso03EAv2()[i] << " ip3d " << lep_ip3d()[i] << " t.q " << lep_tightCharge()[i];
-	  for(unsigned int j = i+1; j<lep_pdgId().size();++j) { cout << " M" << i << j << " " << (lep_p4()[i]+lep_p4()[j]).M();
-	    for(unsigned int k = j+1; k<lep_pdgId().size();++k) cout << " M" << i << j << k << " " << (lep_p4()[i]+lep_p4()[j]+lep_p4()[k]).M() << " Pt " <<  (lep_p4()[i]+lep_p4()[j]+lep_p4()[k]).Pt(); }
-	  cout << endl;
-	}
+        cout << "weight " << weight << " btag  " << weight_btagsf() << " PU " << purewgt() << " trig " << trigeff() << " lep " << lepsf() << endl;
+        cout << "nj30 "   << nj30() << " nj " << nj() << " nb " << nb() << " Mjj " << Mjj() << " MjjL " << MjjL() << " Detajj " << DetajjL() << endl;
+        for(unsigned int i = 0; i<jets_p4().size(); ++i){
+          cout << "jet pT " << jets_p4()[i].Pt() << " eta " << jets_p4()[i].Eta() << " CSV " << jets_csv()[i];
+          for(unsigned int j = i+1; j<jets_p4().size(); ++j) cout << " M"<<i<<j<< " " << (jets_p4()[i]+jets_p4()[j]).M() << " (dR " << dR(jets_p4()[i],jets_p4()[j]) << ")";
+          cout << endl;
+        }
+        for(unsigned int i = 0; i<lep_pdgId().size();++i){
+          cout << "lep " << lep_pdgId()[i] << " Pt " << lep_p4()[i].Pt() << " eta " << lep_p4()[i].Eta();
+          cout << " ID SSt/SSl/3lt/3ll " << lep_pass_VVV_cutbased_tight()[i] << "/" << lep_pass_VVV_cutbased_fo()[i] << "/" << lep_pass_VVV_cutbased_3l_tight()[i] << "/" << lep_pass_VVV_cutbased_3l_fo()[i];
+          cout << " iso " << lep_relIso03EAv2()[i] << " ip3d " << lep_ip3d()[i] << " t.q " << lep_tightCharge()[i];
+          for(unsigned int j = i+1; j<lep_pdgId().size();++j) { cout << " M" << i << j << " " << (lep_p4()[i]+lep_p4()[j]).M();
+            for(unsigned int k = j+1; k<lep_pdgId().size();++k) cout << " M" << i << j << k << " " << (lep_p4()[i]+lep_p4()[j]+lep_p4()[k]).M() << " Pt " <<  (lep_p4()[i]+lep_p4()[j]+lep_p4()[k]).Pt(); }
+          cout << endl;
+        }
       }
             
       if(isData()){
-	if(!passFilters())                      continue;
-	if(checkevent) cout << "pass filter"    << endl;
-	duplicate_removal::DorkyEventIdentifier id(tas::run(), tas::evt(), tas::lumi());
-	if( is_duplicate(id) )                  continue; 
-	if(checkevent) cout << "pass duplicate" << endl;
-	if( !goodrun(tas::run(), tas::lumi()) ) continue;
-	if(checkevent) cout << "pass goodrun"   << endl;
+        if(!passFilters())                      continue;
+        if(checkevent) cout << "pass filter"    << endl;
+        duplicate_removal::DorkyEventIdentifier id(tas::run(), tas::evt(), tas::lumi());
+        if( is_duplicate(id) )                  continue; 
+        if(checkevent) cout << "pass duplicate" << endl;
+        if( !goodrun(tas::run(), tas::lumi()) ) continue;
+        if(checkevent) cout << "pass goodrun"   << endl;
       } 
       if(!passTriggers()) continue;//pass trigger for data, and offline lepton kinematic cuts for data/simulation
       if(checkevent) cout << "pass online/offline triggers" << endl;
@@ -241,49 +257,78 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       passAny3l(SR3l[1],SR3l[3],SR3l[5],true); //preselection: 1: SR, 3: AR, 5: CR
       if(getJECunc) SR3l[6] = isSR3l(false, 1);//6: SR JEC up
       if(getJECunc) SR3l[7] = isSR3l(false,-1);//7: SR JEC dn
+      //Mjj side SS
+      passAnySS(SRSS[10],SRSS[12],SRSS[14],false,0,false,false,true);      //full:         0: SR, 2: AR, 4: CR
+      passAnySS(SRSS[11],SRSS[13],SRSS[15],true, 0,false,false,true); //preselection: 1: SR, 3: AR, 5: CR
 
-
+      vector<int> lepidxv; lepidxv.clear();
+      if(SR3l[1]>=0||SR3l[3]>=0||SR3l[5]>=0){
+        for(int i = 0; i<nVlep();++i){
+          //cout << i << " " << lep_pass_VVV_cutbased_3l_fo()[i] << " " << lep_pass_VVV_cutbased_3l_tight()[i] << " " << lep_p4()[i].Pt() << " pdgID " << lep_pdgId()[i] << " - " << SR3l[1] << " " << SR3l[3] << " " << SR3l[3] << endl; 
+          if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) lepidxv.push_back(i);
+        }
+        if(lepidxv.size()!=3) cout << __LINE__ << " " << lepidxv.size() << endl;
+      }
+      LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+      float maxMT = calcMTmax(lepidxv, METlv);
+      if(lepidxv.size()!=3) maxMT = -1;
 
       if(!isData()||!blindSR){//SR is blinded
-	fillSRhisto(histos, "SignalRegion",               sample, sn, SRSS[0], SR3l[0], weight);
-	fillSRhisto(histos, "SignalRegionPresel",         sample, sn, SRSS[1], SR3l[1], weight);
-	fillSRhisto(histos, "RawSignalRegion",            sample, sn, SRSS[0], SR3l[0], 1.);
-	fillSRhisto(histos, "RawSignalRegionPresel",      sample, sn, SRSS[1], SR3l[1], 1.);
-	if(!isData()&&getJECunc) {
-	  fillSRhisto(histos, "SignalRegion_JECup",       sample, sn, SRSS[6], SR3l[6], weight);
-	  fillSRhisto(histos, "SignalRegion_JECdn",       sample, sn, SRSS[7], SR3l[7], weight);
-	}
-	if(!isData()&&applylepSF&&lepsf()!=0){
-	  fillSRhisto(histos, "SignalRegion_lepSFup",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_up()/lepsf());
-	  fillSRhisto(histos, "SignalRegion_lepSFdn",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_dn()/lepsf());
-	}
-	if(!isData()&&btagreweighting&&weight_btagsf()!=0){
-	  fillSRhisto(histos, "SignalRegion_bHFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_UP()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bHFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_DN()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bLFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_UP()/weight_btagsf());
-	  fillSRhisto(histos, "SignalRegion_bLFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_DN()/weight_btagsf());
-	}
-	if(!isData()&&applyPUrewgt&&!isData()&&purewgt()!=0){
-	  fillSRhisto(histos, "SignalRegion_PUup",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_up()/purewgt());
-	  fillSRhisto(histos, "SignalRegion_PUdn",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_dn()/purewgt());
-	}	
+        int SR3lv2S = SR3l[0];
+        if(SR3l[0]==0 && maxMT<90.) SR3lv2S = -1;
+        fillSRhisto(histos, "SignalRegion",               sample, sn, SRSS[0], SR3l[0], weight);
+        fillSRhisto(histos, "SignalRegionv2",             sample, sn, SRSS[0], SR3lv2S, weight);
+        fillSRhisto(histos, "SignalRegionPresel",         sample, sn, SRSS[1], SR3l[1], weight);
+        fillSRhisto(histos, "RawSignalRegion",            sample, sn, SRSS[0], SR3l[0], 1.);
+        fillSRhisto(histos, "RawSignalRegionPresel",      sample, sn, SRSS[1], SR3l[1], 1.);
+        fillSRhisto(histos, "SignalRegion_Mjjside",       sample, sn, SRSS[10], -1, weight);
+        fillSRhisto(histos, "SignalRegionPresel_Mjjside", sample, sn, SRSS[11], -1, weight);
+        if(!isData()&&getJECunc) {
+          fillSRhisto(histos, "SignalRegion_JECup",       sample, sn, SRSS[6], SR3l[6], weight);
+          fillSRhisto(histos, "SignalRegion_JECdn",       sample, sn, SRSS[7], SR3l[7], weight);
+        }
+        if(!isData()&&applylepSF&&lepsf()!=0){
+          fillSRhisto(histos, "SignalRegion_lepSFup",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_up()/lepsf());
+          fillSRhisto(histos, "SignalRegion_lepSFdn",     sample, sn, SRSS[0], SR3l[0], weight*lepsf_dn()/lepsf());
+        }
+        if(!isData()&&btagreweighting&&weight_btagsf()!=0){
+          fillSRhisto(histos, "SignalRegion_bHFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_UP()/weight_btagsf());
+          fillSRhisto(histos, "SignalRegion_bHFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_heavy_DN()/weight_btagsf());
+          fillSRhisto(histos, "SignalRegion_bLFSFup",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_UP()/weight_btagsf());
+          fillSRhisto(histos, "SignalRegion_bLFSFdn",     sample, sn, SRSS[0], SR3l[0], weight*weight_btagsf_light_DN()/weight_btagsf());
+        }
+        if(!isData()&&applyPUrewgt&&!isData()&&purewgt()!=0){
+          fillSRhisto(histos, "SignalRegion_PUup",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_up()/purewgt());
+          fillSRhisto(histos, "SignalRegion_PUdn",        sample, sn, SRSS[0], SR3l[0], weight*purewgt_dn()/purewgt());
+        }	
       }
+      int SR3lv2A = SR3l[2];
+      if(SR3l[2]==0 && maxMT<90.) SR3lv2A = -1;
       fillSRhisto(  histos, "ApplicationRegion",          sample, sn, SRSS[2], SR3l[2], weight);
+      fillSRhisto(  histos, "ApplicationRegionv2",        sample, sn, SRSS[2], SR3lv2A, weight);
       fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, SRSS[3], SR3l[3], weight);
+      fillSRhisto(  histos, "ApplicationRegion_Mjjside",          sample, sn, SRSS[12], -1, weight);
+      fillSRhisto(  histos, "ApplicationRegionPresel_Mjjside",    sample, sn, SRSS[12], -1, weight);
       fillSRhisto(  histos, "WZControlRegion",            sample, sn, SRSS[4], SR3l[4], weight);
       fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, SRSS[5], SR3l[5], weight);
+      fillSRhisto(  histos, "WZControlRegion_Mjjside",            sample, sn, SRSS[14], -1, weight);
+      fillSRhisto(  histos, "WZControlRegionPresel_Mjjside",      sample, sn, SRSS[15], -1, weight);
+      fillSRhisto(  histos, "ApplicationRegion",          sample, sn, 1, -1, weight);
+      fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, 1, -1, weight);
+      fillSRhisto(  histos, "WZControlRegion",            sample, sn, 1, -1, weight);
+      fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, 1, -1, weight);
       fillSRhisto(  histos, "RawApplicationRegion",       sample, sn, SRSS[2], SR3l[2], 1.);
       fillSRhisto(  histos, "RawApplicationRegionPresel", sample, sn, SRSS[3], SR3l[3], 1.);
       fillSRhisto(  histos, "RawWZControlRegion",         sample, sn, SRSS[4], SR3l[4], 1.);
       fillSRhisto(  histos, "RawWZControlRegionPresel",   sample, sn, SRSS[5], SR3l[5], 1.);
 
       if(storeeventnumbers){
-	addeventtolist(SRSS[0], SR3l[0], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
-	addeventtolist(SRSS[2], SR3l[2], AREE, AREM, ARMM, AR0SFOS, AR1SFOS, AR2SFOS);
-	addeventtolist(SRSS[4], SR3l[4], CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
-	//addeventtolist(SRSS[1], SR3l[1], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
-	//addeventtolist(SRSS[3], SR3l[3], AREE, AREM, ARMM, AR0SFOS, AR1SFOS, AR2SFOS);
-	//addeventtolist(SRSS[5], SR3l[5], CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
+        addeventtolist(SRSS[0], SR3l[0], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
+        addeventtolist(SRSS[2], SR3l[2], AREE, AREM, ARMM, AR0SFOS, AR1SFOS, AR2SFOS);
+        addeventtolist(SRSS[4], SR3l[4], CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
+        //addeventtolist(SRSS[1], SR3l[1], SREE, SREM, SRMM, SR0SFOS, SR1SFOS, SR2SFOS);
+        //addeventtolist(SRSS[3], SR3l[3], AREE, AREM, ARMM, AR0SFOS, AR1SFOS, AR2SFOS);
+        //addeventtolist(SRSS[5], SR3l[5], CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
       }
       if(checkevent) cout << endl;
       
@@ -302,7 +347,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
     storeeventlist("data/AR", skimFilePrefix, AREE, AREM, ARMM, AR0SFOS, AR1SFOS, AR2SFOS);
     storeeventlist("data/CR", skimFilePrefix, CREE, CREM, CRMM, CR0SFOS, CR1SFOS, CR2SFOS);
   }
-  
   SaveHistosToFile("rootfiles/SRLooper.root",histos,true,true,(chainnumber==0));
   deleteHistograms(histos);
   
