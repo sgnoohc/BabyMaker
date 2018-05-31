@@ -132,6 +132,59 @@ def hlt_prescale():
     b.Divide(h_cn_data)
     print cut, var, b.GetBinContent(1), b.GetBinError(1)
 
+#___________________________________________________________________________
+def compute_nvtx_reweighting():
+
+    f = ROOT.TFile("nvtxreweight.root", "recreate")
+
+    cut = "OneMuTightEWKCR3NoNvtxRewgt"
+    var = "nvtx"
+
+    # Retrieve histograms
+    h_cn_data = get_histogram(samples_cn, "data" , cut , var)
+    h_cn_top  = get_histogram(samples_cn, "top"  , cut , var)
+    h_cn_w    = get_histogram(samples_cn, "w"    , cut , var)
+    h_cn_dy   = get_histogram(samples_cn, "dy"   , cut , var)
+    h_cn_qcd  = get_histogram(samples_cn, "qcd"  , cut , var)
+    b = p.get_total_hist([h_cn_top, h_cn_dy, h_cn_w])
+
+    # Get total integral to get the total offset
+    bi = b.Integral()
+    di = h_cn_data.Integral()
+    ratio = di / bi
+
+    # Compute reweighting
+    h_cn_data.Divide(b)
+    h_cn_data.Scale(1./ratio)
+    h_cn_data.SetName(cut+"_"+var)
+    h_cn_data.SetTitle(cut+"_"+var)
+    h_cn_data.Write()
+
+    cut = "OneElTightEWKCR3NoNvtxRewgt"
+    var = "nvtx"
+
+    # Retrieve histograms
+    h_cn_data = get_histogram(samples_cn, "data" , cut , var)
+    h_cn_top  = get_histogram(samples_cn, "top"  , cut , var)
+    h_cn_w    = get_histogram(samples_cn, "w"    , cut , var)
+    h_cn_dy   = get_histogram(samples_cn, "dy"   , cut , var)
+    h_cn_qcd  = get_histogram(samples_cn, "qcd"  , cut , var)
+    b = p.get_total_hist([h_cn_top, h_cn_dy, h_cn_w])
+
+    # Get total integral to get the total offset
+    bi = b.Integral()
+    di = h_cn_data.Integral()
+    ratio = di / bi
+
+    # Compute reweighting
+    h_cn_data.Divide(b)
+    h_cn_data.Scale(1./ratio)
+    h_cn_data.SetName(cut+"_"+var)
+    h_cn_data.SetTitle(cut+"_"+var)
+    h_cn_data.Write()
+
+    f.Close()
+
 
 #___________________________________________________________________________
 def plot_stack(cut, var, dosf=False, options={}):
@@ -281,6 +334,7 @@ if __name__ == "__main__":
 
     # Computing HLT
     jobs.append(multiprocessing.Process(target=hlt_prescale))
+    jobs.append(multiprocessing.Process(target=compute_nvtx_reweighting))
 
     # Computing Nvtx reweighting function
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3NoNvtxRewgt", "nvtx")))
