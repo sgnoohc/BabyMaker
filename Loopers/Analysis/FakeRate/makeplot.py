@@ -238,6 +238,81 @@ def plot_stack(cut, var, dosf=False, options={}):
             options=alloptions)
 
 #___________________________________________________________________________
+def plot_closure(cut, var, options={}):
+
+    # Sanity check that the name of the cut contains "Predict"
+    # If not, then quietly exit the function without doing anything
+    ispredict = cut.find("Predict") != -1
+    if not ispredict:
+        print "ERROR - requested plot_closure on", cut, var, "but did not find Predict in name"
+        return
+
+    # Sanity check that the name of the cut contains "Loose"
+    # If not, then quietly exit the function without doing anything
+    isloose = cut.find("Loose") != -1
+    if not isloose:
+        print "ERROR - requested plot_closure on", cut, var, "but did not find Loose in name"
+        return
+
+    # Setting variables to be used for option setting
+    output_name = cut + "_" + var
+    isvarbin = output_name.find("varbin") != -1
+    divide_by_bin_width = isvarbin
+    yaxis_log = isvarbin
+    yaxis_range = [1e3, 1e10] if isvarbin else []
+
+    # Options
+    alloptions= {
+                "ratio_range":[0.4,1.6],
+                "nbins": 15,
+                "legend_scalex": 1.4,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
+                "output_name": "plots/{}_closure.pdf".format(output_name),
+                "bkg_sort_method": "unsorted",
+                "divide_by_bin_width": divide_by_bin_width,
+                "yaxis_log": yaxis_log,
+                "yaxis_range": yaxis_range,
+                "legend_datalabel": "t#bar{t} + W prediction",
+                "xaxis_ndivisions": 101,
+                }
+
+    # Whatever the option passed through the argument can override anything
+    alloptions.update(options)
+
+    # Colors of the MC histograms
+    colors = [ 2005, 2001 ] # in order of top, Z, W, QCD
+
+    # Retrieve histograms (loose means "estimation", i.e. apply the "tight" selection. I KNOW IT'S A TERRIBLE NAMING....)
+    h_loose_cn_top  = get_histogram(samples_cn, "top"  , cut , var)
+    h_loose_cn_w    = get_histogram(samples_cn, "w"    , cut , var)
+
+    # Retrieve histograms (tight means "prediction", i.e. loose!tight * fake-factor)
+    h_tight_cn_top  = get_histogram(samples_cn, "top"  , cut.replace("Loose", "Tight") , var)
+    h_tight_cn_w    = get_histogram(samples_cn, "w"    , cut.replace("Loose", "Tight") , var)
+
+    # Form the "prediction" which is the sum of 'tight'
+    h_tight_cn_top.Add(h_tight_cn_w)
+
+    # Name the histograms
+    h_loose_cn_w.SetName("W estimation")
+    h_loose_cn_top.SetName("t#bar{t} estimation")
+
+    # Arrange the histograms
+    sigs = []
+    bgs = [ h_loose_cn_top, h_loose_cn_w ]
+    data = h_tight_cn_top
+
+    # Plot!
+    p.plot_hist(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            options=alloptions)
+
+#___________________________________________________________________________
 def get_qcd_fakerate(samples, cutloose, cuttight, var, dosf=False):
 
     # Retrieve histograms
@@ -287,10 +362,11 @@ def plot_fakerate(cutloose, cuttight, var, dosf=False, options={}):
     divide_by_bin_width = isvarbin
     yaxis_log = isvarbin
     yaxis_range = [1e3, 1e10] if isvarbin else []
+    ismu = cuttight.find("Mu") != -1
 
     # Options
     alloptions= {
-                "ratio_range":[0.0,2.0],
+                "ratio_range":[0.0,2.0 if ismu else 2.5],
                 "legend_scalex": 1.0,
                 "legend_scaley": 1.0,
                 "legend_smart": True,
@@ -317,6 +393,7 @@ def plot_fakerate(cutloose, cuttight, var, dosf=False, options={}):
 
     # Get QCD fake rate
     h_qcd_fakerate = get_qcd_fakerate(samples_cn, cutloose, cuttight, var, dosf)
+    h_qcd_fakerate.SetName("QCD FR")
 
     # Plot!
     p.plot_hist(
@@ -356,6 +433,33 @@ if __name__ == "__main__":
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneMuLoose", "OneMuTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneElLoose", "OneElTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
 
+    # Plotting some closure plots
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "mu_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "Mjj_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "Mll_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "MET_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "nb_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "nj30_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "mu_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "Mjj_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "Mll_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "MET_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "nb_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "nj30_mu")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "el_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "Mjj_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "Mll_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "MET_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "nb_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "nj30_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "el_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "Mjj_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "Mll_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "MET_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "nb_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "nj30_el")))
+
+    # Multi-thread processing
     for job in jobs:
         job.start()
 

@@ -553,8 +553,8 @@ if __name__ == "__main__":
 
         #if str(histname).find("OneMuLoose/lep_ptcorrcoarse_vs_etacoarse") == -1:
         #    continue
-        if str(histname) not in histograms:
-            continue
+        #if str(histname) not in histograms:
+        #    continue
 
         hname = str(histname)
         if hname.find("EWKCR") != -1 and hname.find("_vs_") == -1:

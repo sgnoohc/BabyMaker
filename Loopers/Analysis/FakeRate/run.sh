@@ -19,4 +19,4 @@ python loop.py 2 # variation down
 python makeplot.py
 
 # Now print out the final fake rate estimate
-python printqcdfakerate.py # this script prints out "fake-factors=fr/1-fr" into histograms in a root file
+python printdatafakerate.py # this script prints out "fake-factors=fr/1-fr" into histograms in a root file
