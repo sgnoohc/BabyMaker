@@ -376,6 +376,7 @@ def plot_fakerate(cutloose, cuttight, var, dosf=False, options={}):
                 "divide_by_bin_width": divide_by_bin_width,
                 "yaxis_log": yaxis_log,
                 "yaxis_range": yaxis_range,
+                "yaxis_label": "Fake rate",
                 "legend_datalabel": "Data FR",
                 "draw_points": True,
                 }
