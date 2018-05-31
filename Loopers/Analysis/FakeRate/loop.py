@@ -10,14 +10,12 @@ samplescfgpath = "../samples.cfg"
 nfspath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.1.1/skim/" # First set of WWW baby that has one lepton events
 nfspath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.1.2/skim/" # Second set of WWW baby that has QCD one lepton event and data one lepton events for fake rate measurement
 
-def main(index, mode):
+def main(index, mode, donotrun):
 
-    #
-    #
-    # Redirect stdout to log the parallel jobs
-    #
-    #
-    #sys.stdout = open("." + str(os.getpid()) + ".out", "w", buffering=0)
+    # Determine JEC mode
+    jecvar = ""
+    if mode == 1: jecvar = "_up"
+    if mode == 2: jecvar = "_dn"
 
     #
     #
@@ -76,11 +74,11 @@ def main(index, mode):
     traillf = "((lep_motherIdSS[1]!=-1)*(lep_motherIdSS[1]!=-2))"
 
     # MT expression (as I forgot to add a one lepton MT variable in the WWW baby.)
-    MTexpr = "(TMath::Sqrt(2*met_pt*lep_pt[0]*(1.0-TMath::Cos(lep_phi[0]-met_phi))))"
+    MTexpr = "(TMath::Sqrt(2*met"+jecvar+"_pt*lep_pt[0]*(1.0-TMath::Cos(lep_phi[0]-met"+jecvar+"_phi))))"
 
     # One lepton kinematic selection
-    onelep_cuts = "(jets_p4[0].pt()>40.)"
-    twolep_cuts = "(lep_pdgId[0]*lep_pdgId[1]>0)*(nj30>=2)" # if removing bveto
+    onelep_cuts = "(jets"+jecvar+"_p4[0].pt()>40.)"
+    twolep_cuts = "(lep_pdgId[0]*lep_pdgId[1]>0)*(nj30"+jecvar+">=2)" # if removing bveto
     twolepos_cuts = "(lep_pdgId[0]*lep_pdgId[1]<0)"
 
     # Electroweak control region selection
@@ -89,10 +87,10 @@ def main(index, mode):
     # The reason they are not integer is because the prescales are run/lumi dependent and this number is an "effective" prescale value calculated by comparing MC to data in a dilepton z-peak from this trigger
     hlt_mu17_prescale = 158.45
     hlt_el17_prescale = 665.24
-    onelepewkcr_cuts = "(jets_p4[0].pt()>40.)*(met_pt>30.)"
-    onelepewkcr2_cuts = "(jets_p4[0].pt()>40.)*(lep_pt[0]>30.)*(met_pt<20.)"
-    onelepewkcr3_cuts = "(jets_p4[0].pt()>40.)*(lep_pt[0]>50.)"
-    onelepmr_cuts = "(met_pt<20.)*({MT}<20.)*(jets_p4[0].pt()>40.)".format(MT=MTexpr)
+    onelepewkcr_cuts = "(jets"+jecvar+"_p4[0].pt()>40.)*(met_pt>30.)"
+    onelepewkcr2_cuts = "(jets"+jecvar+"_p4[0].pt()>40.)*(lep_pt[0]>30.)*(met_pt<20.)"
+    onelepewkcr3_cuts = "(jets"+jecvar+"_p4[0].pt()>40.)*(lep_pt[0]>50.)"
+    onelepmr_cuts = "(met_pt<20.)*("+MTexpr+"<20.)*(jets"+jecvar+"_p4[0].pt()>40.)"
     oneleptrig_cuts = "(abs(lep_pdgId[0])==11)*(mc_HLT_SingleIsoEl17)+(abs(lep_pdgId[0])==13)*(mc_HLT_SingleIsoMu17)"
     oneleptrig_wgts = "{$(usefakeweight)?([abs(lep_pdgId[0])==11])*([mc_HLT_SingleIsoEl17])*("+str(hlt_el17_prescale)+")+([abs(lep_pdgId[0])==13])*([mc_HLT_SingleIsoMu17])*("+str(hlt_mu17_prescale)+"):1.}"
     onelepnvtx_wgts = "{$(usefakeweight)?1.:([abs(lep_pdgId[0])==11])*([TH1Map:nvtxreweight.root:OneElTightEWKCR3NoNvtxRewgt_nvtx([nVert])])+([abs(lep_pdgId[0])==13])*([TH1Map:nvtxreweight.root:OneMuTightEWKCR3NoNvtxRewgt_nvtx([nVert])])}"
@@ -148,8 +146,8 @@ def main(index, mode):
     tqcuts["TwoMuTight"] = TQCut("TwoMuTight", "TwoMuTight", "(abs(lep_pdgId[0])==13)*({})+(abs(lep_pdgId[1])==13)*({})".format(leadmu_tight, trailmu_tight), "1")
     tqcuts["TwoMuLoosePredict"] = TQCut("TwoMuLoosePredict", "TwoMuLoosePredict", "(abs(lep_pdgId[0])==13)*({})+(abs(lep_pdgId[1])==13)*({})".format(leadmu_tight, trailmu_tight), "1")
     tqcuts["TwoMuTightPredict"] = TQCut("TwoMuTightPredict", "TwoMuTightPredict", "(abs(lep_pdgId[0])==13)*({})*(!({}))+(abs(lep_pdgId[1])==13)*({})*(!({}))".format(leadmu_loose, leadmu_tight, trailmu_loose, trailmu_tight), weight_mu)
-    tqcuts["TwoMuLoosePredictBVeto"] = TQCut("TwoMuLoosePredictBVeto", "TwoMuLoosePredictBVeto", "(nb==0)*((abs(lep_pdgId[0])==13)*({})+(abs(lep_pdgId[1])==13)*({}))".format(leadmu_tight, trailmu_tight), "1")
-    tqcuts["TwoMuTightPredictBVeto"] = TQCut("TwoMuTightPredictBVeto", "TwoMuTightPredictBVeto", "(nb==0)*((abs(lep_pdgId[0])==13)*({})*(!({}))+(abs(lep_pdgId[1])==13)*({})*(!({})))".format(leadmu_loose, leadmu_tight, trailmu_loose, trailmu_tight), weight_mu)
+    tqcuts["TwoMuLoosePredictBVeto"] = TQCut("TwoMuLoosePredictBVeto", "TwoMuLoosePredictBVeto", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==13)*({})+(abs(lep_pdgId[1])==13)*({}))".format(leadmu_tight, trailmu_tight), "1")
+    tqcuts["TwoMuTightPredictBVeto"] = TQCut("TwoMuTightPredictBVeto", "TwoMuTightPredictBVeto", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==13)*({})*(!({}))+(abs(lep_pdgId[1])==13)*({})*(!({})))".format(leadmu_loose, leadmu_tight, trailmu_loose, trailmu_tight), weight_mu)
 
     tqcuts["TwoEl"] = TQCut("TwoEl", "TwoEl", "([ClosureEvtType]==1)*[(abs(lep_pdgId[0]*lep_pdgId[1])==143)]*[(abs(lep_pdgId[0])==13)*(lep_pass_VVV_cutbased_tight[0])+(abs(lep_pdgId[1])==13)*(lep_pass_VVV_cutbased_tight[1])]", "1") # one any electron and one real tight muon with two total leptons
     tqcuts["TwoElLoose"] = TQCut("TwoElLoose", "TwoElLoose", "(abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({})".format(leadel_loose, trailel_loose), "1")
@@ -162,14 +160,14 @@ def main(index, mode):
     tqcuts["TwoElTightPredictEM1DLF"] = TQCut("TwoElTightPredictEM1DLF", "TwoElTightPredictEM1DLF", "(abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({})".format(leadel_loose, leadel_tight, leadlf, trailel_loose, trailel_tight, traillf), weight_elEM1D)
     tqcuts["TwoElLoosePredictComb"] = TQCut("TwoElLoosePredictComb", "TwoElLoosePredictComb", "(abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({})".format(leadel_tight, trailel_tight), "1")
     tqcuts["TwoElTightPredictComb"] = TQCut("TwoElTightPredictComb", "TwoElTightPredictComb", "(abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({}))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_elcomb)
-    tqcuts["TwoElLoosePredictBVeto"] = TQCut("TwoElLoosePredictBVeto", "TwoElLoosePredictBVeto", "(nb==0)*((abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({}))".format(leadel_tight, trailel_tight), "1")
-    tqcuts["TwoElTightPredictBVeto"] = TQCut("TwoElTightPredictBVeto", "TwoElTightPredictBVeto", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({})))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_el)
-    tqcuts["TwoElLoosePredictBVetoHF"] = TQCut("TwoElLoosePredictBVetoHF", "TwoElLoosePredictBVetoHF", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({}))".format(leadel_tight, leadhf, trailel_tight, trailhf), "1")
-    tqcuts["TwoElTightPredictBVetoHF"] = TQCut("TwoElTightPredictBVetoHF", "TwoElTightPredictBVetoHF", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({}))".format(leadel_loose, leadel_tight, leadhf, trailel_loose, trailel_tight, trailhf), weight_el)
-    tqcuts["TwoElLoosePredictBVetoEM1DLF"] = TQCut("TwoElLoosePredictBVetoEM1DLF", "TwoElLoosePredictBVetoEM1DLF", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({}))".format(leadel_tight, leadlf, trailel_tight, traillf), "1")
-    tqcuts["TwoElTightPredictBVetoEM1DLF"] = TQCut("TwoElTightPredictBVetoEM1DLF", "TwoElTightPredictBVetoEM1DLF", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({}))".format(leadel_loose, leadel_tight, leadlf, trailel_loose, trailel_tight, traillf), weight_elEM1D)
-    tqcuts["TwoElLoosePredictBVetoComb"] = TQCut("TwoElLoosePredictBVetoComb", "TwoElLoosePredictBVetoComb", "(nb==0)*((abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({}))".format(leadel_tight, trailel_tight), "1")
-    tqcuts["TwoElTightPredictBVetoComb"] = TQCut("TwoElTightPredictBVetoComb", "TwoElTightPredictBVetoComb", "(nb==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({})))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_elcomb)
+    tqcuts["TwoElLoosePredictBVeto"] = TQCut("TwoElLoosePredictBVeto", "TwoElLoosePredictBVeto", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({}))".format(leadel_tight, trailel_tight), "1")
+    tqcuts["TwoElTightPredictBVeto"] = TQCut("TwoElTightPredictBVeto", "TwoElTightPredictBVeto", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({})))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_el)
+    tqcuts["TwoElLoosePredictBVetoHF"] = TQCut("TwoElLoosePredictBVetoHF", "TwoElLoosePredictBVetoHF", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({}))".format(leadel_tight, leadhf, trailel_tight, trailhf), "1")
+    tqcuts["TwoElTightPredictBVetoHF"] = TQCut("TwoElTightPredictBVetoHF", "TwoElTightPredictBVetoHF", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({}))".format(leadel_loose, leadel_tight, leadhf, trailel_loose, trailel_tight, trailhf), weight_el)
+    tqcuts["TwoElLoosePredictBVetoEM1DLF"] = TQCut("TwoElLoosePredictBVetoEM1DLF", "TwoElLoosePredictBVetoEM1DLF", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({}))".format(leadel_tight, leadlf, trailel_tight, traillf), "1")
+    tqcuts["TwoElTightPredictBVetoEM1DLF"] = TQCut("TwoElTightPredictBVetoEM1DLF", "TwoElTightPredictBVetoEM1DLF", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({}))".format(leadel_loose, leadel_tight, leadlf, trailel_loose, trailel_tight, traillf), weight_elEM1D)
+    tqcuts["TwoElLoosePredictBVetoComb"] = TQCut("TwoElLoosePredictBVetoComb", "TwoElLoosePredictBVetoComb", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({}))".format(leadel_tight, trailel_tight), "1")
+    tqcuts["TwoElTightPredictBVetoComb"] = TQCut("TwoElTightPredictBVetoComb", "TwoElTightPredictBVetoComb", "(nb"+jecvar+"==0)*((abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({})))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_elcomb)
 
     tqcuts["TwoMuHLT8"] = TQCut("TwoMuHLT8", "TwoMuHLT8", "(mc_HLT_SingleIsoMu8)*(MllSS>60.)*(MllSS<120.)", "1")
     tqcuts["TwoMuHLT17"] = TQCut("TwoMuHLT17", "TwoMuHLT17", "(mc_HLT_SingleIsoMu17)*(MllSS>60.)*(MllSS<120.)", "1")
@@ -260,31 +258,31 @@ def main(index, mode):
     filename = ".histo.mr.{}.cfg".format(index)
     f = open(filename, "w")
     f.write("""
-    TH2F('lep_pt_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {20, 30, 40, 50, 60, 70, 150, 2000} ) << (abs(lep_eta[0]) : '|\#eta|', lep_pt[0] : '\#it{p}_{T} [GeV]');
+    TH2F('lep_pt_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{20, 30, 40, 50, 60, 70, 150, 2000}} ) << (abs(lep_eta[0]) : '|\#eta|', lep_pt[0] : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_pt_vs_eta;
 
-    TH2F('lep_ptcorr_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T} [GeV]');
+    TH2F('lep_ptcorr_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_ptcorr_vs_eta;
 
-    TH2F('lep_ptcorrcoarse_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 10., 20., 25., 30., 40., 120.} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T} [GeV]');
+    TH2F('lep_ptcorrcoarse_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_ptcorrcoarse_vs_eta;
 
-    TH2F('lep_ptcorrcoarse_vs_etacoarse' , '' , {0, 1.6, 2.4}, {0., 10., 20., 25., 30., 40., 120.} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T} [GeV]');
+    TH2F('lep_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_ptcorrcoarse_vs_etacoarse;
 
-    TH1F('lep_pt' , '' , 180 , 0. , 250 ) << (lep_pt[0] : '\#it{p}_{T} [GeV]');
+    TH1F('lep_pt' , '' , 180 , 0. , 250 ) << (lep_pt[0] : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_pt;
 
     TH1F('lep_pdgId' , '' , 40 , -20. , 20 ) << (lep_pdgId[0] : 'Lepton PDG ID');
     @OneLep/*: lep_pdgId;
 
-    TH1F('lep_ptcorr' , '' , 180 , 0. , 250 ) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T, cone-corr} [GeV]');
+    TH1F('lep_ptcorr' , '' , 180 , 0. , 250 ) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
     @OneLep/*: lep_ptcorr;
 
-    TH1F('lep_ptcorrvarbin' , '' , {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T, cone-corr} [GeV]');
+    TH1F('lep_ptcorrvarbin' , '' , {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
     @OneLep/*: lep_ptcorrvarbin;
 
-    TH1F('lep_ptcorrvarbincoarse' , '' , {0., 10., 20., 25., 30., 40., 120.}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{p}_{T, cone-corr} [GeV]');
+    TH1F('lep_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
     @OneLep/*: lep_ptcorrvarbincoarse;
 
     TH1F('lep_yield' , '' , 1, 0, 1) << (0 : 'yield');
@@ -293,133 +291,133 @@ def main(index, mode):
     TH1F('lep_eta' , '' , 180 , -2.5 , 2.5 ) << (lep_eta[0] : '\#eta');
     @OneLep/*: lep_eta;
 
-    TH1F('lep_etavarbin' , '' , {-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5} ) << (lep_eta[0] : '\#eta');
+    TH1F('lep_etavarbin' , '' , {{-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5}} ) << (lep_eta[0] : '\#eta');
     @OneLep/*: lep_etavarbin;
 
-    TH1F('lep_relIso03EAv2Lep' , '' , 180 , 0.0 , 0.6 ) << (lep_relIso03EAv2Lep[0] : 'I_{R=0.3,EA,Lep}');
+    TH1F('lep_relIso03EAv2Lep' , '' , 180 , 0.0 , 0.6 ) << (lep_relIso03EAv2Lep[0] : 'I_{{R=0.3,EA,Lep}}');
     @OneLep/*: lep_relIso03EAv2Lep;
 
-    TH1F('mu_ptcorrvarbin' , '' , {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH1F('mu_ptcorrvarbin' , '' , {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoMu/*: mu_ptcorrvarbin;
 
-    TH1F('mu_ptcorrvarbincoarse' , '' , {0., 10., 20., 25., 30., 40., 120.}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH1F('mu_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoMu/*: mu_ptcorrvarbincoarse;
 
     TH1F('mu_yield' , '' , 1, 0, 1) << (0 : 'yield');
     @TwoMu/*: mu_yield;
 
-    TH2F('mu_ptcorr_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('mu_ptcorr_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoMu/*: mu_ptcorr_vs_eta;
 
-    TH2F('mu_ptcorrcoarse_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 10., 20., 25., 30., 40., 60., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('mu_ptcorrcoarse_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 10., 20., 25., 30., 40., 60., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoMu/*: mu_ptcorrcoarse_vs_eta;
 
-    TH2F('mu_ptcorrcoarse_vs_etacoarse' , '' , {0, 1.6, 2.4}, {0., 10., 20., 25., 30., 40., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('mu_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==13)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==13) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==13)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoMu/*: mu_ptcorrcoarse_vs_etacoarse;
 
-    TH1F('mu_pt' , '' , 180 , 0., 250) << ((lep_pt[0])*(abs(lep_pdgId[0])==13)+(lep_pt[1])*(abs(lep_pdgId[1])==13) : '\#it{p}_{T, \#mu} [GeV]');
+    TH1F('mu_pt' , '' , 180 , 0., 250) << ((lep_pt[0])*(abs(lep_pdgId[0])==13)+(lep_pt[1])*(abs(lep_pdgId[1])==13) : '\#it{{p}}_{{T, \#mu}} [GeV]');
     @TwoMu/*: mu_pt;
 
-    TH1F('mu_eta' , '' , 180 , -2.5, 2.5) << ((lep_eta[0])*(abs(lep_pdgId[0])==13)+(lep_eta[1])*(abs(lep_pdgId[1])==13) : '\#eta_{\#mu}');
+    TH1F('mu_eta' , '' , 180 , -2.5, 2.5) << ((lep_eta[0])*(abs(lep_pdgId[0])==13)+(lep_eta[1])*(abs(lep_pdgId[1])==13) : '\#eta_{{\#mu}}');
     @TwoMu/*: mu_eta;
 
-    TH1F('mu_etavarbin' , '' , {-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5} ) << (lep_eta[0] : '\#eta');
+    TH1F('mu_etavarbin' , '' , {{-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5}} ) << (lep_eta[0] : '\#eta');
     @TwoMu/*: mu_etavarbin;
 
-    TH1F('mu_relIso03EAv2Lep' , '' , 180 , 0., 0.6) << ((lep_relIso03EAv2Lep[0])*(abs(lep_pdgId[0])==13)+(lep_relIso03EAv2Lep[1])*(abs(lep_pdgId[1])==13) : 'I_{R=0.3,EA,Lep,\#mu}');
+    TH1F('mu_relIso03EAv2Lep' , '' , 180 , 0., 0.6) << ((lep_relIso03EAv2Lep[0])*(abs(lep_pdgId[0])==13)+(lep_relIso03EAv2Lep[1])*(abs(lep_pdgId[1])==13) : 'I_{{R=0.3,EA,Lep,\#mu}}');
     @TwoMu/*: mu_relIso03EAv2Lep;
 
-    TH2F('el_ptcorr_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('el_ptcorr_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoEl/*: el_ptcorr_vs_eta;
 
-    TH2F('el_ptcorrcoarse_vs_eta' , '' , {0, 0.9, 1.6, 1.9, 2.4}, {0., 10., 20., 25., 30., 40., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('el_ptcorrcoarse_vs_eta' , '' , {{0, 0.9, 1.6, 1.9, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoEl/*: el_ptcorrcoarse_vs_eta;
 
-    TH2F('el_ptcorrcoarse_vs_etacoarse' , '' , {0, 1.6, 2.4}, {0., 10., 20., 25., 30., 40., 120.} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, cone-corr, mu} [GeV]');
+    TH2F('el_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << ((abs(lep_eta[0]))*(abs(lep_pdgId[0])==11)+(abs(lep_eta[1]))*(abs(lep_pdgId[1])==11) : '|\#eta|', (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, cone-corr, mu}} [GeV]');
     @TwoEl/*: el_ptcorrcoarse_vs_etacoarse;
 
-    TH1F('el_ptcorrvarbin' , '' , {0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, cone-corr, el} [GeV]');
+    TH1F('el_ptcorrvarbin' , '' , {{0., 5., 10., 15., 20., 25., 30., 35., 40., 45., 60., 80., 120.}}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, cone-corr, el}} [GeV]');
     @TwoEl/*: el_ptcorrvarbin;
 
-    TH1F('el_ptcorrvarbincoarse' , '' , {0., 10., 20., 25., 30., 40., 120.}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, cone-corr, el} [GeV]');
+    TH1F('el_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << ((TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),120.))*(abs(lep_pdgId[0])==11)+(TMath::Min(lep_pt[1]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[1]-0.03)),120.))*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, cone-corr, el}} [GeV]');
     @TwoEl/*: el_ptcorrvarbincoarse;
 
     TH1F('el_yield' , '' , 1, 0, 1) << (0 : 'yield');
     @TwoEl/*: el_yield;
 
-    TH1F('el_pt' , '' , 180 , 0., 250) << ((lep_pt[0])*(abs(lep_pdgId[0])==11)+(lep_pt[1])*(abs(lep_pdgId[1])==11) : '\#it{p}_{T, el} [GeV]');
+    TH1F('el_pt' , '' , 180 , 0., 250) << ((lep_pt[0])*(abs(lep_pdgId[0])==11)+(lep_pt[1])*(abs(lep_pdgId[1])==11) : '\#it{{p}}_{{T, el}} [GeV]');
     @TwoEl/*: el_pt;
 
-    TH1F('el_eta' , '' , 180 , -2.5, 2.5) << ((lep_eta[0])*(abs(lep_pdgId[0])==11)+(lep_eta[1])*(abs(lep_pdgId[1])==11) : '\#eta_{el}');
+    TH1F('el_eta' , '' , 180 , -2.5, 2.5) << ((lep_eta[0])*(abs(lep_pdgId[0])==11)+(lep_eta[1])*(abs(lep_pdgId[1])==11) : '\#eta_{{el}}');
     @TwoEl/*: el_eta;
 
-    TH1F('el_etavarbin' , '' , {-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5} ) << (lep_eta[0] : '\#eta');
+    TH1F('el_etavarbin' , '' , {{-2.5, -2.1, -1.6, -1.0, 0.0, 1.0, 1.6, 2.1, 2.5}} ) << (lep_eta[0] : '\#eta');
     @TwoEl/*: el_etavarbin;
 
-    TH1F('el_relIso03EAv2Lep' , '' , 180 , 0., 0.6) << ((lep_relIso03EAv2Lep[0])*(abs(lep_pdgId[0])==11)+(lep_relIso03EAv2Lep[1])*(abs(lep_pdgId[1])==11) : 'I_{R=0.3,EA,Lep,el}');
+    TH1F('el_relIso03EAv2Lep' , '' , 180 , 0., 0.6) << ((lep_relIso03EAv2Lep[0])*(abs(lep_pdgId[0])==11)+(lep_relIso03EAv2Lep[1])*(abs(lep_pdgId[1])==11) : 'I_{{R=0.3,EA,Lep,el}}');
     @TwoEl/*: el_relIso03EAv2Lep;
 
-    TH1F('Mjj_el' , '' , 180 , 0., 180. ) << (Mjj : '\#it{m}_{jj} [GeV]');
+    TH1F('Mjj_el' , '' , 180 , 0., 180. ) << ({Mjj} : '\#it{{m}}_{{jj}} [GeV]');
     @TwoEl/*: Mjj_el;
 
-    TH1F('Mjj_mu' , '' , 180 , 0., 180. ) << (Mjj : '\#it{m}_{jj} [GeV]');
+    TH1F('Mjj_mu' , '' , 180 , 0., 180. ) << ({Mjj} : '\#it{{m}}_{{jj}} [GeV]');
     @TwoMu/*: Mjj_mu;
 
-    TH1F('Mll_el' , '' , 180 , 0., 180. ) << (MllSS : '\#it{m}_{ll} [GeV]');
+    TH1F('Mll_el' , '' , 180 , 0., 180. ) << (MllSS : '\#it{{m}}_{{ll}} [GeV]');
     @TwoEl/*: Mll_el;
 
-    TH1F('Mll_mu' , '' , 180 , 0., 180. ) << (MllSS : '\#it{m}_{ll} [GeV]');
+    TH1F('Mll_mu' , '' , 180 , 0., 180. ) << (MllSS : '\#it{{m}}_{{ll}} [GeV]');
     @TwoMu/*: Mll_mu;
 
-    TH1F('DPhill_el' , '' , 180 , 0., 3.1416 ) << (TMath::Abs(TVector2::Phi_mpi_pi(lep_phi[0]-lep_phi[1])) : '\#it{m}_{ll} [GeV]');
+    TH1F('DPhill_el' , '' , 180 , 0., 3.1416 ) << (TMath::Abs(TVector2::Phi_mpi_pi(lep_phi[0]-lep_phi[1])) : '\#it{{m}}_{{ll}} [GeV]');
     @TwoEl/*: DPhill_el;
 
-    TH1F('DPhill_mu' , '' , 180 , 0., 3.1416 ) << (TMath::Abs(TVector2::Phi_mpi_pi(lep_phi[0]-lep_phi[1])) : '\#it{m}_{ll} [GeV]');
+    TH1F('DPhill_mu' , '' , 180 , 0., 3.1416 ) << (TMath::Abs(TVector2::Phi_mpi_pi(lep_phi[0]-lep_phi[1])) : '\#it{{m}}_{{ll}} [GeV]');
     @TwoMu/*: DPhill_mu;
 
-    TH1F('MET_el' , '' , 180 , 0., 180. ) << (met_pt : 'MET [GeV]');
+    TH1F('MET_el' , '' , 180 , 0., 180. ) << ({MET} : 'MET [GeV]');
     @TwoEl/*: MET_el;
 
-    TH1F('MET_mu' , '' , 180 , 0., 180. ) << (met_pt : 'MET [GeV]');
+    TH1F('MET_mu' , '' , 180 , 0., 180. ) << ({MET} : 'MET [GeV]');
     @TwoMu/*: MET_mu;
 
-    TH1F('MTmax_el' , '' , 180 , 0., 180. ) << (MTmax : '\#it{m}_{T,max} [GeV]');
+    TH1F('MTmax_el' , '' , 180 , 0., 180. ) << ({MTmax} : '\#it{{m}}_{{T,max}} [GeV]');
     @TwoEl/*: MTmax_el;
 
-    TH1F('MTmax_mu' , '' , 180 , 0., 180. ) << (MTmax : '\#it{m}_{T,max} [GeV]');
+    TH1F('MTmax_mu' , '' , 180 , 0., 180. ) << ({MTmax} : '\#it{{m}}_{{T,max}} [GeV]');
     @TwoMu/*: MTmax_mu;
 
-    TH1F('nb_el' , '' , 5, 0., 5.) << (nb : 'N_{b-jets}');
+    TH1F('nb_el' , '' , 5, 0., 5.) << ({nb} : 'N_{{b-jets}}');
     @TwoEl/*: nb_el;
 
-    TH1F('nb_mu' , '' , 5, 0., 5.) << (nb : 'N_{b-jets}');
+    TH1F('nb_mu' , '' , 5, 0., 5.) << ({nb} : 'N_{{b-jets}}');
     @TwoMu/*: nb_mu;
 
-    TH1F('nj30_el' , '' , 5, 0., 5.) << (nj30 : 'N_{jets,30,cent}');
+    TH1F('nj30_el' , '' , 5, 0., 5.) << ({nj30} : 'N_{{jets,30,cent}}');
     @TwoEl/*: nj30_el;
 
-    TH1F('nj30_mu' , '' , 5, 0., 5.) << (nj30 : 'N_{jets,30,cent}');
+    TH1F('nj30_mu' , '' , 5, 0., 5.) << ({nj30} : 'N_{{jets,30,cent}}');
     @TwoMu/*: nj30_mu;
 
-    TH1F('nj_el' , '' , 5, 0., 5.) << (nj : 'N_{jets,all}');
+    TH1F('nj_el' , '' , 5, 0., 5.) << ({nj} : 'N_{{jets,all}}');
     @TwoEl/*: nj_el;
 
-    TH1F('nj_mu' , '' , 5, 0., 5.) << (nj : 'N_{jets,all}');
+    TH1F('nj_mu' , '' , 5, 0., 5.) << ({nj} : 'N_{{jets,all}}');
     @TwoMu/*: nj_mu;
 
-    TH1F('Mll_Z' , '' , 180 , 60., 120. ) << (MllSS : '\#it{m}_{ll} [GeV]');
+    TH1F('Mll_Z' , '' , 180 , 60., 120. ) << (MllSS : '\#it{{m}}_{{ll}} [GeV]');
     @TwoLepOS/*: Mll_Z;
 
-    TH1F('MTOneLep' , '' , 180 , 0., 180. ) << ([MTOneLep] : '\#it{m}_{T} [GeV]');
+    TH1F('MTOneLep' , '' , 180 , 0., 180. ) << ({MT} : '\#it{{m}}_{{T}} [GeV]');
     @*/*: MTOneLep;
 
-    TH1F('MTOneLepFixed' , '' , 20 , 0., 200. ) << ([MTOneLep] : '\#it{m}_{T} [GeV]');
+    TH1F('MTOneLepFixed' , '' , 20 , 0., 200. ) << ({MT} : '\#it{{m}}_{{T}} [GeV]');
     @*/*: MTOneLepFixed;
 
-    TH1F('nvtx' , '' , 60 , 0., 60. ) << (nVert : 'N_{vtx}');
+    TH1F('nvtx' , '' , 60 , 0., 60. ) << (nVert : 'N_{{vtx}}');
     @*/*: nvtx;
 
-    """)
+    """.format(Mjj="Mjj"+jecvar, MET="met"+jecvar+"_pt", nb="nb"+jecvar, nj30="nj30"+jecvar, nj="nj"+jecvar, MT=MTexpr, MTmax="MTmax"+jecvar))
     f.close()
 
     #
@@ -495,16 +493,21 @@ if __name__ == "__main__":
     except:
         print "Usage:"
         print ""
-        print " python {} MODE".format(sys.argv[0])
+        print " python {} MODE [DONOTRUN]".format(sys.argv[0])
         print ""
         print "  MODE determines which QCD selection run"
-        print "  MODE=-1 only prints the samples that are being booked and does nothing."
+        print "      = 0 (default) runs nominal variation"
+        print "      = 1           runs JEC up"
+        print "      = 2           runs JEC dn"
+        print "  type anything as 2nd argument to not run but just print the samples/cuts/histogram defn."
         print ""
         print "NOTE : Running with default mode of MODE=0!"
         print "NOTE : Running with default mode of MODE=0!"
         print "NOTE : Running with default mode of MODE=0!"
         print "NOTE : Running with default mode of MODE=0!"
         mode = 0
+
+    donotrun = len(sys.argv) >= 3
 
     # Delete previous remnants
     os.system("rm -f .output_*.root")
@@ -518,13 +521,13 @@ if __name__ == "__main__":
     sample_names, sample_full_names = getSampleLists(samples)
     njobs = len(sample_names)
 
-    if mode == -1:
-        main(-1, -1)
+    if donotrun:
+        main(-1, mode, donotrun)
         sys.exit()
 
     jobs = []
     for i in range(njobs):
-        p = multiprocessing.Process(target=main, args=(i, mode,))
+        p = multiprocessing.Process(target=main, args=(i, mode, donotrun,))
         jobs.append(p)
         p.start()
 
@@ -532,7 +535,12 @@ if __name__ == "__main__":
         #print "{} jobs done out of {}".format(index, len(jobs))
         job.join()
 
-    os.system("rooutil/qframework/share/tqmerge -o output.root -t analysis .output_*.root")
+    # Determine JEC mode
+    jecvar = ""
+    if mode == 1: jecvar = "_up"
+    if mode == 2: jecvar = "_dn"
+
+    os.system("rooutil/qframework/share/tqmerge -o output"+jecvar+".root -t analysis .output_*.root")
     os.system("rm .output_*.root")
     os.system("rm .histo.mr.*.cfg")
 
