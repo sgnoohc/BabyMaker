@@ -9,6 +9,8 @@ from plottery import plottery as ply
 from rooutil.syncfiles.pyfiles.errors import E
 
 ROOT.gROOT.SetBatch(True)
+
+#_________________________________________________________
 def compute_fake_factor(th2):
     for ix in xrange(0, th2.GetNbinsX()+2):
         for iy in xrange(0, th2.GetNbinsY()+2):
@@ -22,6 +24,7 @@ def compute_fake_factor(th2):
             th2.SetBinContent(ix, iy, ff.val)
             th2.SetBinError(ix, iy, ff.err)
 
+#_________________________________________________________
 def compute_fake_factor_1d(th1):
     for ix in xrange(0, th1.GetNbinsX()+2):
         frnom = th1.GetBinContent(ix)
@@ -34,10 +37,12 @@ def compute_fake_factor_1d(th1):
         th1.SetBinContent(ix, ff.val)
         th1.SetBinError(ix, ff.err)
 
+#_________________________________________________________
 samples_nom = TQSampleFolder.loadSampleFolder("output.root:samples")
 samples_up = TQSampleFolder.loadSampleFolder("output_up.root:samples")
 samples_dn = TQSampleFolder.loadSampleFolder("output_dn.root:samples")
 
+#_________________________________________________________
 def ewksf(cut, channel, samples):
     data = samples.getHistogram("/data/{}{}".format(channel, channel) , cut+"/MTOneLepFixed").Clone("Data")
     bgs = []
@@ -50,6 +55,7 @@ def ewksf(cut, channel, samples):
     data.Divide(totalbkg)
     return data.GetBinContent(3)
 
+#_________________________________________________________
 def move_in_overflow(th2):
     for ix in xrange(0, th2.GetNbinsX()+2):
         overflowbc = th2.GetBinContent(ix, th2.GetNbinsY()+1)
@@ -64,7 +70,7 @@ def move_in_overflow(th2):
         th2.SetBinContent(ix, th2.GetNbinsY()+1, newhighbinb.val)
         th2.SetBinError(ix, th2.GetNbinsY()+1, newhighbinb.err)
 
-
+#_________________________________________________________
 def get_datadriven_fakerate(channel, samples):
     cut = "OneElLoose" if channel == "e" else "OneMuLoose"
     histname = cut+"/lep_ptcorrcoarse_vs_etacoarse"
@@ -100,33 +106,36 @@ def get_datadriven_fakerate(channel, samples):
     compute_fake_factor(ddqcdtight)
     return ddqcdtight
 
+#_________________________________________________________
 def fullsyst_datadriven_fakerate(channel):
     fr_nom = get_datadriven_fakerate(channel, samples_nom)
     fr_up = get_datadriven_fakerate(channel, samples_up)
     fr_dn = get_datadriven_fakerate(channel, samples_dn)
 
-f = ROOT.TFile("data_fakerates.root", "recreate")
-fr_el_nom = get_datadriven_fakerate("e", samples_nom)
-fr_mu_nom = get_datadriven_fakerate("m", samples_nom)
-fr_el_up = get_datadriven_fakerate("e", samples_up)
-fr_mu_up = get_datadriven_fakerate("m", samples_up)
-fr_el_dn = get_datadriven_fakerate("e", samples_dn)
-fr_mu_dn = get_datadriven_fakerate("m", samples_dn)
-fr_el_nom.SetName("fr_el_nom")
-fr_mu_nom.SetName("fr_mu_nom")
-fr_el_up.SetName("fr_el_up")
-fr_mu_up.SetName("fr_mu_up")
-fr_el_dn.SetName("fr_el_dn")
-fr_mu_dn.SetName("fr_mu_dn")
-fr_el_nom.SetTitle("fr_el_nom")
-fr_mu_nom.SetTitle("fr_mu_nom")
-fr_el_up.SetTitle("fr_el_up")
-fr_mu_up.SetTitle("fr_mu_up")
-fr_el_dn.SetTitle("fr_el_dn")
-fr_mu_dn.SetTitle("fr_mu_dn")
-fr_el_nom.Write()
-fr_mu_nom.Write()
-fr_el_up.Write()
-fr_mu_up.Write()
-fr_el_dn.Write()
-fr_mu_dn.Write()
+#_________________________________________________________
+if __name__ == "__main__":
+    f = ROOT.TFile("data_fakerates.root", "recreate")
+    fr_el_nom = get_datadriven_fakerate("e", samples_nom)
+    fr_mu_nom = get_datadriven_fakerate("m", samples_nom)
+    fr_el_up = get_datadriven_fakerate("e", samples_up)
+    fr_mu_up = get_datadriven_fakerate("m", samples_up)
+    fr_el_dn = get_datadriven_fakerate("e", samples_dn)
+    fr_mu_dn = get_datadriven_fakerate("m", samples_dn)
+    fr_el_nom.SetName("fr_el_nom")
+    fr_mu_nom.SetName("fr_mu_nom")
+    fr_el_up.SetName("fr_el_up")
+    fr_mu_up.SetName("fr_mu_up")
+    fr_el_dn.SetName("fr_el_dn")
+    fr_mu_dn.SetName("fr_mu_dn")
+    fr_el_nom.SetTitle("fr_el_nom")
+    fr_mu_nom.SetTitle("fr_mu_nom")
+    fr_el_up.SetTitle("fr_el_up")
+    fr_mu_up.SetTitle("fr_mu_up")
+    fr_el_dn.SetTitle("fr_el_dn")
+    fr_mu_dn.SetTitle("fr_mu_dn")
+    fr_el_nom.Write()
+    fr_mu_nom.Write()
+    fr_el_up.Write()
+    fr_mu_up.Write()
+    fr_el_dn.Write()
+    fr_mu_dn.Write()
