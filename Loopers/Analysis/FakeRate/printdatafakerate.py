@@ -114,28 +114,26 @@ def fullsyst_datadriven_fakerate(channel):
 
 #_________________________________________________________
 if __name__ == "__main__":
+
+    # Open the output file for writing
     f = ROOT.TFile("data_fakerates.root", "recreate")
+
+    # Get the fake rates
     fr_el_nom = get_datadriven_fakerate("e", samples_nom)
     fr_mu_nom = get_datadriven_fakerate("m", samples_nom)
     fr_el_up = get_datadriven_fakerate("e", samples_up)
     fr_mu_up = get_datadriven_fakerate("m", samples_up)
     fr_el_dn = get_datadriven_fakerate("e", samples_dn)
     fr_mu_dn = get_datadriven_fakerate("m", samples_dn)
-    fr_el_nom.SetName("fr_el_nom")
-    fr_mu_nom.SetName("fr_mu_nom")
-    fr_el_up.SetName("fr_el_up")
-    fr_mu_up.SetName("fr_mu_up")
-    fr_el_dn.SetName("fr_el_dn")
-    fr_mu_dn.SetName("fr_mu_dn")
+
+    # Add the systematics to the uncertainty
+    p.add_diff_to_error(fr_el_nom, fr_el_up, fr_el_dn)
+    p.add_diff_to_error(fr_mu_nom, fr_mu_up, fr_mu_dn)
+
+    # Add the systematics to the uncertainty
+    fr_el_nom.SetName("fr_el")
+    fr_mu_nom.SetName("fr_mu")
     fr_el_nom.SetTitle("fr_el_nom")
     fr_mu_nom.SetTitle("fr_mu_nom")
-    fr_el_up.SetTitle("fr_el_up")
-    fr_mu_up.SetTitle("fr_mu_up")
-    fr_el_dn.SetTitle("fr_el_dn")
-    fr_mu_dn.SetTitle("fr_mu_dn")
     fr_el_nom.Write()
     fr_mu_nom.Write()
-    fr_el_up.Write()
-    fr_mu_up.Write()
-    fr_el_dn.Write()
-    fr_mu_dn.Write()
