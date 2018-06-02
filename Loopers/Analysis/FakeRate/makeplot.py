@@ -39,7 +39,20 @@ elsf_dn = ewksf("OneElTightEWKCR", "e", samples_dn)
 musf_dn = ewksf("OneMuTightEWKCR", "m", samples_dn)
 
 print "EWK NF el", elsf_cn, elsf_up, elsf_dn
-print "EWK NF el", musf_cn, musf_up, musf_dn
+print "EWK NF mu", musf_cn, musf_up, musf_dn
+
+#___________________________________________________________________________
+# Retrieve scale factors for three lepton channel
+# The scale factor variables will be treated as a global variable
+el3lsf_cn = ewksf("OneEl3lTightEWKCR", "e", samples_cn)
+mu3lsf_cn = ewksf("OneMu3lTightEWKCR", "m", samples_cn)
+el3lsf_up = ewksf("OneEl3lTightEWKCR", "e", samples_up)
+mu3lsf_up = ewksf("OneMu3lTightEWKCR", "m", samples_up)
+el3lsf_dn = ewksf("OneEl3lTightEWKCR", "e", samples_dn)
+mu3lsf_dn = ewksf("OneMu3lTightEWKCR", "m", samples_dn)
+
+print "EWK NF el", el3lsf_cn, el3lsf_up, el3lsf_dn
+print "EWK NF mu", mu3lsf_cn, mu3lsf_up, mu3lsf_dn
 
 #___________________________________________________________________________
 # "proc" could be one of ["datael", "datamu", "top", "w", "dy", "qcdel", "qcdmu"]
@@ -65,6 +78,10 @@ def get_histogram(samples, proc, cut, variable, applysf=False):
     # The convention is that the histogram names in loop.py all the 2d histogram must have "_vs_" name
     is2d = variable.find("_vs_") != -1
 
+    # Checking if it is a three lepton fake rate channel
+    # The convention is that if it is a three lepton related it will have "3l" in the cut name
+    is3l = cut.find("3l") != -1
+
     # Setting the proc path
     tqprocpath = "/"
     if proc == "data": tqprocpath = "/data/mm" if ismu else "/data/ee"
@@ -87,9 +104,9 @@ def get_histogram(samples, proc, cut, variable, applysf=False):
     # Apply ewk sf
     if applysf:
         sf = 1.0
-        if samples == samples_cn: sf = musf_cn if ismu else elsf_cn
-        if samples == samples_up: sf = musf_up if ismu else elsf_up
-        if samples == samples_dn: sf = musf_dn if ismu else elsf_dn
+        if samples == samples_cn: sf = (musf_cn if ismu else elsf_cn) if is3l else (mu3lsf_cn if ismu else el3lsf_cn)
+        if samples == samples_up: sf = (musf_up if ismu else elsf_up) if is3l else (mu3lsf_up if ismu else el3lsf_up)
+        if samples == samples_dn: sf = (musf_dn if ismu else elsf_dn) if is3l else (mu3lsf_dn if ismu else el3lsf_dn)
         if proc == "top": hist.Scale(sf)
         if proc == "w"  : hist.Scale(sf)
         if proc == "dy" : hist.Scale(sf)
@@ -421,20 +438,32 @@ if __name__ == "__main__":
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3NoNvtxRewgt", "nvtx")))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3", "nvtx")))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3", "nvtx")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3NoNvtxRewgt", "nvtx")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3NoNvtxRewgt", "nvtx")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3", "nvtx")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3", "nvtx")))
 
     # Plotting MT variable
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR", "MTOneLepFixed")))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR", "MTOneLepFixed")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR", "MTOneLepFixed")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR", "MTOneLepFixed")))
 
     # Plotting measurement region with loose and tight
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuLoose", "lep_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElLoose", "lep_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lLoose", "mu3l_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lLoose", "el3l_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTight", "mu3l_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTight", "el3l_ptcorrcoarse_vs_etacoarse", True)))
 
     # Plotting the fakerate comparison between QCD and data
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneMuLoose", "OneMuTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneElLoose", "OneElTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneMu3lLoose", "OneMu3lTight", "mu3l_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneEl3lLoose", "OneEl3lTight", "el3l_ptcorrcoarse_vs_etacoarse", True)))
 
     # Plotting some closure plots
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "mu_yield")))
