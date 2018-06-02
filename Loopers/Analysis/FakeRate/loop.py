@@ -57,6 +57,16 @@ def main(index, mode, donotrun):
     bothmu_loose = "({})&&({})".format(leadmu_loose, trailmu_loose)
     bothmu_tight = "({})&&({})".format(leadmu_tight, trailmu_tight)
 
+    # Complicated string construction for looes and tight ID muon
+    mu3l_loosetemp = "(TMath::Abs(lep_eta[{idx}]<2.4))*(abs(lep_dz[{idx}])<0.1)*(abs(lep_dxy[{idx}])<0.05)*(abs(lep_ip3d[{idx}])<0.015)*(abs(lep_ip3derr[{idx}]/lep_ip3d[{idx}])<4.)*(abs(lep_pterr[{idx}]/lep_trk_pt[{idx}])<0.2)*(lep_isMediumPOG[{idx}])*(lep_relIso03EAv2Lep[{idx}]<0.4)*(lep_pt[{idx}]>20.)"
+    mu3l_tighttemp = "({loose})*(lep_relIso03EAv2Lep[{idx}]<0.07)".format(loose=mu3l_loosetemp, idx="{idx}")
+    leadmu3l_loose = mu3l_loosetemp.format(idx="0")
+    leadmu3l_tight = mu3l_tighttemp.format(idx="0")
+    trailmu3l_loose = mu3l_loosetemp.format(idx="1")
+    trailmu3l_tight = mu3l_tighttemp.format(idx="1")
+    bothmu3l_loose = "({})&&({})".format(leadmu3l_loose, trailmu3l_loose)
+    bothmu3l_tight = "({})&&({})".format(leadmu3l_tight, trailmu3l_tight)
+
     # Complicated string construction for looes and tight ID electron
     el_loosetemp = "(TMath::Abs(lep_eta[{idx}]<2.4))*(abs(lep_dz[{idx}])<0.1)*(abs(lep_dxy[{idx}])<0.05)*(abs(lep_ip3d[{idx}])<0.01)*(lep_tightCharge[{idx}]==2)*((abs(lep_etaSC[{idx}])<=1.479)*(lep_MVA[{idx}]>0.941)+(abs(lep_etaSC[{idx}])>1.479)*(lep_MVA[{idx}]>0.925))*(lep_isTriggerSafe_v1[{idx}])*(lep_relIso03EAv2Lep[{idx}]<0.4)*(lep_pt[{idx}]>20.)"
     el_tighttemp = "({loose})*(lep_relIso03EAv2Lep[{idx}]<0.03)".format(loose=el_loosetemp, idx="{idx}")
@@ -66,6 +76,16 @@ def main(index, mode, donotrun):
     trailel_tight = el_tighttemp.format(idx="1")
     bothel_loose = "({})&&({})".format(leadel_loose, trailel_loose)
     bothel_tight = "({})&&({})".format(leadel_tight, trailel_tight)
+
+    # Complicated string construction for looes and tight ID electron for three lepton region
+    el3l_loosetemp = "(TMath::Abs(lep_eta[{idx}]<2.4))*(abs(lep_dz[{idx}])<0.1)*(abs(lep_dxy[{idx}])<0.05)*(abs(lep_ip3d[{idx}])<0.015)*((abs(lep_etaSC[{idx}])<=1.479)*(lep_MVA[{idx}]>0.92)+(abs(lep_etaSC[{idx}])>1.479)*(lep_MVA[{idx}]>0.88))*(lep_isTriggerSafe_v1[{idx}])*(lep_relIso03EAv2Lep[{idx}]<0.4)*(lep_pt[{idx}]>20.)"
+    el3l_tighttemp = "({loose})*(lep_relIso03EAv2Lep[{idx}]<0.05)".format(loose=el3l_loosetemp, idx="{idx}")
+    leadel3l_loose = el3l_loosetemp.format(idx="0")
+    leadel3l_tight = el3l_tighttemp.format(idx="0")
+    trailel3l_loose = el3l_loosetemp.format(idx="1")
+    trailel3l_tight = el3l_tighttemp.format(idx="1")
+    bothel3l_loose = "({})&&({})".format(leadel3l_loose, trailel3l_loose)
+    bothel3l_tight = "({})&&({})".format(leadel3l_tight, trailel3l_tight)
 
     # Expressions to divide heavy flavor and !(heavy flavor)
     leadhf = "((lep_motherIdSS[0]==-1)+(lep_motherIdSS[0]==-2))"
@@ -95,6 +115,7 @@ def main(index, mode, donotrun):
     oneleptrig_wgts = "{$(usefakeweight)?([abs(lep_pdgId[0])==11])*([mc_HLT_SingleIsoEl17])*("+str(hlt_el17_prescale)+")+([abs(lep_pdgId[0])==13])*([mc_HLT_SingleIsoMu17])*("+str(hlt_mu17_prescale)+"):1.}"
     onelepnvtx_wgts = "{$(usefakeweight)?1.:([abs(lep_pdgId[0])==11])*([TH1Map:nvtxreweight.root:OneElTightEWKCR3NoNvtxRewgt_nvtx([nVert])])+([abs(lep_pdgId[0])==13])*([TH1Map:nvtxreweight.root:OneMuTightEWKCR3NoNvtxRewgt_nvtx([nVert])])}"
 
+    # These weights are for closure tests. The closure tests are performed for same-sign channel only.
     weight_elcomb = "([abs(lep_pdgId[0])==11])*([TH2Map:qcd_fakerates.root:qcdel([abs(lep_eta[0])],[lep_pt[0]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[0]-0.03))])])+([abs(lep_pdgId[1])==11])*([TH2Map:qcd_fakerates.root:qcdel([abs(lep_eta[1])],[lep_pt[1]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[1]-0.03))])])"
     weight_el = "([abs(lep_pdgId[0])==11])*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[0])],[lep_pt[0]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[0]-0.03))])])+([abs(lep_pdgId[1])==11])*([TH2Map:qcd_fakerates.root:qcdelbcToE([abs(lep_eta[1])],[lep_pt[1]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[1]-0.03))])])"
     weight_mu = "([abs(lep_pdgId[0])==13])*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[0])],[lep_pt[0]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[0]-0.03))])])+([abs(lep_pdgId[1])==13])*([TH2Map:qcd_fakerates.root:qcdmu([abs(lep_eta[1])],[lep_pt[1]*(1.0+TMath::Max(0.0, lep_relIso03EAv2Lep[1]-0.03))])])"
@@ -116,30 +137,42 @@ def main(index, mode, donotrun):
     tqcuts["OneMu"] = TQCut("OneMu", "OneMu", "(abs(lep_pdgId[0])==13)", "1")
     tqcuts["OneMuLoose"] = TQCut("OneMuLoose", "OneMuLoose", leadmu_loose, "1")
     tqcuts["OneMuTight"] = TQCut("OneMuTight", "OneMuTight", leadmu_tight, "1")
+    tqcuts["OneMu3lLoose"] = TQCut("OneMu3lLoose", "OneMu3lLoose", leadmu3l_loose, "1")
+    tqcuts["OneMu3lTight"] = TQCut("OneMu3lTight", "OneMu3lTight", leadmu3l_tight, "1")
 
     tqcuts["OneEl"] = TQCut("OneEl", "OneEl", "(abs(lep_pdgId[0])==11)", "1")
     tqcuts["OneElLoose"] = TQCut("OneElLoose", "OneElLoose", leadel_loose, "1")
     tqcuts["OneElTight"] = TQCut("OneElTight", "OneElTight", leadel_tight, "1")
+    tqcuts["OneEl3lLoose"] = TQCut("OneEl3lLoose", "OneEl3lLoose", leadel3l_loose, "1")
+    tqcuts["OneEl3lTight"] = TQCut("OneEl3lTight", "OneEl3lTight", leadel3l_tight, "1")
 
     tqcuts["OneMuEWKCR"] = TQCut("OneMuEWKCR", "OneMuEWKCR", "(abs(lep_pdgId[0])==13)", "1")
     tqcuts["OneElEWKCR"] = TQCut("OneElEWKCR", "OneElEWKCR", "(abs(lep_pdgId[0])==11)", "1")
     tqcuts["OneMuTightEWKCR"] = TQCut("OneMuTightEWKCR", "OneMuTightEWKCR", leadmu_tight, "1")
     tqcuts["OneElTightEWKCR"] = TQCut("OneElTightEWKCR", "OneElTightEWKCR", leadel_tight, "1")
+    tqcuts["OneMu3lTightEWKCR"] = TQCut("OneMu3lTightEWKCR", "OneMu3lTightEWKCR", leadmu3l_tight, "1")
+    tqcuts["OneEl3lTightEWKCR"] = TQCut("OneEl3lTightEWKCR", "OneEl3lTightEWKCR", leadel3l_tight, "1")
 
     tqcuts["OneMuEWKCR2"] = TQCut("OneMuEWKCR2", "OneMuEWKCR2", "(abs(lep_pdgId[0])==13)", "1")
     tqcuts["OneElEWKCR2"] = TQCut("OneElEWKCR2", "OneElEWKCR2", "(abs(lep_pdgId[0])==11)", "1")
     tqcuts["OneMuTightEWKCR2"] = TQCut("OneMuTightEWKCR2", "OneMuTightEWKCR2", leadmu_tight, "1")
     tqcuts["OneElTightEWKCR2"] = TQCut("OneElTightEWKCR2", "OneElTightEWKCR2", leadel_tight, "1")
+    tqcuts["OneMu3lTightEWKCR2"] = TQCut("OneMu3lTightEWKCR2", "OneMu3lTightEWKCR2", leadmu3l_tight, "1")
+    tqcuts["OneEl3lTightEWKCR2"] = TQCut("OneEl3lTightEWKCR2", "OneEl3lTightEWKCR2", leadel3l_tight, "1")
 
     tqcuts["OneMuEWKCR3"] = TQCut("OneMuEWKCR3", "OneMuEWKCR3", "(abs(lep_pdgId[0])==13)", "1")
     tqcuts["OneElEWKCR3"] = TQCut("OneElEWKCR3", "OneElEWKCR3", "(abs(lep_pdgId[0])==11)", "1")
     tqcuts["OneMuTightEWKCR3"] = TQCut("OneMuTightEWKCR3", "OneMuTightEWKCR3", leadmu_tight, "1")
     tqcuts["OneElTightEWKCR3"] = TQCut("OneElTightEWKCR3", "OneElTightEWKCR3", leadel_tight, "1")
+    tqcuts["OneMu3lTightEWKCR3"] = TQCut("OneMu3lTightEWKCR3", "OneMu3lTightEWKCR3", leadmu3l_tight, "1")
+    tqcuts["OneEl3lTightEWKCR3"] = TQCut("OneEl3lTightEWKCR3", "OneEl3lTightEWKCR3", leadel3l_tight, "1")
 
     tqcuts["OneMuEWKCR3NoNvtxRewgt"] = TQCut("OneMuEWKCR3NoNvtxRewgt", "OneMuEWKCR3NoNvtxRewgt", "(abs(lep_pdgId[0])==13)", "1")
     tqcuts["OneElEWKCR3NoNvtxRewgt"] = TQCut("OneElEWKCR3NoNvtxRewgt", "OneElEWKCR3NoNvtxRewgt", "(abs(lep_pdgId[0])==11)", "1")
     tqcuts["OneMuTightEWKCR3NoNvtxRewgt"] = TQCut("OneMuTightEWKCR3NoNvtxRewgt", "OneMuTightEWKCR3NoNvtxRewgt", leadmu_tight, "1")
     tqcuts["OneElTightEWKCR3NoNvtxRewgt"] = TQCut("OneElTightEWKCR3NoNvtxRewgt", "OneElTightEWKCR3NoNvtxRewgt", leadel_tight, "1")
+    tqcuts["OneMu3lTightEWKCR3NoNvtxRewgt"] = TQCut("OneMu3lTightEWKCR3NoNvtxRewgt", "OneMu3lTightEWKCR3NoNvtxRewgt", leadmu3l_tight, "1")
+    tqcuts["OneEl3lTightEWKCR3NoNvtxRewgt"] = TQCut("OneEl3lTightEWKCR3NoNvtxRewgt", "OneEl3lTightEWKCR3NoNvtxRewgt", leadel3l_tight, "1")
 
     tqcuts["TwoMu"] = TQCut("TwoMu", "TwoMu", "([ClosureEvtType]==0)*[(abs(lep_pdgId[0]*lep_pdgId[1])==143)]*[(abs(lep_pdgId[0])==11)*(lep_pass_VVV_cutbased_tight[0])+(abs(lep_pdgId[1])==11)*(lep_pass_VVV_cutbased_tight[1])]", "1") # one any muon and one real tight electron with two total leptons
     tqcuts["TwoMuLoose"] = TQCut("TwoMuLoose", "TwoMuLoose", "(abs(lep_pdgId[0])==13)*({})+(abs(lep_pdgId[1])==13)*({})".format(leadmu_loose, trailmu_loose), "1")
@@ -193,26 +226,36 @@ def main(index, mode, donotrun):
     tqcuts["OneLepMR"].addCut(tqcuts["OneEl"])
     tqcuts["OneEl"].addCut(tqcuts["OneElLoose"])
     tqcuts["OneElLoose"].addCut(tqcuts["OneElTight"])
+    tqcuts["OneEl"].addCut(tqcuts["OneEl3lLoose"])
+    tqcuts["OneEl3lLoose"].addCut(tqcuts["OneEl3lTight"])
 
     tqcuts["OneLepEWKCR"].addCut(tqcuts["OneMuEWKCR"])
     tqcuts["OneLepEWKCR"].addCut(tqcuts["OneElEWKCR"])
     tqcuts["OneMuEWKCR"].addCut(tqcuts["OneMuTightEWKCR"])
     tqcuts["OneElEWKCR"].addCut(tqcuts["OneElTightEWKCR"])
+    tqcuts["OneMuEWKCR"].addCut(tqcuts["OneMu3lTightEWKCR"])
+    tqcuts["OneElEWKCR"].addCut(tqcuts["OneEl3lTightEWKCR"])
 
     tqcuts["OneLepEWKCR2"].addCut(tqcuts["OneMuEWKCR2"])
     tqcuts["OneLepEWKCR2"].addCut(tqcuts["OneElEWKCR2"])
     tqcuts["OneMuEWKCR2"].addCut(tqcuts["OneMuTightEWKCR2"])
     tqcuts["OneElEWKCR2"].addCut(tqcuts["OneElTightEWKCR2"])
+    tqcuts["OneMuEWKCR2"].addCut(tqcuts["OneMu3lTightEWKCR2"])
+    tqcuts["OneElEWKCR2"].addCut(tqcuts["OneEl3lTightEWKCR2"])
 
     tqcuts["OneLepEWKCR3"].addCut(tqcuts["OneMuEWKCR3"])
     tqcuts["OneLepEWKCR3"].addCut(tqcuts["OneElEWKCR3"])
     tqcuts["OneMuEWKCR3"].addCut(tqcuts["OneMuTightEWKCR3"])
     tqcuts["OneElEWKCR3"].addCut(tqcuts["OneElTightEWKCR3"])
+    tqcuts["OneMuEWKCR3"].addCut(tqcuts["OneMu3lTightEWKCR3"])
+    tqcuts["OneElEWKCR3"].addCut(tqcuts["OneEl3lTightEWKCR3"])
 
     tqcuts["OneLepEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneMuEWKCR3NoNvtxRewgt"])
     tqcuts["OneLepEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneElEWKCR3NoNvtxRewgt"])
     tqcuts["OneMuEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneMuTightEWKCR3NoNvtxRewgt"])
     tqcuts["OneElEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneElTightEWKCR3NoNvtxRewgt"])
+    tqcuts["OneMuEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneMu3lTightEWKCR3NoNvtxRewgt"])
+    tqcuts["OneElEWKCR3NoNvtxRewgt"].addCut(tqcuts["OneEl3lTightEWKCR3NoNvtxRewgt"])
 
     tqcuts["TwoLep"].addCut(tqcuts["TwoMu"])
     tqcuts["TwoMu"].addCut(tqcuts["TwoMuLoosePredict"])
@@ -271,6 +314,15 @@ def main(index, mode, donotrun):
     TH2F('lep_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),119.) : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_ptcorrcoarse_vs_etacoarse;
 
+    TH2F('el3l_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.05)),119.) : '\#it{{p}}_{{T}} [GeV]');
+    @OneLep/*: el3l_ptcorrcoarse_vs_etacoarse;
+
+    TH2F('mu3l_ptcorrcoarse_vs_etacoarse' , '' , {{0, 1.6, 2.4}}, {{0., 10., 20., 25., 30., 40., 120.}} ) << (abs(lep_eta[0]) : '|\#eta|', TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.07)),119.) : '\#it{{p}}_{{T}} [GeV]');
+    @OneLep/*: mu3l_ptcorrcoarse_vs_etacoarse;
+
+    TH1F('lep_pt' , '' , 180 , 0. , 250 ) << (lep_pt[0] : '\#it{{p}}_{{T}} [GeV]');
+    @OneLep/*: lep_pt;
+
     TH1F('lep_pt' , '' , 180 , 0. , 250 ) << (lep_pt[0] : '\#it{{p}}_{{T}} [GeV]');
     @OneLep/*: lep_pt;
 
@@ -285,6 +337,12 @@ def main(index, mode, donotrun):
 
     TH1F('lep_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.03)),119.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
     @OneLep/*: lep_ptcorrvarbincoarse;
+
+    TH1F('el3l_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.05)),119.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
+    @OneLep/*: el3l_ptcorrvarbincoarse;
+
+    TH1F('mu3l_ptcorrvarbincoarse' , '' , {{0., 10., 20., 25., 30., 40., 120.}}) << (TMath::Min(lep_pt[0]*(1.+TMath::Max(0.,lep_relIso03EAv2Lep[0]-0.07)),119.) : '\#it{{p}}_{{T, cone-corr}} [GeV]');
+    @OneLep/*: mu3l_ptcorrvarbincoarse;
 
     TH1F('lep_yield' , '' , 1, 0, 1) << (0 : 'yield');
     @OneLep/*: lep_yield;
@@ -545,17 +603,4 @@ if __name__ == "__main__":
     os.system("rm .output_*.root")
     os.system("rm .histo.mr.*.cfg")
 
-#-----------================--------------
-#-----------================--------------
-#-----------================--------------
-
-#    tqcuts["TwoElLoosePredictEM1D"] = TQCut("TwoElLoosePredictEM1D", "TwoElLoosePredictEM1D", "(abs(lep_pdgId[0])==11)*({})+(abs(lep_pdgId[1])==11)*({})".format(leadel_tight, trailel_tight), "1")
-#    tqcuts["TwoElTightPredictEM1D"] = TQCut("TwoElTightPredictEM1D", "TwoElTightPredictEM1D", "(abs(lep_pdgId[0])==11)*({})*(!({}))+(abs(lep_pdgId[1])==11)*({})*(!({}))".format(leadel_loose, leadel_tight, trailel_loose, trailel_tight), weight_elEM1D)
-#    tqcuts["TwoElLoosePredictEM1DHF"] = TQCut("TwoElLoosePredictEM1DHF", "TwoElLoosePredictEM1DHF", "(abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({})".format(leadel_tight, leadhf, trailel_tight, trailhf), "1")
-#    tqcuts["TwoElTightPredictEM1DHF"] = TQCut("TwoElTightPredictEM1DHF", "TwoElTightPredictEM1DHF", "(abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({})".format(leadel_loose, leadel_tight, leadhf, trailel_loose, trailel_tight, trailhf), weight_elEM1D)
-#    tqcuts["TwoElLoosePredictLF"] = TQCut("TwoElLoosePredictLF", "TwoElLoosePredictLF", "(abs(lep_pdgId[0])==11)*({})*({})+(abs(lep_pdgId[1])==11)*({})*({})".format(leadel_tight, leadlf, trailel_tight, traillf), "1")
-#    tqcuts["TwoElTightPredictLF"] = TQCut("TwoElTightPredictLF", "TwoElTightPredictLF", "(abs(lep_pdgId[0])==11)*({})*(!({}))*({})+(abs(lep_pdgId[1])==11)*({})*(!({}))*({})".format(leadel_loose, leadel_tight, leadlf, trailel_loose, trailel_tight, traillf), weight_el)
-#    tqcuts["TwoMuLoosePredictHF"] = TQCut("TwoMuLoosePredictHF", "TwoMuLoosePredictHF", "(abs(lep_pdgId[0])==13)*({})*({})+(abs(lep_pdgId[1])==13)*({})*({})".format(leadmu_tight, leadhf, trailmu_tight, trailhf), "1")
-#    tqcuts["TwoMuTightPredictHF"] = TQCut("TwoMuTightPredictHF", "TwoMuTightPredictHF", "(abs(lep_pdgId[0])==13)*({})*(!({}))*({})+(abs(lep_pdgId[1])==13)*({})*(!({}))*({})".format(leadmu_loose, leadmu_tight, leadhf, trailmu_loose, trailmu_tight, trailhf), weight_mu)
-#    tqcuts["TwoMuLoosePredictLF"] = TQCut("TwoMuLoosePredictLF", "TwoMuLoosePredictLF", "(abs(lep_pdgId[0])==13)*({})*({})+(abs(lep_pdgId[1])==13)*({})*({})".format(leadmu_tight, leadlf, trailmu_tight, traillf), "1")
-#    tqcuts["TwoMuTightPredictLF"] = TQCut("TwoMuTightPredictLF", "TwoMuTightPredictLF", "(abs(lep_pdgId[0])==13)*({})*(!({}))*({})+(abs(lep_pdgId[1])==13)*({})*(!({}))*({})".format(leadmu_loose, leadmu_tight, leadlf, trailmu_loose, trailmu_tight, traillf), weight_mu)
+#eof
