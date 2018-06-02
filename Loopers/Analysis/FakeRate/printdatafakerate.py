@@ -71,8 +71,8 @@ def move_in_overflow(th2):
         th2.SetBinError(ix, th2.GetNbinsY()+1, newhighbinb.err)
 
 #_________________________________________________________
-def get_datadriven_fakerate(channel, samples):
-    cut = "OneElLoose" if channel == "e" else "OneMuLoose"
+def get_datadriven_fakerate(channel, is3l, samples):
+    cut = ("OneElLoose" if channel == "e" else "OneMuLoose") if not is3l else ("OneEl3lLoose" if channel == "e" else "OneMu3lLoose")
     histname = cut+"/lep_ptcorrcoarse_vs_etacoarse"
     dataname = "/data/{}{}".format(channel, channel)
     elsf = ewksf("OneElTightEWKCR", "e", samples)
@@ -119,12 +119,12 @@ if __name__ == "__main__":
     f = ROOT.TFile("data_fakerates.root", "recreate")
 
     # Get the fake rates
-    fr_el_nom = get_datadriven_fakerate("e", samples_nom)
-    fr_mu_nom = get_datadriven_fakerate("m", samples_nom)
-    fr_el_up = get_datadriven_fakerate("e", samples_up)
-    fr_mu_up = get_datadriven_fakerate("m", samples_up)
-    fr_el_dn = get_datadriven_fakerate("e", samples_dn)
-    fr_mu_dn = get_datadriven_fakerate("m", samples_dn)
+    fr_el_nom = get_datadriven_fakerate("e", False, samples_nom)
+    fr_mu_nom = get_datadriven_fakerate("m", False, samples_nom)
+    fr_el_up = get_datadriven_fakerate("e", False, samples_up)
+    fr_mu_up = get_datadriven_fakerate("m", False, samples_up)
+    fr_el_dn = get_datadriven_fakerate("e", False, samples_dn)
+    fr_mu_dn = get_datadriven_fakerate("m", False, samples_dn)
 
     # Add the systematics to the uncertainty
     p.add_diff_to_error(fr_el_nom, fr_el_up, fr_el_dn)
@@ -137,3 +137,23 @@ if __name__ == "__main__":
     fr_mu_nom.SetTitle("fr_mu_nom")
     fr_el_nom.Write()
     fr_mu_nom.Write()
+
+    # Get the fake rates
+    fr_el3l_nom = get_datadriven_fakerate("e", True, samples_nom)
+    fr_mu3l_nom = get_datadriven_fakerate("m", True, samples_nom)
+    fr_el3l_up = get_datadriven_fakerate("e", True, samples_up)
+    fr_mu3l_up = get_datadriven_fakerate("m", True, samples_up)
+    fr_el3l_dn = get_datadriven_fakerate("e", True, samples_dn)
+    fr_mu3l_dn = get_datadriven_fakerate("m", True, samples_dn)
+
+    # Add the systematics to the uncertainty
+    p.add_diff_to_error(fr_el3l_nom, fr_el3l_up, fr_el3l_dn)
+    p.add_diff_to_error(fr_mu3l_nom, fr_mu3l_up, fr_mu3l_dn)
+
+    # Add the systematics to the uncertainty
+    fr_el3l_nom.SetName("fr_el3l")
+    fr_mu3l_nom.SetName("fr_mu3l")
+    fr_el3l_nom.SetTitle("fr_el3l_nom")
+    fr_mu3l_nom.SetTitle("fr_mu3l_nom")
+    fr_el3l_nom.Write()
+    fr_mu3l_nom.Write()
