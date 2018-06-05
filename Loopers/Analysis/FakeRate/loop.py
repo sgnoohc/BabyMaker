@@ -222,6 +222,8 @@ def main(index, mode, donotrun):
     tqcuts["OneLepMR"].addCut(tqcuts["OneMu"])
     tqcuts["OneMu"].addCut(tqcuts["OneMuLoose"])
     tqcuts["OneMuLoose"].addCut(tqcuts["OneMuTight"])
+    tqcuts["OneMu"].addCut(tqcuts["OneMu3lLoose"])
+    tqcuts["OneMu3lLoose"].addCut(tqcuts["OneMu3lTight"])
 
     tqcuts["OneLepMR"].addCut(tqcuts["OneEl"])
     tqcuts["OneEl"].addCut(tqcuts["OneElLoose"])

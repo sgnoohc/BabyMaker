@@ -22,13 +22,14 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/", "<0")
+    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.26/skim/", "<-1")
 
     #
     #
     # Define cuts
     #
     #
+    if index ==-1: cuts = getWWWAnalysisCuts()
     if index == 0: cuts = getWWWAnalysisCuts()
     if index == 1: cuts = getWWWAnalysisCuts(lepsfvar_suffix="_up")
     if index == 2: cuts = getWWWAnalysisCuts(lepsfvar_suffix="_dn")
@@ -148,6 +149,30 @@ def main(index):
     cutflowjob = TQCutflowAnalysisJob("cutflow")
     cuts.addAnalysisJob(cutflowjob, "*")
 
+    # Eventlist jobs (use this if we want to print out some event information in a text format e.g. run, lumi, evt or other variables.)
+    #eventlistjob = TQEventlistAnalysisJob("eventlist")
+    #eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
+
+    # Print cuts and numebr of booked analysis jobs for debugging purpose
+    if index < 0:
+        samples.printContents("t[*status]dr")
+        cuts.printCut("trd")
+        return
+
+    #
+    #
+    # Add custom tqobservable that can do more than just string based draw statements
+    #
+    #
+    from QFramework import TQObservable, TQWWWMTMax3L, TQWWWClosureEvtType
+    customobservables = {}
+    customobservables["MTMax3L"] = TQWWWMTMax3L("")
+    customobservables["MTMax3L_up"] = TQWWWMTMax3L("_up")
+    customobservables["MTMax3L_dn"] = TQWWWMTMax3L("_dn")
+    TQObservable.addObservable(customobservables["MTMax3L"], "MTMax3L")
+    TQObservable.addObservable(customobservables["MTMax3L_up"], "MTMax3L_up")
+    TQObservable.addObservable(customobservables["MTMax3L_dn"], "MTMax3L_dn")
+
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     cuts.printCut("trd")
 
@@ -178,6 +203,7 @@ if __name__ == "__main__":
         print "  python {} INDEX".format(sys.argv[0])
         print ""
         print "  INDEX determines which variation to run"
+        print " -1 : print cuts and samples and exit"
         print "  0 : nominal"
         print "  1 : lepsf_up"
         print "  2 : lepsf_dn"

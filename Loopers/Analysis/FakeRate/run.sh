@@ -20,3 +20,6 @@ python makeplot.py
 
 # Now print out the final fake rate estimate
 python printdatafakerate.py # this script prints out "fake-factors=fr/1-fr" into histograms in a root file
+
+# Now create the header file for fakerate to be included to the dilepbabymaker
+sh create_header.sh > fakerate_v3.h

@@ -17,8 +17,6 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/sig/whwww", "WHWWW")
-    printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg/prompt", "Prompt")
@@ -26,33 +24,32 @@ def addProcesses(printer, showdata, prettyversion=True):
     printer.addCutflowProcess("/typebkg/photon", "Photon")
     printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
     printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
-    printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
     printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
     printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bkg/top/singletop", "1top")
-    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
-    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
-    printer.addCutflowProcess("/bkg/ttV", "ttV")
-    printer.addCutflowProcess("/bkg/VVV", "VVV")
-    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
-    printer.addCutflowProcess("/bkg/VV/WW", "WW")
-    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
-    printer.addCutflowProcess("/bkg/W", "W")
-    printer.addCutflowProcess("/bkg/Z", "Z")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bkg-sig/whwww", "Bkg. (MC)")
-    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/bkg/top/singletop", "1top")
+#    printer.addCutflowProcess("/bkg/top/ttbar/tt1l", "tt1l")
+#    printer.addCutflowProcess("/bkg/top/ttbar/tt2l", "tt2l")
+#    printer.addCutflowProcess("/bkg/ttV", "ttV")
+#    printer.addCutflowProcess("/bkg/VVV", "VVV")
+#    printer.addCutflowProcess("/bkg/VV/ZZ", "ZZ")
+#    printer.addCutflowProcess("/bkg/VV/WW", "WW")
+#    printer.addCutflowProcess("/bkg/VV/WZ,sys", "WZ")
+#    printer.addCutflowProcess("/bkg/W", "W")
+#    printer.addCutflowProcess("/bkg/Z", "Z")
+#    printer.addCutflowProcess("|", "|")
+#    printer.addCutflowProcess("/bkg", "Bkg. (MC)")
+#    printer.addCutflowProcess("/bkg-sig/whwww", "Bkg. (MC)")
     if showdata:
         printer.addCutflowProcess("|", "|")
         printer.addCutflowProcess("/data", "Data")
         printer.addCutflowProcess("|", "|")
         #printer.addCutflowProcess("$ratio(/data,/fake+typebkg-typebkg/fakes)", "Ratio")
-        #printer.addCutflowProcess("$ratio(/data,/typebkg)", "Ratio")
-        printer.addCutflowProcess("$ratio(/data,/bkg)", "Ratio")
+        printer.addCutflowProcess("$ratio(/data,/typebkg)", "Ratio")
+        #printer.addCutflowProcess("$ratio(/data,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Ratio")
 
 ########################################################################################
 #_______________________________________________________________________________
@@ -136,7 +133,43 @@ def printCutflowSSWZExtrapolation(samples, variation=""):
     table.writeLaTeX("cutflows/{}.tex".format(regionname))
     table.writePlain("cutflows/{}.txt".format(regionname))
 
+########################################################################################
+#_______________________________________________________________________________
+# Supports only printing out by process boundaries
+def printTable(samples):
+    printer = TQCutflowPrinter(samples)
+    printer.addCutflowCut("SRSSeeZeeVt", "Full Selection: SRSSee", True)
+    printer.addCutflowCut("SRSSemMTmax", "Full Selection: SRSSem", True)
+    printer.addCutflowCut("SRSSmmMllSS", "Full Selection: SRSSmm", True)
+    printer.addCutflowCut("SR0SFOSZVt", "Full Selection: SR0SFOS", True)
+    printer.addCutflowCut("SR1SFOSMT3rd", "Full Selection: SR1SFOS", True)
+    printer.addCutflowCut("SR2SFOSZVt", "Full Selection: SR2SFOS", True)
+    printer.addCutflowCut("SR0SFOSMTmax", "Full Selection: SR0SFOS", True)
+    #printer.addCutflowCut("SRSSeeNb0", "Pre Selection: SRSSee", True)
+    #printer.addCutflowCut("SRSSemNb0", "Pre Selection: SRSSem", True)
+    #printer.addCutflowCut("SRSSmmNb0", "Pre Selection: SRSSmm", True)
+    #printer.addCutflowCut("ARSSeeZeeVt", "Full Selection: ARSSee", True)
+    #printer.addCutflowCut("ARSSemMTmax", "Full Selection: ARSSem", True)
+    #printer.addCutflowCut("ARSSmmMllSS", "Full Selection: ARSSmm", True)
+    #printer.addCutflowCut("ARSSeeNb0", "Pre Selection: ARSSee", True)
+    #printer.addCutflowCut("ARSSemNb0", "Pre Selection: ARSSem", True)
+    #printer.addCutflowCut("ARSSmmNb0", "Pre Selection: ARSSmm", True)
+    addProcesses(printer, showdata=True)
+    table = printer.createTable("style.firstColumnAlign=l")
+    path = "cutflows/"
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    table.writeCSV("cutflows/yield.csv")
+    table.writeHTML("cutflows/yield.html")
+    table.writeLaTeX("cutflows/yield.tex")
+    table.writePlain("cutflows/yield.txt")
+
 
 # Print cutflow table
-#printCutflow(samples, "SS")
-printCutflowSSWZExtrapolation(samples, sys.argv[2])
+printTable(samples)
+#rintCutflowSSWZExtrapolation(samples, sys.argv[2])
