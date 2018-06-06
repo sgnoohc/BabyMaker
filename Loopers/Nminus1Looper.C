@@ -71,6 +71,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("DetajjL_SRSS_presel");         hbins.push_back(12);  hlow.push_back( 0); hup.push_back(3.0);
   histonames.push_back("DetajjL_SRSS_NmO");            hbins.push_back(12);  hlow.push_back( 0); hup.push_back(3.0);
 
+  histonames.push_back("MET_SRSS_Mjjside_NmO");        hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
+  histonames.push_back("MTmax_SRSS_Mjjside_NmO");      hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MTmax_emu_Mjjside_NmO");       hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("Mll_SRSS_Mjjside_NmO");        hbins.push_back(15);  hlow.push_back( 0); hup.push_back(225);
+  histonames.push_back("MjjL_SRSS_Mjjside_NmO");       hbins.push_back(10);  hlow.push_back( 0); hup.push_back(500);
+  histonames.push_back("DetajjL_SRSS_Mjjside_NmO");    hbins.push_back(12);  hlow.push_back( 0); hup.push_back(3.0);
+
   histonames.push_back("DPhilllMET_SR3l_presel");      hbins.push_back(16);  hlow.push_back( 0); hup.push_back(3.2);
   histonames.push_back("DPhilllMET_SR3l_NmO");         hbins.push_back(16);  hlow.push_back( 0); hup.push_back(3.2);
   histonames.push_back("PTlll_SR3l_presel");           hbins.push_back(15);  hlow.push_back( 0); hup.push_back(150);
@@ -83,6 +90,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("MSFOSZlike_SR3l_NmO");         hbins.push_back(16);  hlow.push_back(20); hup.push_back(180);
   histonames.push_back("MT3rd_1SFOS_presel");          hbins.push_back(12);  hlow.push_back( 0); hup.push_back(180);//new
   histonames.push_back("MT3rd_1SFOS_NmO");             hbins.push_back(12);  hlow.push_back( 0); hup.push_back(180);//new
+  histonames.push_back("MTmax_0SFOS_presel");          hbins.push_back(12);  hlow.push_back( 0); hup.push_back(180);//new
+  histonames.push_back("MTmax_0SFOS_NmO");             hbins.push_back(12);  hlow.push_back( 0); hup.push_back(180);//new
   
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
@@ -174,6 +183,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  bool passDeta = DetajjL()<1.5;
 	  bool passMll  = ((SRSSpresel==1) ? (MllSS()>30.) : (MllSS()>40.));
 	  bool passMET  = ((SRSSpresel==2) ? (true)        : (met_pt()>60.));
+	  bool passMET2 = (met_pt()>60.);
 	  bool passMT   = ((SRSSpresel==1) ? (MTmax()>30.) : (true));
 	  if(         passMjjL&&passDeta&&passMll&&passMET&&passMT) fillhisto(histos, "Mjj_SRSS_NmO",     sample, sn, Mjj(),                          weight);
 	  if(passMjj&&passMjjL&&passDeta         &&passMET&&passMT) fillhisto(histos, "Mll_SRSS_NmO",     sample, sn, MllSS(),                        weight);
@@ -185,37 +195,69 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 	  if(SRSSpresel==1){
 	    if(passMjj&&passMjjL&&passDeta&&passMll&&passMET      ) fillhisto(histos, "MTmax_emu_NmO",    sample, sn, MTmax(),                        weight);
 	  }
+    if(!passMjj&&passMjjL&&passDeta         &&passMET2&&passMT) fillhisto(histos, "Mll_SRSS_Mjjside_NmO",     sample, sn, MllSS(),                        weight);
+	  if(!passMjj&&passMjjL&&passDeta&&passMll          &&passMT) fillhisto(histos, "MET_SRSS_Mjjside_NmO",     sample, sn, met_pt(),                       weight);
+	  if(!passMjj          &&passDeta&&passMll&&passMET2&&passMT) fillhisto(histos, "MjjL_SRSS_Mjjside_NmO",    sample, sn, MjjL(),                         weight);
+	  if(!passMjj&&passMjjL          &&passMll&&passMET2&&passMT) fillhisto(histos, "DetajjL_SRSS_Mjjside_NmO", sample, sn, DetajjL(),                      weight);
+	  if(!passMjj&&passMjjL&&passDeta&&passMll&&passMET2        ) fillhisto(histos, "MTmax_SRSS_Mjjside_NmO",   sample, sn, MTmax(),                        weight);
+	  if(SRSSpresel==1){
+	    if(!passMjj&&passMjjL&&passDeta&&passMll&&passMET2      ) fillhisto(histos, "MTmax_emu_Mjjside_NmO",    sample, sn, MTmax(),                        weight);
+	  }
 	}
       }
       if(SR3lpresel>=0){
-	bool passMlll       = (fabs(M3l()-MZ)>=10.);
-	bool passMET        = ((SR3lpresel==0) ? (met_pt()>30.) : ((SRSSpresel==1) ? (met_pt()>40.) : (met_pt()>55.)));
-	bool passMT3rd      = ((SR3lpresel==1) ? (MT3rd()>90.) : (true));
-	bool passDPhilllMET = (DPhi3lMET()>2.5);
-	bool passPtlll      = ((SR3lpresel==0) ? (true) : (Pt3l()>60.));
-	fillhisto(  histos, "DPhilllMET_SR3l_presel", sample, sn, DPhi3lMET(), weight);
-	fillhisto(  histos, "PTlll_SR3l_presel",      sample, sn, Pt3l(),      weight);
-	fillhisto(  histos, "Mlll_SR3l_presel",       sample, sn, M3l(),       weight);
-	fillhisto(  histos, "MET_SR3l_presel",        sample, sn, met_pt(),    weight);
-	if(SR3lpresel==1)
-	  fillhisto(histos, "MT3rd_1SFOS_presel",     sample, sn, MT3rd(),     weight);
-	if(SR3lpresel>=1)
-	  fillhisto(histos, "MSFOSZlike_SR3l_presel", sample, sn, Mll3L(),     weight);
-	if(               passMlll&&passMET&&passMT3rd&&                passPtlll) fillhisto(histos, "DPhilllMET_SR3l_NmO", sample, sn, DPhi3lMET(), weight);
-	if(               passMlll&&passMET&&passMT3rd&&passDPhilllMET           ) fillhisto(histos, "PTlll_SR3l_NmO",      sample, sn, Pt3l(),      weight);
-	if(                         passMET&&passMT3rd&&passDPhilllMET&&passPtlll) fillhisto(histos, "Mlll_SR3l_NmO",       sample, sn, M3l(),       weight);
-	if(               passMlll&&         passMT3rd&&passDPhilllMET&&passPtlll) fillhisto(histos, "MET_SR3l_NmO",        sample, sn, met_pt(),    weight);
-	if(SR3lpresel>=1&&passMlll&&passMET&&           passDPhilllMET&&passPtlll) fillhisto(histos, "MT3rd_1SFOS_NmO",     sample, sn, MT3rd(),     weight);
-	if(SR3lpresel>=1&&passMlll&&passMET&&passMT3rd&&passDPhilllMET&&passPtlll) fillhisto(histos, "MSFOSZlike_SR3l_NmO", sample, sn, Mll3L(),     weight);
+        float maxMT = -1;
+        LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+        if(nVlep()==3){
+          for(int i = 0; i<nVlep();++i){
+            if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) {
+              if(mT(lep_p4()[i],METlv)>maxMT) maxMT = mT(lep_p4()[i],METlv);
+            }
+          }
+        }
+        bool passmaxMT = ((SR3lpresel==0) ? (maxMT>90.) : (true));
+        bool passMlll       = (fabs(M3l()-MZ)>=10.);
+        bool passMET        = ((SR3lpresel==0) ? (met_pt()>30.) : ((SRSSpresel==1) ? (met_pt()>40.) : (met_pt()>55.)));
+        bool passMT3rd      = ((SR3lpresel==1) ? (MT3rd()>90.) : (true));
+        bool passDPhilllMET = (DPhi3lMET()>2.5);
+        bool passPtlll      = ((SR3lpresel==0) ? (true) : (Pt3l()>60.));
+
+        fillhisto(  histos, "DPhilllMET_SR3l_presel", sample, sn, DPhi3lMET(), weight);
+        fillhisto(  histos, "PTlll_SR3l_presel",      sample, sn, Pt3l(),      weight);
+        fillhisto(  histos, "Mlll_SR3l_presel",       sample, sn, M3l(),       weight);
+        fillhisto(  histos, "MET_SR3l_presel",        sample, sn, met_pt(),    weight);
+        if(SR3lpresel==0)
+          fillhisto(histos, "MTmax_0SFOS_presel",     sample, sn, maxMT,       weight);
+        if(SR3lpresel==1)
+          fillhisto(histos, "MT3rd_1SFOS_presel",     sample, sn, MT3rd(),     weight);
+        if(SR3lpresel>=1)
+          fillhisto(histos, "MSFOSZlike_SR3l_presel", sample, sn, Mll3L(),     weight);
+        if(               passMlll&&passMET&&passMT3rd&&                passPtlll&&passmaxMT) fillhisto(histos, "DPhilllMET_SR3l_NmO", sample, sn, DPhi3lMET(), weight);
+        if(               passMlll&&passMET&&passMT3rd&&passDPhilllMET           &&passmaxMT) fillhisto(histos, "PTlll_SR3l_NmO",      sample, sn, Pt3l(),      weight);
+        if(                         passMET&&passMT3rd&&passDPhilllMET&&passPtlll&&passmaxMT) fillhisto(histos, "Mlll_SR3l_NmO",       sample, sn, M3l(),       weight);
+        if(               passMlll&&         passMT3rd&&passDPhilllMET&&passPtlll&&passmaxMT) fillhisto(histos, "MET_SR3l_NmO",        sample, sn, met_pt(),    weight);
+        if(SR3lpresel>=1&&passMlll&&passMET&&           passDPhilllMET&&passPtlll&&passmaxMT) fillhisto(histos, "MT3rd_1SFOS_NmO",     sample, sn, MT3rd(),     weight);
+        if(SR3lpresel>=1&&passMlll&&passMET&&passMT3rd&&passDPhilllMET&&passPtlll&&passmaxMT) fillhisto(histos, "MSFOSZlike_SR3l_NmO", sample, sn, Mll3L(),     weight);
+        if(SR3lpresel==0&&passMlll&&passMET&&passMT3rd&&passDPhilllMET&&passPtlll           ) fillhisto(histos, "MTmax_0SFOS_NmO",     sample, sn, maxMT,       weight);
       }
       if(CR3lpresel>=1){
-	bool passMlll       = (fabs(M3l()-MZ)>=10.);
-	bool passMET        = ((CR3lpresel==0) ? (met_pt()>30.) : ((CR3lpresel==1) ? (met_pt()>40.) : (met_pt()>55.)));
-	bool passMT3rd      = ((CR3lpresel==1) ? (MT3rd()>90.) : (true));
-	bool passDPhilllMET = (DPhi3lMET()>2.5);
-	bool passPtlll      = ((CR3lpresel==0) ? (true) : (Pt3l()>60.));
-	if(CR3lpresel==1) fillhisto(histos, "MSFOSZlike_SR3l_presel", sample, sn, Mll3L(),     weight);
-	if(passMlll&&passMET&&passMT3rd&&passDPhilllMET&&passPtlll) fillhisto(histos, "MSFOSZlike_SR3l_NmO", sample, sn, Mll3L(),     weight);
+        float maxMT = -1;
+        LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+        if(nVlep()==3){
+          for(int i = 0; i<nVlep();++i){
+            if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) {
+              if(mT(lep_p4()[i],METlv)>maxMT) maxMT = mT(lep_p4()[i],METlv);
+            }
+          }
+        }
+        bool passmaxMT = ((SR3lpresel==0) ? (maxMT>90.) : (true));
+        bool passMlll       = (fabs(M3l()-MZ)>=10.);
+        bool passMET        = ((CR3lpresel==0) ? (met_pt()>30.) : ((CR3lpresel==1) ? (met_pt()>40.) : (met_pt()>55.)));
+        bool passMT3rd      = ((CR3lpresel==1) ? (MT3rd()>90.) : (true));
+        bool passDPhilllMET = (DPhi3lMET()>2.5);
+        bool passPtlll      = ((CR3lpresel==0) ? (true) : (Pt3l()>60.));
+        if(CR3lpresel==1) fillhisto(histos, "MSFOSZlike_SR3l_presel", sample, sn, Mll3L(),     weight);
+        if(passMlll&&passMET&&passMT3rd&&passDPhilllMET&&passPtlll&&passmaxMT) fillhisto(histos, "MSFOSZlike_SR3l_NmO", sample, sn, Mll3L(),     weight);
       }
  
     }//event loop

@@ -110,7 +110,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
 
   //WW VBS
   histonames.push_back("MjjL_VRSS_Detajj1p5");             hbins.push_back(15); hlow.push_back( 0); hup.push_back(750);
-  histonames.push_back("Detajj_VRSS_MjjL400");             hbins.push_back(15); hlow.push_back( 0); hup.push_back(5.0);
+  histonames.push_back("Detajj_VRSS_MjjL400v2");           hbins.push_back(15); hlow.push_back( 0); hup.push_back(5.0);
+  histonames.push_back("Detajj_VRSS_MjjL400");             hbins.push_back(15); hlow.push_back( 0); hup.push_back(3.0);
   histonames.push_back("MjjL_VRSS_Detajj1p5_Detajj3");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(750);
   histonames.push_back("Detajj_VRSS_MjjL400_Detajj3");     hbins.push_back(15); hlow.push_back( 0); hup.push_back(5.0);
   histonames.push_back("MjjVBS_VRSS_Detajj1p5");           hbins.push_back(15); hlow.push_back( 0); hup.push_back(750);
@@ -337,6 +338,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(VR[3]>=0){
         if(!passextra1)     fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, sn,      DetajjL(), weight);
         else                fillhisto(histos, "Detajj_VRSS_MjjL400",         sample, extrasn, DetajjL(), weight, false);
+        if(!passextra1)     fillhisto(histos, "Detajj_VRSS_MjjL400v2",       sample, sn,      DetajjL(), weight);
+        else                fillhisto(histos, "Detajj_VRSS_MjjL400v2",       sample, extrasn, DetajjL(), weight, false);
         if(!passextra1&&Detajj()<=3.0)    fillhisto(histos, "Detajj_VRSS_MjjL400_Detajj3", sample, sn,      DetajjL(), weight);
         else if(Detajj()<=3.0)            fillhisto(histos, "Detajj_VRSS_MjjL400_Detajj3", sample, extrasn, DetajjL(), weight, false);
         if(!passextra1)     fillhisto(histos, "MjjVBS_VRSS_MjjL400",         sample, sn,      MjjVBF(), weight);

@@ -60,11 +60,16 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsSR");                                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_raw");                               hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_rawweight");                         hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_raw");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_rawweight");                 hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR");                                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_noMSFOSsel_SS");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   //SS JEC uncertainty
   histonames.push_back("YieldsSR_jesup");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_jesdn");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_jesup");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_jesdn");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_dropMjj");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_dropMjj_jesup");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_dropMjj_jesdn");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -73,9 +78,12 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsCR_cutonMjj");                          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_cutonMjj_jesup");                    hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_cutonMjj_jesdn");                    hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
-  histonames.push_back("Mjj_CRlike_allSS_jesup");                     hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
-  histonames.push_back("Mjj_CRlike_allSS_jesdn");                     hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
-  histonames.push_back("Mjj_CRlike_allSS");                           hbins.push_back(12);hlow.push_back(20);hup.push_back(260);
+  histonames.push_back("YieldsCR_anticutonMjj");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_anticutonMjj_jesup");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_anticutonMjj_jesdn");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("Mjj_CRlike_allSS_jesup");                     hbins.push_back(10);hlow.push_back( 5);hup.push_back(155);
+  histonames.push_back("Mjj_CRlike_allSS_jesdn");                     hbins.push_back(10);hlow.push_back( 5);hup.push_back(155);
+  histonames.push_back("Mjj_CRlike_allSS");                           hbins.push_back(10);hlow.push_back( 5);hup.push_back(155);
   //PU unc
   histonames.push_back("YieldsSR_PUup");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_PUdn");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -83,17 +91,29 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsSR_dropMjj_PUdn");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_PUup");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_PUdn");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_PUup");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//xx
+  histonames.push_back("YieldsSR_Mjjside_PUdn");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//xx
   //MSFOS/lep SF uncertainty
   histonames.push_back("YieldsCR_lepSFup");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_lepSFdn");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_lepSFup");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_lepSFdn");                           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_lepSFup");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//xx
+  histonames.push_back("YieldsSR_Mjjside_lepSFdn");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//xx
   histonames.push_back("MSFOS_CRlike_allSS");                         hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_CRlike_allSS_lepSFup");                 hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_CRlike_allSS_lepSFdn");                 hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOSall_CRlike_allSS");                      hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOSall_CRlike_allSS_lepSFup");              hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOSall_CRlike_allSS_lepSFdn");              hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_CRlike_allSS_lowMET");                  hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_CRlike_allSS_lowMET");               hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_CRlike_allSS_lowMllSS");                hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_CRlike_allSS_lowMllSS");             hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_CRlike_allSS_lowMETMllSS");             hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_CRlike_allSS_lowMETMllSS");          hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_CRlike_allSS_lowMETorMllSS");           hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_CRlike_allSS_lowMETorMllSS");        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   //ttZ/WZ uncertainty
   histonames.push_back("YieldsSR_ttZup");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_ttZdn");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -103,22 +123,33 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("YieldsCR_ttZdn");                             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_WZup");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_WZdn");                              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_ttZup");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_ttZdn");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_WZup");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_WZdn");                      hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   //validation SS
-  histonames.push_back("YieldsSR_Mjjsideband");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
-  histonames.push_back("YieldsSR_Mjjsideband_lowMET");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
-  histonames.push_back("YieldsSR_Mjjsideband_lowMTmax");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_lowMET");                    hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_Mjjside_lowMTmax");                  hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_lowMET");                            hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_lowMTmax");                          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   
   //validation 3l
   histonames.push_back("YieldsSR_inverteitherMETdPhiPt");             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsSR_invertMETdPhiPt");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_inverteitherMETdPhiPt");             hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("YieldsCR_invertMETdPhiPt");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
-  histonames.push_back("YieldsSR_invertMT3rd");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
-  histonames.push_back("YieldsSR_inverteitherMT3rdMETdPhiPt");        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
-  histonames.push_back("YieldsSR_invertMT3rdMETdPhiPt");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
-  histonames.push_back("YieldsCR_invertMT3rd");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
-  histonames.push_back("YieldsCR_inverteitherMT3rdMETdPhiPt");        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
-  histonames.push_back("YieldsCR_invertMT3rdMETdPhiPt");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsSR_invertMT3rd");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_inverteitherMT3rdMETdPhiPt");        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_invertMT3rdMETdPhiPt");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_invertMT3rd");                       hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_inverteitherMT3rdMETdPhiPt");        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsCR_invertMT3rdMETdPhiPt");              hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("YieldsSR_inverteitherMT3rdMETPt");            hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsSR_inverteitherMT3rdMETdPhi");          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsSR_inverteitherMT3rddPhiPt");           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsCR_inverteitherMT3rdMETPt");            hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsCR_inverteitherMT3rdMETdPhi");          hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
+  histonames.push_back("YieldsCR_inverteitherMT3rddPhiPt");           hbins.push_back(6); hlow.push_back(0); hup.push_back(6);//new
   histonames.push_back("MSFOS_all3l");                                hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_all3l_lepSFup");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_all3l_lepSFdn");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
@@ -134,9 +165,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("MSFOS_1SFOS_lepSFdn");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_1SFOS_inverteitherMETdPhiPt");          hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_1SFOS_invertMETdPhiPt");                hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
-  histonames.push_back("MSFOS_1SFOS_invertMT3rd");                    hbins.push_back(12);hlow.push_back(30);hup.push_back(150);//new
-  histonames.push_back("MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);//new
-  histonames.push_back("MSFOS_1SFOS_invertMT3rdMETdPhiPt");           hbins.push_back(12);hlow.push_back(30);hup.push_back(150);//new
+  histonames.push_back("MSFOS_1SFOS_invertMT3rd");                    hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_1SFOS_invertMT3rdMETdPhiPt");           hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_2SFOS");                                hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_2SFOS_lepSFup");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOS_2SFOS_lepSFdn");                        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
@@ -147,6 +178,27 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   histonames.push_back("MSFOSall_2SFOS_lepSFdn");                     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOSall_2SFOS_inverteitherMETdPhiPt");       hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   histonames.push_back("MSFOSall_2SFOS_invertMETdPhiPt");             hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+
+  histonames.push_back("MSFOS_2SFOS_inverteitherMT3rdMETdPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_2SFOS_inverteitherMT3rdMETdPhiPt");  hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_all3l_inverteitherMT3rdMETdPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_all3l_inverteitherMT3rdMETdPhiPt");  hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+
+  histonames.push_back("MSFOS_1SFOS_inverteitherMT3rdMETPt");         hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_1SFOS_inverteitherMT3rdMETdPhi");       hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_1SFOS_inverteitherMT3rddPhiPt");        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_2SFOS_inverteitherMT3rdMETPt");         hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_2SFOS_inverteitherMT3rdMETdPhi");       hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_2SFOS_inverteitherMT3rddPhiPt");        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_2SFOS_inverteitherMT3rdMETPt");      hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_2SFOS_inverteitherMT3rdMETdPhi");    hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_2SFOS_inverteitherMT3rddPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_all3l_inverteitherMT3rdMETPt");         hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_all3l_inverteitherMT3rdMETdPhi");       hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOS_all3l_inverteitherMT3rddPhiPt");        hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_all3l_inverteitherMT3rdMETPt");      hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_all3l_inverteitherMT3rdMETdPhi");    hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
+  histonames.push_back("MSFOSall_all3l_inverteitherMT3rddPhiPt");     hbins.push_back(12);hlow.push_back(30);hup.push_back(150);
   
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir);
   cout << "Loaded histograms" << endl;
@@ -242,7 +294,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       passAnySS(SRSS[20],dummy,SRSS[22],false, 0,false,false,true,1);
       passAnySS(SRSS[26],dummy,SRSS[28],false, 1,false,false,true,1);
       passAnySS(SRSS[30],dummy,SRSS[32],false,-1,false,false,true,1);
-  
+ 
       //3l
       passAny3l(SR3l[ 0],dummy,SR3l[ 2]);      //full:         0: SR, 2 CR
       passAny3l(SR3l[ 1],dummy,SR3l[ 3],true); //preselection: 1: SR, 3 CR
@@ -250,7 +302,39 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       passAny3l(SR3l[ 7],dummy,SR3l[ 9],true,  1);
       passAny3l(SR3l[10],dummy,SR3l[12],false,-1);//JEC DOWN
       passAny3l(SR3l[11],dummy,SR3l[13],true, -1);
-
+      float maxMT = -1;
+      LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+      if(nVlep()==3){
+        for(int i = 0; i<nVlep();++i){
+          if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) {
+            if(mT(lep_p4()[i],METlv)>maxMT) maxMT = mT(lep_p4()[i],METlv);
+          }
+        }
+      }
+      if(maxMT<=90.){
+        if(SR3l[ 0]==0) SR3l[ 0] = -1;
+        if(SR3l[ 1]==0) SR3l[ 1] = -1;
+        if(SR3l[ 2]==0) SR3l[ 2] = -1;
+        if(SR3l[ 3]==0) SR3l[ 3] = -1;
+        if(SR3l[ 4]==0) SR3l[ 4] = -1;
+        if(SR3l[ 5]==0) SR3l[ 5] = -1;
+        if(SR3l[ 6]==0) SR3l[ 6] = -1;
+        if(SR3l[ 7]==0) SR3l[ 7] = -1;
+        if(SR3l[ 8]==0) SR3l[ 8] = -1;
+        if(SR3l[ 9]==0) SR3l[ 9] = -1;
+        if(SR3l[10]==0) SR3l[10] = -1;
+        if(SR3l[11]==0) SR3l[11] = -1;
+        if(SR3l[12]==0) SR3l[12] = -1;
+        if(SR3l[13]==0) SR3l[13] = -1;
+      }
+      if(met_pt()<=60.){
+        if(SRSS[20]==2) SRSS[20] = -1;
+        //if(SRSS[22]==2) SRSS[22] = -1;
+        if(SRSS[26]==2) SRSS[26] = -1;
+        //if(SRSS[28]==2) SRSS[28] = -1;
+        if(SRSS[30]==2) SRSS[30] = -1;
+        //if(SRSS[32]==2) SRSS[32] = -1;
+      }
       vector <float> MSFOSvec = allMSFOS();
       //cout << sn << endl;
       if(!(blindSR&&isData())){
@@ -259,13 +343,13 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         fillSRhisto(histos, "YieldsSR_rawweight", sample, sn, SRSS[ 0], SR3l[ 0], rawweight);
         fillSRhisto(histos, "YieldsSR_jesup",     sample, sn, SRSS[ 6], SR3l[ 6], weight);
         fillSRhisto(histos, "YieldsSR_jesdn",     sample, sn, SRSS[10], SR3l[10], weight);
-        fillSRhisto(histos, "YieldsSR_PUup",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_up()/purewgt());
-        fillSRhisto(histos, "YieldsSR_PUdn",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_dn()/purewgt());
-        fillSRhisto(histos, "YieldsSR_lepSFup",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_up()/lepsf());
-        fillSRhisto(histos, "YieldsSR_lepSFdn",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_dn()/lepsf());
+        if(purewgt()>0) fillSRhisto(histos, "YieldsSR_PUup",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_up()/purewgt());
+        if(purewgt()>0) fillSRhisto(histos, "YieldsSR_PUdn",      sample, sn, SRSS[ 0], SR3l[ 0], weight*purewgt_dn()/purewgt());
+        if(lepsf()>0) fillSRhisto(histos, "YieldsSR_lepSFup",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_up()/lepsf());
+        if(lepsf()>0) fillSRhisto(histos, "YieldsSR_lepSFdn",   sample, sn, SRSS[ 0], SR3l[ 0], weight*lepsf_dn()/lepsf());
         fillSRhisto(histos, "YieldsSR_dropMjj",        sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight);
-        fillSRhisto(histos, "YieldsSR_dropMjj_PUup",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_up()/purewgt());
-        fillSRhisto(histos, "YieldsSR_dropMjj_PUdn",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_dn()/purewgt());
+        if(purewgt()>0) fillSRhisto(histos, "YieldsSR_dropMjj_PUup",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_up()/purewgt());
+        if(purewgt()>0) fillSRhisto(histos, "YieldsSR_dropMjj_PUdn",   sample, sn, (SRSS[0]>=0 ? SRSS[0] : SRSS[20]), SR3l[ 0], weight*purewgt_dn()/purewgt());
         fillSRhisto(histos, "YieldsSR_dropMjj_jesup",  sample, sn, (SRSS[6]>=0 ? SRSS[6] : SRSS[26]), SR3l[ 6], weight);
         fillSRhisto(histos, "YieldsSR_dropMjj_jesdn",  sample, sn, (SRSS[10]>=0 ? SRSS[10] : SRSS[30]), SR3l[10], weight);
         fillSRhisto(histos, "YieldsSR_WZup",      sample, sn, SRSS[ 0], SR3l[ 0], weight*(1.+xsecweightWZ));
@@ -276,26 +360,26 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         //MSFOS - SR blinded
         if(SR3l[ 0]>=0&&MSFOSvec.size()>0){
           fillhisto(    histos, "MSFOS_all3l",            sample, sn, MSFOSvec[0], weight);
-          fillhisto(    histos, "MSFOS_all3l_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-          fillhisto(    histos, "MSFOS_all3l_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+          if(lepsf()>0) fillhisto(    histos, "MSFOS_all3l_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+          if(lepsf()>0) fillhisto(    histos, "MSFOS_all3l_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
           if(SR3l[ 0]==1){
             fillhisto(  histos, "MSFOS_1SFOS",            sample, sn, MSFOSvec[0], weight);
-            fillhisto(  histos, "MSFOS_1SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-            fillhisto(  histos, "MSFOS_1SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOS_1SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOS_1SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
           }
           if(SR3l[ 0]==2){
             fillhisto(  histos, "MSFOS_2SFOS",            sample, sn, MSFOSvec[0], weight);
-            fillhisto(  histos, "MSFOS_2SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-            fillhisto(  histos, "MSFOS_2SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOS_2SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOS_2SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
           }
           for(unsigned int i = 0; i<MSFOSvec.size();++i){
             fillhisto(  histos, "MSFOSall_all3l",         sample, sn, MSFOSvec[i], weight);
-            fillhisto(  histos, "MSFOSall_all3l_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
-            fillhisto(  histos, "MSFOSall_all3l_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOSall_all3l_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
+            if(lepsf()>0) fillhisto(  histos, "MSFOSall_all3l_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
             if(SR3l[ 0]==2){
               fillhisto(histos, "MSFOSall_2SFOS",         sample, sn, MSFOSvec[i], weight);
-              fillhisto(histos, "MSFOSall_2SFOS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
-              fillhisto(histos, "MSFOSall_2SFOS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+              if(lepsf()>0) fillhisto(histos, "MSFOSall_2SFOS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
+              if(lepsf()>0) fillhisto(histos, "MSFOSall_2SFOS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
             }
           }//for MSFOS
         }//MSFOS>=0
@@ -303,31 +387,44 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //MSFOS - CR not blinded
       if(SR3l[ 2]>=0&&MSFOSvec.size()>0){
         fillhisto(    histos, "MSFOS_all3l",            sample, sn, MSFOSvec[0], weight);
-        fillhisto(    histos, "MSFOS_all3l_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-        fillhisto(    histos, "MSFOS_all3l_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+        if(lepsf()>0) fillhisto(    histos, "MSFOS_all3l_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+        if(lepsf()>0) fillhisto(    histos, "MSFOS_all3l_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
         if(SR3l[ 2]==1){
           fillhisto(  histos, "MSFOS_1SFOS",            sample, sn, MSFOSvec[0], weight);
-          fillhisto(  histos, "MSFOS_1SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-          fillhisto(  histos, "MSFOS_1SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOS_1SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOS_1SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
         }
         if(SR3l[ 2]==2){
           fillhisto(  histos, "MSFOS_2SFOS",            sample, sn, MSFOSvec[0], weight);
-          fillhisto(  histos, "MSFOS_2SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
-          fillhisto(  histos, "MSFOS_2SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOS_2SFOS_lepSFup",    sample, sn, MSFOSvec[0], weight*lepsf_up()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOS_2SFOS_lepSFdn",    sample, sn, MSFOSvec[0], weight*lepsf_dn()/lepsf());
         }
         for(unsigned int i = 0; i<MSFOSvec.size();++i){
           fillhisto(  histos, "MSFOSall_all3l",         sample, sn, MSFOSvec[i], weight);
-          fillhisto(  histos, "MSFOSall_all3l_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
-          fillhisto(  histos, "MSFOSall_all3l_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOSall_all3l_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
+          if(lepsf()>0) fillhisto(  histos, "MSFOSall_all3l_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
           if(SR3l[ 2]==2){
             fillhisto(histos, "MSFOSall_2SFOS",         sample, sn, MSFOSvec[i], weight);
-            fillhisto(histos, "MSFOSall_2SFOS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
-            fillhisto(histos, "MSFOSall_2SFOS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+            if(lepsf()>0) fillhisto(histos, "MSFOSall_2SFOS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
+            if(lepsf()>0) fillhisto(histos, "MSFOSall_2SFOS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
           }
         }//for MSFOS
       }//MSFOS>=0
+      
       //Mjj sideband
-      fillSRhisto(histos, "YieldsSR_Mjjsideband",   sample, sn, SRSS[20], -1, weight);
+      fillSRhisto(histos, "YieldsSR_Mjjside",             sample, sn, SRSS[20], -1, weight);
+      fillSRhisto(histos, "YieldsSR_Mjjside_rawweight",   sample, sn, SRSS[20], -1, rawweight);
+      fillSRhisto(histos, "YieldsSR_Mjjside_raw",         sample, sn, SRSS[20], -1, 1.);
+      fillSRhisto(histos, "YieldsSR_Mjjside_WZup",        sample, sn, SRSS[20], -1, weight*(1.+xsecweightWZ));
+      fillSRhisto(histos, "YieldsSR_Mjjside_WZdn",        sample, sn, SRSS[20], -1, weight*(1.-xsecweightWZ));
+      fillSRhisto(histos, "YieldsSR_Mjjside_ttZup",       sample, sn, SRSS[20], -1, weight*(1.+xsecweightttZ));
+      fillSRhisto(histos, "YieldsSR_Mjjside_ttZdn",       sample, sn, SRSS[20], -1, weight*(1.-xsecweightttZ));    
+      fillSRhisto(histos, "YieldsSR_Mjjside_jesup",       sample, sn, SRSS[26], -1, weight);
+      fillSRhisto(histos, "YieldsSR_Mjjside_jesdn",       sample, sn, SRSS[30], -1, weight);
+      if(purewgt()>0) fillSRhisto(histos, "YieldsSR_Mjjside_PUup",        sample, sn, SRSS[20], -1, weight*purewgt_up()/purewgt());
+      if(purewgt()>0) fillSRhisto(histos, "YieldsSR_Mjjside_PUdn",        sample, sn, SRSS[20], -1, weight*purewgt_dn()/purewgt());
+      if(lepsf()>0) fillSRhisto(histos, "YieldsSR_Mjjside_lepSFup",     sample, sn, SRSS[20], -1, weight*lepsf_up()/lepsf());
+      if(lepsf()>0) fillSRhisto(histos, "YieldsSR_Mjjside_lepSFdn",     sample, sn, SRSS[20], -1, weight*lepsf_dn()/lepsf());
       if(SRSS[ 1]>=0){
         int t = SRSS[ 1];
         if(MjjL()>400.||DetajjL()>1.5) t = -1;
@@ -335,24 +432,44 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         if(SRSS[ 1]==0&&(met_pt()>40.||MllSS()<=40.)              ) t = -1;
         if(SRSS[ 1]==1&&(met_pt()>40.||MllSS()<=30.||MTmax()<=90.)) t = -1;
         if(SRSS[ 1]==2&&(met_pt()>40.||MllSS()<=40.)              ) t = -1;
-        fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMET",   sample, sn, t, -1, weight);
+        fillSRhisto(histos, "YieldsSR_Mjjside_lowMET",   sample, sn, t, -1, weight);
         t = ((SRSS[ 1]==1) ? SRSS[ 1] : -1);
         if(MjjL()>400.||DetajjL()>1.5) t = -1;
         if(fabs(Mjj()     -80.)<=15.)  t = -1;
         if(SRSS[ 1]==1&&(met_pt()<=60.||MllSS()<=30.||MTmax()>90.)) t = -1;
-        fillSRhisto(histos, "YieldsSR_Mjjsideband_lowMTmax", sample, sn, t, -1, weight);
+        fillSRhisto(histos, "YieldsSR_Mjjside_lowMTmax", sample, sn, t, -1, weight);
+      }
+
+      if(SRSS[ 1]>=0){
+        int t = SRSS[ 1];
+        if(MjjL()>400.||DetajjL()>1.5) t = -1;
+        if(fabs(Mjj()     -80.)> 15.)  t = -1;
+        if(SRSS[ 1]==0&&(met_pt()>60.||MllSS()<=40.)              ) t = -1;
+        if(SRSS[ 1]==1&&(met_pt()>60.||MllSS()<=30.||MTmax()<=90.)) t = -1;
+        if(SRSS[ 1]==2&&(met_pt()> 0.||MllSS()<=40.)              ) t = -1;
+        fillSRhisto(histos, "YieldsSR_lowMET",   sample, sn, t, -1, weight);
+        t = ((SRSS[ 1]==1) ? SRSS[ 1] : -1);
+        if(MjjL()>400.||DetajjL()>1.5) t = -1;
+        if(fabs(Mjj()     -80.)> 15.)  t = -1;
+        if(SRSS[ 1]==1&&(met_pt()<=60.||MllSS()<=30.||MTmax()>90.)) t = -1;
+        fillSRhisto(histos, "YieldsSR_lowMTmax", sample, sn, t, -1, weight);
       }
       
       fillSRhisto(histos, "YieldsCR",           sample, sn, SRSS[ 2], SR3l[ 2], weight);
       fillSRhisto(histos, "YieldsCR_jesup",     sample, sn, SRSS[ 8], SR3l[ 8], weight);
       fillSRhisto(histos, "YieldsCR_jesdn",     sample, sn, SRSS[12], SR3l[12], weight);
-      fillSRhisto(histos, "YieldsCR_PUup",      sample, sn, SRSS[ 8], SR3l[ 8], weight*purewgt_up()/purewgt());
-      fillSRhisto(histos, "YieldsCR_PUdn",      sample, sn, SRSS[12], SR3l[12], weight*purewgt_dn()/purewgt());
-      fillSRhisto(histos, "YieldsCR_lepSFup",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_up()/lepsf());
-      fillSRhisto(histos, "YieldsCR_lepSFdn",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_dn()/lepsf());
-      if(fabs(Mjj()   -80.)<15.||SR3l[ 2]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj",       sample, sn, SRSS[ 2], SR3l[ 2], weight);
-      if(fabs(Mjj_up()-80.)<15.||SR3l[ 8]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesup", sample, sn, SRSS[ 8], SR3l[ 8], weight);
-      if(fabs(Mjj_dn()-80.)<15.||SR3l[12]>=0) fillSRhisto(histos, "YieldsCR_cutonMjj_jesdn", sample, sn, SRSS[12], SR3l[12], weight);
+      if(purewgt()>0) fillSRhisto(histos, "YieldsCR_PUup",      sample, sn, SRSS[ 8], SR3l[ 8], weight*purewgt_up()/purewgt());
+      if(purewgt()>0) fillSRhisto(histos, "YieldsCR_PUdn",      sample, sn, SRSS[12], SR3l[12], weight*purewgt_dn()/purewgt());
+      if(lepsf()>0) fillSRhisto(histos, "YieldsCR_lepSFup",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_up()/lepsf());
+      if(lepsf()>0) fillSRhisto(histos, "YieldsCR_lepSFdn",   sample, sn, SRSS[ 2], SR3l[ 2], weight*lepsf_dn()/lepsf());
+      //if((SRSS[2]>=0||SR3l>=0)&&lepsf()<=0) cout << "lepSF " << lepsf() << " " << lepsf_up() << " " << lepsf_dn() << endl;
+      //if((SRSS[2]>=0||SR3l>=0)&&lepsf()>0) cout << "lepSF " << lepsf() << " " << lepsf_up() << " " << lepsf_dn() << endl;
+      if(fabs(Mjj()   -80.)<15.||SR3l[ 2]>=0)  fillSRhisto(histos, "YieldsCR_cutonMjj",           sample, sn, SRSS[ 2], SR3l[ 2], weight);
+      if(fabs(Mjj_up()-80.)<15.||SR3l[ 8]>=0)  fillSRhisto(histos, "YieldsCR_cutonMjj_jesup",     sample, sn, SRSS[ 8], SR3l[ 8], weight);
+      if(fabs(Mjj_dn()-80.)<15.||SR3l[12]>=0)  fillSRhisto(histos, "YieldsCR_cutonMjj_jesdn",     sample, sn, SRSS[12], SR3l[12], weight);
+      if(fabs(Mjj()   -80.)>=15.||SR3l[ 2]>=0) fillSRhisto(histos, "YieldsCR_anticutonMjj",       sample, sn, SRSS[ 2], SR3l[ 2], weight);
+      if(fabs(Mjj_up()-80.)>=15.||SR3l[ 8]>=0) fillSRhisto(histos, "YieldsCR_anticutonMjj_jesup", sample, sn, SRSS[ 8], SR3l[ 8], weight);
+      if(fabs(Mjj_dn()-80.)>=15.||SR3l[12]>=0) fillSRhisto(histos, "YieldsCR_anticutonMjj_jesdn", sample, sn, SRSS[12], SR3l[12], weight);
       fillSRhisto(histos, "YieldsCR_WZup",      sample, sn, SRSS[ 2], SR3l[ 2], weight*(1.+xsecweightWZ));
       fillSRhisto(histos, "YieldsCR_WZdn",      sample, sn, SRSS[ 2], SR3l[ 2], weight*(1.-xsecweightWZ));
       fillSRhisto(histos, "YieldsCR_ttZup",     sample, sn, SRSS[ 2], SR3l[ 2], weight*(1.+xsecweightttZ));
@@ -361,14 +478,33 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(SRSS[ 8]>=0) fillhisto(histos, "Mjj_CRlike_allSS_jesup", sample, sn, Mjj_up(), weight);
       if(SRSS[12]>=0) fillhisto(histos, "Mjj_CRlike_allSS_jesdn", sample, sn, Mjj_dn(), weight);
       if(SRSS[ 4]>=0&&MSFOSvec.size()>0){
+        bool lowMETSS = (SRSS[4]==2 ? false : (met_pt()<60.));
+        bool lowMllSS = (SRSS[4]==1 ? (MllSS()<30.) : (MllSS()<40.));
         fillSRhisto(histos, "YieldsCR_noMSFOSsel_SS",        sample, sn, SRSS[ 4], -1, weight);
         fillhisto(  histos, "MSFOS_CRlike_allSS",            sample, sn, MSFOSvec[0],  weight);
-        fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFup",    sample, sn, MSFOSvec[0],  weight*lepsf_up()/lepsf());
-        fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFdn",    sample, sn, MSFOSvec[0],  weight*lepsf_dn()/lepsf());
+        if(lepsf()>0) fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFup",    sample, sn, MSFOSvec[0],  weight*lepsf_up()/lepsf());
+        if(lepsf()>0) fillhisto(  histos, "MSFOS_CRlike_allSS_lepSFdn",    sample, sn, MSFOSvec[0],  weight*lepsf_dn()/lepsf());
         for(unsigned int i = 0; i<MSFOSvec.size();++i){
           fillhisto(histos, "MSFOSall_CRlike_allSS",         sample, sn, MSFOSvec[i], weight);
-          fillhisto(histos, "MSFOSall_CRlike_allSS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
-          fillhisto(histos, "MSFOSall_CRlike_allSS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+          if(lepsf()>0) fillhisto(histos, "MSFOSall_CRlike_allSS_lepSFup", sample, sn, MSFOSvec[i], weight*lepsf_up()/lepsf());
+          if(lepsf()>0) fillhisto(histos, "MSFOSall_CRlike_allSS_lepSFdn", sample, sn, MSFOSvec[i], weight*lepsf_dn()/lepsf());
+        }
+      }
+      if(SRSS[ 5]>=0&&MSFOSvec.size()>0){
+        bool highMETSS = (SRSS[5]==2 ? true : (met_pt()>60.));
+        bool highMllSS = (SRSS[5]==1 ? (MllSS()>30.) : (MllSS()>40.));
+        bool highMTmax = (SRSS[5]==1 ? (MTmax()>90.) : true);
+        if(highMTmax){
+          if(!highMETSS&& highMllSS) fillhisto(  histos, "MSFOS_CRlike_allSS_lowMET",        sample, sn, MSFOSvec[0],  weight);
+          if( highMETSS&&!highMllSS) fillhisto(  histos, "MSFOS_CRlike_allSS_lowMllSS",      sample, sn, MSFOSvec[0],  weight);
+          if(!highMETSS&&!highMllSS) fillhisto(  histos, "MSFOS_CRlike_allSS_lowMETMllSS",   sample, sn, MSFOSvec[0],  weight);
+          if(!highMETSS||!highMllSS) fillhisto(  histos, "MSFOS_CRlike_allSS_lowMETorMllSS", sample, sn, MSFOSvec[0],  weight);
+          for(unsigned int i = 0; i<MSFOSvec.size();++i){
+            if(!highMETSS&& highMllSS) fillhisto(  histos, "MSFOSall_CRlike_allSS_lowMET",        sample, sn, MSFOSvec[i],  weight);
+            if( highMETSS&&!highMllSS) fillhisto(  histos, "MSFOSall_CRlike_allSS_lowMllSS",      sample, sn, MSFOSvec[i],  weight);
+            if(!highMETSS&&!highMllSS) fillhisto(  histos, "MSFOSall_CRlike_allSS_lowMETMllSS",   sample, sn, MSFOSvec[i],  weight);
+            if(!highMETSS||!highMllSS) fillhisto(  histos, "MSFOSall_CRlike_allSS_lowMETorMllSS", sample, sn, MSFOSvec[i],  weight);
+          }
         }
       }
       if((SR3l[ 1]>=0||SR3l[ 3]>=0)&&MSFOSvec.size()>0&&fabs(M3l()-90.)>10.){
@@ -407,7 +543,54 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
             if((SR3l[ 1]==2)||(SR3l[ 3]==2)) fillhisto(histos, "MSFOSall_2SFOS_inverteitherMETdPhiPt",   sample, sn, MSFOSvec[i], weight);
           }
         }
-        //new start
+        if(passnotallInclMT3rd){
+          fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 1], weight);
+          fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 3], weight);
+          fillhisto(  histos, "MSFOS_all3l_inverteitherMT3rdMETdPhiPt",  sample, sn, MSFOSvec[0],  weight);
+          fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0],  weight);
+          if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0], weight);
+          if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0], weight);
+          for(unsigned int i = 0; i<MSFOSvec.size();++i){
+            fillhisto(histos, "MSFOSall_all3l_inverteitherMT3rdMETdPhiPt",      sample, sn, MSFOSvec[i],      weight);
+            if((SR3l[ 1]==2)||(SR3l[ 3]==2)) fillhisto(histos, "MSFOSall_2SFOS_inverteitherMT3rdMETdPhiPt",   sample, sn, MSFOSvec[i], weight);
+          }
+          if(passMET){
+            fillSRhisto(histos, "YieldsSR_inverteitherMT3rddPhiPt",    sample, sn, -1, SR3l[ 1], weight);
+            fillSRhisto(histos, "YieldsCR_inverteitherMT3rddPhiPt",    sample, sn, -1, SR3l[ 3], weight);
+            fillhisto(  histos, "MSFOS_all3l_inverteitherMT3rddPhiPt",  sample, sn, MSFOSvec[0],  weight);
+            fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rddPhiPt", sample, sn, MSFOSvec[0],  weight);
+            if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_inverteitherMT3rddPhiPt", sample, sn, MSFOSvec[0], weight);
+            if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_inverteitherMT3rddPhiPt", sample, sn, MSFOSvec[0], weight);
+            for(unsigned int i = 0; i<MSFOSvec.size();++i){
+              fillhisto(histos, "MSFOSall_all3l_inverteitherMT3rddPhiPt",      sample, sn, MSFOSvec[i],      weight);
+              if((SR3l[ 1]==2)||(SR3l[ 3]==2)) fillhisto(histos, "MSFOSall_2SFOS_inverteitherMT3rddPhiPt",   sample, sn, MSFOSvec[i], weight);
+            }
+          }
+          if(passDPhilllMET){
+            fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETPt",    sample, sn, -1, SR3l[ 1], weight);
+            fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETPt",    sample, sn, -1, SR3l[ 3], weight);
+            fillhisto(  histos, "MSFOS_all3l_inverteitherMT3rdMETPt",  sample, sn, MSFOSvec[0],  weight);
+            fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETPt", sample, sn, MSFOSvec[0],  weight);
+            if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_inverteitherMT3rdMETPt", sample, sn, MSFOSvec[0], weight);
+            if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_inverteitherMT3rdMETPt", sample, sn, MSFOSvec[0], weight);
+            for(unsigned int i = 0; i<MSFOSvec.size();++i){
+              fillhisto(histos, "MSFOSall_all3l_inverteitherMT3rdMETPt",      sample, sn, MSFOSvec[i],      weight);
+              if((SR3l[ 1]==2)||(SR3l[ 3]==2)) fillhisto(histos, "MSFOSall_2SFOS_inverteitherMT3rdMETPt",   sample, sn, MSFOSvec[i], weight);
+            }
+          }
+          if(passPTlll){
+            fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETdPhi",    sample, sn, -1, SR3l[ 1], weight);
+            fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETdPhi",    sample, sn, -1, SR3l[ 3], weight);
+            fillhisto(  histos, "MSFOS_all3l_inverteitherMT3rdMETdPhi",  sample, sn, MSFOSvec[0],  weight);
+            fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhi", sample, sn, MSFOSvec[0],  weight);
+            if((SR3l[ 1]==1)||(SR3l[ 3]==1))   fillhisto(histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhi", sample, sn, MSFOSvec[0], weight);
+            if((SR3l[ 1]==2)||(SR3l[ 3]==2))   fillhisto(histos, "MSFOS_2SFOS_inverteitherMT3rdMETdPhi", sample, sn, MSFOSvec[0], weight);
+            for(unsigned int i = 0; i<MSFOSvec.size();++i){
+              fillhisto(histos, "MSFOSall_all3l_inverteitherMT3rdMETdPhi",      sample, sn, MSFOSvec[i],      weight);
+              if((SR3l[ 1]==2)||(SR3l[ 3]==2)) fillhisto(histos, "MSFOSall_2SFOS_inverteitherMT3rdMETdPhi",   sample, sn, MSFOSvec[i], weight);
+            }
+          }
+        }
         if((SR3l[ 1]==1)||(SR3l[ 3]==1)){
           if(invertMT3rd){
             fillSRhisto(histos, "YieldsSR_invertMT3rd",                   sample, sn, -1, SR3l[ 1], weight);
@@ -418,11 +601,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
             fillSRhisto(histos, "YieldsSR_invertMT3rdMETdPhiPt",          sample, sn, -1, SR3l[ 1], weight);
             fillSRhisto(histos, "YieldsCR_invertMT3rdMETdPhiPt",          sample, sn, -1, SR3l[ 3], weight);
             fillhisto(  histos, "MSFOS_1SFOS_invertMT3rdMETdPhiPt",       sample, sn, MSFOSvec[0],  weight);
-          }
-          if(passnotallInclMT3rd){
-            fillSRhisto(histos, "YieldsSR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 1], weight);
-            fillSRhisto(histos, "YieldsCR_inverteitherMT3rdMETdPhiPt",    sample, sn, -1, SR3l[ 3], weight);
-            fillhisto(  histos, "MSFOS_1SFOS_inverteitherMT3rdMETdPhiPt", sample, sn, MSFOSvec[0],  weight);
           }
         }
         //new end
@@ -452,4 +630,4 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   cout << endl;
   delete bmark;
   return 0;
-}
+} 

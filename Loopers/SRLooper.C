@@ -28,7 +28,7 @@
 #include "Functions.h"
 #include "CMS3_WWW106.cc"
 /*
-#include "Functions112.h"
+#include "Functions112.h" 
 #ifdef USE_CMS3_WWW100
 #include "CMS3_WWW112.cc"
 #else
@@ -48,7 +48,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   vector<myevt> e;
   addeventtocheck(e,1, 2842, 1443084);
 
-  bool blindSR         = true;
+  bool blindSR         = false;
   bool btagreweighting = true;
   bool applylepSF      = true;
   bool applytrigSF     = true;
@@ -109,6 +109,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   vector<float>  hlow;       hlow.clear();
   vector<float>  hup;        hup.clear();
 
+  histonames.push_back("SignalRegion");                        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("SignalRegion");                        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("ApplicationRegion");                   hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
   histonames.push_back("WZControlRegion");                     hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
@@ -234,6 +235,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
         if(checkevent) cout << "pass duplicate" << endl;
         if( !goodrun(tas::run(), tas::lumi()) ) continue;
         if(checkevent) cout << "pass goodrun"   << endl;
+        weight = 1.;
       } 
       if(!passTriggers()) continue;//pass trigger for data, and offline lepton kinematic cuts for data/simulation
       if(checkevent) cout << "pass online/offline triggers" << endl;
@@ -243,9 +245,9 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       string sn = string(bkgtype().Data());
       if(vetophoton()) continue;
       
-      int SRSS[20]; 
-      int SR3l[20];
-      for(int i = 0; i<20; ++i) { SRSS[i] = -1; SR3l[i] = -1;  }
+      int SRSS[30]; 
+      int SR3l[30];
+      for(int i = 0; i<30; ++i) { SRSS[i] = -1; SR3l[i] = -1;  }
 
       //SS
       passAnySS(SRSS[0],SRSS[2],SRSS[4]);      //full:         0: SR, 2: AR, 4: CR
@@ -260,19 +262,46 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       //Mjj side SS
       passAnySS(SRSS[10],SRSS[12],SRSS[14],false,0,false,false,true);      //full:         0: SR, 2: AR, 4: CR
       passAnySS(SRSS[11],SRSS[13],SRSS[15],true, 0,false,false,true); //preselection: 1: SR, 3: AR, 5: CR
+      passAnySS(SRSS[16],SRSS[18],SRSS[18],false, 1,false,false,true);      //full, JESup:         0: SR, 2: AR, 4: CR
+      passAnySS(SRSS[17],SRSS[18],SRSS[18],false,-1,false,false,true);      //full, JEDdn:         0: SR, 2: AR, 4: CR
 
-      vector<int> lepidxv; lepidxv.clear();
-      if(SR3l[1]>=0||SR3l[3]>=0||SR3l[5]>=0){
-        for(int i = 0; i<nVlep();++i){
-          //cout << i << " " << lep_pass_VVV_cutbased_3l_fo()[i] << " " << lep_pass_VVV_cutbased_3l_tight()[i] << " " << lep_p4()[i].Pt() << " pdgID " << lep_pdgId()[i] << " - " << SR3l[1] << " " << SR3l[3] << " " << SR3l[3] << endl; 
-          if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) lepidxv.push_back(i);
-        }
-        if(lepidxv.size()!=3) cout << __LINE__ << " " << lepidxv.size() << endl;
-      }
+      float maxMT = -1;
       LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
-      float maxMT = calcMTmax(lepidxv, METlv);
-      if(lepidxv.size()!=3) maxMT = -1;
-
+      if(nVlep()==3){
+        for(int i = 0; i<nVlep();++i){
+          if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) {
+            if(mT(lep_p4()[i],METlv)>maxMT) maxMT = mT(lep_p4()[i],METlv);
+          }
+        }
+      }
+      if(maxMT<=90.){
+        if(SR3l[0]==0) SR3l[0] = -1;
+        if(SR3l[1]==0) SR3l[1] = -1;
+        if(SR3l[2]==0) SR3l[2] = -1;
+        if(SR3l[3]==0) SR3l[3] = -1;
+        if(SR3l[4]==0) SR3l[4] = -1;
+        if(SR3l[5]==0) SR3l[5] = -1;
+        if(SR3l[6]==0) SR3l[6] = -1;
+        if(SR3l[7]==0) SR3l[7] = -1;
+      }
+      if(met_pt()<=60.){
+        if(SRSS[10]==2) SRSS[10] = -1;
+        if(SRSS[11]==2) SRSS[11] = -1;
+        if(SRSS[12]==2) SRSS[12] = -1;
+        if(SRSS[13]==2) SRSS[13] = -1;
+        //if(SRSS[14]==2) SRSS[14] = -1;
+        //if(SRSS[15]==2) SRSS[15] = -1;
+        if(SRSS[16]==2) SRSS[16] = -1;
+        if(SRSS[17]==2) SRSS[17] = -1;
+        //if(SRSS[18]==2) SRSS[18] = -1;
+      }
+      SR3l[21] = SR3l[0];
+      SR3l[22] = SR3l[0];
+      SR3l[23] = SR3l[0];
+      SR3l[24] = SR3l[0];
+      SR3l[25] = SR3l[0];
+      SR3l[26] = SR3l[0];
+      if(weight>50.) cout << __LINE__ << " " << fname << " " << tas::run() << ":" << tas::lumi() << ":" << tas::evt() << endl;
       if(!isData()||!blindSR){//SR is blinded
         int SR3lv2S = SR3l[0];
         if(SR3l[0]==0 && maxMT<90.) SR3lv2S = -1;
@@ -313,10 +342,6 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, SRSS[5], SR3l[5], weight);
       fillSRhisto(  histos, "WZControlRegion_Mjjside",            sample, sn, SRSS[14], -1, weight);
       fillSRhisto(  histos, "WZControlRegionPresel_Mjjside",      sample, sn, SRSS[15], -1, weight);
-      fillSRhisto(  histos, "ApplicationRegion",          sample, sn, 1, -1, weight);
-      fillSRhisto(  histos, "ApplicationRegionPresel",    sample, sn, 1, -1, weight);
-      fillSRhisto(  histos, "WZControlRegion",            sample, sn, 1, -1, weight);
-      fillSRhisto(  histos, "WZControlRegionPresel",      sample, sn, 1, -1, weight);
       fillSRhisto(  histos, "RawApplicationRegion",       sample, sn, SRSS[2], SR3l[2], 1.);
       fillSRhisto(  histos, "RawApplicationRegionPresel", sample, sn, SRSS[3], SR3l[3], 1.);
       fillSRhisto(  histos, "RawWZControlRegion",         sample, sn, SRSS[4], SR3l[4], 1.);
