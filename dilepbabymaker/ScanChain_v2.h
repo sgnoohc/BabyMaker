@@ -157,6 +157,7 @@ public:
     bool PassPresel();
     bool PassPresel_v1();
     bool PassPresel_v2();
+    bool PassPresel_v3();
 
     void FillOutput();
 

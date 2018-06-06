@@ -24,6 +24,8 @@ job_tag = "WWW_v1.0.22" # v4 id with new sf new trigeff new fakerate (seemed bug
 job_tag = "WWW_v1.0.23" # v4 id with new sf new trigeff new fakerate (conecorrpt bugged)
 job_tag = "WWW_v1.0.23.patch1" # v4 id with new sf new trigeff new fakerate (conecorrpt fixed, submitted W/ttbar only) 
 job_tag = "WWW_v1.0.24" # isTightPOG variable added to check for modeling issue
+job_tag = "WWW_v1.0.25" # Added smearing and fakerate, took out a few unnecessary variables, had buggy fakerate
+job_tag = "WWW_v1.0.26" # Resubmitting 25 with ffwgt variable fixed Also the tight and loose pt cuts are adjusted in preselection and counting
 
 #job_tag = "WWW_v1.1.0" # Including single leptons with QCD samples (W, ttbar, QCD only) version for closure
 #job_tag = "WWW_v1.1.1" # Included MediumPOG ID (W, ttbar, QCD only) for closure
@@ -439,7 +441,7 @@ while True:
                 tarfile              = tar_gz_path,
                 special_dir          = hadoop_path,
                 output_name          = "output.root",
-                files_per_output     = 1,
+                files_per_output     = 4,
                 condor_submit_params = {"sites" : "T2_US_UCSD"},
                 open_dataset         = False,
                 flush                = True,
@@ -468,6 +470,7 @@ while True:
         maker_task.process()
 
         if maker_task.complete():
+        #if True:
             merge_task.reset_io_mapping()
             merge_task.update_mapping()
             merge_task.process()

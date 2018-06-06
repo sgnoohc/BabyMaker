@@ -106,12 +106,13 @@ for job in "${JOBS[@]}"; do
     fi
     INDEX=$((INDEX+1))
 done
-if [ "$HASBADJOB" = false ]; then
-    hadd -f output.root ${GOODOUTPUTS}
-else
-    echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
-    exit
-fi
+#if [ "$HASBADJOB" = false ]; then
+#    hadd -f output.root ${GOODOUTPUTS}
+#else
+#    echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
+#    exit
+#fi
+hadd -f output.root ${GOODOUTPUTS}
 
 ###################################################################################################
 # ProjectMetis/CondorTask specific (Copying files over to hadoop)
