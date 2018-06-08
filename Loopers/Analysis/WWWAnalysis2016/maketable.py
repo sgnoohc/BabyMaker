@@ -7,10 +7,27 @@ from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisi
 from rooutil.qutils import *
 from errors import E
 
-filename = sys.argv[1]
+filename = "output_sf_applied.root"
 
 ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("{}:samples".format(filename))
+
+########################################################################################
+def getWZNF(cutname):
+    wz = samples.getCounter("/typebkg/lostlep", cutname)
+    nf = samples.getCounter("/data-typebkg/[qflip+photon+prompt+fakes]-sig", cutname)
+    nf.divide(wz)
+    return nf.getCounter(), nf.getError()
+
+########################################################################################
+def blind():
+    cutnames = []
+    for i in samples.getListOfCounterNames():
+        cutnames.append(str(i))
+    cutnames.sort(key=natural_keys)
+    for cutname in cutnames:
+        if cutname.find("AR") == -1:
+            samples.setScaleFactor(cutname, 0, 0, "/data")
 
 ########################################################################################
 def addProcesses(printer, showdata, prettyversion=True):
@@ -18,16 +35,21 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
+    printer.addCutflowProcess("/sig/www", "non-higgs")
+    printer.addCutflowProcess("/sig/whwww", "higgs")
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/typebkg/prompt", "Prompt")
     printer.addCutflowProcess("/typebkg/qflip", "Charge flip")
     printer.addCutflowProcess("/typebkg/photon", "Photon")
     printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep.")
-    printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
     printer.addCutflowProcess("/fake", "Fakes (Data-Driv.)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
     printer.addCutflowProcess("/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep", "Bkg. w/ est.")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/fakeup", "Fakes syst up")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
+    printer.addCutflowProcess("/typebkg/fakes", "Fakes (MC)")
     printer.addCutflowProcess("|", "|")
 #    printer.addCutflowProcess("|", "|")
 #    printer.addCutflowProcess("/bkg/top/singletop", "1top")
@@ -138,22 +160,34 @@ def printCutflowSSWZExtrapolation(samples, variation=""):
 # Supports only printing out by process boundaries
 def printTable(samples):
     printer = TQCutflowPrinter(samples)
-    printer.addCutflowCut("SRSSeeZeeVt", "Full Selection: SRSSee", True)
-    printer.addCutflowCut("SRSSemMTmax", "Full Selection: SRSSem", True)
-    printer.addCutflowCut("SRSSmmMllSS", "Full Selection: SRSSmm", True)
+    printer.addCutflowCut("SRSSeeFull", "Full Selection: SRSSee", True)
+    printer.addCutflowCut("SRSSemFull", "Full Selection: SRSSem", True)
+    printer.addCutflowCut("SRSSmmFull", "Full Selection: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("SideSSeeFull", "Full Selection: SideSSee", True)
+    printer.addCutflowCut("SideSSemFull", "Full Selection: SideSSem", True)
+    printer.addCutflowCut("SideSSmmFull", "Full Selection: SideSSmm", True)
+    printer.addCutflowCut("|", "|", True)
     printer.addCutflowCut("SR0SFOSZVt", "Full Selection: SR0SFOS", True)
     printer.addCutflowCut("SR1SFOSMT3rd", "Full Selection: SR1SFOS", True)
     printer.addCutflowCut("SR2SFOSZVt", "Full Selection: SR2SFOS", True)
-    printer.addCutflowCut("SR0SFOSMTmax", "Full Selection: SR0SFOS", True)
-    #printer.addCutflowCut("SRSSeeNb0", "Pre Selection: SRSSee", True)
-    #printer.addCutflowCut("SRSSemNb0", "Pre Selection: SRSSem", True)
-    #printer.addCutflowCut("SRSSmmNb0", "Pre Selection: SRSSmm", True)
-    #printer.addCutflowCut("ARSSeeZeeVt", "Full Selection: ARSSee", True)
-    #printer.addCutflowCut("ARSSemMTmax", "Full Selection: ARSSem", True)
-    #printer.addCutflowCut("ARSSmmMllSS", "Full Selection: ARSSmm", True)
-    #printer.addCutflowCut("ARSSeeNb0", "Pre Selection: ARSSee", True)
-    #printer.addCutflowCut("ARSSemNb0", "Pre Selection: ARSSem", True)
-    #printer.addCutflowCut("ARSSmmNb0", "Pre Selection: ARSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("ARSSeeFull", "AR: SRSSee", True)
+    printer.addCutflowCut("ARSSemFull", "AR: SRSSem", True)
+    printer.addCutflowCut("ARSSmmFull", "AR: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("ARSideSSeeFull", "AR: SRSSee", True)
+    printer.addCutflowCut("ARSideSSemFull", "AR: SRSSem", True)
+    printer.addCutflowCut("ARSideSSmmFull", "AR: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("AR0SFOSZVt", "AR: SR0SFOS", True)
+    printer.addCutflowCut("AR1SFOSMT3rd", "AR: SR1SFOS", True)
+    printer.addCutflowCut("AR2SFOSZVt", "AR: SR2SFOS", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("LMETCRSSeeFull", "LMETCR: SRSSee", True)
+    printer.addCutflowCut("LMETCRSSemFull", "LMETCR: SRSSem", True)
+    printer.addCutflowCut("LMETCRSSmmFull", "LMETCR: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
     addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")
     path = "cutflows/"
@@ -171,5 +205,6 @@ def printTable(samples):
 
 
 # Print cutflow table
+blind()
 printTable(samples)
 #rintCutflowSSWZExtrapolation(samples, sys.argv[2])

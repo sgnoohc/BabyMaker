@@ -8,7 +8,8 @@ from rooutil import plottery_wrapper as p
 from plottery import plottery as ply
 
 ROOT.gROOT.SetBatch(True)
-samples = TQSampleFolder.loadSampleFolder("output.root:samples")
+samples = TQSampleFolder.loadSampleFolder("output_sf_applied.root:samples")
+#samples = TQSampleFolder.loadSampleFolder("output.root:samples")
 
 output_plot_dir = "plots"
 
@@ -48,19 +49,22 @@ def plot_typebkg(histname, output_name, systs=None, options={}, plotfunc=p.plot_
                 "ratio_range":[0.0,2.0],
                 #"nbins": 30,
                 "autobin": True,
-                "legend_scalex": 1.4,
+                "legend_scalex": 1.8,
                 "legend_scaley": 1.1,
-                "output_name": "{}/{}_typebkg.pdf".format(output_plot_dir, output_name)
+                "output_name": "{}/{}_typebkg.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
                 }
     alloptions.update(options)
     sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
-    bgs  = [ samples.getHistogram("/typebkg/fakes", histname).Clone("Fakes"),
-             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
-             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
-             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
-             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    bgs  = [ 
+             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowlepton"),
+             samples.getHistogram("/typebkg/qflip", histname).Clone("Charge mis-id"),
+             samples.getHistogram("/typebkg/fakes", histname).Clone("Non-prompt"),
+             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep/WZ"),
+             samples.getHistogram("/typebkg/prompt", histname).Clone("Irredu."),
+             ]
     data =   samples.getHistogram("/data", histname).Clone("Data")
-    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    colors = [ 920, 2007, 2005, 2003, 2001 ]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -73,22 +77,41 @@ def plot_typebkg(histname, output_name, systs=None, options={}, plotfunc=p.plot_
 def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
     # Options
     alloptions= {
-                "ratio_range":[0.4,1.6],
+                "ratio_range":[0.0,2.0],
                 #"nbins": 30,
                 "autobin": True,
-                "legend_scalex": 1.4,
+                "legend_scalex": 1.8,
                 "legend_scaley": 1.1,
-                "output_name": "{}/{}_frmethod.pdf".format(output_plot_dir, output_name)
+                "output_name": "{}/{}_frmethod.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
                 }
     alloptions.update(options)
+    # Fake background
+    fake_cn = samples.getHistogram("/fake", histname).Clone("Non-prompt")
+    fake_up = samples.getHistogram("/fakeup", histname).Clone("Non-prompt")
+    p.add_diff_to_error(fake_cn, fake_up)
+    #p.add_frac_syst(fake_cn, 0.3)
+
+    # other bkg
+    prompt = samples.getHistogram("/typebkg/prompt", histname).Clone("Irredu.")
+    lostlep = samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost/three lep")
+    photon = samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowlepton")
+    qflip =samples.getHistogram("/typebkg/qflip", histname).Clone("Charge mis-id")
+    #p.add_frac_syst(prompt, 0.2)
+    #p.add_frac_syst(lostlep, 0.3)
+    #p.add_frac_syst(photon, 0.5)
+    #p.add_frac_syst(qflip, 1.0)
+
     sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
-    bgs  = [ samples.getHistogram("/fake", histname).Clone("Fakes"),
-             samples.getHistogram("/typebkg/prompt", histname).Clone("Prompt"),
-             samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost-lep"),
-             samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowl"),
-             samples.getHistogram("/typebkg/qflip", histname).Clone("Q-flip") ]
+    bgs  = [ 
+             photon,
+             qflip,
+             fake_cn,
+             lostlep,
+             prompt,
+             ]
     data =   samples.getHistogram("/data", histname).Clone("Data")
-    colors = [ 2005, 2001, 2003, 920, 2007 ]
+    colors = [ 920, 2007, 2005, 2003, 2001 ]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -102,12 +125,18 @@ def isblind(hname):
     if hname.find("WZ") != -1: return False
     if hname.find("AR") != -1: return False
     if hname.find("BT") != -1: return False
+    if hname.find("GCR") != -1: return False
+    if hname.find("VBSCR") != -1: return False
+    if hname.find("TTWCR") != -1: return False
+    if hname.find("TTZCR") != -1: return False
+    if hname.find("LMETCR") != -1: return False
     return True
 
 #_____________________________________________________________________________________
 def dofrmethod(hname):
     if hname.find("SR") != -1: return True
     if hname.find("BT") != -1: return True
+    if hname.find("LMETCR") != -1: return True
     return False
 
 #_____________________________________________________________________________________
@@ -125,7 +154,7 @@ def plotall(histnames):
         hfilename = hfilename.replace("}", "_")
 
         # Plotting by bkg type
-        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":20, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
         jobs.append(proc)
         proc.start()
 
@@ -136,7 +165,7 @@ def plotall(histnames):
 
         # Plotting by bkg type and fakes are estimated from data
         if dofrmethod(hname):
-            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":20, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
@@ -153,23 +182,43 @@ if __name__ == "__main__":
     histnames = samples.getListOfHistogramNames()
     histnames = []
     histnames = []
-    histnames.extend(["{SRSSeeNb0,SRSSemNb0,SRSSmmNb0,SR0SFOSNb0,SR1SFOSNb0,SR2SFOSNb0}"])
-    histnames.extend(["{ARSSeeNb0,ARSSemNb0,ARSSmmNb0,AR0SFOSNb0,AR1SFOSNb0,AR2SFOSNb0}"])
-    histnames.extend(["{SRSSeeZeeVt,SRSSemMTmax,SRSSmmMllSS,SR0SFOSZVt,SR1SFOSMT3rd,SR2SFOSZVt}"])
-    histnames.extend(["{SRSSeeZeeVt,SRSSemMTmax,SRSSmmMllSS,SR0SFOSMTmax,SR1SFOSMT3rd,SR2SFOSZVt}"])
-    histnames.extend(["{ARSSeeZeeVt,ARSSemMTmax,ARSSmmMllSS,AR0SFOSZVt,AR1SFOSMT3rd,AR2SFOSZVt}"])
-    histnames.extend(["{ARSSeeZeeVt,ARSSemMTmax,ARSSmmMllSS,AR0SFOSMTmax,AR1SFOSMT3rd,AR2SFOSZVt}"])
-    histnames.extend(["{WZCRSSeeZeeVt,WZCRSSemMTmax,WZCRSSmmMllSS,WZCR1SFOSMT3rd,WZCR2SFOSZVt}"])
-    histnames.extend(["{BTCRSSeeZeeVt,BTCRSSemMTmax,BTCRSSmmMllSS,BTCR0SFOSZVt,BTCR1SFOSMT3rd,BTCR2SFOSZVt}"])
-    histnames.extend(["{BTCRSSeeZeeVt,BTCRSSemMTmax,BTCRSSmmMllSS,BTCR0SFOSZVt,BTCR1SFOSMT3rd,BTCR2SFOSZVt}"])
-    histnames.extend(["{BTCRSSeeNb0,BTCRSSemNb0,BTCRSSmmNb0,BTCR0SFOSNb0,BTCR1SFOSNb0,BTCR2SFOSNb0}"])
-    histnames.extend(["BTCRSSeeZeeVt/MET"])
-    histnames.extend(["BTCRSSemMTmax/MET"])
-    histnames.extend(["BTCRSSmmMllSS/MET"])
-    histnames.extend(["BTCRSSeeZeeVt/MET+BTCRSSemMTmax/MET+BTCRSSmmMllSS/MET"])
-    histnames.extend(["BTCRSSeeZeeVt/Mjj+BTCRSSemMTmax/Mjj+BTCRSSmmMllSS/Mjj"])
-    histnames.extend(["BTCRSSeeZeeVt/MllSS+BTCRSSemMTmax/MllSS+BTCRSSmmMllSS/MllSS"])
-    histnames.extend(["BTCRSSeeNb0/MET"])
-    histnames.extend(["BTCRSSemNb0/MET"])
-    histnames.extend(["BTCRSSmmNb0/MET"])
+    #histnames.extend(["SRSSmmFull/lep_pt1"])
+
+    #histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+    #histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
+    histnames.extend(["{LMETCRSSeeFull,LMETCRSSemFull,LMETCRSSmmFull}"])
+    histnames.extend(["{LMETWZCRSSeeFull,LMETWZCRSSemFull,LMETWZCRSSmmFull}"])
+    #histnames.extend(["{SRSSeeFull,SideSSeeFull,SRSSemFull,SideSSemFull,SRSSmmFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+    #histnames.extend(["{WZCRSSeeFull,WZCRSSemFull,WZCRSSmmFull,WZCR1SFOSFull,WZCR2SFOSFull}"])
+    #histnames.extend(["{BTCRSSeeFull,BTCRSSemFull,BTCRSSmmFull,BTCR0SFOSFull,BTCR1SFOSFull,BTCR2SFOSFull,BTCRSideSSeeFull,BTCRSideSSemFull,BTCRSideSSmmFull}"])
+    #histnames.extend(["{SRSSeePre,SRSSemPre,SRSSmmPre,SR0SFOSPre,SR1SFOSPre,SR2SFOSPre,SideSSeePre,SideSSemPre,SideSSmmPre}"])
+    #histnames.extend(["{SRSSeePre,SideSSeePre,SRSSemPre,SideSSemPre,SRSSmmPre,SideSSmmPre,SR0SFOSPre,SR1SFOSPre,SR2SFOSPre}"])
+    #histnames.extend(["{ARSSeePre,ARSSemPre,ARSSmmPre,AR0SFOSPre,AR1SFOSPre,AR2SFOSPre,ARSideSSeePre,ARSideSSemPre,ARSideSSmmPre}"])
+    #histnames.extend(["{WZCRSSeePre,WZCRSSemPre,WZCRSSmmPre,WZCR1SFOSPre,WZCR2SFOSPre}"])
+    #histnames.extend(["{BTCRSSeePre,BTCRSSemPre,BTCRSSmmPre,BTCR0SFOSPre,BTCR1SFOSPre,BTCR2SFOSPre,BTCRSideSSeePre,BTCRSideSSemPre,BTCRSideSSmmPre}"])
+    #histnames.extend(["{GCR0SFOSPre}"])
+    #histnames.extend(["GCR0SFOSPre/M3l"])
+    #histnames.extend(["GCR0SFOSPre/MET"])
+    #histnames.extend(["GCR0SFOSPre/Pt3l"])
+    #histnames.extend(["VBSCRSSeeFull/MjjL+VBSCRSSemFull/MjjL+VBSCRSSmmFull/MjjL"])
+    #histnames.extend(["VBSCRSSeeFull/DetajjL+VBSCRSSemFull/DetajjL+VBSCRSSmmFull/DetajjL"])
+    #histnames.extend(["TTWCRSSeeMjjW/nb+TTWCRSSemMjjW/nb+TTWCRSSmmMjjW/nb"])
+    #histnames.extend(["TTWCRSSeeMjjW/MllSS+TTWCRSSemMjjW/MllSS+TTWCRSSmmMjjW/MllSS"])
+    #histnames.extend(["TTZCR0SFOSPre/nb+TTZCR1SFOSPre/nb+TTZCR2SFOSPre/nb"])
+
+    #histnames.extend(["{SRSSeeNb0,SRSSemNb0,SRSSmmNb0,SR0SFOSNb0,SR1SFOSNb0,SR2SFOSNb0}"])
+    #histnames.extend(["{ARSSeeNb0,ARSSemNb0,ARSSmmNb0,AR0SFOSNb0,AR1SFOSNb0,AR2SFOSNb0}"])
+    #histnames.extend(["{SRSSeeZeeVt,SRSSemMTmax,SRSSmmMllSS,SR0SFOSZVt,SR1SFOSMT3rd,SR2SFOSZVt}"])
+    #histnames.extend(["{ARSSeeZeeVt,ARSSemMTmax,ARSSmmMllSS,AR0SFOSZVt,AR1SFOSMT3rd,AR2SFOSZVt}"])
+    #histnames.extend(["{BTCRSSeeZeeVt,BTCRSSemMTmax,BTCRSSmmMllSS,BTCR0SFOSZVt,BTCR1SFOSMT3rd,BTCR2SFOSZVt}"])
+    #histnames.extend(["{BTCRSSeeNbgeq1,BTCRSSemNbgeq1,BTCRSSmmNbgeq1,BTCR0SFOSNbgeq1,BTCR1SFOSNbgeq1,BTCR2SFOSNbgeq1}"])
+    #histnames.extend(["BTCRSSeeZeeVt/MET"])
+    #histnames.extend(["BTCRSSemMTmax/MET"])
+    #histnames.extend(["BTCRSSmmMllSS/MET"])
+    #histnames.extend(["BTCRSSeeZeeVt/MET+BTCRSSemMTmax/MET+BTCRSSmmMllSS/MET"])
+    #histnames.extend(["BTCRSSeeZeeVt/Mjj+BTCRSSemMTmax/Mjj+BTCRSSmmMllSS/Mjj"])
+    #histnames.extend(["BTCRSSeeZeeVt/MllSS+BTCRSSemMTmax/MllSS+BTCRSSmmMllSS/MllSS"])
+    #histnames.extend(["BTCRSSeeNbgeq1/MET"])
+    #histnames.extend(["BTCRSSemNbgeq1/MET"])
+    #histnames.extend(["BTCRSSmmNbgeq1/MET"])
     plotall(histnames)

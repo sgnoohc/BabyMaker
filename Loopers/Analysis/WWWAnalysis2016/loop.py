@@ -53,6 +53,18 @@ def main(index):
     TH1F('MllZZoom' , '' , 180 , 80. , 100.) << (MllSS : '\#it{m}_{ll} [GeV]');
     @*/*: MllZZoom;
 
+    TH1F('M3l' , '' , 180 , 0. , 150.) << (M3l : '\#it{m}_{lll} [GeV]');
+    @*/*: M3l;
+
+    TH1F('Pt3lGCR' , '' , 180 , 0. , 100.) << (Pt3l : '\#it{p}_{T,lll} [GeV]');
+    @*/*: Pt3lGCR;
+
+    TH1F('Pt3l' , '' , 180 , 0. , 300.) << (Pt3l : '\#it{p}_{T,lll} [GeV]');
+    @*/*: Pt3l;
+
+    TH1F('Ptll' , '' , 180 , 0. , 300.) << (Pt3l : '\#it{p}_{T,lll} [GeV]');
+    @*/*: Ptll;
+
     TH1F('nvtx' , '' , 60 , 0. , 60. ) << (nVert : 'Nvtx');
     @*/*: nvtx;
 
@@ -62,7 +74,7 @@ def main(index):
     TH1F('MjjL' , '' , 180 , 0. , 750.) << (MjjL : '\#it{m}_{jj,central,leading} [GeV]');
     @*/*: MjjL;
 
-    TH1F('DetajjL' , '' , 180 , 0. , 8.) << (DetajjL : '\#it{m}_{jj,central,leading} [GeV]');
+    TH1F('DetajjL' , '' , 180 , 0. , 5.) << (DetajjL : '\#it{m}_{jj,central,leading} [GeV]');
     @*/*: DetajjL;
 
     TH1F('MjjVBF' , '' , 180 , 0. , 750.) << (MjjVBF : '\#it{m}_{jj,central,leading} [GeV]');
@@ -143,7 +155,7 @@ def main(index):
     #
     #
     histojob = TQHistoMakerAnalysisJob()
-    histojob.importJobsFromTextFiles(histojob_filename, cuts, "*", True)
+    #histojob.importJobsFromTextFiles(histojob_filename, cuts, "*", True)
 
     # Analysis jobs
     cutflowjob = TQCutflowAnalysisJob("cutflow")
@@ -189,7 +201,6 @@ def main(index):
     samples.visitSampleFolders(vis)
 
     # Write the output histograms and cutflow cut values and etc.
-    samples.writeToFile("output.root", True)
     if index == 0: samples.writeToFile("output.root", True)
     if index == 1: samples.writeToFile("output_lepsf_up.root", True)
     if index == 2: samples.writeToFile("output_lepsf_dn.root", True)

@@ -22,7 +22,6 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     TQObservable.addObservable(customobservables["MTMax3L_up"], "MTMax3L_up")
     TQObservable.addObservable(customobservables["MTMax3L_dn"], "MTMax3L_dn")
 
-
     #
     #
     # Define cuts
@@ -31,504 +30,500 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     PreselCuts = [
     ["1"                                          , "evt_scale1fb"                  ] ,
     ["1"                                          , "purewgt"                       ] ,
-    ["1"                                          , "{$(usefakeweight)?ffwgt:35.9}" ] , # ffwgt is wrong here (it is not fr / fr - 1)
+    ["1"                                          , "{$(usefakeweight)?{\"$(path)\"==\"/fakeup\"?ffwgt_up:ffwgt}:35.9}" ] , # ffwgt is wrong here (it is not fr / fr - 1)
     ["firstgoodvertex==0"                         , "1"                             ] ,
     ["Flag_AllEventFilters"                       , "1"                             ] ,
     ["vetophoton==0"                              , "1"                             ] ,
     #["MllSS > 20"                                 , "1"                             ] ,
-    ["evt_passgoodrunlist"                        , "1"                               ] ,
+    ["evt_passgoodrunlist"                        , "1"                             ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
 
+    #____________________________________________________________________________________________________________________________________________________________________________
+    # This object holds all of the TQCut instances in a dictionary.
+    # The TQCut object will have a name, title, cut definition, and weight definition.
+    # The TQCut object has a tree-like structure. (i.e. TQCut class cand add children and parents.)
+    # The "children" cuts can be added via TQCut::addCut(TQCut* cut) function.
     tqcuts = {}
-    tqcuts["Presel"]        = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
-    tqcuts["Dilep"]         = TQCut("Dilep"         , "Dilep"                       , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
-    tqcuts["SRSSee"]        = TQCut("SRSSee"        , "SRSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf"+trigsfvar_suffix)
-    tqcuts["SRSSem"]        = TQCut("SRSSem"        , "SRSSem:"                     , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf"+trigsfvar_suffix)
-    tqcuts["SRSSmm"]        = TQCut("SRSSmm"        , "SRSSmm:"                     , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["SRSSeeTVeto"]   = TQCut("SRSSeeTVeto"   , "SRSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["SRSSemTVeto"]   = TQCut("SRSSemTVeto"   , "SRSSem: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["SRSSmmTVeto"]   = TQCut("SRSSmmTVeto"   , "SRSSmm: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["SRSSeeNj2"]     = TQCut("SRSSeeNj2"     , "SRSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["SRSSemNj2"]     = TQCut("SRSSemNj2"     , "SRSSem: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["SRSSmmNj2"]     = TQCut("SRSSmmNj2"     , "SRSSmm: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["SRSSeeNb0"]     = TQCut("SRSSeeNb0"     , "SRSSee: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["SRSSemNb0"]     = TQCut("SRSSemNb0"     , "SRSSem: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["SRSSmmNb0"]     = TQCut("SRSSmmNb0"     , "SRSSmm: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["SRSSeeMjjW"]    = TQCut("SRSSeeMjjW"    , "SRSSee: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["SRSSemMjjW"]    = TQCut("SRSSemMjjW"    , "SRSSem: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["SRSSmmMjjW"]    = TQCut("SRSSmmMjjW"    , "SRSSmm: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["SRSSeeMjjL"]    = TQCut("SRSSeeMjjL"    , "SRSSee: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["SRSSemMjjL"]    = TQCut("SRSSemMjjL"    , "SRSSem: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["SRSSmmMjjL"]    = TQCut("SRSSmmMjjL"    , "SRSSmm: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["SRSSeeDetajjL"] = TQCut("SRSSeeDetajjL" , "SRSSee: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["SRSSemDetajjL"] = TQCut("SRSSemDetajjL" , "SRSSem: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["SRSSmmDetajjL"] = TQCut("SRSSmmDetajjL" , "SRSSmm: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["SRSSeeMET"]     = TQCut("SRSSeeMET"     , "SRSSee: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["SRSSemMET"]     = TQCut("SRSSemMET"     , "SRSSem: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["SRSSmmMET"]     = TQCut("SRSSmmMET"     , "SRSSmm: 7. MET > 0"          , "1."                                                                                   , "1")
-    tqcuts["SRSSeeMllSS"]   = TQCut("SRSSeeMllSS"   , "SRSSee: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    tqcuts["SRSSemMllSS"]   = TQCut("SRSSemMllSS"   , "SRSSem: 8. MllSS > 30"       , "MllSS>30."                                                                            , "1")
-    tqcuts["SRSSmmMllSS"]   = TQCut("SRSSmmMllSS"   , "SRSSmm: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    # specific channel cuts
-    tqcuts["SRSSeeZeeVt"]   = TQCut("SRSSeeZeeVt"   , "SRSSee: 9. Z veto"           , "abs(MllSS-91.1876)>10."                                                               , "1")
-    tqcuts["SRSSemMTmax"]   = TQCut("SRSSemMTmax"   , "SRSSem: 9. MTmax"            , "MTmax"+jecvar_suffix+">90."                                                           , "1")
+    # Preselection TQCut object
+    # This object will have all the cuts added into a tree structure via adding "children" using TQCut::addCut.
+    # Eventually at the end of the function this object will be returned
+    tqcuts["Presel"] = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
-    tqcuts["ARDilep"]       = TQCut("ARDilep"       , "ARDilep"                     , "(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.)"                     , "lepsf"+lepsfvar_suffix)
-    tqcuts["ARSSee"]        = TQCut("ARSSee"        , "ARSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf"+trigsfvar_suffix)
-    tqcuts["ARSSem"]        = TQCut("ARSSem"        , "ARSSem:"                     , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf"+trigsfvar_suffix)
-    tqcuts["ARSSmm"]        = TQCut("ARSSmm"        , "ARSSmm:"                     , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["ARSSeeTVeto"]   = TQCut("ARSSeeTVeto"   , "ARSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["ARSSemTVeto"]   = TQCut("ARSSemTVeto"   , "ARSSem: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["ARSSmmTVeto"]   = TQCut("ARSSmmTVeto"   , "ARSSmm: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["ARSSeeNj2"]     = TQCut("ARSSeeNj2"     , "ARSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["ARSSemNj2"]     = TQCut("ARSSemNj2"     , "ARSSem: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["ARSSmmNj2"]     = TQCut("ARSSmmNj2"     , "ARSSmm: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["ARSSeeNb0"]     = TQCut("ARSSeeNb0"     , "ARSSee: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["ARSSemNb0"]     = TQCut("ARSSemNb0"     , "ARSSem: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["ARSSmmNb0"]     = TQCut("ARSSmmNb0"     , "ARSSmm: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["ARSSeeMjjW"]    = TQCut("ARSSeeMjjW"    , "ARSSee: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["ARSSemMjjW"]    = TQCut("ARSSemMjjW"    , "ARSSem: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["ARSSmmMjjW"]    = TQCut("ARSSmmMjjW"    , "ARSSmm: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["ARSSeeMjjL"]    = TQCut("ARSSeeMjjL"    , "ARSSee: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["ARSSemMjjL"]    = TQCut("ARSSemMjjL"    , "ARSSem: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["ARSSmmMjjL"]    = TQCut("ARSSmmMjjL"    , "ARSSmm: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["ARSSeeDetajjL"] = TQCut("ARSSeeDetajjL" , "ARSSee: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["ARSSemDetajjL"] = TQCut("ARSSemDetajjL" , "ARSSem: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["ARSSmmDetajjL"] = TQCut("ARSSmmDetajjL" , "ARSSmm: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["ARSSeeMET"]     = TQCut("ARSSeeMET"     , "ARSSee: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["ARSSemMET"]     = TQCut("ARSSemMET"     , "ARSSem: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["ARSSmmMET"]     = TQCut("ARSSmmMET"     , "ARSSmm: 7. MET > 0"          , "1."                                                                                   , "1")
-    tqcuts["ARSSeeMllSS"]   = TQCut("ARSSeeMllSS"   , "ARSSee: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    tqcuts["ARSSemMllSS"]   = TQCut("ARSSemMllSS"   , "ARSSem: 8. MllSS > 30"       , "MllSS>30."                                                                            , "1")
-    tqcuts["ARSSmmMllSS"]   = TQCut("ARSSmmMllSS"   , "ARSSmm: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    # specific channel cuts
-    tqcuts["ARSSeeZeeVt"]   = TQCut("ARSSeeZeeVt"   , "ARSSee: 9. Z veto"           , "abs(MllSS-91.1876)>10."                                                               , "1")
-    tqcuts["ARSSemMTmax"]   = TQCut("ARSSemMTmax"   , "ARSSem: 9. MTmax"            , "MTmax"+jecvar_suffix+">90."                                                           , "1")
+    # The dilepton channel base cut
+    tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
+    #tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
 
-    tqcuts["Trilep"]            = TQCut("Trilep"            , "Trilep"                                 , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
+    # The trilepton channel base cut
+    tqcuts["SRTrilep"] = TQCut("SRTrilep" , "SRTrilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
+
+    # The cut hierarchies are defined by adding "children" cuts via function TQCut::addCut
+    tqcuts["Presel"].addCut(tqcuts["SRDilep"])
+    tqcuts["Presel"].addCut(tqcuts["SRTrilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # SSee region
+    #
+    # The same-sign dielectron channel signal region selection cuts
+    tqcuts["SRSSee"]        = TQCut("SRSSee"        , "SRSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"       , "trigsf"+trigsfvar_suffix)
+    tqcuts["SRSSeeTVeto"]   = TQCut("SRSSeeTVeto"   , "SRSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0" , "1")
+    tqcuts["SRSSeeNj2"]     = TQCut("SRSSeeNj2"     , "SRSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                  , "1")
+    tqcuts["SRSSeeNb0"]     = TQCut("SRSSeeNb0"     , "SRSSee: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                     , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SRSSeePre"]     = TQCut("SRSSeePre"     , "SR-ee"                       , "1"                                          , "1")
+    tqcuts["SRSSeeMjjW"]    = TQCut("SRSSeeMjjW"    , "SRSSee: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."          , "1")
+    tqcuts["SRSSeeMjjL"]    = TQCut("SRSSeeMjjL"    , "SRSSee: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                 , "1")
+    tqcuts["SRSSeeDetajjL"] = TQCut("SRSSeeDetajjL" , "SRSSee: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"               , "1")
+    tqcuts["SRSSeeMET"]     = TQCut("SRSSeeMET"     , "SRSSee: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                , "1")
+    tqcuts["SRSSeeMllSS"]   = TQCut("SRSSeeMllSS"   , "SRSSee: 8. MllSS > 40"       , "MllSS>40."                                  , "1")
+    tqcuts["SRSSeeZeeVt"]   = TQCut("SRSSeeZeeVt"   , "SRSSee: 9. Z veto"           , "abs(MllSS-91.1876)>10."                     , "1")
+    tqcuts["SRSSeeFull"]    = TQCut("SRSSeeFull"    , "SR-ee"                       , "1"                                          , "1")
+    # Define same-sign dielectron region cut hierarchy structure
+    tqcuts["SRDilep"]      .addCut( tqcuts["SRSSee"]        ) 
+    tqcuts["SRSSee"]       .addCut( tqcuts["SRSSeeTVeto"]   ) 
+    tqcuts["SRSSeeTVeto"]  .addCut( tqcuts["SRSSeeNj2"]     ) 
+    tqcuts["SRSSeeNj2"]    .addCut( tqcuts["SRSSeeNb0"]     ) 
+    tqcuts["SRSSeeNb0"]    .addCut( tqcuts["SRSSeePre"]     ) 
+    tqcuts["SRSSeePre"]    .addCut( tqcuts["SRSSeeMjjW"]    ) 
+    tqcuts["SRSSeeMjjW"]   .addCut( tqcuts["SRSSeeMjjL"]    ) 
+    tqcuts["SRSSeeMjjL"]   .addCut( tqcuts["SRSSeeDetajjL"] ) 
+    tqcuts["SRSSeeDetajjL"].addCut( tqcuts["SRSSeeMET"]     ) 
+    tqcuts["SRSSeeMET"]    .addCut( tqcuts["SRSSeeMllSS"]   ) 
+    tqcuts["SRSSeeMllSS"]  .addCut( tqcuts["SRSSeeZeeVt"]   ) 
+    tqcuts["SRSSeeZeeVt"]  .addCut( tqcuts["SRSSeeFull"]    ) 
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # SSem region
+    #
+    # The same-sign emu channel signal region selection cuts
+    tqcuts["SRSSem"]        = TQCut("SRSSem"        , "SRSSem:"                     , "(passSSem)*(mc_HLT_MuEG==1)"                , "trigsf"+trigsfvar_suffix)
+    tqcuts["SRSSemTVeto"]   = TQCut("SRSSemTVeto"   , "SRSSem: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0" , "1")
+    tqcuts["SRSSemNj2"]     = TQCut("SRSSemNj2"     , "SRSSem: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                  , "1")
+    tqcuts["SRSSemNb0"]     = TQCut("SRSSemNb0"     , "SRSSem: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                     , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SRSSemPre"]     = TQCut("SRSSemPre"     , "SR-e#mu"                     , "1"                                          , "1")
+    tqcuts["SRSSemMjjW"]    = TQCut("SRSSemMjjW"    , "SRSSem: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."          , "1")
+    tqcuts["SRSSemMjjL"]    = TQCut("SRSSemMjjL"    , "SRSSem: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                 , "1")
+    tqcuts["SRSSemDetajjL"] = TQCut("SRSSemDetajjL" , "SRSSem: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"               , "1")
+    tqcuts["SRSSemMET"]     = TQCut("SRSSemMET"     , "SRSSem: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                , "1")
+    tqcuts["SRSSemMllSS"]   = TQCut("SRSSemMllSS"   , "SRSSem: 8. MllSS > 30"       , "MllSS>30."                                  , "1")
+    tqcuts["SRSSemMTmax"]   = TQCut("SRSSemMTmax"   , "SRSSem: 9. MTmax"            , "MTmax"+jecvar_suffix+">90."                 , "1")
+    tqcuts["SRSSemFull"]    = TQCut("SRSSemFull"    , "SR-e#mu"                     , "1"                                          , "1")
+    # Define same-sign emu region cut hierarchy structure
+    tqcuts["SRDilep"]       .addCut( tqcuts ["SRSSem"]        ) 
+    tqcuts["SRSSem"]        .addCut( tqcuts ["SRSSemTVeto"]   ) 
+    tqcuts["SRSSemTVeto"]   .addCut( tqcuts ["SRSSemNj2"]     ) 
+    tqcuts["SRSSemNj2"]     .addCut( tqcuts ["SRSSemNb0"]     ) 
+    tqcuts["SRSSemNb0"]     .addCut( tqcuts ["SRSSemPre"]     ) 
+    tqcuts["SRSSemPre"]     .addCut( tqcuts ["SRSSemMjjW"]    ) 
+    tqcuts["SRSSemMjjW"]    .addCut( tqcuts ["SRSSemMjjL"]    ) 
+    tqcuts["SRSSemMjjL"]    .addCut( tqcuts ["SRSSemDetajjL"] ) 
+    tqcuts["SRSSemDetajjL"] .addCut( tqcuts ["SRSSemMET"]     ) 
+    tqcuts["SRSSemMET"]     .addCut( tqcuts ["SRSSemMllSS"]   ) 
+    tqcuts["SRSSemMllSS"]   .addCut( tqcuts ["SRSSemMTmax"]   ) 
+    tqcuts["SRSSemMTmax"]   .addCut( tqcuts ["SRSSemFull"]    ) 
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # SSmm region
+    #
+    # The same-sign dimuon channel signal region selection cuts
+    tqcuts["SRSSmm"]        = TQCut("SRSSmm"        , "SRSSmm:"                     , "(passSSmm)*(mc_HLT_DoubleMu==1)"            , "trigsf"+trigsfvar_suffix)
+    tqcuts["SRSSmmTVeto"]   = TQCut("SRSSmmTVeto"   , "SRSSmm: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0" , "1")
+    tqcuts["SRSSmmNj2"]     = TQCut("SRSSmmNj2"     , "SRSSmm: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                  , "1")
+    tqcuts["SRSSmmNb0"]     = TQCut("SRSSmmNb0"     , "SRSSmm: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                     , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SRSSmmPre"]     = TQCut("SRSSmmPre"     , "SR-#mu#mu"                   , "1"                                          , "1")
+    tqcuts["SRSSmmMjjW"]    = TQCut("SRSSmmMjjW"    , "SRSSmm: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."          , "1")
+    tqcuts["SRSSmmMjjL"]    = TQCut("SRSSmmMjjL"    , "SRSSmm: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                 , "1")
+    tqcuts["SRSSmmDetajjL"] = TQCut("SRSSmmDetajjL" , "SRSSmm: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"               , "1")
+    tqcuts["SRSSmmMET"]     = TQCut("SRSSmmMET"     , "SRSSmm: 7. MET > 0"          , "1."                                         , "1")
+    tqcuts["SRSSmmMllSS"]   = TQCut("SRSSmmMllSS"   , "SRSSmm: 8. MllSS > 40"       , "MllSS>40."                                  , "1")
+    tqcuts["SRSSmmFull"]    = TQCut("SRSSmmFull"    , "SR-#mu#mu"                   , "1"                                          , "1")
+    # Define same-sign dimuon region cut hierarchy structure
+    tqcuts["SRDilep"]       .addCut( tqcuts["SRSSmm"]        ) 
+    tqcuts["SRSSmm"]        .addCut( tqcuts["SRSSmmTVeto"]   ) 
+    tqcuts["SRSSmmTVeto"]   .addCut( tqcuts["SRSSmmNj2"]     ) 
+    tqcuts["SRSSmmNj2"]     .addCut( tqcuts["SRSSmmNb0"]     ) 
+    tqcuts["SRSSmmNb0"]     .addCut( tqcuts["SRSSmmPre"]     ) 
+    tqcuts["SRSSmmPre"]     .addCut( tqcuts["SRSSmmMjjW"]    ) 
+    tqcuts["SRSSmmMjjW"]    .addCut( tqcuts["SRSSmmMjjL"]    ) 
+    tqcuts["SRSSmmMjjL"]    .addCut( tqcuts["SRSSmmDetajjL"] ) 
+    tqcuts["SRSSmmDetajjL"] .addCut( tqcuts["SRSSmmMET"]     ) 
+    tqcuts["SRSSmmMET"]     .addCut( tqcuts["SRSSmmMllSS"]   ) 
+    tqcuts["SRSSmmMllSS"]   .addCut( tqcuts["SRSSmmFull"]    ) 
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # 0SFOS region
+    #
+    # The three lepton region with 0 opposite-sign pair with same flavor
     tqcuts["SR0SFOS"]           = TQCut("SR0SFOS"           , "SR0SFOS:"                               , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["SR1SFOS"]           = TQCut("SR1SFOS"           , "SR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["SR2SFOS"]           = TQCut("SR2SFOS"           , "SR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
     tqcuts["SR0SFOSNj1"]        = TQCut("SR0SFOSNj1"        , "SR0SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["SR1SFOSNj1"]        = TQCut("SR1SFOSNj1"        , "SR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["SR2SFOSNj1"]        = TQCut("SR2SFOSNj1"        , "SR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
     tqcuts["SR0SFOSNb0"]        = TQCut("SR0SFOSNb0"        , "SR0SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["SR1SFOSNb0"]        = TQCut("SR1SFOSNb0"        , "SR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["SR2SFOSNb0"]        = TQCut("SR2SFOSNb0"        , "SR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SR0SFOSPre"]        = TQCut("SR0SFOSPre"        , "0SFOS"                                  , "1"                                                                                    , "1")
     tqcuts["SR0SFOSPt3l"]       = TQCut("SR0SFOSPt3l"       , "SR0SFOS: 3. p_{T,lll} > 0"              , "1."                                                                                   , "1")
-    tqcuts["SR1SFOSPt3l"]       = TQCut("SR1SFOSPt3l"       , "SR1SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["SR2SFOSPt3l"]       = TQCut("SR2SFOSPt3l"       , "SR2SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
     tqcuts["SR0SFOSDPhi3lMET"]  = TQCut("SR0SFOSDPhi3lMET"  , "SR0SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["SR1SFOSDPhi3lMET"]  = TQCut("SR1SFOSDPhi3lMET"  , "SR1SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["SR2SFOSDPhi3lMET"]  = TQCut("SR2SFOSDPhi3lMET"  , "SR2SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
     tqcuts["SR0SFOSMET"]        = TQCut("SR0SFOSMET"        , "SR0SFOS: 5. MET > 30"                   , "met"+jecvar_suffix+"_pt>30."                                                          , "1")
-    tqcuts["SR1SFOSMET"]        = TQCut("SR1SFOSMET"        , "SR1SFOS: 5. MET > 40"                   , "met"+jecvar_suffix+"_pt>40."                                                          , "1")
-    tqcuts["SR2SFOSMET"]        = TQCut("SR2SFOSMET"        , "SR2SFOS: 5. MET > 55"                   , "met"+jecvar_suffix+"_pt>55."                                                          , "1")
     tqcuts["SR0SFOSMll"]        = TQCut("SR0SFOSMll"        , "SR0SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["SR1SFOSMll"]        = TQCut("SR1SFOSMll"        , "SR1SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["SR2SFOSMll"]        = TQCut("SR2SFOSMll"        , "SR2SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
     tqcuts["SR0SFOSM3l"]        = TQCut("SR0SFOSM3l"        , "SR0SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["SR1SFOSM3l"]        = TQCut("SR1SFOSM3l"        , "SR1SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["SR2SFOSM3l"]        = TQCut("SR2SFOSM3l"        , "SR2SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
     tqcuts["SR0SFOSZVt"]        = TQCut("SR0SFOSZVt"        , "SR0SFOS: 8. |Mee-MZ| > 15"              , "abs(Mee3L-91.1876) > 15."                                                             , "1")
-    tqcuts["SR1SFOSZVt"]        = TQCut("SR1SFOSZVt"        , "SR1SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    tqcuts["SR2SFOSZVt"]        = TQCut("SR2SFOSZVt"        , "SR2SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    # specific channel cuts
     tqcuts["SR0SFOSMTmax"]      = TQCut("SR0SFOSMTmax"      , "SR0SFOS: 9. MTmax > 90"                 , "[MTMax3L"+jecvar_suffix+"]>90."                                                       , "1")
+    tqcuts["SR0SFOSFull"]       = TQCut("SR0SFOSFull"       , "0SFOS"                                  , "1"                                                                                    , "1")
+    # Define three lepton with 0 opposite-sign pair with same flavor cut hierarchy
+    tqcuts["SRTrilep"]         .addCut( tqcuts["SR0SFOS"]          ) 
+    tqcuts["SR0SFOS"]          .addCut( tqcuts["SR0SFOSNj1"]       ) 
+    tqcuts["SR0SFOSNj1"]       .addCut( tqcuts["SR0SFOSNb0"]       ) 
+    tqcuts["SR0SFOSNb0"]       .addCut( tqcuts["SR0SFOSPre"]       ) 
+    tqcuts["SR0SFOSPre"]       .addCut( tqcuts["SR0SFOSPt3l"]      ) 
+    tqcuts["SR0SFOSPt3l"]      .addCut( tqcuts["SR0SFOSDPhi3lMET"] ) 
+    tqcuts["SR0SFOSDPhi3lMET"] .addCut( tqcuts["SR0SFOSMET"]       ) 
+    tqcuts["SR0SFOSMET"]       .addCut( tqcuts["SR0SFOSMll"]       ) 
+    tqcuts["SR0SFOSMll"]       .addCut( tqcuts["SR0SFOSM3l"]       ) 
+    tqcuts["SR0SFOSM3l"]       .addCut( tqcuts["SR0SFOSZVt"]       ) 
+    tqcuts["SR0SFOSZVt"]       .addCut( tqcuts["SR0SFOSMTmax"]     ) 
+    tqcuts["SR0SFOSMTmax"]     .addCut( tqcuts["SR0SFOSFull"]      ) 
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # 1SFOS region
+    #
+    # The three lepton region with 1 opposite-sign pair with same flavor
+    tqcuts["SR1SFOS"]           = TQCut("SR1SFOS"           , "SR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
+    tqcuts["SR1SFOSNj1"]        = TQCut("SR1SFOSNj1"        , "SR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
+    tqcuts["SR1SFOSNb0"]        = TQCut("SR1SFOSNb0"        , "SR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SR1SFOSPre"]        = TQCut("SR1SFOSPre"        , "1SFOS"                                  , "1"                                                                                    , "1")
+    tqcuts["SR1SFOSPt3l"]       = TQCut("SR1SFOSPt3l"       , "SR1SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
+    tqcuts["SR1SFOSDPhi3lMET"]  = TQCut("SR1SFOSDPhi3lMET"  , "SR1SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
+    tqcuts["SR1SFOSMET"]        = TQCut("SR1SFOSMET"        , "SR1SFOS: 5. MET > 40"                   , "met"+jecvar_suffix+"_pt>40."                                                          , "1")
+    tqcuts["SR1SFOSMll"]        = TQCut("SR1SFOSMll"        , "SR1SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
+    tqcuts["SR1SFOSM3l"]        = TQCut("SR1SFOSM3l"        , "SR1SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
+    tqcuts["SR1SFOSZVt"]        = TQCut("SR1SFOSZVt"        , "SR1SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
     tqcuts["SR1SFOSMT3rd"]      = TQCut("SR1SFOSMT3rd"      , "SR1SFOS: 9. MT3rd > 90"                 , "MT3rd"+jecvar_suffix+">90."                                                           , "1")
+    tqcuts["SR1SFOSFull"]       = TQCut("SR1SFOSFull"       , "1SFOS"                                  , "1"                                                                                    , "1")
+    # Define three lepton with 1 opposite-sign pair with same flavor cut hierarchy
+    tqcuts["SRTrilep"]         .addCut( tqcuts["SR1SFOS"]          ) 
+    tqcuts["SR1SFOS"]          .addCut( tqcuts["SR1SFOSNj1"]       ) 
+    tqcuts["SR1SFOSNj1"]       .addCut( tqcuts["SR1SFOSNb0"]       ) 
+    tqcuts["SR1SFOSNb0"]       .addCut( tqcuts["SR1SFOSPre"]       ) 
+    tqcuts["SR1SFOSPre"]       .addCut( tqcuts["SR1SFOSPt3l"]      ) 
+    tqcuts["SR1SFOSPt3l"]      .addCut( tqcuts["SR1SFOSDPhi3lMET"] ) 
+    tqcuts["SR1SFOSDPhi3lMET"] .addCut( tqcuts["SR1SFOSMET"]       ) 
+    tqcuts["SR1SFOSMET"]       .addCut( tqcuts["SR1SFOSMll"]       ) 
+    tqcuts["SR1SFOSMll"]       .addCut( tqcuts["SR1SFOSM3l"]       ) 
+    tqcuts["SR1SFOSM3l"]       .addCut( tqcuts["SR1SFOSZVt"]       ) 
+    tqcuts["SR1SFOSZVt"]       .addCut( tqcuts["SR1SFOSMT3rd"]     ) 
+    tqcuts["SR1SFOSMT3rd"]     .addCut( tqcuts["SR1SFOSFull"]      ) 
 
-    tqcuts["ARTrilep"]          = TQCut("ARTrilep"          , "ARTrilep"                               , "(nVlep==3)*(nLlep==3)*(nTlep==2)"                                                     , "lepsf"+lepsfvar_suffix)
-    tqcuts["AR0SFOS"]           = TQCut("AR0SFOS"           , "AR0SFOS:"                               , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["AR1SFOS"]           = TQCut("AR1SFOS"           , "AR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["AR2SFOS"]           = TQCut("AR2SFOS"           , "AR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["AR0SFOSNj1"]        = TQCut("AR0SFOSNj1"        , "AR0SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["AR1SFOSNj1"]        = TQCut("AR1SFOSNj1"        , "AR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["AR2SFOSNj1"]        = TQCut("AR2SFOSNj1"        , "AR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["AR0SFOSNb0"]        = TQCut("AR0SFOSNb0"        , "AR0SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["AR1SFOSNb0"]        = TQCut("AR1SFOSNb0"        , "AR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["AR2SFOSNb0"]        = TQCut("AR2SFOSNb0"        , "AR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["AR0SFOSPt3l"]       = TQCut("AR0SFOSPt3l"       , "AR0SFOS: 3. p_{T,lll} > 0"              , "1."                                                                                   , "1")
-    tqcuts["AR1SFOSPt3l"]       = TQCut("AR1SFOSPt3l"       , "AR1SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["AR2SFOSPt3l"]       = TQCut("AR2SFOSPt3l"       , "AR2SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["AR0SFOSDPhi3lMET"]  = TQCut("AR0SFOSDPhi3lMET"  , "AR0SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["AR1SFOSDPhi3lMET"]  = TQCut("AR1SFOSDPhi3lMET"  , "AR1SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["AR2SFOSDPhi3lMET"]  = TQCut("AR2SFOSDPhi3lMET"  , "AR2SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["AR0SFOSMET"]        = TQCut("AR0SFOSMET"        , "AR0SFOS: 5. MET > 30"                   , "met"+jecvar_suffix+"_pt>30."                                                          , "1")
-    tqcuts["AR1SFOSMET"]        = TQCut("AR1SFOSMET"        , "AR1SFOS: 5. MET > 40"                   , "met"+jecvar_suffix+"_pt>40."                                                          , "1")
-    tqcuts["AR2SFOSMET"]        = TQCut("AR2SFOSMET"        , "AR2SFOS: 5. MET > 55"                   , "met"+jecvar_suffix+"_pt>55."                                                          , "1")
-    tqcuts["AR0SFOSMll"]        = TQCut("AR0SFOSMll"        , "AR0SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["AR1SFOSMll"]        = TQCut("AR1SFOSMll"        , "AR1SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["AR2SFOSMll"]        = TQCut("AR2SFOSMll"        , "AR2SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["AR0SFOSM3l"]        = TQCut("AR0SFOSM3l"        , "AR0SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["AR1SFOSM3l"]        = TQCut("AR1SFOSM3l"        , "AR1SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["AR2SFOSM3l"]        = TQCut("AR2SFOSM3l"        , "AR2SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["AR0SFOSZVt"]        = TQCut("AR0SFOSZVt"        , "AR0SFOS: 8. |Mee-MZ| > 15"              , "abs(Mee3L-91.1876) > 15."                                                             , "1")
-    tqcuts["AR1SFOSZVt"]        = TQCut("AR1SFOSZVt"        , "AR1SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    tqcuts["AR2SFOSZVt"]        = TQCut("AR2SFOSZVt"        , "AR2SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    # specific channel cuts
-    tqcuts["AR0SFOSMTmax"]      = TQCut("AR0SFOSMTmax"      , "AR0SFOS: 9. MTmax > 90"                 , "[MTMax3L"+jecvar_suffix+"]>90."                                                       , "1")
-    tqcuts["AR1SFOSMT3rd"]      = TQCut("AR1SFOSMT3rd"      , "AR1SFOS: 9. MT3rd > 90"                 , "MT3rd"+jecvar_suffix+">90."                                                           , "1")
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # 2SFOS region
+    #
+    # The three lepton region with 2 opposite-sign pair with same flavor
+    tqcuts["SR2SFOS"]           = TQCut("SR2SFOS"           , "SR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
+    tqcuts["SR2SFOSNj1"]        = TQCut("SR2SFOSNj1"        , "SR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
+    tqcuts["SR2SFOSNb0"]        = TQCut("SR2SFOSNb0"        , "SR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
+    tqcuts["SR2SFOSPre"]        = TQCut("SR2SFOSPre"        , "2SFOS"                                  , "1"                                                                                    , "1")
+    tqcuts["SR2SFOSPt3l"]       = TQCut("SR2SFOSPt3l"       , "SR2SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
+    tqcuts["SR2SFOSDPhi3lMET"]  = TQCut("SR2SFOSDPhi3lMET"  , "SR2SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
+    tqcuts["SR2SFOSMET"]        = TQCut("SR2SFOSMET"        , "SR2SFOS: 5. MET > 55"                   , "met"+jecvar_suffix+"_pt>55."                                                          , "1")
+    tqcuts["SR2SFOSMll"]        = TQCut("SR2SFOSMll"        , "SR2SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
+    tqcuts["SR2SFOSM3l"]        = TQCut("SR2SFOSM3l"        , "SR2SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
+    tqcuts["SR2SFOSZVt"]        = TQCut("SR2SFOSZVt"        , "SR2SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
+    tqcuts["SR2SFOSFull"]       = TQCut("SR2SFOSFull"       , "2SFOS"                                  , "1"                                                                                    , "1")
+    # Define three lepton with 2 opposite-sign pair with same flavor cut hierarchy
+    tqcuts["SRTrilep"]         .addCut( tqcuts["SR2SFOS"]          ) 
+    tqcuts["SR2SFOS"]          .addCut( tqcuts["SR2SFOSNj1"]       ) 
+    tqcuts["SR2SFOSNj1"]       .addCut( tqcuts["SR2SFOSNb0"]       ) 
+    tqcuts["SR2SFOSNb0"]       .addCut( tqcuts["SR2SFOSPre"]       ) 
+    tqcuts["SR2SFOSPre"]       .addCut( tqcuts["SR2SFOSPt3l"]      ) 
+    tqcuts["SR2SFOSPt3l"]      .addCut( tqcuts["SR2SFOSDPhi3lMET"] ) 
+    tqcuts["SR2SFOSDPhi3lMET"] .addCut( tqcuts["SR2SFOSMET"]       ) 
+    tqcuts["SR2SFOSMET"]       .addCut( tqcuts["SR2SFOSMll"]       ) 
+    tqcuts["SR2SFOSMll"]       .addCut( tqcuts["SR2SFOSM3l"]       ) 
+    tqcuts["SR2SFOSM3l"]       .addCut( tqcuts["SR2SFOSZVt"]       ) 
+    tqcuts["SR2SFOSZVt"]       .addCut( tqcuts["SR2SFOSFull"]      ) 
 
-    tqcuts["WZCRTrilep"]      = TQCut("WZCRTrilep"      , "WZCRTrilep"                    , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
-    tqcuts["WZCRSSee"]        = TQCut("WZCRSSee"        , "WZCRSSee:"                     , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                   , "trigsf"+trigsfvar_suffix)
-    tqcuts["WZCRSSem"]        = TQCut("WZCRSSem"        , "WZCRSSem:"                     , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)"                                            , "trigsf"+trigsfvar_suffix)
-    tqcuts["WZCRSSmm"]        = TQCut("WZCRSSmm"        , "WZCRSSmm:"                     , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)"                                        , "trigsf"+trigsfvar_suffix)
-    tqcuts["WZCRSSeeTVeto"]   = TQCut("WZCRSSeeTVeto"   , "WZCRSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["WZCRSSemTVeto"]   = TQCut("WZCRSSemTVeto"   , "WZCRSSem: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["WZCRSSmmTVeto"]   = TQCut("WZCRSSmmTVeto"   , "WZCRSSmm: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["WZCRSSeeNj2"]     = TQCut("WZCRSSeeNj2"     , "WZCRSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["WZCRSSemNj2"]     = TQCut("WZCRSSemNj2"     , "WZCRSSem: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["WZCRSSmmNj2"]     = TQCut("WZCRSSmmNj2"     , "WZCRSSmm: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["WZCRSSeeNb0"]     = TQCut("WZCRSSeeNb0"     , "WZCRSSee: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["WZCRSSemNb0"]     = TQCut("WZCRSSemNb0"     , "WZCRSSem: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["WZCRSSmmNb0"]     = TQCut("WZCRSSmmNb0"     , "WZCRSSmm: 3. n_{b} = 0"        , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["WZCRSSeeMjjW"]    = TQCut("WZCRSSeeMjjW"    , "WZCRSSee: 4. |Mjj-80| < 15"    , "1"                                                                                    , "1")
-    tqcuts["WZCRSSemMjjW"]    = TQCut("WZCRSSemMjjW"    , "WZCRSSem: 4. |Mjj-80| < 15"    , "1"                                                                                    , "1")
-    tqcuts["WZCRSSmmMjjW"]    = TQCut("WZCRSSmmMjjW"    , "WZCRSSmm: 4. |Mjj-80| < 15"    , "1"                                                                                    , "1")
-    tqcuts["WZCRSSeeMjjL"]    = TQCut("WZCRSSeeMjjL"    , "WZCRSSee: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["WZCRSSemMjjL"]    = TQCut("WZCRSSemMjjL"    , "WZCRSSem: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["WZCRSSmmMjjL"]    = TQCut("WZCRSSmmMjjL"    , "WZCRSSmm: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["WZCRSSeeDetajjL"] = TQCut("WZCRSSeeDetajjL" , "WZCRSSee: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["WZCRSSemDetajjL"] = TQCut("WZCRSSemDetajjL" , "WZCRSSem: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["WZCRSSmmDetajjL"] = TQCut("WZCRSSmmDetajjL" , "WZCRSSmm: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["WZCRSSeeMET"]     = TQCut("WZCRSSeeMET"     , "WZCRSSee: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["WZCRSSemMET"]     = TQCut("WZCRSSemMET"     , "WZCRSSem: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["WZCRSSmmMET"]     = TQCut("WZCRSSmmMET"     , "WZCRSSmm: 7. MET > 0"          , "1."                                                                                   , "1")
-    tqcuts["WZCRSSeeMllSS"]   = TQCut("WZCRSSeeMllSS"   , "WZCRSSee: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    tqcuts["WZCRSSemMllSS"]   = TQCut("WZCRSSemMllSS"   , "WZCRSSem: 8. MllSS > 30"       , "MllSS>30."                                                                            , "1")
-    tqcuts["WZCRSSmmMllSS"]   = TQCut("WZCRSSmmMllSS"   , "WZCRSSmm: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    # specific channel cuts
-    tqcuts["WZCRSSeeZeeVt"]   = TQCut("WZCRSSeeZeeVt"   , "WZCRSSee: 9. Z veto"           , "abs(MllSS-91.1876)>10."                                                               , "1")
-    tqcuts["WZCRSSemMTmax"]   = TQCut("WZCRSSemMTmax"   , "WZCRSSem: 9. MTmax"            , "MTmax"+jecvar_suffix+">90."                                                           , "1")
+    #############################################################################################################################################################################
+    #
+    # Starting from the existing signal region we define control regions by modifying cuts in signal region and perhaps adding a few more afterwards
+    #
+    #############################################################################################################################################################################
 
-    tqcuts["WZCR1SFOS"]           = TQCut("WZCR1SFOS"           , "WZCR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["WZCR2SFOS"]           = TQCut("WZCR2SFOS"           , "WZCR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["WZCR1SFOSNj1"]        = TQCut("WZCR1SFOSNj1"        , "WZCR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["WZCR2SFOSNj1"]        = TQCut("WZCR2SFOSNj1"        , "WZCR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["WZCR1SFOSNb0"]        = TQCut("WZCR1SFOSNb0"        , "WZCR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["WZCR2SFOSNb0"]        = TQCut("WZCR2SFOSNb0"        , "WZCR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["WZCR1SFOSPt3l"]       = TQCut("WZCR1SFOSPt3l"       , "WZCR1SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["WZCR2SFOSPt3l"]       = TQCut("WZCR2SFOSPt3l"       , "WZCR2SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["WZCR1SFOSDPhi3lMET"]  = TQCut("WZCR1SFOSDPhi3lMET"  , "WZCR1SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["WZCR2SFOSDPhi3lMET"]  = TQCut("WZCR2SFOSDPhi3lMET"  , "WZCR2SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["WZCR1SFOSMET"]        = TQCut("WZCR1SFOSMET"        , "WZCR1SFOS: 5. MET > 40"                   , "met"+jecvar_suffix+"_pt>40."                                                          , "1")
-    tqcuts["WZCR2SFOSMET"]        = TQCut("WZCR2SFOSMET"        , "WZCR2SFOS: 5. MET > 55"                   , "met"+jecvar_suffix+"_pt>55."                                                          , "1")
-    tqcuts["WZCR1SFOSMll"]        = TQCut("WZCR1SFOSMll"        , "WZCR1SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["WZCR2SFOSMll"]        = TQCut("WZCR2SFOSMll"        , "WZCR2SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["WZCR1SFOSM3l"]        = TQCut("WZCR1SFOSM3l"        , "WZCR1SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["WZCR2SFOSM3l"]        = TQCut("WZCR2SFOSM3l"        , "WZCR2SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["WZCR1SFOSZVt"]        = TQCut("WZCR1SFOSZVt"        , "WZCR1SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ > 0"                                                                         , "1")
-    tqcuts["WZCR2SFOSZVt"]        = TQCut("WZCR2SFOSZVt"        , "WZCR2SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ > 0"                                                                         , "1")
-    # specific channel cuts
-    tqcuts["WZCR1SFOSMT3rd"]      = TQCut("WZCR1SFOSMT3rd"      , "WZCR1SFOS: 9. MT3rd > 90"                 , "MT3rd"+jecvar_suffix+">90."                                                           , "1")
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # SR dilepton Mjj sideband
+    #
+    # Take cuts starting from SRDilep and modify names in each
+    # Then also swap SRDilep by "SBDilep" defined by below
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"Side"},
+            cut_edits={
+                "SRSSeeMjjW" : TQCut("SideSSeeMjj" , "SRSSee: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSemMjjW" : TQCut("SideSSemMjj" , "SRSSem: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSmmMjjW" : TQCut("SideSSmmMjj" , "SRSSmm: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSmmMET" : TQCut("SideSSmmMET" , "SRSSmm: 7. MET > 60" , "met"+jecvar_suffix+"_pt>60." , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["SideDilep"])
 
-    tqcuts["BTCRDilep"]       = TQCut("BTCRDilep"       , "BTCRDilep"                     , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
-    tqcuts["BTCRSSee"]        = TQCut("BTCRSSee"        , "BTCRSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCRSSem"]        = TQCut("BTCRSSem"        , "BTCRSSem:"                     , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCRSSmm"]        = TQCut("BTCRSSmm"        , "BTCRSSmm:"                     , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCRSSeeTVeto"]   = TQCut("BTCRSSeeTVeto"   , "BTCRSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["BTCRSSemTVeto"]   = TQCut("BTCRSSemTVeto"   , "BTCRSSem: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["BTCRSSmmTVeto"]   = TQCut("BTCRSSmmTVeto"   , "BTCRSSmm: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"                                           , "1")
-    tqcuts["BTCRSSeeNj2"]     = TQCut("BTCRSSeeNj2"     , "BTCRSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["BTCRSSemNj2"]     = TQCut("BTCRSSemNj2"     , "BTCRSSem: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["BTCRSSmmNj2"]     = TQCut("BTCRSSmmNj2"     , "BTCRSSmm: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                                                            , "1")
-    tqcuts["BTCRSSeeNb0"]     = TQCut("BTCRSSeeNb0"     , "BTCRSSee: 3. n_{b} = 0"        , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCRSSemNb0"]     = TQCut("BTCRSSemNb0"     , "BTCRSSem: 3. n_{b} = 0"        , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCRSSmmNb0"]     = TQCut("BTCRSSmmNb0"     , "BTCRSSmm: 3. n_{b} = 0"        , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCRSSeeMjjW"]    = TQCut("BTCRSSeeMjjW"    , "BTCRSSee: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["BTCRSSemMjjW"]    = TQCut("BTCRSSemMjjW"    , "BTCRSSem: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["BTCRSSmmMjjW"]    = TQCut("BTCRSSmmMjjW"    , "BTCRSSmm: 4. |Mjj-80| < 15"    , "abs(Mjj"+jecvar_suffix+"-80.)<15."                                                    , "1")
-    tqcuts["BTCRSSeeMjjL"]    = TQCut("BTCRSSeeMjjL"    , "BTCRSSee: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["BTCRSSemMjjL"]    = TQCut("BTCRSSemMjjL"    , "BTCRSSem: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["BTCRSSmmMjjL"]    = TQCut("BTCRSSmmMjjL"    , "BTCRSSmm: 5. MjjL < 400"       , "MjjL"+jecvar_suffix+"<400."                                                           , "1")
-    tqcuts["BTCRSSeeDetajjL"] = TQCut("BTCRSSeeDetajjL" , "BTCRSSee: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["BTCRSSemDetajjL"] = TQCut("BTCRSSemDetajjL" , "BTCRSSem: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["BTCRSSmmDetajjL"] = TQCut("BTCRSSmmDetajjL" , "BTCRSSmm: 6. DetajjL < 1.5"    , "DetajjL"+jecvar_suffix+"<1.5"                                                         , "1")
-    tqcuts["BTCRSSeeMET"]     = TQCut("BTCRSSeeMET"     , "BTCRSSee: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["BTCRSSemMET"]     = TQCut("BTCRSSemMET"     , "BTCRSSem: 7. MET > 60"         , "met"+jecvar_suffix+"_pt>60."                                                          , "1")
-    tqcuts["BTCRSSmmMET"]     = TQCut("BTCRSSmmMET"     , "BTCRSSmm: 7. MET > 0"          , "1."                                                                                   , "1")
-    tqcuts["BTCRSSeeMllSS"]   = TQCut("BTCRSSeeMllSS"   , "BTCRSSee: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    tqcuts["BTCRSSemMllSS"]   = TQCut("BTCRSSemMllSS"   , "BTCRSSem: 8. MllSS > 30"       , "MllSS>30."                                                                            , "1")
-    tqcuts["BTCRSSmmMllSS"]   = TQCut("BTCRSSmmMllSS"   , "BTCRSSmm: 8. MllSS > 40"       , "MllSS>40."                                                                            , "1")
-    # specific channel cuts
-    tqcuts["BTCRSSeeZeeVt"]   = TQCut("BTCRSSeeZeeVt"   , "BTCRSSee: 9. Z veto"           , "abs(MllSS-91.1876)>10."                                                               , "1")
-    tqcuts["BTCRSSemMTmax"]   = TQCut("BTCRSSemMTmax"   , "BTCRSSem: 9. MTmax"            , "MTmax"+jecvar_suffix+">90."                                                           , "1")
-
-    tqcuts["BTCRTrilep"]          = TQCut("BTCRTrilep"          , "BTCRTrilep"                               , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
-    tqcuts["BTCR0SFOS"]           = TQCut("BTCR0SFOS"           , "BTCR0SFOS:"                               , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCR1SFOS"]           = TQCut("BTCR1SFOS"           , "BTCR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCR2SFOS"]           = TQCut("BTCR2SFOS"           , "BTCR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
-    tqcuts["BTCR0SFOSNj1"]        = TQCut("BTCR0SFOSNj1"        , "BTCR0SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["BTCR1SFOSNj1"]        = TQCut("BTCR1SFOSNj1"        , "BTCR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["BTCR2SFOSNj1"]        = TQCut("BTCR2SFOSNj1"        , "BTCR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
-    tqcuts["BTCR0SFOSNb0"]        = TQCut("BTCR0SFOSNb0"        , "BTCR0SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCR1SFOSNb0"]        = TQCut("BTCR1SFOSNb0"        , "BTCR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCR2SFOSNb0"]        = TQCut("BTCR2SFOSNb0"        , "BTCR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+">=1"                                                               , "weight_btagsf"+btagsfvar_suffix)
-    tqcuts["BTCR0SFOSPt3l"]       = TQCut("BTCR0SFOSPt3l"       , "BTCR0SFOS: 3. p_{T,lll} > 0"              , "1."                                                                                   , "1")
-    tqcuts["BTCR1SFOSPt3l"]       = TQCut("BTCR1SFOSPt3l"       , "BTCR1SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["BTCR2SFOSPt3l"]       = TQCut("BTCR2SFOSPt3l"       , "BTCR2SFOS: 3. p_{T,lll} > 60"             , "Pt3l>60."                                                                             , "1")
-    tqcuts["BTCR0SFOSDPhi3lMET"]  = TQCut("BTCR0SFOSDPhi3lMET"  , "BTCR0SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["BTCR1SFOSDPhi3lMET"]  = TQCut("BTCR1SFOSDPhi3lMET"  , "BTCR1SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["BTCR2SFOSDPhi3lMET"]  = TQCut("BTCR2SFOSDPhi3lMET"  , "BTCR2SFOS: 4. #Delta#phi_{lll,MET} > 2.5" , "DPhi3lMET"+jecvar_suffix+">2.5"                                                       , "1")
-    tqcuts["BTCR0SFOSMET"]        = TQCut("BTCR0SFOSMET"        , "BTCR0SFOS: 5. MET > 30"                   , "met"+jecvar_suffix+"_pt>30."                                                          , "1")
-    tqcuts["BTCR1SFOSMET"]        = TQCut("BTCR1SFOSMET"        , "BTCR1SFOS: 5. MET > 40"                   , "met"+jecvar_suffix+"_pt>40."                                                          , "1")
-    tqcuts["BTCR2SFOSMET"]        = TQCut("BTCR2SFOSMET"        , "BTCR2SFOS: 5. MET > 55"                   , "met"+jecvar_suffix+"_pt>55."                                                          , "1")
-    tqcuts["BTCR0SFOSMll"]        = TQCut("BTCR0SFOSMll"        , "BTCR0SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["BTCR1SFOSMll"]        = TQCut("BTCR1SFOSMll"        , "BTCR1SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["BTCR2SFOSMll"]        = TQCut("BTCR2SFOSMll"        , "BTCR2SFOS: 6. Mll > 20"                   , "Mll3L > 20."                                                                          , "1")
-    tqcuts["BTCR0SFOSM3l"]        = TQCut("BTCR0SFOSM3l"        , "BTCR0SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["BTCR1SFOSM3l"]        = TQCut("BTCR1SFOSM3l"        , "BTCR1SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["BTCR2SFOSM3l"]        = TQCut("BTCR2SFOSM3l"        , "BTCR2SFOS: 7. |M3l-MZ| > 10"              , "abs(M3l-91.1876) > 10."                                                               , "1")
-    tqcuts["BTCR0SFOSZVt"]        = TQCut("BTCR0SFOSZVt"        , "BTCR0SFOS: 8. |Mee-MZ| > 15"              , "abs(Mee3L-91.1876) > 15."                                                             , "1")
-    tqcuts["BTCR1SFOSZVt"]        = TQCut("BTCR1SFOSZVt"        , "BTCR1SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    tqcuts["BTCR2SFOSZVt"]        = TQCut("BTCR2SFOSZVt"        , "BTCR2SFOS: 8. |MSFOS-MZ| > 20"            , "nSFOSinZ == 0"                                                                        , "1")
-    # specific channel cuts
-    tqcuts["BTCR1SFOSMT3rd"]      = TQCut("BTCR1SFOSMT3rd"      , "BTCR1SFOS: 9. MT3rd > 90"                 , "MT3rd"+jecvar_suffix+">90."                                                           , "1")
-
-    cuts = tqcuts["Presel"]
-    tqcuts["Presel"].addCut(tqcuts["Dilep"])
-    tqcuts["Dilep"].addCut(tqcuts["SRSSee"])
-    tqcuts["Dilep"].addCut(tqcuts["SRSSem"])
-    tqcuts["Dilep"].addCut(tqcuts["SRSSmm"])
-    tqcuts["SRSSee"].addCut(tqcuts["SRSSeeTVeto"])
-    tqcuts["SRSSem"].addCut(tqcuts["SRSSemTVeto"])
-    tqcuts["SRSSmm"].addCut(tqcuts["SRSSmmTVeto"])
-    tqcuts["SRSSeeTVeto"].addCut(tqcuts["SRSSeeNj2"])
-    tqcuts["SRSSemTVeto"].addCut(tqcuts["SRSSemNj2"])
-    tqcuts["SRSSmmTVeto"].addCut(tqcuts["SRSSmmNj2"])
-    tqcuts["SRSSeeNj2"].addCut(tqcuts["SRSSeeNb0"])
-    tqcuts["SRSSemNj2"].addCut(tqcuts["SRSSemNb0"])
-    tqcuts["SRSSmmNj2"].addCut(tqcuts["SRSSmmNb0"])
-    tqcuts["SRSSeeNb0"].addCut(tqcuts["SRSSeeMjjW"])
-    tqcuts["SRSSemNb0"].addCut(tqcuts["SRSSemMjjW"])
-    tqcuts["SRSSmmNb0"].addCut(tqcuts["SRSSmmMjjW"])
-    tqcuts["SRSSeeMjjW"].addCut(tqcuts["SRSSeeMjjL"])
-    tqcuts["SRSSemMjjW"].addCut(tqcuts["SRSSemMjjL"])
-    tqcuts["SRSSmmMjjW"].addCut(tqcuts["SRSSmmMjjL"])
-    tqcuts["SRSSeeMjjL"].addCut(tqcuts["SRSSeeDetajjL"])
-    tqcuts["SRSSemMjjL"].addCut(tqcuts["SRSSemDetajjL"])
-    tqcuts["SRSSmmMjjL"].addCut(tqcuts["SRSSmmDetajjL"])
-    tqcuts["SRSSeeDetajjL"].addCut(tqcuts["SRSSeeMET"])
-    tqcuts["SRSSemDetajjL"].addCut(tqcuts["SRSSemMET"])
-    tqcuts["SRSSmmDetajjL"].addCut(tqcuts["SRSSmmMET"])
-    tqcuts["SRSSeeMET"].addCut(tqcuts["SRSSeeMllSS"])
-    tqcuts["SRSSemMET"].addCut(tqcuts["SRSSemMllSS"])
-    tqcuts["SRSSmmMET"].addCut(tqcuts["SRSSmmMllSS"])
-    # channel specific cuts
-    tqcuts["SRSSeeMllSS"].addCut(tqcuts["SRSSeeZeeVt"])
-    tqcuts["SRSSemMllSS"].addCut(tqcuts["SRSSemMTmax"])
-
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # AR dilepton regions
+    #
+    # Take cuts starting from SRDilep and modify names in each by SR to AR
+    # Then also swap SRDilep by "ARDilep" defined by below
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"AR"},
+            cut_edits={"SRDilep" : TQCut("ARDilep" , "ARDilep" , "(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.)" , "lepsf"+lepsfvar_suffix)},
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
     tqcuts["Presel"].addCut(tqcuts["ARDilep"])
-    tqcuts["ARDilep"].addCut(tqcuts["ARSSee"])
-    tqcuts["ARDilep"].addCut(tqcuts["ARSSem"])
-    tqcuts["ARDilep"].addCut(tqcuts["ARSSmm"])
-    tqcuts["ARSSee"].addCut(tqcuts["ARSSeeTVeto"])
-    tqcuts["ARSSem"].addCut(tqcuts["ARSSemTVeto"])
-    tqcuts["ARSSmm"].addCut(tqcuts["ARSSmmTVeto"])
-    tqcuts["ARSSeeTVeto"].addCut(tqcuts["ARSSeeNj2"])
-    tqcuts["ARSSemTVeto"].addCut(tqcuts["ARSSemNj2"])
-    tqcuts["ARSSmmTVeto"].addCut(tqcuts["ARSSmmNj2"])
-    tqcuts["ARSSeeNj2"].addCut(tqcuts["ARSSeeNb0"])
-    tqcuts["ARSSemNj2"].addCut(tqcuts["ARSSemNb0"])
-    tqcuts["ARSSmmNj2"].addCut(tqcuts["ARSSmmNb0"])
-    tqcuts["ARSSeeNb0"].addCut(tqcuts["ARSSeeMjjW"])
-    tqcuts["ARSSemNb0"].addCut(tqcuts["ARSSemMjjW"])
-    tqcuts["ARSSmmNb0"].addCut(tqcuts["ARSSmmMjjW"])
-    tqcuts["ARSSeeMjjW"].addCut(tqcuts["ARSSeeMjjL"])
-    tqcuts["ARSSemMjjW"].addCut(tqcuts["ARSSemMjjL"])
-    tqcuts["ARSSmmMjjW"].addCut(tqcuts["ARSSmmMjjL"])
-    tqcuts["ARSSeeMjjL"].addCut(tqcuts["ARSSeeDetajjL"])
-    tqcuts["ARSSemMjjL"].addCut(tqcuts["ARSSemDetajjL"])
-    tqcuts["ARSSmmMjjL"].addCut(tqcuts["ARSSmmDetajjL"])
-    tqcuts["ARSSeeDetajjL"].addCut(tqcuts["ARSSeeMET"])
-    tqcuts["ARSSemDetajjL"].addCut(tqcuts["ARSSemMET"])
-    tqcuts["ARSSmmDetajjL"].addCut(tqcuts["ARSSmmMET"])
-    tqcuts["ARSSeeMET"].addCut(tqcuts["ARSSeeMllSS"])
-    tqcuts["ARSSemMET"].addCut(tqcuts["ARSSemMllSS"])
-    tqcuts["ARSSmmMET"].addCut(tqcuts["ARSSmmMllSS"])
-    # channel specific cuts
-    tqcuts["ARSSeeMllSS"].addCut(tqcuts["ARSSeeZeeVt"])
-    tqcuts["ARSSemMllSS"].addCut(tqcuts["ARSSemMTmax"])
-
-    tqcuts["Presel"].addCut(tqcuts["Trilep"])
-    tqcuts["Trilep"].addCut(tqcuts["SR0SFOS"])
-    tqcuts["Trilep"].addCut(tqcuts["SR1SFOS"])
-    tqcuts["Trilep"].addCut(tqcuts["SR2SFOS"])
-    tqcuts["SR0SFOS"].addCut(tqcuts["SR0SFOSNj1"])
-    tqcuts["SR1SFOS"].addCut(tqcuts["SR1SFOSNj1"])
-    tqcuts["SR2SFOS"].addCut(tqcuts["SR2SFOSNj1"])
-    tqcuts["SR0SFOSNj1"].addCut(tqcuts["SR0SFOSNb0"])
-    tqcuts["SR1SFOSNj1"].addCut(tqcuts["SR1SFOSNb0"])
-    tqcuts["SR2SFOSNj1"].addCut(tqcuts["SR2SFOSNb0"])
-    tqcuts["SR0SFOSNb0"].addCut(tqcuts["SR0SFOSPt3l"])
-    tqcuts["SR1SFOSNb0"].addCut(tqcuts["SR1SFOSPt3l"])
-    tqcuts["SR2SFOSNb0"].addCut(tqcuts["SR2SFOSPt3l"])
-    tqcuts["SR0SFOSPt3l"].addCut(tqcuts["SR0SFOSDPhi3lMET"])
-    tqcuts["SR1SFOSPt3l"].addCut(tqcuts["SR1SFOSDPhi3lMET"])
-    tqcuts["SR2SFOSPt3l"].addCut(tqcuts["SR2SFOSDPhi3lMET"])
-    tqcuts["SR0SFOSDPhi3lMET"].addCut(tqcuts["SR0SFOSMET"])
-    tqcuts["SR1SFOSDPhi3lMET"].addCut(tqcuts["SR1SFOSMET"])
-    tqcuts["SR2SFOSDPhi3lMET"].addCut(tqcuts["SR2SFOSMET"])
-    tqcuts["SR0SFOSMET"].addCut(tqcuts["SR0SFOSMll"])
-    tqcuts["SR1SFOSMET"].addCut(tqcuts["SR1SFOSMll"])
-    tqcuts["SR2SFOSMET"].addCut(tqcuts["SR2SFOSMll"])
-    tqcuts["SR0SFOSMll"].addCut(tqcuts["SR0SFOSM3l"])
-    tqcuts["SR1SFOSMll"].addCut(tqcuts["SR1SFOSM3l"])
-    tqcuts["SR2SFOSMll"].addCut(tqcuts["SR2SFOSM3l"])
-    tqcuts["SR0SFOSM3l"].addCut(tqcuts["SR0SFOSZVt"])
-    tqcuts["SR1SFOSM3l"].addCut(tqcuts["SR1SFOSZVt"])
-    tqcuts["SR2SFOSM3l"].addCut(tqcuts["SR2SFOSZVt"])
-    # channel specific cuts
-    tqcuts["SR1SFOSZVt"].addCut(tqcuts["SR1SFOSMT3rd"])
-    tqcuts["SR0SFOSZVt"].addCut(tqcuts["SR0SFOSMTmax"])
-
+ 
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # AR trilepton regions
+    #
+    # Take cuts starting from SRTrilep and modify names in each by SR to AR
+    # Then also swap SRTrilep by "ARTrilep" defined by below
+    copyEditCuts(
+            cut=tqcuts["SRTrilep"],
+            name_edits={"SR":"AR"},
+            cut_edits={"SRTrilep" : TQCut("ARTrilep" , "ARTrilep" , "(nVlep==3)*(nLlep==3)*(nTlep==2)" , "lepsf"+lepsfvar_suffix)},
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
     tqcuts["Presel"].addCut(tqcuts["ARTrilep"])
-    tqcuts["ARTrilep"].addCut(tqcuts["AR0SFOS"])
-    tqcuts["ARTrilep"].addCut(tqcuts["AR1SFOS"])
-    tqcuts["ARTrilep"].addCut(tqcuts["AR2SFOS"])
-    tqcuts["AR0SFOS"].addCut(tqcuts["AR0SFOSNj1"])
-    tqcuts["AR1SFOS"].addCut(tqcuts["AR1SFOSNj1"])
-    tqcuts["AR2SFOS"].addCut(tqcuts["AR2SFOSNj1"])
-    tqcuts["AR0SFOSNj1"].addCut(tqcuts["AR0SFOSNb0"])
-    tqcuts["AR1SFOSNj1"].addCut(tqcuts["AR1SFOSNb0"])
-    tqcuts["AR2SFOSNj1"].addCut(tqcuts["AR2SFOSNb0"])
-    tqcuts["AR0SFOSNb0"].addCut(tqcuts["AR0SFOSPt3l"])
-    tqcuts["AR1SFOSNb0"].addCut(tqcuts["AR1SFOSPt3l"])
-    tqcuts["AR2SFOSNb0"].addCut(tqcuts["AR2SFOSPt3l"])
-    tqcuts["AR0SFOSPt3l"].addCut(tqcuts["AR0SFOSDPhi3lMET"])
-    tqcuts["AR1SFOSPt3l"].addCut(tqcuts["AR1SFOSDPhi3lMET"])
-    tqcuts["AR2SFOSPt3l"].addCut(tqcuts["AR2SFOSDPhi3lMET"])
-    tqcuts["AR0SFOSDPhi3lMET"].addCut(tqcuts["AR0SFOSMET"])
-    tqcuts["AR1SFOSDPhi3lMET"].addCut(tqcuts["AR1SFOSMET"])
-    tqcuts["AR2SFOSDPhi3lMET"].addCut(tqcuts["AR2SFOSMET"])
-    tqcuts["AR0SFOSMET"].addCut(tqcuts["AR0SFOSMll"])
-    tqcuts["AR1SFOSMET"].addCut(tqcuts["AR1SFOSMll"])
-    tqcuts["AR2SFOSMET"].addCut(tqcuts["AR2SFOSMll"])
-    tqcuts["AR0SFOSMll"].addCut(tqcuts["AR0SFOSM3l"])
-    tqcuts["AR1SFOSMll"].addCut(tqcuts["AR1SFOSM3l"])
-    tqcuts["AR2SFOSMll"].addCut(tqcuts["AR2SFOSM3l"])
-    tqcuts["AR0SFOSM3l"].addCut(tqcuts["AR0SFOSZVt"])
-    tqcuts["AR1SFOSM3l"].addCut(tqcuts["AR1SFOSZVt"])
-    tqcuts["AR2SFOSM3l"].addCut(tqcuts["AR2SFOSZVt"])
-    # channel specific cuts
-    tqcuts["AR0SFOSZVt"].addCut(tqcuts["AR0SFOSMTmax"])
-    tqcuts["AR1SFOSZVt"].addCut(tqcuts["AR1SFOSMT3rd"])
 
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # AR dilepton Mjj side band region
+    #
+    copyEditCuts(
+            cut=tqcuts["SideDilep"],
+            name_edits={"Side":"ARSide"},
+            cut_edits={"SideDilep" : TQCut("ARSideDilep" , "ARSideDilep" , "(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.)" , "lepsf"+lepsfvar_suffix)},
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["ARSideDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # lost-lep (e.g. WZ, ttZ) control region (WZCR)
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"WZCR"},
+            cut_edits={
+                "SRDilep" : TQCut("WZCRDilep" , "WZCRDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
+                "SRSSee" : TQCut("WZCRSSee" , "WZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSem" : TQCut("WZCRSSem" , "WZCRSSem:" , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSmm" : TQCut("WZCRSSmm" , "WZCRSSmm:" , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSeeMjjW" : TQCut("WZCRSSeeMjjW" , "WZCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSemMjjW" : TQCut("WZCRSSemMjjW" , "WZCRSSem: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSmmMjjW" : TQCut("WZCRSSmmMjjW" , "WZCRSSmm: 4. |Mjj-80| < 15" , "1" , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    copyEditCuts(
+            cut=tqcuts["SRTrilep"],
+            name_edits={"SR":"WZCR"},
+            cut_edits={
+                "SR1SFOSZVt": TQCut("WZCR1SFOSZVt" , "WZCR1SFOS: 8. |MSFOS-MZ| > 20" , "nSFOSinZ > 0" , "1"),
+                "SR2SFOSZVt": TQCut("WZCR2SFOSZVt" , "WZCR2SFOS: 8. |MSFOS-MZ| > 20" , "nSFOSinZ > 0" , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["WZCRDilep"])
     tqcuts["Presel"].addCut(tqcuts["WZCRTrilep"])
-    tqcuts["WZCRTrilep"].addCut(tqcuts["WZCRSSee"])
-    tqcuts["WZCRTrilep"].addCut(tqcuts["WZCRSSem"])
-    tqcuts["WZCRTrilep"].addCut(tqcuts["WZCRSSmm"])
-    tqcuts["WZCRSSee"].addCut(tqcuts["WZCRSSeeTVeto"])
-    tqcuts["WZCRSSem"].addCut(tqcuts["WZCRSSemTVeto"])
-    tqcuts["WZCRSSmm"].addCut(tqcuts["WZCRSSmmTVeto"])
-    tqcuts["WZCRSSeeTVeto"].addCut(tqcuts["WZCRSSeeNj2"])
-    tqcuts["WZCRSSemTVeto"].addCut(tqcuts["WZCRSSemNj2"])
-    tqcuts["WZCRSSmmTVeto"].addCut(tqcuts["WZCRSSmmNj2"])
-    tqcuts["WZCRSSeeNj2"].addCut(tqcuts["WZCRSSeeNb0"])
-    tqcuts["WZCRSSemNj2"].addCut(tqcuts["WZCRSSemNb0"])
-    tqcuts["WZCRSSmmNj2"].addCut(tqcuts["WZCRSSmmNb0"])
-    tqcuts["WZCRSSeeNb0"].addCut(tqcuts["WZCRSSeeMjjW"])
-    tqcuts["WZCRSSemNb0"].addCut(tqcuts["WZCRSSemMjjW"])
-    tqcuts["WZCRSSmmNb0"].addCut(tqcuts["WZCRSSmmMjjW"])
-    tqcuts["WZCRSSeeMjjW"].addCut(tqcuts["WZCRSSeeMjjL"])
-    tqcuts["WZCRSSemMjjW"].addCut(tqcuts["WZCRSSemMjjL"])
-    tqcuts["WZCRSSmmMjjW"].addCut(tqcuts["WZCRSSmmMjjL"])
-    tqcuts["WZCRSSeeMjjL"].addCut(tqcuts["WZCRSSeeDetajjL"])
-    tqcuts["WZCRSSemMjjL"].addCut(tqcuts["WZCRSSemDetajjL"])
-    tqcuts["WZCRSSmmMjjL"].addCut(tqcuts["WZCRSSmmDetajjL"])
-    tqcuts["WZCRSSeeDetajjL"].addCut(tqcuts["WZCRSSeeMET"])
-    tqcuts["WZCRSSemDetajjL"].addCut(tqcuts["WZCRSSemMET"])
-    tqcuts["WZCRSSmmDetajjL"].addCut(tqcuts["WZCRSSmmMET"])
-    tqcuts["WZCRSSeeMET"].addCut(tqcuts["WZCRSSeeMllSS"])
-    tqcuts["WZCRSSemMET"].addCut(tqcuts["WZCRSSemMllSS"])
-    tqcuts["WZCRSSmmMET"].addCut(tqcuts["WZCRSSmmMllSS"])
-    # channel specific cuts
-    tqcuts["WZCRSSeeMllSS"].addCut(tqcuts["WZCRSSeeZeeVt"])
-    tqcuts["WZCRSSemMllSS"].addCut(tqcuts["WZCRSSemMTmax"])
-    tqcuts["WZCRTrilep"].addCut(tqcuts["WZCR1SFOS"])
-    tqcuts["WZCRTrilep"].addCut(tqcuts["WZCR2SFOS"])
-    tqcuts["WZCR1SFOS"].addCut(tqcuts["WZCR1SFOSNj1"])
-    tqcuts["WZCR2SFOS"].addCut(tqcuts["WZCR2SFOSNj1"])
-    tqcuts["WZCR1SFOSNj1"].addCut(tqcuts["WZCR1SFOSNb0"])
-    tqcuts["WZCR2SFOSNj1"].addCut(tqcuts["WZCR2SFOSNb0"])
-    tqcuts["WZCR1SFOSNb0"].addCut(tqcuts["WZCR1SFOSPt3l"])
-    tqcuts["WZCR2SFOSNb0"].addCut(tqcuts["WZCR2SFOSPt3l"])
-    tqcuts["WZCR1SFOSPt3l"].addCut(tqcuts["WZCR1SFOSDPhi3lMET"])
-    tqcuts["WZCR2SFOSPt3l"].addCut(tqcuts["WZCR2SFOSDPhi3lMET"])
-    tqcuts["WZCR1SFOSDPhi3lMET"].addCut(tqcuts["WZCR1SFOSMET"])
-    tqcuts["WZCR2SFOSDPhi3lMET"].addCut(tqcuts["WZCR2SFOSMET"])
-    tqcuts["WZCR1SFOSMET"].addCut(tqcuts["WZCR1SFOSMll"])
-    tqcuts["WZCR2SFOSMET"].addCut(tqcuts["WZCR2SFOSMll"])
-    tqcuts["WZCR1SFOSMll"].addCut(tqcuts["WZCR1SFOSM3l"])
-    tqcuts["WZCR2SFOSMll"].addCut(tqcuts["WZCR2SFOSM3l"])
-    tqcuts["WZCR1SFOSM3l"].addCut(tqcuts["WZCR1SFOSZVt"])
-    tqcuts["WZCR2SFOSM3l"].addCut(tqcuts["WZCR2SFOSZVt"])
-    # channel specific cuts
-    tqcuts["WZCR1SFOSZVt"].addCut(tqcuts["WZCR1SFOSMT3rd"])
 
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # B-tagged control regions (BTCR)
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"BTCR"},
+            cut_edits={
+                "SRSSeeNb0" : TQCut("BTCRSSeeNbgeq1" , "BTCRSSeeNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSemNb0" : TQCut("BTCRSSemNbgeq1" , "BTCRSSemNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSmmNb0" : TQCut("BTCRSSmmNbgeq1" , "BTCRSSmmNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    copyEditCuts(
+            cut=tqcuts["SideDilep"],
+            name_edits={"Side":"BTCRSide"},
+            cut_edits={
+                "SideSSeeNb0" : TQCut("BTCRSideSSeeNbgeq1" , "BTCRSideSSeeNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSemNb0" : TQCut("BTCRSideSSemNbgeq1" , "BTCRSideSSemNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSmmNb0" : TQCut("BTCRSideSSmmNbgeq1" , "BTCRSideSSmmNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    copyEditCuts(
+            cut=tqcuts["SRTrilep"],
+            name_edits={"SR":"BTCR"},
+            cut_edits={
+                "SR0SFOSNb0" : TQCut("BTCR0SFOSNbgeq1" , "BTCR0SFOSNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SR1SFOSNb0" : TQCut("BTCR1SFOSNbgeq1" , "BTCR1SFOSNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SR2SFOSNb0" : TQCut("BTCR2SFOSNbgeq1" , "BTCR2SFOSNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
     tqcuts["Presel"].addCut(tqcuts["BTCRDilep"])
-    tqcuts["BTCRDilep"].addCut(tqcuts["BTCRSSee"])
-    tqcuts["BTCRDilep"].addCut(tqcuts["BTCRSSem"])
-    tqcuts["BTCRDilep"].addCut(tqcuts["BTCRSSmm"])
-    tqcuts["BTCRSSee"].addCut(tqcuts["BTCRSSeeTVeto"])
-    tqcuts["BTCRSSem"].addCut(tqcuts["BTCRSSemTVeto"])
-    tqcuts["BTCRSSmm"].addCut(tqcuts["BTCRSSmmTVeto"])
-    tqcuts["BTCRSSeeTVeto"].addCut(tqcuts["BTCRSSeeNj2"])
-    tqcuts["BTCRSSemTVeto"].addCut(tqcuts["BTCRSSemNj2"])
-    tqcuts["BTCRSSmmTVeto"].addCut(tqcuts["BTCRSSmmNj2"])
-    tqcuts["BTCRSSeeNj2"].addCut(tqcuts["BTCRSSeeNb0"])
-    tqcuts["BTCRSSemNj2"].addCut(tqcuts["BTCRSSemNb0"])
-    tqcuts["BTCRSSmmNj2"].addCut(tqcuts["BTCRSSmmNb0"])
-    tqcuts["BTCRSSeeNb0"].addCut(tqcuts["BTCRSSeeMjjW"])
-    tqcuts["BTCRSSemNb0"].addCut(tqcuts["BTCRSSemMjjW"])
-    tqcuts["BTCRSSmmNb0"].addCut(tqcuts["BTCRSSmmMjjW"])
-    tqcuts["BTCRSSeeMjjW"].addCut(tqcuts["BTCRSSeeMjjL"])
-    tqcuts["BTCRSSemMjjW"].addCut(tqcuts["BTCRSSemMjjL"])
-    tqcuts["BTCRSSmmMjjW"].addCut(tqcuts["BTCRSSmmMjjL"])
-    tqcuts["BTCRSSeeMjjL"].addCut(tqcuts["BTCRSSeeDetajjL"])
-    tqcuts["BTCRSSemMjjL"].addCut(tqcuts["BTCRSSemDetajjL"])
-    tqcuts["BTCRSSmmMjjL"].addCut(tqcuts["BTCRSSmmDetajjL"])
-    tqcuts["BTCRSSeeDetajjL"].addCut(tqcuts["BTCRSSeeMET"])
-    tqcuts["BTCRSSemDetajjL"].addCut(tqcuts["BTCRSSemMET"])
-    tqcuts["BTCRSSmmDetajjL"].addCut(tqcuts["BTCRSSmmMET"])
-    tqcuts["BTCRSSeeMET"].addCut(tqcuts["BTCRSSeeMllSS"])
-    tqcuts["BTCRSSemMET"].addCut(tqcuts["BTCRSSemMllSS"])
-    tqcuts["BTCRSSmmMET"].addCut(tqcuts["BTCRSSmmMllSS"])
-    # channel specific cuts
-    tqcuts["BTCRSSeeMllSS"].addCut(tqcuts["BTCRSSeeZeeVt"])
-    tqcuts["BTCRSSemMllSS"].addCut(tqcuts["BTCRSSemMTmax"])
-
+    tqcuts["Presel"].addCut(tqcuts["BTCRSideDilep"])
     tqcuts["Presel"].addCut(tqcuts["BTCRTrilep"])
-    tqcuts["BTCRTrilep"].addCut(tqcuts["BTCR0SFOS"])
-    tqcuts["BTCRTrilep"].addCut(tqcuts["BTCR1SFOS"])
-    tqcuts["BTCRTrilep"].addCut(tqcuts["BTCR2SFOS"])
-    tqcuts["BTCR0SFOS"].addCut(tqcuts["BTCR0SFOSNj1"])
-    tqcuts["BTCR1SFOS"].addCut(tqcuts["BTCR1SFOSNj1"])
-    tqcuts["BTCR2SFOS"].addCut(tqcuts["BTCR2SFOSNj1"])
-    tqcuts["BTCR0SFOSNj1"].addCut(tqcuts["BTCR0SFOSNb0"])
-    tqcuts["BTCR1SFOSNj1"].addCut(tqcuts["BTCR1SFOSNb0"])
-    tqcuts["BTCR2SFOSNj1"].addCut(tqcuts["BTCR2SFOSNb0"])
-    tqcuts["BTCR0SFOSNb0"].addCut(tqcuts["BTCR0SFOSPt3l"])
-    tqcuts["BTCR1SFOSNb0"].addCut(tqcuts["BTCR1SFOSPt3l"])
-    tqcuts["BTCR2SFOSNb0"].addCut(tqcuts["BTCR2SFOSPt3l"])
-    tqcuts["BTCR0SFOSPt3l"].addCut(tqcuts["BTCR0SFOSDPhi3lMET"])
-    tqcuts["BTCR1SFOSPt3l"].addCut(tqcuts["BTCR1SFOSDPhi3lMET"])
-    tqcuts["BTCR2SFOSPt3l"].addCut(tqcuts["BTCR2SFOSDPhi3lMET"])
-    tqcuts["BTCR0SFOSDPhi3lMET"].addCut(tqcuts["BTCR0SFOSMET"])
-    tqcuts["BTCR1SFOSDPhi3lMET"].addCut(tqcuts["BTCR1SFOSMET"])
-    tqcuts["BTCR2SFOSDPhi3lMET"].addCut(tqcuts["BTCR2SFOSMET"])
-    tqcuts["BTCR0SFOSMET"].addCut(tqcuts["BTCR0SFOSMll"])
-    tqcuts["BTCR1SFOSMET"].addCut(tqcuts["BTCR1SFOSMll"])
-    tqcuts["BTCR2SFOSMET"].addCut(tqcuts["BTCR2SFOSMll"])
-    tqcuts["BTCR0SFOSMll"].addCut(tqcuts["BTCR0SFOSM3l"])
-    tqcuts["BTCR1SFOSMll"].addCut(tqcuts["BTCR1SFOSM3l"])
-    tqcuts["BTCR2SFOSMll"].addCut(tqcuts["BTCR2SFOSM3l"])
-    tqcuts["BTCR0SFOSM3l"].addCut(tqcuts["BTCR0SFOSZVt"])
-    tqcuts["BTCR1SFOSM3l"].addCut(tqcuts["BTCR1SFOSZVt"])
-    tqcuts["BTCR2SFOSM3l"].addCut(tqcuts["BTCR2SFOSZVt"])
-    # channel specific cuts
-    tqcuts["BTCR1SFOSZVt"].addCut(tqcuts["BTCR1SFOSMT3rd"])
 
-    return cuts
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # VBS control region
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"VBSCR"},
+            cut_edits={
+                "SRSSeeMjjW" : TQCut("VBSCRSSeeMjjW" , "VBSCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSemMjjW" : TQCut("VBSCRSSemMjjW" , "VBSCRSSem: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSmmMjjW" : TQCut("VBSCRSSmmMjjW" , "VBSCRSSmm: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSeeMjjL" : TQCut("VBSCRSSeeFull" , "VBSCRSSee: 5. MjjL > 400 || DetajjL > 1.5" , "(MjjL"+jecvar_suffix+">400.)+(DetajjL"+jecvar_suffix+">1.5)" , "1"),
+                "SRSSemMjjL" : TQCut("VBSCRSSemFull" , "VBSCRSSem: 5. MjjL > 400 || DetajjL > 1.5" , "(MjjL"+jecvar_suffix+">400.)+(DetajjL"+jecvar_suffix+">1.5)" , "1"),
+                "SRSSmmMjjL" : TQCut("VBSCRSSmmFull" , "VBSCRSSmm: 5. MjjL > 400 || DetajjL > 1.5" , "(MjjL"+jecvar_suffix+">400.)+(DetajjL"+jecvar_suffix+">1.5)" , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["VBSCRDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # ttW control region
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"TTWCR"},
+            cut_edits={
+                "SRSSeeNj2" : TQCut("TTWCRSSeeNj4" , "TTWCRSSeeNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSemNj2" : TQCut("TTWCRSSemNj4" , "TTWCRSSemNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSmmNj2" : TQCut("TTWCRSSmmNj4" , "TTWCRSSmmNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSeeNb0" : TQCut("TTWCRSSeeNbgeq1" , "TTWCRSSeeNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSemNb0" : TQCut("TTWCRSSemNbgeq1" , "TTWCRSSemNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SRSSmmNb0" : TQCut("TTWCRSSmmNbgeq1" , "TTWCRSSmmNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    copyEditCuts(
+            cut=tqcuts["SideDilep"],
+            name_edits={"Side":"TTWCRSide"},
+            cut_edits={
+                "SideSSeeNj2" : TQCut("TTWCRSideSSeeNj4" , "TTWCRSideSSeeNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSemNj2" : TQCut("TTWCRSideSSemNj4" , "TTWCRSideSSemNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSmmNj2" : TQCut("TTWCRSideSSmmNj4" , "TTWCRSideSSmmNj4" , "nj30"+jecvar_suffix+">=4" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSeeNb0" : TQCut("TTWCRSideSSeeNbgeq1" , "TTWCRSideSSeeNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSemNb0" : TQCut("TTWCRSideSSemNbgeq1" , "TTWCRSideSSemNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                "SideSSmmNb0" : TQCut("TTWCRSideSSmmNbgeq1" , "TTWCRSideSSmmNbgeq1" , "nb"+jecvar_suffix+">=1" , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["TTWCRDilep"])
+    tqcuts["Presel"].addCut(tqcuts["TTWCRSideDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # ttZ control region
+    #
+    copyEditCuts(
+            cut=tqcuts["SRTrilep"],
+            name_edits={"SR":"TTZCR"},
+            cut_edits={
+                "SR0SFOS"    : TQCut("TTZCR0SFOS"    , "TTZCR0SFOS:"                 , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR0SFOSNj1" : TQCut("TTZCR0SFOSNj2" , "TTZCR0SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
+                "SR0SFOSNb0" : TQCut("TTZCR0SFOSNb1" , "TTZCR0SFOS: 2. n_{b} #geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
+                "SR1SFOS"    : TQCut("TTZCR1SFOS"    , "TTZCR1SFOS:"                 , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR1SFOSNj1" : TQCut("TTZCR1SFOSNj2" , "TTZCR1SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
+                "SR1SFOSNb0" : TQCut("TTZCR1SFOSNb1" , "TTZCR1SFOS: 2. n_{b} $geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
+                "SR2SFOS"    : TQCut("TTZCR2SFOS"    , "TTZCR2SFOS:"                 , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR2SFOSNj1" : TQCut("TTZCR2SFOSNj2" , "TTZCR2SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
+                "SR2SFOSNb0" : TQCut("TTZCR2SFOSNb1" , "TTZCR2SFOS: 2. n_{b} $geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["TTZCRTrilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # Mjj sideband low MET
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"LMETCR"},
+            cut_edits={
+                "SRSSeeMjjW" : TQCut("LMETCRSSeeMjj" , "SRSSee: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSemMjjW" : TQCut("LMETCRSSemMjj" , "SRSSem: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSmmMjjW" : TQCut("LMETCRSSmmMjj" , "SRSSmm: 4. |Mjj-80| >= 15" , "abs(Mjj"+jecvar_suffix+"-80.)>=15." , "1"),
+                "SRSSeeMET" : TQCut("LMETCRSSeeMET" , "SRSSee: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSemMET" : TQCut("LMETCRSSemMET" , "SRSSem: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSmmMET" : TQCut("LMETCRSSmmMET" , "SRSSmm: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["LMETCRDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # lost-lep (e.g. WZ, ttZ) control region (WZCR) with lowMET
+    #
+    copyEditCuts(
+            cut=tqcuts["SRDilep"],
+            name_edits={"SR":"LMETWZCR"},
+            cut_edits={
+                "SRDilep" : TQCut("LMETWZCRDilep" , "LMETWZCRDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
+                "SRSSee" : TQCut("LMETWZCRSSee" , "LMETWZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSem" : TQCut("LMETWZCRSSem" , "LMETWZCRSSem:" , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSmm" : TQCut("LMETWZCRSSmm" , "LMETWZCRSSmm:" , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)" , "trigsf"+trigsfvar_suffix),
+                "SRSSeeMjjW" : TQCut("LMETWZCRSSeeMjjW" , "LMETWZCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSemMjjW" : TQCut("LMETWZCRSSemMjjW" , "LMETWZCRSSem: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSmmMjjW" : TQCut("LMETWZCRSSmmMjjW" , "LMETWZCRSSmm: 4. |Mjj-80| < 15" , "1" , "1"),
+                "SRSSeeMET" : TQCut("LMETWZCRSSeeMET" , "SRSSee: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSemMET" : TQCut("LMETWZCRSSemMET" , "SRSSem: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSmmMET" : TQCut("LMETWZCRSSmmMET" , "SRSSmm: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["Presel"].addCut(tqcuts["LMETWZCRDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # Gamma Control region
+    #
+    copyEditCuts(
+            cut=tqcuts["SR0SFOS"],
+            name_edits={"SR":"GCR"},
+            cut_edits={
+                "SR0SFOS" : TQCut("GCR0SFOS" , "GCR0SFOS:" , "(nSFOSinZ==0)*(met_pt<30)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix)
+                },
+            cutdict=tqcuts,
+            )
+    # Then add it to Presel
+    tqcuts["SRTrilep"].addCut(tqcuts["GCR0SFOS"])
+
+
+    # Return the "Root node" which holds all cuts in a tree structure
+    return tqcuts["Presel"]
+
+if __name__ == "__main__":
+
+    cuts = getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",btagsfvar_suffix="")
+    cuts.printCuts("trd")
