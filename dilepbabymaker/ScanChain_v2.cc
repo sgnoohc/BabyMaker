@@ -275,6 +275,9 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("MT3rd");
     tx->createBranch<float>("MT3rd_up");
     tx->createBranch<float>("MT3rd_dn");
+    tx->createBranch<float>("MTmax3L");
+    tx->createBranch<float>("MTmax3L_up");
+    tx->createBranch<float>("MTmax3L_dn");
 
     tx->createBranch<int>("passSSee");
     tx->createBranch<int>("passSSem");
@@ -293,6 +296,18 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("ffwgt");
     tx->createBranch<float>("ffwgt_up");
     tx->createBranch<float>("ffwgt_dn");
+    tx->createBranch<float>("ffwgt_el_up");
+    tx->createBranch<float>("ffwgt_el_dn");
+    tx->createBranch<float>("ffwgt_mu_up");
+    tx->createBranch<float>("ffwgt_mu_dn");
+    tx->createBranch<float>("ffwgt_closure_up");
+    tx->createBranch<float>("ffwgt_closure_dn");
+    tx->createBranch<float>("ffwgt_closure_el_up");
+    tx->createBranch<float>("ffwgt_closure_el_dn");
+    tx->createBranch<float>("ffwgt_closure_mu_up");
+    tx->createBranch<float>("ffwgt_closure_mu_dn");
+    tx->createBranch<float>("ffwgt_full_up");
+    tx->createBranch<float>("ffwgt_full_dn");
 
     tx->createBranch<float>("ffwgtqcd");
     tx->createBranch<float>("ffwgtqcd_up");
@@ -740,8 +755,10 @@ void babyMaker_v2::FillEventInfo()
     else
     {
         float scale1fb = coreDatasetInfo.getScale1fb();
-        if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.066805 * 91900.  / (91900. + 164800.);
-        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.066805 * 164800. / (91900. + 164800.);
+        //if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.066805 * 91900.  / (91900. + 164800.);
+        //if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.066805 * 164800. / (91900. + 164800.);
+        if (filename.find("www_2l_mia")      != string::npos) scale1fb = 1;
+        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb = 1;
         tx->setBranch<float>("evt_scale1fb", scale1fb);
         tx->setBranch<int>("evt_passgoodrunlist", true);
     }
@@ -1659,6 +1676,20 @@ void babyMaker_v2::Fill3LLeptonVariables()
         tx->setBranch<float>("MT3rd_up", mT(lep_p4[idx], MET_up));
         tx->setBranch<float>("MT3rd_dn", mT(lep_p4[idx], MET_dn));
     }
+
+    float MT0    = mT(lep_p4[0], MET);
+    float MT1    = mT(lep_p4[1], MET);
+    float MT2    = mT(lep_p4[2], MET);
+    float MT0_up = mT(lep_p4[0], MET_up);
+    float MT1_up = mT(lep_p4[1], MET_up);
+    float MT2_up = mT(lep_p4[2], MET_up);
+    float MT0_dn = mT(lep_p4[0], MET_dn);
+    float MT1_dn = mT(lep_p4[1], MET_dn);
+    float MT2_dn = mT(lep_p4[2], MET_dn);
+
+    tx->setBranch<float>("MTmax3L", TMath::Max(MT0, TMath::Max(MT1, MT2)));
+    tx->setBranch<float>("MTmax3L_up", TMath::Max(MT0_up, TMath::Max(MT1_up, MT2_up)));
+    tx->setBranch<float>("MTmax3L_dn", TMath::Max(MT0_dn, TMath::Max(MT1_dn, MT2_dn)));
 }
 
 //##############################################################################################################
@@ -1686,15 +1717,36 @@ void babyMaker_v2::FillWeights()
     }
 
     // fakerate
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
     float ffwgt;
     float ffwgterr;
+    int loose_lep_idx;
+    int loose_lep_idx_qcd;
     float ffwgtqcd;
     float ffwgtqcderr;
-    std::tie(ffwgt, ffwgterr) = getlepFakeRateandError(true);
-    std::tie(ffwgtqcd, ffwgtqcderr) = getlepFakeRateandError(false);
+    std::tie(ffwgt, ffwgterr, loose_lep_idx) = getlepFakeRateandErrorandLooseLepIdx(true);
+    std::tie(ffwgtqcd, ffwgtqcderr, loose_lep_idx_qcd) = getlepFakeRateandErrorandLooseLepIdx(false);
+    // The closure is taken from the statistical uncertainty of the closure test
+    // The closure central values are better than 27% and 28%
+    // electron closure fSumw[1]=1, x=0.5, error=0.279466 
+    // muon closure     fSumw[1]=1, x=0.5, error=0.268032
+    const double el_closure = 0.279466;
+    const double mu_closure = 0.268032;
     tx->setBranch<float>("ffwgt", ffwgt);
     tx->setBranch<float>("ffwgt_up", ffwgt + ffwgterr);
     tx->setBranch<float>("ffwgt_dn", ffwgt - ffwgterr);
+    tx->setBranch<float>("ffwgt_el_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt + ffwgterr : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_el_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt - ffwgterr : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_mu_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 13 ? ffwgt + ffwgterr : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_mu_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 13 ? ffwgt - ffwgterr : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_closure_el_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt + (ffwgt * el_closure) : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_closure_el_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt - (ffwgt * el_closure) : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_closure_mu_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 13 ? ffwgt + (ffwgt * mu_closure) : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_closure_mu_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 13 ? ffwgt - (ffwgt * mu_closure) : ffwgt) : 0);
+    tx->setBranch<float>("ffwgt_closure_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt + (ffwgt * el_closure) : ffwgt + (ffwgt * mu_closure)) : 0);
+    tx->setBranch<float>("ffwgt_closure_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt - (ffwgt * el_closure) : ffwgt - (ffwgt * mu_closure)) : 0);
+    tx->setBranch<float>("ffwgt_full_up", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt + sqrt(pow(ffwgt * el_closure, 2) + pow(ffwgterr, 2)) : ffwgt + sqrt(pow(ffwgt * mu_closure, 2) + pow(ffwgterr, 2))) : 0);
+    tx->setBranch<float>("ffwgt_full_dn", loose_lep_idx >= 0 ? (abs(lep_pdgId[loose_lep_idx]) == 11 ? ffwgt - sqrt(pow(ffwgt * el_closure, 2) + pow(ffwgterr, 2)) : ffwgt - sqrt(pow(ffwgt * mu_closure, 2) + pow(ffwgterr, 2))) : 0);
     tx->setBranch<float>("ffwgtqcd", ffwgtqcd);
     tx->setBranch<float>("ffwgtqcd_up", ffwgtqcd + ffwgtqcderr);
     tx->setBranch<float>("ffwgtqcd_dn", ffwgtqcd - ffwgtqcderr);
@@ -2339,7 +2391,7 @@ bool babyMaker_v2::vetophotonprocess()
 }
 
 //##############################################################################################################
-std::tuple<float, float> babyMaker_v2::getlepFakeRateandError(bool data, int lepton_id_version)
+std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx(bool data, int lepton_id_version)
 {
     // Retrieve relevant variables
     const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
@@ -2351,7 +2403,7 @@ std::tuple<float, float> babyMaker_v2::getlepFakeRateandError(bool data, int lep
     const int& nLlep = tx->getBranch<int>("nLlep");
     const int& nTlep = tx->getBranch<int>("nTlep");
     if ((nLlep - 1) != nTlep)
-        return make_tuple(0., 0.);
+        return make_tuple(0., 0., -1);
 
     // Create an int with -1 or 1 to indicate if 3l or ss event
     int version_control = 1;
@@ -2411,7 +2463,7 @@ std::tuple<float, float> babyMaker_v2::getlepFakeRateandError(bool data, int lep
     }
 
     // return
-    return make_tuple(faker, error);
+    return make_tuple(faker, error, index);
 }
 
 ////##############################################################################################################

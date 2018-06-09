@@ -78,10 +78,15 @@ echo ">>> export COREDIR=$PWD/CORE/"
 export COREDIR=$PWD/CORE/
 echo ">>> ./processBaby dummy ${INPUTFILENAMES} -1"
 INPUTFILES=$(echo ${INPUTFILENAMES} | tr ',' ' ')
+ISDATA=false
+if [[ ${INPUTFILENAMES} == *Run201* ]]; then
+    ISDATA=true
+fi
 INDEX=1
 for file in $INPUTFILES; do
     ./processBaby dummy "$file" -1 ${INDEX} &
     JOBS[${INDEX}]=$!
+    FILES[${INDEX}]="$file"
     INDEX=$((INDEX + 1))
 done
 GOODOUTPUTS=""
@@ -95,24 +100,27 @@ for job in "${JOBS[@]}"; do
     echo ""
     if [ $JOBSTATUS -eq 0 ]; then
         echo ""
-        echo "Job #${INDEX} Success"
+        echo "Job #${INDEX} Success "${FILES[${INDEX}]}
         echo ""
         GOODOUTPUTS="${GOODOUTPUTS} output_${INDEX}.root"
     else
         echo ""
-        echo "Job #${INDEX} Failed"
+        echo "Job #${INDEX} Failed "${FILES[${INDEX}]}
         echo ""
         HASBADJOB=true
     fi
     INDEX=$((INDEX+1))
 done
-#if [ "$HASBADJOB" = false ]; then
-#    hadd -f output.root ${GOODOUTPUTS}
-#else
-#    echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
-#    exit
-#fi
-hadd -f output.root ${GOODOUTPUTS}
+if [ "$ISDATA" = true ]; then
+    if [ "$HASBADJOB" = false ]; then
+        hadd -f output.root ${GOODOUTPUTS}
+    else
+        echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
+        exit
+    fi
+else
+    hadd -f output.root ${GOODOUTPUTS}
+fi
 
 ###################################################################################################
 # ProjectMetis/CondorTask specific (Copying files over to hadoop)

@@ -1,5 +1,5 @@
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:07
+// Created on 2018-06-09 13:17:44
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/data_fakerates.root fr_mu |eta|:ptcorr fakerate_mu_data_baseline_v3_ss
 float fakerate_mu_data_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst=0)
@@ -10,22 +10,22 @@ float fakerate_mu_data_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst
     float ptcorr = std::min((float) 119.88, std::max((float) 9.99, ptcorr_raw)); // minimum values are just below the first bin upper edge
     if ((ptcorr) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.204356357455 + isyst * 0.00598511844991;
-    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0277132801712 + isyst * 0.00245056125839;
-    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.0161800887436 + isyst * 0.0041514934072;
-    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.0114979678765 + isyst * 0.00589098822564;
+    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.204356357455 + isyst * 0.00586995720994;
+    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0277132801712 + isyst * 0.00186925572179;
+    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.0161800887436 + isyst * 0.00270972512824;
+    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.0114979678765 + isyst * 0.00513308462426;
     if ((ptcorr) < 10.0) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0) return 0.288886010647 + isyst * 0.0127739745915;
-    if ((ptcorr) < 30.0) return 0.0452585816383 + isyst * 0.00581986225682;
-    if ((ptcorr) < 40.0) return 0.0291154794395 + isyst * 0.00698790164221;
-    if ((ptcorr) < 120.0) return 0.00676774047315 + isyst * 0.0257779370444;
+    if ((ptcorr) < 25.0) return 0.288886010647 + isyst * 0.0112512738883;
+    if ((ptcorr) < 30.0) return 0.0452585816383 + isyst * 0.00411437188538;
+    if ((ptcorr) < 40.0) return 0.0291154794395 + isyst * 0.00472066609013;
+    if ((ptcorr) < 120.0) return 0.00676774047315 + isyst * 0.0167540756481;
     printf("WARNING in fakerate_mu_data_baseline_v3_ss(): the given phase-space (%f, %f) did not fall under any range!\n", ptcorr, eta); 
     return 1;
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:09
+// Created on 2018-06-09 13:17:46
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/data_fakerates.root fr_el |eta|:ptcorr fakerate_el_data_baseline_v3_ss
 float fakerate_el_data_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst=0)
@@ -36,22 +36,22 @@ float fakerate_el_data_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst
     float ptcorr = std::min((float) 119.88, std::max((float) 9.99, ptcorr_raw)); // minimum values are just below the first bin upper edge
     if ((ptcorr) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.309797137976 + isyst * 0.0280807677176;
-    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0873859301209 + isyst * 0.0157521567581;
-    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.0814895927906 + isyst * 0.0252702661406;
-    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.127881407738 + isyst * 0.0391656773484;
+    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.309797137976 + isyst * 0.0268324851875;
+    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0873859301209 + isyst * 0.0133586249979;
+    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.0814895927906 + isyst * 0.0195733113013;
+    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.127881407738 + isyst * 0.0367197345472;
     if ((ptcorr) < 10.0) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0) return 0.528843224049 + isyst * 0.0758083015827;
-    if ((ptcorr) < 30.0) return 0.20995990932 + isyst * 0.0405970249391;
-    if ((ptcorr) < 40.0) return 0.17086724937 + isyst * 0.0417964601655;
-    if ((ptcorr) < 120.0) return 0.15302914381 + isyst * 0.290736751511;
+    if ((ptcorr) < 25.0) return 0.528843224049 + isyst * 0.0704701613071;
+    if ((ptcorr) < 30.0) return 0.20995990932 + isyst * 0.0342089448609;
+    if ((ptcorr) < 40.0) return 0.17086724937 + isyst * 0.0378647226194;
+    if ((ptcorr) < 120.0) return 0.15302914381 + isyst * 0.185998993334;
     printf("WARNING in fakerate_el_data_baseline_v3_ss(): the given phase-space (%f, %f) did not fall under any range!\n", ptcorr, eta); 
     return 1;
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:10
+// Created on 2018-06-09 13:17:47
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/data_fakerates.root fr_mu3l |eta|:ptcorr fakerate_mu_data_baseline_v3_3l
 float fakerate_mu_data_baseline_v3_3l(float ptcorr_raw, float eta_raw, int isyst=0)
@@ -62,22 +62,22 @@ float fakerate_mu_data_baseline_v3_3l(float ptcorr_raw, float eta_raw, int isyst
     float ptcorr = std::min((float) 119.88, std::max((float) 9.99, ptcorr_raw)); // minimum values are just below the first bin upper edge
     if ((ptcorr) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.483771771193 + isyst * 0.0126579405548;
-    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0631043240428 + isyst * 0.00264010230266;
-    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.040351845324 + isyst * 0.00484221683912;
-    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.0295603014529 + isyst * 0.00583511009667;
+    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.48353227973 + isyst * 0.011442785231;
+    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.0630224868655 + isyst * 0.00227679301314;
+    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.040212508291 + isyst * 0.0032852172247;
+    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.0288660917431 + isyst * 0.00549266204283;
     if ((ptcorr) < 10.0) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0) return 0.706121087074 + isyst * 0.0398454302207;
-    if ((ptcorr) < 30.0) return 0.101466365159 + isyst * 0.00777116693401;
-    if ((ptcorr) < 40.0) return 0.0651293098927 + isyst * 0.00719395246745;
-    if ((ptcorr) < 120.0) return 0.040776450187 + isyst * 0.0258804411309;
+    if ((ptcorr) < 25.0) return 0.705864429474 + isyst * 0.0294177682575;
+    if ((ptcorr) < 30.0) return 0.101365849376 + isyst * 0.00562971648942;
+    if ((ptcorr) < 40.0) return 0.0649619996548 + isyst * 0.00526385712672;
+    if ((ptcorr) < 120.0) return 0.0398565120995 + isyst * 0.0176853537312;
     printf("WARNING in fakerate_mu_data_baseline_v3_3l(): the given phase-space (%f, %f) did not fall under any range!\n", ptcorr, eta); 
     return 1;
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:12
+// Created on 2018-06-09 13:17:49
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/data_fakerates.root fr_el3l |eta|:ptcorr fakerate_el_data_baseline_v3_3l
 float fakerate_el_data_baseline_v3_3l(float ptcorr_raw, float eta_raw, int isyst=0)
@@ -88,22 +88,22 @@ float fakerate_el_data_baseline_v3_3l(float ptcorr_raw, float eta_raw, int isyst
     float ptcorr = std::min((float) 119.88, std::max((float) 9.99, ptcorr_raw)); // minimum values are just below the first bin upper edge
     if ((ptcorr) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.429381877184 + isyst * 0.0345341449854;
-    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.131725862622 + isyst * 0.014200944522;
-    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.133456870914 + isyst * 0.0223997182554;
-    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.226245865226 + isyst * 0.0312229753175;
+    if ((ptcorr) < 25.0 && fabs(eta) < 1.6) return 0.421735733747 + isyst * 0.0299751021681;
+    if ((ptcorr) < 30.0 && fabs(eta) < 1.6) return 0.126379713416 + isyst * 0.0121868417559;
+    if ((ptcorr) < 40.0 && fabs(eta) < 1.6) return 0.119257897139 + isyst * 0.0173315435036;
+    if ((ptcorr) < 120.0 && fabs(eta) < 1.6) return 0.180079296231 + isyst * 0.0304947451864;
     if ((ptcorr) < 10.0) return 0.0 + isyst * 0.0;
     if ((ptcorr) < 20.0) return 0.0 + isyst * 0.0;
-    if ((ptcorr) < 25.0) return 0.756604075432 + isyst * 0.0845161460393;
-    if ((ptcorr) < 30.0) return 0.340676218271 + isyst * 0.04895841245;
-    if ((ptcorr) < 40.0) return 0.30008906126 + isyst * 0.0308111959714;
-    if ((ptcorr) < 120.0) return 0.597102105618 + isyst * 0.208363805778;
+    if ((ptcorr) < 25.0) return 0.749650001526 + isyst * 0.0747893754887;
+    if ((ptcorr) < 30.0) return 0.335791289806 + isyst * 0.0372068455554;
+    if ((ptcorr) < 40.0) return 0.28735268116 + isyst * 0.0305755165904;
+    if ((ptcorr) < 120.0) return 0.53127849102 + isyst * 0.141100381585;
     printf("WARNING in fakerate_el_data_baseline_v3_3l(): the given phase-space (%f, %f) did not fall under any range!\n", ptcorr, eta); 
     return 1;
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:13
+// Created on 2018-06-09 13:17:50
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/qcd_fakerates.root qcdmu |eta|:ptcorr fakerate_mu_qcd_baseline_v3_ss
 float fakerate_mu_qcd_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst=0)
@@ -129,7 +129,7 @@ float fakerate_mu_qcd_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst=
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-06-02 09:36:15
+// Created on 2018-06-09 13:17:52
 // Created by the command:
 //   > rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/Loopers/Analysis/FakeRate/qcd_fakerates.root qcdel |eta|:ptcorr fakerate_el_qcd_baseline_v3_ss
 float fakerate_el_qcd_baseline_v3_ss(float ptcorr_raw, float eta_raw, int isyst=0)

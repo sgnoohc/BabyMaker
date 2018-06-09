@@ -214,7 +214,7 @@ public:
     tuple<bool, int, int> isSSCR();
 
     // special weights
-    std::tuple<float, float> getlepFakeRateandError(bool data, int version=2);
+    std::tuple<float, float, int> getlepFakeRateandErrorandLooseLepIdx(bool data, int version=2);
     std::tuple<float, float> getlepSFandError(int index, int lepton_id_version=2);
     std::tuple<float, float> getlepSFWeightandError(int lepton_id_version=2);
     static std::tuple<float, float> getCombinedTrigEffandError(float, float, float, float, float, float, float, float);
