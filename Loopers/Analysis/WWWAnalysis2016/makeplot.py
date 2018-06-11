@@ -13,6 +13,9 @@ samples = TQSampleFolder.loadSampleFolder("output_sf_applied.root:samples")
 
 output_plot_dir = "plots"
 
+# Categories
+# VBSWW, ttW, ttZ, WZ, Other
+
 #_____________________________________________________________________________________
 def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
     # Options
@@ -34,6 +37,37 @@ def plot(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
              samples.getHistogram("/bkg/Z", histname).Clone("Z") ]
     data =   samples.getHistogram("/data", histname).Clone("Data")
     colors = [ 2005, 2001, 2012, 2003, 920, 2007 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plot_mainprocess(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    # Options
+    alloptions= {
+                "ratio_range":[0.0,2.0],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.8,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_mainprocess.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
+                }
+    alloptions.update(options)
+    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    bgs  = [ 
+             samples.getHistogram("/typebkg/?/Other", histname).Clone("Other"),
+             samples.getHistogram("/typebkg/?/ttZ", histname).Clone("ttZ"),
+             samples.getHistogram("/typebkg/?/ttW", histname).Clone("ttW"),
+             samples.getHistogram("/typebkg/?/WZ", histname).Clone("WZ"),
+             samples.getHistogram("/typebkg/?/VBSWW", histname).Clone("VBSWW"),
+             ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 920, 2007, 2005, 2003, 2001 ]
     plotfunc(
             sigs = sigs,
             bgs  = bgs,
@@ -84,6 +118,7 @@ def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot
                 "legend_scaley": 1.1,
                 "output_name": "{}/{}_frmethod.pdf".format(output_plot_dir, output_name),
                 "bkg_sort_method": "unsorted",
+                #"signal_scale": 2
                 }
     alloptions.update(options)
     # Fake background
@@ -154,7 +189,12 @@ def plotall(histnames):
         hfilename = hfilename.replace("}", "_")
 
         # Plotting by bkg type
-        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":20, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        jobs.append(proc)
+        proc.start()
+
+        # Plotting by bkg type
+        proc = multiprocessing.Process(target=plot_mainprocess, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
         jobs.append(proc)
         proc.start()
 
@@ -165,7 +205,7 @@ def plotall(histnames):
 
         # Plotting by bkg type and fakes are estimated from data
         if dofrmethod(hname):
-            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":20, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
@@ -181,22 +221,45 @@ if __name__ == "__main__":
 
     histnames = samples.getListOfHistogramNames()
     histnames = []
-    histnames = []
-    #histnames.extend(["SRSSmmFull/lep_pt1"])
 
-    #histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
-    #histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
+    histnames.extend(["{WZCRSSeeFull,WZCRSSemFull,WZCRSSmmFull,WZCR1SFOSFull,WZCR2SFOSFull}"])
+    histnames.extend(["{WZCRSSeePre,WZCRSSemPre,WZCRSSmmPre,WZCR1SFOSPre,WZCR2SFOSPre}"])
+
+    histnames.extend(["{ARSSeePre,ARSSemPre,ARSSmmPre,ARSideSSeePre,ARSideSSemPre,ARSideSSmmPre,AR0SFOSPre,AR1SFOSPre,AR2SFOSPre}"])
+    histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
+
+    histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+
+    histnames.extend(["{GCR0SFOSPre}"])
+
+    histnames.extend(["{VBSCRSSeeFull,VBSCRSSemFull,VBSCRSSmmFull}"])
+
     histnames.extend(["{LMETCRSSeeFull,LMETCRSSemFull,LMETCRSSmmFull}"])
-    histnames.extend(["{LMETWZCRSSeeFull,LMETWZCRSSemFull,LMETWZCRSSmmFull}"])
+
+    histnames.extend(["{BTCRSSeeFull,BTCRSSemFull,BTCRSSmmFull,BTCRSideSSeeFull,BTCRSideSSemFull,BTCRSideSSmmFull,BTCR0SFOSFull,BTCR1SFOSFull,BTCR2SFOSFull}"])
+    histnames.extend(["{BTCRSSeePre,BTCRSSemPre,BTCRSSmmPre,BTCR0SFOSPre,BTCR1SFOSPre,BTCR2SFOSPre}"])
+
+    histnames.extend(["{BTWZCRSSeeFull,BTWZCRSSemFull,BTWZCRSSmmFull}"])
+
+    histnames.extend(["{TTWCRSSeePre,TTWCRSSemPre,TTWCRSSmmPre}"])
+
+    histnames.extend(["SRSSemPre/Mjj+SRSSmmPre/Mjj"])
+    histnames.extend(["SRSSeePre/Mjj+SRSSemPre/Mjj+SRSSmmPre/Mjj"])
+    histnames.extend(["SRSSmmPre/Mjj"])
+    histnames.extend(["SRSSmmPre/Mjj"])
+    histnames.extend(["SR0SFOSMET/MTmax3L"])
+    histnames.extend(["SR0SFOSZVt/MTmax3L"])
+    histnames.extend(["SR1SFOSZVt/MT3rd"])
+
+    histnames.extend(["SideSSmmMjj/MjjVBF"])
+    histnames.extend(["SideSSmmMjj/DetajjVBF"])
+
     #histnames.extend(["{SRSSeeFull,SideSSeeFull,SRSSemFull,SideSSemFull,SRSSmmFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
-    #histnames.extend(["{WZCRSSeeFull,WZCRSSemFull,WZCRSSmmFull,WZCR1SFOSFull,WZCR2SFOSFull}"])
-    #histnames.extend(["{BTCRSSeeFull,BTCRSSemFull,BTCRSSmmFull,BTCR0SFOSFull,BTCR1SFOSFull,BTCR2SFOSFull,BTCRSideSSeeFull,BTCRSideSSemFull,BTCRSideSSmmFull}"])
     #histnames.extend(["{SRSSeePre,SRSSemPre,SRSSmmPre,SR0SFOSPre,SR1SFOSPre,SR2SFOSPre,SideSSeePre,SideSSemPre,SideSSmmPre}"])
     #histnames.extend(["{SRSSeePre,SideSSeePre,SRSSemPre,SideSSemPre,SRSSmmPre,SideSSmmPre,SR0SFOSPre,SR1SFOSPre,SR2SFOSPre}"])
     #histnames.extend(["{ARSSeePre,ARSSemPre,ARSSmmPre,AR0SFOSPre,AR1SFOSPre,AR2SFOSPre,ARSideSSeePre,ARSideSSemPre,ARSideSSmmPre}"])
     #histnames.extend(["{WZCRSSeePre,WZCRSSemPre,WZCRSSmmPre,WZCR1SFOSPre,WZCR2SFOSPre}"])
     #histnames.extend(["{BTCRSSeePre,BTCRSSemPre,BTCRSSmmPre,BTCR0SFOSPre,BTCR1SFOSPre,BTCR2SFOSPre,BTCRSideSSeePre,BTCRSideSSemPre,BTCRSideSSmmPre}"])
-    #histnames.extend(["{GCR0SFOSPre}"])
     #histnames.extend(["GCR0SFOSPre/M3l"])
     #histnames.extend(["GCR0SFOSPre/MET"])
     #histnames.extend(["GCR0SFOSPre/Pt3l"])
@@ -221,4 +284,5 @@ if __name__ == "__main__":
     #histnames.extend(["BTCRSSeeNbgeq1/MET"])
     #histnames.extend(["BTCRSSemNbgeq1/MET"])
     #histnames.extend(["BTCRSSmmNbgeq1/MET"])
+
     plotall(histnames)
