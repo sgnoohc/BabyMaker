@@ -229,6 +229,7 @@ if __name__ == "__main__":
     histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
 
     histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+    histnames.extend(["{SRSSeeFullFakeUp,SRSSemFullFakeUp,SRSSmmFullFakeUp,SideSSeeFullFakeUp,SideSSemFullFakeUp,SideSSmmFullFakeUp,SR0SFOSFullFakeUp,SR1SFOSFullFakeUp,SR2SFOSFullFakeUp}"])
 
     histnames.extend(["{GCR0SFOSPre}"])
 

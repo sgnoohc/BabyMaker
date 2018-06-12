@@ -128,7 +128,9 @@ private:
     TTree* t_photon;
     TTree* t_lostlep;
     TTree* t_fakes;
+    TH1F* h_neventsinfile;
     RooUtil::TTreeX* tx;
+    RooUtil::Looper<CMS3> looper;
 
     std::string filename;
 

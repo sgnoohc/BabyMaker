@@ -10,7 +10,7 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 {
 
     // Looper
-    RooUtil::Looper<CMS3> looper(chain, &cms3, max_events);
+    looper.init(chain, &cms3, max_events);
     looper.setSilent(); // The coreJec.setJECFor function will clash with progress bar otherwise.
 
     // Output root file
@@ -75,7 +75,7 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 void babyMaker_v2::CreateOutput(int index)
 {
     ofile = new TFile(Form("output_%d.root", index), "recreate");
-    t         = new TTree("t", "All events");
+    t = new TTree("t", "All events");
     tx = new RooUtil::TTreeX(t);
 
     tx->createBranch<Int_t>("run");
@@ -325,7 +325,24 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("trigsf_up");
     tx->createBranch<float>("trigsf_dn");
 
+    tx->createBranch<float>("weight_fr_r1_f1");
+    tx->createBranch<float>("weight_fr_r1_f2");
+    tx->createBranch<float>("weight_fr_r1_f0p5");
+    tx->createBranch<float>("weight_fr_r2_f1");
+    tx->createBranch<float>("weight_fr_r2_f2");
+    tx->createBranch<float>("weight_fr_r2_f0p5");
+    tx->createBranch<float>("weight_fr_r0p5_f1");
+    tx->createBranch<float>("weight_fr_r0p5_f2");
+    tx->createBranch<float>("weight_fr_r0p5_f0p5");
+    tx->createBranch<float>("weight_pdf_up");
+    tx->createBranch<float>("weight_pdf_down");
+    tx->createBranch<float>("weight_alphas_down");
+    tx->createBranch<float>("weight_alphas_up");
+
     tx->clear();
+
+    h_neventsinfile = new TH1F("h_neventsinfile", "", 15, 0, 15);
+    h_neventsinfile->SetBinContent(1, looper.getTChain()->GetEntries()); // this is the bin with value = 0
 }
 
 
@@ -341,18 +358,8 @@ void babyMaker_v2::SaveOutput()
     t_qflip   = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"chargeflips\")");
     t_photon  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"photonfakes\")");
     t_fakes   = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*(bkgtype==\"fakes\")");
-    if (filename.find("wz_") == 0) // to check whether it is a WZ sample
-    {
-        // This is so that the majority of WZ events go to "lostlep" category
-        // This way the histogram can share the same color across SS and 3L to more or less indicate "WZ" bkg
-        t_prompt  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&bkgtype==\"trueWWW\"))");
-        t_lostlep = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&(bkgtype==\"3lLL\"||bkgtype==\"true3L\")))");
-    }
-    else
-    {
-        t_prompt  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&(bkgtype==\"true3L\"||bkgtype==\"trueWWW\")))");
-        t_lostlep = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&bkgtype==\"3lLL\"))");
-    }
+    t_prompt  = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"trueSS\")||(nVlep>=3&&bkgtype==\"trueWWW\"))");
+    t_lostlep = t->CopyTree("((nVlep>=3)||((nVlep==2)&&(lep_pdgId[0]*lep_pdgId[1]>0)))*((nVlep==2&&bkgtype==\"SSLL\")||(nVlep>=3&&(bkgtype==\"3lLL\"||bkgtype==\"true3L\")))");
 
     t_os->SetName("t_os");
     t_ss->SetName("t_ss");
@@ -381,6 +388,8 @@ void babyMaker_v2::SaveOutput()
     t_fakes->Write();
     t_prompt->Write();
     t_lostlep->Write();
+
+    h_neventsinfile->Write();
 }
 
 //##############################################################################################################
@@ -736,6 +745,9 @@ void babyMaker_v2::FillOutput()
     // Fill summary variables
     FillSummaryVariables();
 
+    // Fill Weights
+    FillWeights();
+
     // Fill TTree (NOTE: also clears internal variables)
     FillTTree();
 }
@@ -755,10 +767,8 @@ void babyMaker_v2::FillEventInfo()
     else
     {
         float scale1fb = coreDatasetInfo.getScale1fb();
-        //if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.066805 * 91900.  / (91900. + 164800.);
-        //if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.066805 * 164800. / (91900. + 164800.);
-        if (filename.find("www_2l_mia")      != string::npos) scale1fb = 1;
-        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb = 1;
+        if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.066805 * 91900.  / (91900. + 164800.);
+        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.066805 * 164800. / (91900. + 164800.);
         tx->setBranch<float>("evt_scale1fb", scale1fb);
         tx->setBranch<int>("evt_passgoodrunlist", true);
     }
@@ -1269,7 +1279,6 @@ void babyMaker_v2::FillSummaryVariables()
     FillJetVariables(-1);
     FillLeptonVariables();
     FillEventTags();
-    FillWeights();
 }
 
 //##############################################################################################################
@@ -1795,6 +1804,54 @@ void babyMaker_v2::FillWeights()
         tx->setBranch<float>("trigsf", 1);
         tx->setBranch<float>("trigsf_up", 1);
         tx->setBranch<float>("trigsf_dn", 1);
+    }
+
+    // scale pdf variation
+    if (!cms3.evt_isRealData())
+    {
+        float sum_of_pdf_weights = 0;
+        float average_of_pdf_weights = 0;
+        //error on pdf replicas
+        if (cms3.genweights().size() > 110)
+        {
+            // average of weights
+            for (int ipdf = 9; ipdf < 109; ipdf++)
+            {
+                average_of_pdf_weights += cms3.genweights().at(ipdf);
+            }
+            average_of_pdf_weights =  average_of_pdf_weights / 100;
+            //std of weights.
+            for (int ipdf = 9; ipdf < 109; ipdf++)
+            {
+                sum_of_pdf_weights += (cms3.genweights().at(ipdf) - average_of_pdf_weights) * (cms3.genweights().at(ipdf) - average_of_pdf_weights);
+            }
+            tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[0]);
+            tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[1]);
+            tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[2]);
+            tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[3]);
+            tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[4]);
+            tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[5]);
+            tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[6]);
+            tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[7]);
+            tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[8]);
+            tx->setBranch<float>("weight_pdf_up", (average_of_pdf_weights + sqrt(sum_of_pdf_weights / 99)));
+            tx->setBranch<float>("weight_pdf_down", (average_of_pdf_weights - sqrt(sum_of_pdf_weights / 99)));
+            tx->setBranch<float>("weight_alphas_down", cms3.genweights()[109]);
+            tx->setBranch<float>("weight_alphas_up", cms3.genweights()[110]);
+            h_neventsinfile->Fill(1, tx->getBranch<float>("weight_fr_r1_f1"));
+            h_neventsinfile->Fill(2, tx->getBranch<float>("weight_fr_r1_f2"));
+            h_neventsinfile->Fill(3, tx->getBranch<float>("weight_fr_r1_f0p5"));
+            h_neventsinfile->Fill(4, tx->getBranch<float>("weight_fr_r2_f1"));
+            h_neventsinfile->Fill(5, tx->getBranch<float>("weight_fr_r2_f2"));
+            h_neventsinfile->Fill(6, tx->getBranch<float>("weight_fr_r2_f0p5"));
+            h_neventsinfile->Fill(7, tx->getBranch<float>("weight_fr_r0p5_f1"));
+            h_neventsinfile->Fill(8, tx->getBranch<float>("weight_fr_r0p5_f2"));
+            h_neventsinfile->Fill(9, tx->getBranch<float>("weight_fr_r0p5_f0p5"));
+            h_neventsinfile->Fill(10, tx->getBranch<float>("weight_pdf_up"));
+            h_neventsinfile->Fill(11, tx->getBranch<float>("weight_pdf_down"));
+            h_neventsinfile->Fill(12, tx->getBranch<float>("weight_alphas_down"));
+            h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
+        }
     }
 }
 

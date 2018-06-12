@@ -6,6 +6,34 @@ import ROOT
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob, TQHWWPlotter, TQEventlistAnalysisJob
 from rooutil.qutils import *
 
+# Systematic variations as dictionary
+systvars = {
+        "LepSFUp"           : "lepsf_up/lepsf",
+        "LepSFDown"         : "lepsf_dn/lepsf",
+        "TrigSFUp"          : "trigsf_up/trigsf",
+        "TrigSFDown"        : "trigsf_dn/trigsf",
+        "BTagLFUp"          : "weight_btagsf_light_UP/weight_btagsf",
+        "BTagLFDown"        : "weight_btagsf_light_DN/weight_btagsf",
+        "BTagHFUp"          : "weight_btagsf_heavy_UP/weight_btagsf",
+        "BTagHFDown"        : "weight_btagsf_heavy_DN/weight_btagsf",
+        "PileupUp"          : "purewgt_up/purewgt",
+        "PileupDown"        : "purewgt_dn/purewgt",
+        "FakeUp"            : "{$(usefakeweight)?ffwgt_full_up/ffwgt:1}",
+        "FakeDown"          : "{$(usefakeweight)?ffwgt_full_dn/ffwgt:1}",
+        "FakeRateUp"        : "{$(usefakeweight)?ffwgt_up/ffwgt:1}",
+        "FakeRateDown"      : "{$(usefakeweight)?ffwgt_dn/ffwgt:1}",
+        "FakeRateElUp"      : "{$(usefakeweight)?ffwgt_el_up/ffwgt:1}",
+        "FakeRateElDown"    : "{$(usefakeweight)?ffwgt_el_dn/ffwgt:1}",
+        "FakeRateMuUp"      : "{$(usefakeweight)?ffwgt_mu_up/ffwgt:1}",
+        "FakeRateMuDown"    : "{$(usefakeweight)?ffwgt_mu_dn/ffwgt:1}",
+        "FakeClosureUp"     : "{$(usefakeweight)?ffwgt_closure_up/ffwgt:1}",
+        "FakeClosureDown"   : "{$(usefakeweight)?ffwgt_closure_dn/ffwgt:1}",
+        "FakeClosureElUp"   : "{$(usefakeweight)?ffwgt_closure_el_up/ffwgt:1}",
+        "FakeClosureElDown" : "{$(usefakeweight)?ffwgt_closure_el_dn/ffwgt:1}",
+        "FakeClosureMuUp"   : "{$(usefakeweight)?ffwgt_closure_mu_up/ffwgt:1}",
+        "FakeClosureMuDown" : "{$(usefakeweight)?ffwgt_closure_mu_dn/ffwgt:1}",
+        }
+
 def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",btagsfvar_suffix=""): #define _up _dn etc.
 
     #
@@ -84,7 +112,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # Define same-sign dielectron region cut hierarchy structure
     tqcuts["SRDilep"]      .addCut( tqcuts["SRSSee"]        ) 
     tqcuts["SRSSee"]       .addCut( tqcuts["SRSSeeZeeVt"]   ) 
-    tqcuts["SRSSeeZeeVt"]  .addCut( tqcuts["SRSSeeTVeto"]    ) 
+    tqcuts["SRSSeeZeeVt"]  .addCut( tqcuts["SRSSeeTVeto"]   ) 
     tqcuts["SRSSeeTVeto"]  .addCut( tqcuts["SRSSeeNj2"]     ) 
     tqcuts["SRSSeeNj2"]    .addCut( tqcuts["SRSSeeNb0"]     ) 
     tqcuts["SRSSeeNb0"]    .addCut( tqcuts["SRSSeePre"]     ) 
@@ -93,18 +121,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     tqcuts["SRSSeeMjjL"]   .addCut( tqcuts["SRSSeeDetajjL"] ) 
     tqcuts["SRSSeeDetajjL"].addCut( tqcuts["SRSSeeMET"]     ) 
     tqcuts["SRSSeeMET"]    .addCut( tqcuts["SRSSeeMllSS"]   ) 
-    tqcuts["SRSSeeMllSS"]  .addCut( tqcuts["SRSSeeFull"]   ) 
-
-#    tqcuts["SRSSeeFullLepSFUp"]    = TQCut("SRSSeeFullLepSFUp"    , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullLepSFDown"]  = TQCut("SRSSeeFullLepSFDown"  , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullTrigSFUp"]   = TQCut("SRSSeeFullTrigSFUp"   , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullTrigSFDown"] = TQCut("SRSSeeFullTrigSFDown" , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullBTagLFUp"]   = TQCut("SRSSeeFullBTagLFUp"   , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullBTagLFDown"] = TQCut("SRSSeeFullBTagLFDown" , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullBTagHFUp"]   = TQCut("SRSSeeFullBTagHFUp"   , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullBTagHFDown"] = TQCut("SRSSeeFullBTagHFDown" , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullPileUpUp"]   = TQCut("SRSSeeFullPileUpUp"   , "SR-ee" , "1" , "1")
-#    tqcuts["SRSSeeFullPileUpDown"] = TQCut("SRSSeeFullPileUpDown" , "SR-ee" , "1" , "1")
+    tqcuts["SRSSeeMllSS"]  .addCut( tqcuts["SRSSeeFull"]    ) 
 
     #____________________________________________________________________________________________________________________________________________________________________________
     #
@@ -609,6 +626,19 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # Then add it to Presel
     tqcuts["SRTrilep"].addCut(tqcuts["GCR0SFOS"])
 
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # Add weight variation systematics
+    #
+    addWeightSystematics(tqcuts["SRSSeeFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SRSSemFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SRSSmmFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSeeFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSemFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSmmFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR0SFOSFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR1SFOSFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR2SFOSFull"], systvars, tqcuts)
 
     # Return the "Root node" which holds all cuts in a tree structure
     return tqcuts["Presel"]

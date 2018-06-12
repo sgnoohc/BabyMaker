@@ -92,6 +92,7 @@ done
 GOODOUTPUTS=""
 INDEX=1
 HASBADJOB=false
+NFAILED=0
 for job in "${JOBS[@]}"; do
     wait $job
     JOBSTATUS=$?
@@ -108,6 +109,7 @@ for job in "${JOBS[@]}"; do
         echo "Job #${INDEX} Failed "${FILES[${INDEX}]}
         echo ""
         HASBADJOB=true
+        NFAILED=$((NFAILED+1))
     fi
     INDEX=$((INDEX+1))
 done
@@ -115,11 +117,18 @@ if [ "$ISDATA" = true ]; then
     if [ "$HASBADJOB" = false ]; then
         hadd -f output.root ${GOODOUTPUTS}
     else
-        echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
+        echo "[ERROR::HASBADJOB] This is a data sample. So it is pertinent to have EVERY job succeed."
+        echo "[ERROR::HASBADJOB] This set of job has ${NFAILED} failed job. So will not produce output.root nor copy it to hadoop."
         exit
     fi
 else
-    hadd -f output.root ${GOODOUTPUTS}
+    if [ ${NFAILED} -le 1 ]; then
+        hadd -f output.root ${GOODOUTPUTS}
+    else
+        echo "[ERROR::HASBADJOB] This is a MC sample. so it is less pertinent to have EVERY job succeed."
+        echo "[ERROR::HASBADJOB] This set of job has ${NFAILED} failed job more than 1. So will not produce output.root nor copy it to hadoop."
+        exit
+    fi
 fi
 
 ###################################################################################################
@@ -179,9 +188,9 @@ else
         fi
     fi
     if [ $? -eq 0 ]; then
-        echo "Job Success"
+        echo "Hadoop Copy Job Success"
     else
-        echo "Job Failed"
+        echo "HAdoop Copy Job Failed"
     fi
     date
 fi
