@@ -28,6 +28,7 @@ job_tag = "WWW_v1.0.25" # Added smearing and fakerate, took out a few unnecessar
 job_tag = "WWW_v1.0.26" # Resubmitting 25 with ffwgt variable fixed Also the tight and loose pt cuts are adjusted in preselection and counting
 job_tag = "WWW_v1.0.27" # Failed campaign
 job_tag = "WWW_v1.0.28" # B-tagging loose v. medium scale factor fix. ffwgt error fixed. closure error added. tight ss pt changed to 25.
+job_tag = "WWW_v1.0.29" # There was a bug that got created due to veto leptons being included in the lepton container.
 
 #job_tag = "WWW_v1.1.0" # Including single leptons with QCD samples (W, ttbar, QCD only) version for closure
 #job_tag = "WWW_v1.1.1" # Included MediumPOG ID (W, ttbar, QCD only) for closure
