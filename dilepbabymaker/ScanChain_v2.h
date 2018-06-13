@@ -223,6 +223,8 @@ public:
     std::tuple<float, float> getTrigEffandError(int lepton_id_version=2);
     std::tuple<float, float> getTrigSFandError(int lepton_id_version=2);
 
+    void FATALERROR(const char* funcname="");
+
 };
 
 

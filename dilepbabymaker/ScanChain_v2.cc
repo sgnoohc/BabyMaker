@@ -494,7 +494,7 @@ bool babyMaker_v2::PassPresel_v1()
     }
     else
     {
-        cout << "FATAL ERROR: I Should never be here!" << endl;
+        FATALERROR(__FUNCTION__);
         return false;
     }
 }
@@ -697,7 +697,7 @@ bool babyMaker_v2::PassPresel_v3()
     }
     else
     {
-        cout << "FATAL ERROR: I Should never be here!" << endl;
+        FATALERROR(__FUNCTION__);
         return false;
     }
 }
@@ -792,16 +792,16 @@ void babyMaker_v2::FillElectrons()
         float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ? eleRelIso03EA(idx, 2, true) - 0.03: eleRelIso03EA(idx, 2, true) - 0.05;
         float conecorrptfactor = max(0., (double) conecorrptfactorraw) + 1.; // To clip correcting once it passes tight isolation criteria
 
-//        if (coreElectron.index.size() + coreMuon.index.size() == 2)
-//        {
-//            if (!( passElectronSelection_VVV(idx, VVV_FO_SS) ))
-//                continue;
-//        }
-//        else if (coreElectron.index.size() + coreMuon.index.size() > 2)
-//        {
-//            if (!( passElectronSelection_VVV(idx, VVV_FO_3L) ))
-//                continue;
-//        }
+        if (coreElectron.index.size() + coreMuon.index.size() == 2)
+        {
+            if (!( passElectronSelection_VVV(idx, VVV_FO_SS) ))
+                continue;
+        }
+        else if (coreElectron.index.size() + coreMuon.index.size() > 2)
+        {
+            if (!( passElectronSelection_VVV(idx, VVV_FO_3L) ))
+                continue;
+        }
 
         tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.els_p4()[idx]);
         tx->pushbackToBranch<float>         ("lep_pt"                           , cms3.els_p4()[idx].pt());
@@ -891,16 +891,16 @@ void babyMaker_v2::FillMuons()
         float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ? muRelIso03EA(idx, 2, true) - 0.03: muRelIso03EA(idx, 2, true) - 0.07;
         float conecorrptfactor = max(0., (double) conecorrptfactorraw) + 1.; // To clip correcting once it passes tight isolation criteria
 
-//        if (coreMuon.index.size() + coreMuon.index.size() == 2)
-//        {
-//            if (!( passMuonSelection_VVV(idx, VVV_FO_SS) ))
-//                continue;
-//        }
-//        else if (coreMuon.index.size() + coreMuon.index.size() > 2)
-//        {
-//            if (!( passMuonSelection_VVV(idx, VVV_FO_3L) ))
-//                continue;
-//        }
+        if (coreMuon.index.size() + coreMuon.index.size() == 2)
+        {
+            if (!( passMuonSelection_VVV(idx, VVV_FO_SS) ))
+                continue;
+        }
+        else if (coreMuon.index.size() + coreMuon.index.size() > 2)
+        {
+            if (!( passMuonSelection_VVV(idx, VVV_FO_3L) ))
+                continue;
+        }
 
         tx->pushbackToBranch<LorentzVector> ("lep_p4"                           , cms3.mus_p4()[idx]);
         tx->pushbackToBranch<float>         ("lep_pt"                           , cms3.mus_p4()[idx].pt());
@@ -2015,7 +2015,7 @@ tuple<bool, int, int> babyMaker_v2::isSSCR()
     }
     else
     {
-        cout << "FATAL ERROR: I Should never be here!" << endl;
+        FATALERROR(__FUNCTION__);
         return make_tuple(false, -1, -1);
     }
 }
@@ -2484,7 +2484,17 @@ std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx
 
     // Sanity check
     if (index < 0)
-        cout << "FATAL ERROR: I should never be here" << endl;
+    {
+        std::cout <<  " passCount(tx->getBranch<vector<int>>('lep_pass_VVV_cutbased_3l_fo')): " << passCount(tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_3l_fo")) <<  std::endl;
+        std::cout <<  " nVlep: " << nVlep <<  std::endl;
+        vector<int> el_idx = coreElectron.index;
+        vector<int> mu_idx = coreMuon.index;
+        std::cout <<  " el_idx.size(): " << el_idx.size() <<  " mu_idx.size(): " << mu_idx.size() <<  std::endl;
+        std::cout <<  " isloose.size(): " << isloose.size() <<  std::endl;
+        for (int ilep = 0; ilep < nVlep; ++ilep)
+            std::cout <<  " istight[ilep]: " << istight[ilep] <<  " isloose[ilep]: " << isloose[ilep] <<  std::endl;
+        FATALERROR(__FUNCTION__);
+    }
 
     // Variables to read out fake rate
     float error = 0;
@@ -3076,5 +3086,12 @@ bool babyMaker_v2::isVetoElectronNoIso_OldVersion(int idx)
     return true;
 }
 
+//##############################################################################################################
+// FATAL error code
+void babyMaker_v2::FATALERROR(const char* funcname)
+{
+    std::cout <<  " cms3.evt_run(): " << cms3.evt_run() <<  " cms3.evt_lumiBlock(): " << cms3.evt_lumiBlock() <<  " cms3.evt_event(): " << cms3.evt_event() <<  std::endl;
+    cout << "FATAL ERROR: I Should never be here! In function : " << funcname << endl;
+}
 
 //eof

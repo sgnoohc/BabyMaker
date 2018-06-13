@@ -235,5 +235,6 @@ int main(int argc, char **argv)
 //    looper->ScanChain(chain, sample, max_events);
     babyMaker_v2 *looper = new babyMaker_v2();
     looper->ScanChain_v2(chain, sample, max_events, index, verbose);
+    delete looper;
     return 0;
 }
