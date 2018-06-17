@@ -4,10 +4,12 @@ import os
 import sys
 import ROOT
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob
-from qutils import *
+from rooutil.qutils import *
+from errors import E
 
 ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("output.root:samples")
+
 
 ########################################################################################
 def addProcesses(printer, showdata, prettyversion=True):
@@ -87,9 +89,56 @@ def printCutflow(samples, regionname):
     table.writeLaTeX("cutflows/{}.tex".format(regionname))
     table.writePlain("cutflows/{}.txt".format(regionname))
 
+########################################################################################
+#_______________________________________________________________________________
+# Supports only printing out by process boundaries
+def printCutflowSSWZExtrapolation(samples):
+    regionname = "WZCRExp"
+    printer = TQCutflowPrinter(samples)
+    printer.addCutflowCut("[CutSSWZeeMllSS+CutSSWZemMllSS+CutSSWZmmMllSS]", "inclusive", True)
+    printer.addCutflowCut("[CutSSWZeeMjjWin+CutSSWZemMjjWin+CutSSWZmmMjjWin]"   , "SSWZ Mjj in" , True)
+    printer.addCutflowCut("[CutSSWZeeMjjWout+CutSSWZemMjjWout+CutSSWZmmMjjWout]", "SSWZ Mjj out", True)
+    printer.addCutflowCut("CutSSeeMllSS", "ee sr", True)
+    printer.addCutflowCut("CutSSWZeeMllSS", "ee inclusive", True)
+    printer.addCutflowCut("CutSSemMllSS", "em sr", True)
+    printer.addCutflowCut("CutSSWZemMllSS", "em inclusive", True)
+    printer.addCutflowCut("CutSSmmMllSS", "mm sr", True)
+    printer.addCutflowCut("CutSSWZmmMllSS", "mm inclusive", True)
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/sig/whwww", "WHWWW")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/sig", "WWW")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/lostlep", "Lost-lep (MC)")
+    printer.addCutflowProcess("/data-typebkg/fakes-typebkg/prompt-typebkg/qflip-typebkg/photon", "Lost-lep (data)")
+    printer.addCutflowProcess("|", "|")
+    printer.addCutflowProcess("/typebkg/?", "Bkg. (MC)")
+    #printer.addCutflowProcess("/data", "Data")
+    #printer.addCutflowProcess("$ratio(/data,/bkg)", "Ratio")
+
+    printer.addCutflowCut("dummy", "TF-ee {}".format(QE(samples,"/typebkg/lostlep","CutSSeeMllSS") / QE(samples,"/typebkg/lostlep","CutSSWZeeMllSS")), True)
+    printer.addCutflowCut("dummy", "TF-em {}".format(QE(samples,"/typebkg/lostlep","CutSSemMllSS") / QE(samples,"/typebkg/lostlep","CutSSWZemMllSS")), True)
+    printer.addCutflowCut("dummy", "TF-mm {}".format(QE(samples,"/typebkg/lostlep","CutSSmmMllSS") / QE(samples,"/typebkg/lostlep","CutSSWZmmMllSS")), True)
+
+    table = printer.createTable("style.firstColumnAlign=l")
+
+    path = "cutflows/"
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    table.writeCSV("cutflows/{}.csv".format(regionname))
+    table.writeHTML("cutflows/{}.html".format(regionname))
+    table.writeLaTeX("cutflows/{}.tex".format(regionname))
+    table.writePlain("cutflows/{}.txt".format(regionname))
+
 
 # Print cutflow table
 printCutflow(samples, "SS")
+printCutflowSSWZExtrapolation(samples)
 #blind(samples)
 #printSummaryCutflow(samples)
 #printCutflow(samples, "SSee")
