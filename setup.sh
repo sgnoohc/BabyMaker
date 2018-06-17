@@ -8,7 +8,7 @@ echo "Grabbing Dependancies..."
 
 git clone git@github.com:sgnoohc/CORE.git
 cd CORE/
-git checkout 2017
+git checkout origin/2017
 cd ..
 
 echo "git checkout submodules"
