@@ -22,7 +22,7 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.28/skim/", "<-1")
+    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.29/skim/", "<-1")
 
     #
     #
@@ -120,13 +120,13 @@ def main(index):
     TH1F('lep_relIso03EAv2Lep2' , '' , 180 , 0.0 , 0.2 ) << (lep_relIso03EAv2Lep[2] : 'I_{R=0.3,EA,Lep, trail-lep}');
     #@*/*: lep_relIso03EAv2Lep2;
 
-    TH1F('nj' , '' , 7 , 0. , 7. ) << (nj : 'N_{jet}');
+    #TH1F('nj' , '' , 7 , 0. , 7. ) << (nj : 'N_{jet}');
     #@*/*: nj;
 
-    TH1F('nj30' , '' , 7 , 0. , 7. ) << (nj30 : 'N_{jet}');
+    #TH1F('nj30' , '' , 7 , 0. , 7. ) << (nj30 : 'N_{jet}');
     #@*/*: nj30;
 
-    TH1F('nb' , '' , 5 , 0. , 5. ) << (nb : 'N_{b-jet}');
+    #TH1F('nb' , '' , 5 , 0. , 5. ) << (nb : 'N_{b-jet}');
     #@*/*: nb;
 
     TH1F('jets_pt0' , '' , 180 , 0. , 250 ) << (jets_p4[0].pt() : '\#it{p}_{T, lead-jet} [GeV]');
@@ -153,17 +153,25 @@ def main(index):
     TH1F('MT3rd' , '' , 180 , 0. , 300.) << (MT3rd : '\#it{m}_{T,3rd} [GeV]');
     #@*/*: MT3rd;
 
-    @SRSSeePre: Mjj;
-    @SRSSemPre: Mjj;
-    @SRSSmmPre: Mjj;
+    TH1F('Mlvlvjj' , '' , 180 , 0. , 1000.) << ([MTlvlvjj] : '\#it{m}_{lvlvjj} [GeV]');
+    #@*/*: Mlvlvjj;
 
-    @SR0SFOSMET: MTmax3L;
-    @SR0SFOSZVt: MTmax3L;
-    @SR1SFOSZVt: MT3rd;
+    TH1F('Mlvlvjj_wide' , '' , 180 , 0. , 3000.) << ([MTlvlvjj] : '\#it{m}_{lvlvjj} [GeV]');
+    #@*/*: Mlvlvjj_wide;
 
-    @SideSSeeMjj: MjjVBF, DetajjVBF;
-    @SideSSemMjj: MjjVBF, DetajjVBF;
-    @SideSSmmMjj: MjjVBF, DetajjVBF;
+    @BTCRSSeeFull/*: lep_pt0, lep_pt1, MET;
+    @BTCRSSemFull/*: lep_pt0, lep_pt1, MET;
+    @BTCRSSmmFull/*: lep_pt0, lep_pt1, MET;
+    @BTCRSideSSeeFull/*: lep_pt0, lep_pt1, MET;
+    @BTCRSideSSemFull/*: lep_pt0, lep_pt1, MET;
+    @BTCRSideSSmmFull/*: lep_pt0, lep_pt1, MET;
+
+    @LMETCRSSeeFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @LMETCRSSemFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @LMETCRSSmmFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @LMETCR0SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @LMETCR1SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @LMETCR2SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
 
     """)
     f.close()
@@ -181,8 +189,8 @@ def main(index):
     cuts.addAnalysisJob(cutflowjob, "*")
 
     # Eventlist jobs (use this if we want to print out some event information in a text format e.g. run, lumi, evt or other variables.)
-    #eventlistjob = TQEventlistAnalysisJob("eventlist")
-    #eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
+    eventlistjob = TQEventlistAnalysisJob("eventlist")
+    eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     if index < 0:
@@ -195,17 +203,35 @@ def main(index):
     # Add custom tqobservable that can do more than just string based draw statements
     #
     #
-    from QFramework import TQObservable, TQWWWMTMax3L, TQWWWClosureEvtType
+    from QFramework import TQObservable, TQWWWMTMax3L, TQWWWClosureEvtType, TQWWWVariables
     customobservables = {}
     customobservables["MTMax3L"] = TQWWWMTMax3L("")
     customobservables["MTMax3L_up"] = TQWWWMTMax3L("_up")
     customobservables["MTMax3L_dn"] = TQWWWMTMax3L("_dn")
+    customobservables["MTlvlvjj"] = TQWWWVariables("MTlvlvjj")
     TQObservable.addObservable(customobservables["MTMax3L"], "MTMax3L")
     TQObservable.addObservable(customobservables["MTMax3L_up"], "MTMax3L_up")
     TQObservable.addObservable(customobservables["MTMax3L_dn"], "MTMax3L_dn")
+    TQObservable.addObservable(customobservables["MTlvlvjj"], "MTlvlvjj")
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     cuts.printCut("trd")
+
+    #
+    #
+    # Set object "generalization" (i.e. merging histograms)
+    #
+    #
+    samples.getSampleFolder("/typebkg/prompt/Other").setTagBool(".asv.generalize.counter", True)
+    samples.getSampleFolder("/typebkg/prompt/Other").setTagBool(".asv.generalize.histograms", True)
+    samples.getSampleFolder("/typebkg/lostlep/Other").setTagBool(".asv.generalize.counter", True)
+    samples.getSampleFolder("/typebkg/lostlep/Other").setTagBool(".asv.generalize.histograms", True)
+    samples.getSampleFolder("/typebkg/qflip/Other").setTagBool(".asv.generalize.counter", True)
+    samples.getSampleFolder("/typebkg/qflip/Other").setTagBool(".asv.generalize.histograms", True)
+    samples.getSampleFolder("/typebkg/photon/Other").setTagBool(".asv.generalize.counter", True)
+    samples.getSampleFolder("/typebkg/photon/Other").setTagBool(".asv.generalize.histograms", True)
+    samples.getSampleFolder("/typebkg/fakes/Other").setTagBool(".asv.generalize.counter", True)
+    samples.getSampleFolder("/typebkg/fakes/Other").setTagBool(".asv.generalize.histograms", True)
 
     #
     #

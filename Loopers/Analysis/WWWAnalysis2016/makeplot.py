@@ -122,10 +122,11 @@ def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot
                 }
     alloptions.update(options)
     # Fake background
+    histnameup = histname.replace("Full", "FullFakeUp")
     fake_cn = samples.getHistogram("/fake", histname).Clone("Non-prompt")
-    fake_up = samples.getHistogram("/fakeup", histname).Clone("Non-prompt")
+    fake_up = samples.getHistogram("/fake", histnameup).Clone("Non-prompt")
     p.add_diff_to_error(fake_cn, fake_up)
-    #p.add_frac_syst(fake_cn, 0.3)
+    #p.add_frac_syst(fake_cn, 2.3)
 
     # other bkg
     prompt = samples.getHistogram("/typebkg/prompt", histname).Clone("Irredu.")
@@ -137,7 +138,10 @@ def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot
     #p.add_frac_syst(photon, 0.5)
     #p.add_frac_syst(qflip, 1.0)
 
-    sigs = [ samples.getHistogram("/sig", histname).Clone("WWW") ]
+    www = samples.getHistogram("/sig", histname).Clone("WWW")
+    #www.Scale(5)
+    sigs = [ www, samples.getHistogram("/bsm/wprime/1200", histname).Clone("W'")  ]
+    sigs = [ www ]
     bgs  = [ 
              photon,
              qflip,
@@ -189,28 +193,28 @@ def plotall(histnames):
         hfilename = hfilename.replace("}", "_")
 
         # Plotting by bkg type
-        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        proc = multiprocessing.Process(target=plot_typebkg, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
         jobs.append(proc)
         proc.start()
 
         # Plotting by bkg type
-        proc = multiprocessing.Process(target=plot_mainprocess, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        proc = multiprocessing.Process(target=plot_mainprocess, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
         jobs.append(proc)
         proc.start()
 
         # Plotting by physics process
-        #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": hname.find("WZ") == -1, "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+        #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": hname.find("WZ") == -1, "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
         #jobs.append(proc)
         #proc.start()
 
         # Plotting by bkg type and fakes are estimated from data
         if dofrmethod(hname):
-            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot_frmethod, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
         # For scanning cuts to optimize
-        #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": hname.find("WZ") == -1, "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_cut_scan})
+        #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": hname.find("WZ") == -1, "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_cut_scan})
         #jobs.append(proc)
         #proc.start()
 
@@ -222,38 +226,59 @@ if __name__ == "__main__":
     histnames = samples.getListOfHistogramNames()
     histnames = []
 
-    histnames.extend(["{WZCRSSeeFull,WZCRSSemFull,WZCRSSmmFull,WZCR1SFOSFull,WZCR2SFOSFull}"])
-    histnames.extend(["{WZCRSSeePre,WZCRSSemPre,WZCRSSmmPre,WZCR1SFOSPre,WZCR2SFOSPre}"])
+    #histnames.extend(["{WZCRSSeeFull,WZCRSSemFull,WZCRSSmmFull,WZCR1SFOSFull,WZCR2SFOSFull}"])
+    #histnames.extend(["{WZCRSSeePre,WZCRSSemPre,WZCRSSmmPre,WZCR1SFOSPre,WZCR2SFOSPre}"])
 
-    histnames.extend(["{ARSSeePre,ARSSemPre,ARSSmmPre,ARSideSSeePre,ARSideSSemPre,ARSideSSmmPre,AR0SFOSPre,AR1SFOSPre,AR2SFOSPre}"])
-    histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
+    #histnames.extend(["{ARSSeePre,ARSSemPre,ARSSmmPre,ARSideSSeePre,ARSideSSemPre,ARSideSSmmPre,AR0SFOSPre,AR1SFOSPre,AR2SFOSPre}"])
+    #histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
 
     histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
-    histnames.extend(["{SRSSeeFullFakeUp,SRSSemFullFakeUp,SRSSmmFullFakeUp,SideSSeeFullFakeUp,SideSSemFullFakeUp,SideSSmmFullFakeUp,SR0SFOSFullFakeUp,SR1SFOSFullFakeUp,SR2SFOSFullFakeUp}"])
+    #histnames.extend(["{SRSSeeFullFakeUp,SRSSemFullFakeUp,SRSSmmFullFakeUp,SideSSeeFullFakeUp,SideSSemFullFakeUp,SideSSmmFullFakeUp,SR0SFOSFullFakeUp,SR1SFOSFullFakeUp,SR2SFOSFullFakeUp}"])
 
-    histnames.extend(["{GCR0SFOSPre}"])
+    #histnames.extend(["{GCR0SFOSPre}"])
 
-    histnames.extend(["{VBSCRSSeeFull,VBSCRSSemFull,VBSCRSSmmFull}"])
+    #histnames.extend(["{VBSCRSSeeFull,VBSCRSSemFull,VBSCRSSmmFull}"])
 
-    histnames.extend(["{LMETCRSSeeFull,LMETCRSSemFull,LMETCRSSmmFull}"])
+    #histnames.extend(["{LMETCRSSeeFull,LMETCRSSemFull,LMETCRSSmmFull}"])
 
-    histnames.extend(["{BTCRSSeeFull,BTCRSSemFull,BTCRSSmmFull,BTCRSideSSeeFull,BTCRSideSSemFull,BTCRSideSSmmFull,BTCR0SFOSFull,BTCR1SFOSFull,BTCR2SFOSFull}"])
-    histnames.extend(["{BTCRSSeePre,BTCRSSemPre,BTCRSSmmPre,BTCR0SFOSPre,BTCR1SFOSPre,BTCR2SFOSPre}"])
+    #histnames.extend(["{BTCRSSeeFull,BTCRSSemFull,BTCRSSmmFull,BTCRSideSSeeFull,BTCRSideSSemFull,BTCRSideSSmmFull,BTCR0SFOSFull,BTCR1SFOSFull,BTCR2SFOSFull}"])
+    #histnames.extend(["BTCRSSeeFull/lep_pt0+BTCRSSemFull/lep_pt0+BTCRSSmmFull/lep_pt0"])
+    #histnames.extend(["BTCRSideSSeeFull/lep_pt0+BTCRSideSSemFull/lep_pt0+BTCRSideSSmmFull/lep_pt0"])
+    #histnames.extend(["BTCRSSeeFull/lep_pt1+BTCRSSemFull/lep_pt1+BTCRSSmmFull/lep_pt1"])
+    #histnames.extend(["BTCRSideSSeeFull/lep_pt1+BTCRSideSSemFull/lep_pt1+BTCRSideSSmmFull/lep_pt1"])
+    #histnames.extend(["BTCRSSeeFull/MET+BTCRSSemFull/MET+BTCRSSmmFull/MET"])
+    #histnames.extend(["BTCRSideSSeeFull/MET+BTCRSideSSemFull/MET+BTCRSideSSmmFull/MET"])
+    #histnames.extend(["BTCRSSeeFull/lep_pt0+BTCRSSemFull/lep_pt0+BTCRSSmmFull/lep_pt0+BTCRSideSSeeFull/lep_pt0+BTCRSideSSemFull/lep_pt0+BTCRSideSSmmFull/lep_pt0"])
+    #histnames.extend(["BTCRSSeeFull/lep_pt1+BTCRSSemFull/lep_pt1+BTCRSSmmFull/lep_pt1+BTCRSideSSeeFull/lep_pt1+BTCRSideSSemFull/lep_pt1+BTCRSideSSmmFull/lep_pt1"])
+    #histnames.extend(["BTCRSSeeFull/MET+BTCRSSemFull/MET+BTCRSSmmFull/MET+BTCRSideSSeeFull/MET+BTCRSideSSemFull/MET+BTCRSideSSmmFull/MET"])
 
-    histnames.extend(["{BTWZCRSSeeFull,BTWZCRSSemFull,BTWZCRSSmmFull}"])
+    #histnames.extend(["{LMETCRSSeeFull,LMETCRSSemFull,LMETCRSSmmFull}"])
+    #histnames.extend(["LMETCRSSeeFull/lep_pt0+LMETCRSSemFull/lep_pt0+LMETCRSSmmFull/lep_pt0"])
+    #histnames.extend(["LMETCRSSeeFull/lep_pt1+LMETCRSSemFull/lep_pt1+LMETCRSSmmFull/lep_pt1"])
+    #histnames.extend(["LMETCRSSeeFull/MET+LMETCRSSemFull/MET+LMETCRSSmmFull/MET"])
+    #histnames.extend(["LMETCRSSeeFull/Mjj+LMETCRSSemFull/Mjj+LMETCRSSmmFull/Mjj"])
 
-    histnames.extend(["{TTWCRSSeePre,TTWCRSSemPre,TTWCRSSmmPre}"])
 
-    histnames.extend(["SRSSemPre/Mjj+SRSSmmPre/Mjj"])
-    histnames.extend(["SRSSeePre/Mjj+SRSSemPre/Mjj+SRSSmmPre/Mjj"])
-    histnames.extend(["SRSSmmPre/Mjj"])
-    histnames.extend(["SRSSmmPre/Mjj"])
-    histnames.extend(["SR0SFOSMET/MTmax3L"])
-    histnames.extend(["SR0SFOSZVt/MTmax3L"])
-    histnames.extend(["SR1SFOSZVt/MT3rd"])
 
-    histnames.extend(["SideSSmmMjj/MjjVBF"])
-    histnames.extend(["SideSSmmMjj/DetajjVBF"])
+    #histnames.extend(["BTCRSSeeFull/MET"])
+    #histnames.extend(["{BTCRSSeePre,BTCRSSemPre,BTCRSSmmPre,BTCR0SFOSPre,BTCR1SFOSPre,BTCR2SFOSPre}"])
+
+    #histnames.extend(["{BTWZCRSSeeFull,BTWZCRSSemFull,BTWZCRSSmmFull}"])
+
+    #histnames.extend(["{TTWCRSSeePre,TTWCRSSemPre,TTWCRSSmmPre}"])
+
+    #histnames.extend(["SRSSeePre/Mlvlvjj+SRSSemPre/Mlvlvjj+SRSSmmPre/Mlvlvjj"])
+    #histnames.extend(["SRSSeePre/Mlvlvjj_wide+SRSSemPre/Mlvlvjj_wide+SRSSmmPre/Mlvlvjj_wide"])
+    #histnames.extend(["SRSSemPre/Mjj+SRSSmmPre/Mjj"])
+    #histnames.extend(["SRSSeePre/Mjj+SRSSemPre/Mjj+SRSSmmPre/Mjj"])
+    #histnames.extend(["SRSSmmPre/Mjj"])
+    #histnames.extend(["SRSSmmPre/Mjj"])
+    #histnames.extend(["SR0SFOSMET/MTmax3L"])
+    #histnames.extend(["SR0SFOSZVt/MTmax3L"])
+    #histnames.extend(["SR1SFOSZVt/MT3rd"])
+
+    #histnames.extend(["SideSSmmMjj/MjjVBF"])
+    #histnames.extend(["SideSSmmMjj/DetajjVBF"])
 
     #histnames.extend(["{SRSSeeFull,SideSSeeFull,SRSSemFull,SideSSemFull,SRSSmmFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
     #histnames.extend(["{SRSSeePre,SRSSemPre,SRSSmmPre,SR0SFOSPre,SR1SFOSPre,SR2SFOSPre,SideSSeePre,SideSSemPre,SideSSmmPre}"])

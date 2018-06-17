@@ -32,6 +32,8 @@ systvars = {
         "FakeClosureElDown" : "{$(usefakeweight)?ffwgt_closure_el_dn/ffwgt:1}",
         "FakeClosureMuUp"   : "{$(usefakeweight)?ffwgt_closure_mu_up/ffwgt:1}",
         "FakeClosureMuDown" : "{$(usefakeweight)?ffwgt_closure_mu_dn/ffwgt:1}",
+        #"LostLepSystUp"     : "1",
+        #"LostLepSystDown"   : "1",
         }
 
 def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",btagsfvar_suffix=""): #define _up _dn etc.
@@ -58,6 +60,13 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     PreselCuts = [
     ["{$(is_prompt)?(bkgtype==\"trueSS\"||bkgtype==\"trueWWW\"):1}"                  , "1"                             ] , 
     ["{$(is_lostlep)?(bkgtype==\"SSLL\"||bkgtype==\"true3L\"||bkgtype==\"3lLL\"):1}" , "1"                             ] , 
+    # https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/EXOT-2016-10/fig_05b.png taking 2pb -> 2 pb / 0.57 * 0.21 * (0.21 * (1-0.21)) / 8107
+    # Took 2pb from the 600 GeV point (rounded)
+    # 8107 = total semileptonic same-sign (from Wprime sample itself with splitWprime function in dilepbabymaker)
+    # only one factor of (0.21 * (1-0.21)) because it's counted with same sign
+    # 0.21 = HWW or W->lv (l = e or mu only, as 8107 was determined with e/mu only)
+    ["1"                                                                             , "{\"$(path)\"==\"/bsm/wprime/600\"?0.01504089059:1}" ] ,
+    ["1"                                                                             , "{\"$(path)\"==\"/sig/www\"?0.895:1}" ] , 
     ["1"                                                                             , "evt_scale1fb"                  ] , 
     ["1"                                                                             , "purewgt"                       ] , 
     ["1"                                                                             , "{$(usefakeweight)?ffwgt:35.9}" ] , 
@@ -87,6 +96,10 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
 
     # The trilepton channel base cut
     tqcuts["SRTrilep"] = TQCut("SRTrilep" , "SRTrilep" , "({$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)})*(lep_pt[0]>25.)" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
+
+    # The dilepton channel base cut
+    tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
+    #tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
 
     # The cut hierarchies are defined by adding "children" cuts via function TQCut::addCut
     tqcuts["Presel"].addCut(tqcuts["SRDilep"])
@@ -302,6 +315,20 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             )
     # Then add it to Presel
     tqcuts["Presel"].addCut(tqcuts["SideDilep"])
+
+    #____________________________________________________________________________________________________________________________________________________________________________
+    #
+    # Add weight variation systematics
+    #
+    addWeightSystematics(tqcuts["SRSSeeFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SRSSemFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SRSSmmFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSeeFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSemFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SideSSmmFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR0SFOSFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR1SFOSFull"], systvars, tqcuts)
+    addWeightSystematics(tqcuts["SR2SFOSFull"], systvars, tqcuts)
 
     #____________________________________________________________________________________________________________________________________________________________________________
     #
@@ -572,9 +599,10 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
                 "SRSSeeDetajjL" : TQCut("LMETCRSSeeDetajjL" , "LMETCRSSee: 6. DetajjL < inf" , "1" , "1"),
                 "SRSSemDetajjL" : TQCut("LMETCRSSemDetajjL" , "LMETCRSSem: 6. DetajjL < inf" , "1" , "1"),
                 "SRSSmmDetajjL" : TQCut("LMETCRSSmmDetajjL" , "LMETCRSSmm: 6. DetajjL < inf" , "1" , "1"),
-                "SRSSeeMET" : TQCut("LMETCRSSeeFull" , "LMETCRSSee: 7. MET < 60" , "(met"+jecvar_suffix+"_pt<60.)*(abs(MllSS-91.1876)>10.)" , "1"),
-                "SRSSemMET" : TQCut("LMETCRSSemFull" , "LMETCRSSem: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
-                "SRSSmmMET" : TQCut("LMETCRSSmmFull" , "LMETCRSSmm: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSeeMET" : TQCut("LMETCRSSeeMET" , "LMETCRSSee: 7. MET < 60" , "(met"+jecvar_suffix+"_pt<60.)*(abs(MllSS-91.1876)>10.)" , "1"),
+                "SRSSemMET" : TQCut("LMETCRSSemMET" , "LMETCRSSem: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSmmMET" : TQCut("LMETCRSSmmMET" , "LMETCRSSmm: 7. MET < 60" , "met"+jecvar_suffix+"_pt<60." , "1"),
+                "SRSSemMTmax" : TQCut("LMETCRSSemMTmax" , "LMETCRSSem: 9. MTmax"    , "1." , "1"),
                 },
             cutdict=tqcuts,
             )
@@ -625,20 +653,6 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             )
     # Then add it to Presel
     tqcuts["SRTrilep"].addCut(tqcuts["GCR0SFOS"])
-
-    #____________________________________________________________________________________________________________________________________________________________________________
-    #
-    # Add weight variation systematics
-    #
-    addWeightSystematics(tqcuts["SRSSeeFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SRSSemFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SRSSmmFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SideSSeeFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SideSSemFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SideSSmmFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SR0SFOSFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SR1SFOSFull"], systvars, tqcuts)
-    addWeightSystematics(tqcuts["SR2SFOSFull"], systvars, tqcuts)
 
     # Return the "Root node" which holds all cuts in a tree structure
     return tqcuts["Presel"]
