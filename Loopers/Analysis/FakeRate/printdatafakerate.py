@@ -75,8 +75,8 @@ def get_datadriven_fakerate(channel, is3l, samples):
     cut = ("OneElLoose" if channel == "e" else "OneMuLoose") if not is3l else ("OneEl3lLoose" if channel == "e" else "OneMu3lLoose")
     histname = cut+"/lep_ptcorrcoarse_vs_etacoarse"
     dataname = "/data/{}{}".format(channel, channel)
-    elsf = ewksf("OneElTightEWKCR", "e", samples)
-    musf = ewksf("OneMuTightEWKCR", "m", samples)
+    elsf = ewksf("OneElTightEWKCR", "e", samples) if not is3l else ewksf("OneEl3lTightEWKCR", "e", samples)
+    musf = ewksf("OneMuTightEWKCR", "m", samples) if not is3l else ewksf("OneMu3lTightEWKCR", "m", samples)
 
     sf = -elsf if channel == "e" else -musf
 
@@ -103,7 +103,7 @@ def get_datadriven_fakerate(channel, is3l, samples):
     ddqcdtight.Add(totalbkgtight, sf)
 
     ddqcdtight.Divide(ddqcd)
-    compute_fake_factor(ddqcdtight)
+    #compute_fake_factor(ddqcdtight)
     return ddqcdtight
 
 #_________________________________________________________
@@ -111,6 +111,35 @@ def fullsyst_datadriven_fakerate(channel):
     fr_nom = get_datadriven_fakerate(channel, samples_nom)
     fr_up = get_datadriven_fakerate(channel, samples_up)
     fr_dn = get_datadriven_fakerate(channel, samples_dn)
+
+#_________________________________________________________
+def print_in_latex_format(th2, label, caption):
+    template = """
+\\begin{{table}}[htb]
+\\caption{{\label{{tab:{}}} {}}}
+\\centering
+\\begin{{tabular}}{{|l|c|c|c|c|}}
+\\hline
+                  & $20 < \pt^{{corr}} < 25 $    & $25 < \pt^{{corr}} < 30 $    & $30 < \pt^{{corr}} < 40 $    & $\pt^{{corr}} > 40 $ \\\\
+\\hline
+$|\eta|    < 1.6$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ \\\\
+\\hline
+$|\eta| \geq 1.6$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ & ${:.3f}\pm{:.3f}$ \\\\
+\\hline
+\\end{{tabular}}
+\\end{{table}}""".format(
+        label, caption,
+        th2.GetBinContent(1,3), th2.GetBinError(1,3),
+        th2.GetBinContent(1,4), th2.GetBinError(1,4),
+        th2.GetBinContent(1,5), th2.GetBinError(1,5),
+        th2.GetBinContent(1,6), th2.GetBinError(1,6),
+        th2.GetBinContent(2,3), th2.GetBinError(2,3),
+        th2.GetBinContent(2,4), th2.GetBinError(2,4),
+        th2.GetBinContent(2,5), th2.GetBinError(2,5),
+        th2.GetBinContent(2,6), th2.GetBinError(2,6)
+        )
+    print template
+
 
 #_________________________________________________________
 if __name__ == "__main__":
@@ -129,6 +158,10 @@ if __name__ == "__main__":
     # Add the systematics to the uncertainty
     p.add_diff_to_error(fr_el_nom, fr_el_up, fr_el_dn)
     p.add_diff_to_error(fr_mu_nom, fr_mu_up, fr_mu_dn)
+
+    # Print for table
+    print_in_latex_format(fr_el_nom, "fakerate_el", "Fake rate for electron tight-SS as a function of cone-corrected $\pt$.")
+    print_in_latex_format(fr_mu_nom, "fakerate_mu", "Fake rate for muon tight-SS as a function of cone-corrected $\pt$.")
 
     # Add the systematics to the uncertainty
     fr_el_nom.SetName("fr_el")
@@ -149,6 +182,10 @@ if __name__ == "__main__":
     # Add the systematics to the uncertainty
     p.add_diff_to_error(fr_el3l_nom, fr_el3l_up, fr_el3l_dn)
     p.add_diff_to_error(fr_mu3l_nom, fr_mu3l_up, fr_mu3l_dn)
+
+    # Print for table
+    print_in_latex_format(fr_el3l_nom, "fakerate_el3l", "Fake rate for electron tight-3l as a function of cone-corrected $\pt$.")
+    print_in_latex_format(fr_mu3l_nom, "fakerate_mu3l", "Fake rate for muon tight-3l as a function of cone-corrected $\pt$.")
 
     # Add the systematics to the uncertainty
     fr_el3l_nom.SetName("fr_el3l")
