@@ -27,6 +27,7 @@ export LD_LIBRARY_PATH=$PWD/rooutil:$LD_LIBRARY_PATH
 
 echo "Building CORE, this might take a few minutes..."
 cd dilepbabymaker/
+source ./localsetup.sh
 ln -s ../CORE 
 make -j15
 
