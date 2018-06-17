@@ -10,11 +10,6 @@ git clone git@github.com:sgnoohc/CORE.git
 cd CORE/
 git checkout 2017
 cd ..
-git clone git@github.com:cmstas/NtupleTools.git
-git clone git@github.com:cmstas/Software.git
-cd Software/
-git checkout root6
-cd ..
 
 echo "git checkout submodules"
 git submodule update --init --recursive
@@ -37,9 +32,3 @@ make -j15
 
 echo "Testing the babymaker..."
 ./dotest.sh
-
-cd ../NtupleTools/AutoTwopler/
-. setup.sh
-cd ../../dilepbabymaker/batchsubmit/
-
-echo "You are ready to choose samples and run ducks.py"
