@@ -58,7 +58,12 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
         }
         catch (const std::ios_base::failure& e)
         {
-            break;
+            if (filename.compare(0, 4, "data") == 0)
+            {
+                std::cout << "Found bad event in data" << std::endl;
+                FATALERROR(__FUNCTION__);
+                exit(2);
+            }
             tx->clear(); // clear the TTree of any residual stuff
             if (!looper.handleBadEvent())
                 break;
