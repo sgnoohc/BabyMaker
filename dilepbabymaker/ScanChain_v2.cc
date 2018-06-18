@@ -771,7 +771,13 @@ void babyMaker_v2::FillEventInfo()
     }
     else
     {
-        float scale1fb = coreDatasetInfo.getScale1fb();
+        float scale1fb = 1;
+        if (filename.find("hpmpm_hww") != string::npos)
+            scale1fb = 0.01;
+        else if (filename.find("wprime_") != string::npos)
+            scale1fb = 0.004;
+        else
+            scale1fb = coreDatasetInfo.getScale1fb();
         // CMS3 www_2l_mia has scale1fb = 1/91900 * 1000. or 1/164800 * 1000.
         if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.051848 * 1.14082 *  91900. / (91900. + 164800.);
         if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.051848 * 1.1402  * 164800. / (91900. + 164800.);
@@ -2197,10 +2203,6 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "sttw_top_nofullhaddecay_powheg";
     if (fname.Contains("ST_tWll_5f_LO_13TeV-MadGraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "sttwll_madgraph";
-    if (fname.Contains("TEST-www_www-Private80X-v1"))
-        filename = "www_2l_mia";
-    if (fname.Contains("TEST-www_wwwext-Private80X-v1"))
-        filename = "www_2l_ext1_mia";
     if (fname.Contains("TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ttg_incl_amcnlo";
     if (fname.Contains("TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
@@ -2331,6 +2333,22 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "qcd_bctoe_pt170";
     if (fname.Contains("QCD_Pt_250toInf_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt250";
+
+    // Signal sample 2016
+    if (fname.Contains("TEST-www_www-Private80X-v1"))
+        filename = "www_2l_mia";
+    if (fname.Contains("TEST-www_wwwext-Private80X-v1"))
+        filename = "www_2l_ext1_mia";
+    if (fname.Contains("PrivateWWW_www-cms4"))
+        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
+    if (fname.Contains("PrivateWWW_wwwext-cms4"))
+        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
+
+    // BSM models 2016
+    if (fname.Contains("DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2"))
+        filename = "hpmpm_hww_m200";
+    if (fname.Contains("WprimeToWHToWlepHinc_narrow_M-600_TuneCUETP8M2T4_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
+        filename = "wprime_wlephinc_m600";
 
     // 2017
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))
