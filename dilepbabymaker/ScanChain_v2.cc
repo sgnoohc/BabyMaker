@@ -10,6 +10,8 @@ babyMaker_v2::babyMaker_v2()
 {
     isDoublyChargedHiggsOutputAdded = false;
     nWHdoublyChargedHiggsEvents = 0;
+    isWprimeOutputAdded = false;
+    nWprimeToWWWEvents = 0;
 }
 
 //##############################################################################################################
@@ -44,6 +46,12 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             {
                 AddDoublyChargedHiggsOutput();
                 studyDoublyChargedHiggs();
+            }
+
+            if (filename.find("wprime") != string::npos)
+            {
+                AddWprimeOutput();
+                studyWprime();
             }
 
             // Loop over electrons
@@ -90,6 +98,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 
     if (filename.find("hpmpm_hww") != string::npos)
         cout << "Total W+-H+-+- events " << nWHdoublyChargedHiggsEvents << endl;
+
+    if (filename.find("wprime") != string::npos)
+        cout << "Total Wprime to WWW events " << nWprimeToWWWEvents << endl;
 
     looper.printStatus();
 
@@ -388,6 +399,26 @@ void babyMaker_v2::AddDoublyChargedHiggsOutput()
     tx->createBranch<LV>("v0_p4");
     tx->createBranch<LV>("v1_p4");
     isDoublyChargedHiggsOutputAdded = true;
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddWprimeOutput()
+{
+    if (isWprimeOutputAdded)
+        return;
+    tx->createBranch<int>("iswwwchannel");
+    tx->createBranch<LV>("wprime_p4");
+    tx->createBranch<LV>("wa_p4");
+    tx->createBranch<LV>("la_p4");
+    tx->createBranch<LV>("va_p4");
+    tx->createBranch<LV>("h_p4");
+    tx->createBranch<LV>("w0_p4");
+    tx->createBranch<LV>("w1_p4");
+    tx->createBranch<LV>("l_p4");
+    tx->createBranch<LV>("v_p4");
+    tx->createBranch<LV>("j0_p4");
+    tx->createBranch<LV>("j1_p4");
+    isWprimeOutputAdded = true;
 }
 
 //##############################################################################################################
@@ -813,7 +844,7 @@ void babyMaker_v2::FillEventInfo()
         float scale1fb = 1;
         if (filename.find("hpmpm_hww") != string::npos)
             scale1fb = 0.01;
-        else if (filename.find("wprime_") != string::npos)
+        else if (filename.find("wprime") != string::npos)
             scale1fb = 0.004;
         else
             scale1fb = coreDatasetInfo.getScale1fb();
@@ -2172,7 +2203,7 @@ bool babyMaker_v2::studyDoublyChargedHiggs()
     vector<LV> l;
     vector<LV> v;
 
-    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    std::cout.setstate(std::ios_base::failbit);
     std::cout << std::endl;
     int hid = 0;
     for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
@@ -2245,6 +2276,167 @@ bool babyMaker_v2::studyDoublyChargedHiggs()
     tx->setBranch<LV>("l1_p4", l[0].pt() > l[1].pt() ? l[1] : l[0]);
     tx->setBranch<LV>("v0_p4", v[0].pt() > v[1].pt() ? v[0] : v[1]);
     tx->setBranch<LV>("v1_p4", v[0].pt() > v[1].pt() ? v[1] : v[0]);
+    return true;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::studyWprime()
+{
+    ProcessGenParticles();
+    if (filename.find("wprime") == string::npos) return false; //file is certainly not doubly charged higgs
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+
+    // First determine whether it is hww process
+    bool ishww = false;
+    int wa_id = 0;
+    int lep_w_id = 0;
+    int nlep = 0;
+    int nquark = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        // pdgId: 9000002 motherId: 2 grandmaId: 2212 status: 22 p4.pt(): 0 p4.eta(): 22782.3 p4.phi(): 0
+        // pdgId: 24 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 228.906 p4.eta(): 0.701046 p4.phi(): -0.726092
+        // pdgId: 25 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 231.025 p4.eta(): -0.606109 p4.phi(): 2.44679
+        // pdgId: -11 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 109.007 p4.eta(): 0.33666 p4.phi(): -0.587264
+        // pdgId: 12 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
+        // pdgId: -11 motherId: -11 grandmaId: 24 status: 1 p4.pt(): 106.019 p4.eta(): 0.33666 p4.phi(): -0.587264
+        // pdgId: 12 motherId: 12 grandmaId: 24 status: 1 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
+        // pdgId: 5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 219.811 p4.eta(): -0.701156 p4.phi(): 2.5061
+        // pdgId: -5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 17.4443 p4.eta(): 0.915842 p4.phi(): 1.603490
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
+            wa_id = pdgId;
+        if (abs(pdgId) == 24 && motherId == 25)
+            ishww = true;
+//        std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        {
+            nlep++;
+            lep_w_id = motherId;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        {
+            nquark++;
+        }
+    }
+
+    if (!ishww || nlep != 1 || nquark != 2 || lep_w_id != wa_id)
+    {
+        tx->clear();
+        tx->setBranch<int>("iswwwchannel", 0);
+        return false;
+    }
+
+    nWprimeToWWWEvents++;
+
+    std::vector<LV> wprime;
+    std::vector<LV> wa;
+    std::vector<LV> la;
+    std::vector<LV> va;
+    std::vector<LV> h;
+    std::vector<LV> ws;
+    std::vector<LV> l;
+    std::vector<LV> v;
+    std::vector<LV> js;
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cout << std::endl;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        if (abs(pdgId) == 9000002 && status == 22)
+        {
+            wprime.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
+        {
+            wa.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 25 && abs(motherId) == 9000002)
+        {
+            h.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 24 && motherId == 25)
+        {
+            ws.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            l.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            v.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
+        {
+            la.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
+        {
+            va.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            js.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+    }
+    std::cout.clear();
+
+    // sanity check
+    if (wprime.size() != 1)
+        std::cout << "Found different from 1 wprime" << wprime.size() << std::endl;
+    if (h.size() != 1)
+        std::cout << "Found different from 1 higgs" << h.size() << std::endl;
+    if (wa.size() != 1)
+        std::cout << "Found different from 1 associated w" << wa.size() << std::endl;
+    if (ws.size() != 2)
+        std::cout << "Found different from 2 w decays" << ws.size() << std::endl;
+    if (l.size() != 1)
+        std::cout << "Found different from 1 leptons" << l.size() << std::endl;
+    if (v.size() != 1)
+        std::cout << "Found different from 1 neutrinos" << v.size() << std::endl;
+    if (la.size() != 1)
+        std::cout << "Found different from 1 leptons" << la.size() << std::endl;
+    if (va.size() != 1)
+        std::cout << "Found different from 1 neutrinos" << va.size() << std::endl;
+    if (js.size() != 2)
+        std::cout << "Found different from 2 quarks " << js.size() << std::endl;
+
+    // Fill in tree variable
+    tx->setBranch<int>("iswwwchannel", true);
+    tx->setBranch<LV>("wprime_p4", wprime[0]);
+    tx->setBranch<LV>("wa_p4", wa[0]);
+    tx->setBranch<LV>("la_p4", la[0]);
+    tx->setBranch<LV>("va_p4", va[0]);
+    tx->setBranch<LV>("h_p4", h[0]);
+    tx->setBranch<LV>("w0_p4", ws[0].pt() > ws[1].pt() ? ws[0] : ws[1]);
+    tx->setBranch<LV>("w1_p4", ws[0].pt() > ws[1].pt() ? ws[1] : ws[0]);
+    tx->setBranch<LV>("l_p4", l[0]);
+    tx->setBranch<LV>("v_p4", v[0]);
+    tx->setBranch<LV>("j0_p4", js[0].pt() > js[1].pt() ? js[0] : js[1]);
+    tx->setBranch<LV>("j1_p4", js[0].pt() > js[1].pt() ? js[1] : js[0]);
     return true;
 }
 
@@ -2506,10 +2698,10 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
 
     // BSM models 2016
-    if (fname.Contains("DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2"))
-        filename = "hpmpm_hww_m200";
-    if (fname.Contains("WprimeToWHToWlepHinc_narrow_M-600_TuneCUETP8M2T4_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wprime_wlephinc_m600";
+    if (fname.Contains("DoublyChargedHiggsGMmodel_HWW"))
+        filename = "hpmpm_hww";
+    if (fname.Contains("WprimeToWH"))
+        filename = "wprime";
 
     // 2017
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))
