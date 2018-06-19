@@ -137,13 +137,17 @@ private:
 
     bool isData;
 
+    bool isDoublyChargedHiggsOutputAdded;
+    int nWHdoublyChargedHiggsEvents;
+
 public:
 
-    babyMaker_v2() {}
-    ~babyMaker_v2() {}
+    babyMaker_v2();
+    ~babyMaker_v2();
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1, int index = 1, bool verbose = false);
 
     void CreateOutput(int index=1);
+    void AddDoublyChargedHiggsOutput();
 
     void SaveOutput();
 
@@ -212,6 +216,7 @@ public:
     void setFilename(TString);
     TString process();
     bool splitVH();
+    bool studyDoublyChargedHiggs();
     int gentype_v2();
     bool vetophotonprocess();
     tuple<bool, int, int> isSSCR();

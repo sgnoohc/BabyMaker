@@ -6,6 +6,18 @@
 using namespace std;
 
 //##############################################################################################################
+babyMaker_v2::babyMaker_v2()
+{
+    isDoublyChargedHiggsOutputAdded = false;
+    nWHdoublyChargedHiggsEvents = 0;
+}
+
+//##############################################################################################################
+babyMaker_v2::~babyMaker_v2()
+{
+}
+
+//##############################################################################################################
 void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events, int index, bool verbose)
 {
 
@@ -27,6 +39,12 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             looper.setSilent(false); // Once JEC is set the message will not clash with progress bar.
 
             setFilename(looper.getCurrentFileName());
+
+            if (filename.find("hpmpm_hww") != string::npos)
+            {
+                AddDoublyChargedHiggsOutput();
+                studyDoublyChargedHiggs();
+            }
 
             // Loop over electrons
             ProcessElectrons();
@@ -69,6 +87,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
                 break;
         }
     }
+
+    if (filename.find("hpmpm_hww") != string::npos)
+        cout << "Total W+-H+-+- events " << nWHdoublyChargedHiggsEvents << endl;
 
     looper.printStatus();
 
@@ -350,6 +371,24 @@ void babyMaker_v2::CreateOutput(int index)
     h_neventsinfile->SetBinContent(1, looper.getTChain()->GetEntries()); // this is the bin with value = 0
 }
 
+//##############################################################################################################
+void babyMaker_v2::AddDoublyChargedHiggsOutput()
+{
+    if (isDoublyChargedHiggsOutputAdded)
+        return;
+    tx->createBranch<int>("iswhchannel");
+    tx->createBranch<LV>("w_p4");
+    tx->createBranch<LV>("q0_p4");
+    tx->createBranch<LV>("q1_p4");
+    tx->createBranch<LV>("h_p4");
+    tx->createBranch<LV>("w0_p4");
+    tx->createBranch<LV>("w1_p4");
+    tx->createBranch<LV>("l0_p4");
+    tx->createBranch<LV>("l1_p4");
+    tx->createBranch<LV>("v0_p4");
+    tx->createBranch<LV>("v1_p4");
+    isDoublyChargedHiggsOutputAdded = true;
+}
 
 //##############################################################################################################
 void babyMaker_v2::SaveOutput()
@@ -2085,6 +2124,128 @@ bool babyMaker_v2::splitVH()
         if (isHtoWW && isWnotFromH) break;
     }
     return isHtoWW && isWnotFromH;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::studyDoublyChargedHiggs()
+{
+    ProcessGenParticles();
+    if (filename.find("hpmpm_hww") == string::npos) return false; //file is certainly not doubly charged higgs
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+    bool iswhpmpm = false;
+    int mother_of_w = 0;
+    int wid = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        if (status < 21 || status > 23)
+            continue;
+        if (grandmaId != 2212)
+            continue;
+        if (abs(pdgId) != 24)
+            continue;
+        iswhpmpm = true;
+        mother_of_w = motherId;
+        wid = pdgId;
+    }
+
+    if (!iswhpmpm)
+    {
+        tx->clear();
+        tx->setBranch<int>("iswhchannel", 0);
+        return false;
+    }
+
+    nWHdoublyChargedHiggsEvents++;
+
+    vector<LV> qs;
+    vector<LV> h;
+    vector<LV> w;
+    vector<LV> ws;
+    vector<LV> l;
+    vector<LV> v;
+
+    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    std::cout << std::endl;
+    int hid = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        // The quarks from the associated W decay
+        if (status == 23 && grandmaId == wid && motherId == wid && (abs(pdgId) >= 1 && abs(pdgId) <= 4))
+        {
+            qs.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (status == 22 && grandmaId == 2212 && abs(pdgId) == 255)
+        {
+            h.push_back(p4);
+            hid = pdgId;
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (status == 22 && grandmaId == 2212 && abs(pdgId) == 24)
+        {
+            w.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        // Assume that in the particle record doubly charged higgs will always show up before product
+        else if (abs(pdgId) == 24 && motherId == hid)
+        {
+            ws.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        // Assume that in the particle record doubly charged higgs will always show up before product
+        else if (abs(motherId) == 24 && grandmaId == hid && (abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15))
+        {
+            l.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (abs(motherId) == 24 && grandmaId == hid && (abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16))
+        {
+            v.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+    }
+    std::cout.clear();
+
+    // sanity check
+    if (qs.size() != 2)
+        std::cout << "Found different from 2 quarks " << qs.size() << std::endl;
+    if (h.size() != 1)
+        std::cout << "Found different from 1 doubly charged higgs " << h.size() << std::endl;
+    if (w.size() != 1)
+        std::cout << "Found different from 1 associated w" << w.size() << std::endl;
+    if (ws.size() != 2)
+        std::cout << "Found different from 2 w decays" << ws.size() << std::endl;
+    if (l.size() != 2)
+        std::cout << "Found different from 2 leptons" << l.size() << std::endl;
+    if (v.size() != 2)
+        std::cout << "Found different from 2 neutrinos" << v.size() << std::endl;
+
+    // Fill in tree variable
+    tx->setBranch<int>("iswhchannel", true);
+    tx->setBranch<LV>("w_p4", w[0]);
+    tx->setBranch<LV>("q0_p4", qs[0].pt() > qs[1].pt() ? qs[0] : qs[1]);
+    tx->setBranch<LV>("q1_p4", qs[0].pt() > qs[1].pt() ? qs[1] : qs[0]);
+    tx->setBranch<LV>("h_p4", h[0]);
+    tx->setBranch<LV>("w0_p4", ws[0].pt() > ws[1].pt() ? ws[0] : ws[1]);
+    tx->setBranch<LV>("w1_p4", ws[0].pt() > ws[1].pt() ? ws[1] : ws[0]);
+    tx->setBranch<LV>("l0_p4", l[0].pt() > l[1].pt() ? l[0] : l[1]);
+    tx->setBranch<LV>("l1_p4", l[0].pt() > l[1].pt() ? l[1] : l[0]);
+    tx->setBranch<LV>("v0_p4", v[0].pt() > v[1].pt() ? v[0] : v[1]);
+    tx->setBranch<LV>("v1_p4", v[0].pt() > v[1].pt() ? v[1] : v[0]);
+    return true;
 }
 
 //##############################################################################################################
