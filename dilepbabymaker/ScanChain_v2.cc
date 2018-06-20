@@ -41,9 +41,6 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 
             setFilename(looper.getCurrentFileName());
 
-            if (isWHSUSY() && !filterWHMass(200, -1))
-                continue;
-
             coreJec.setJECFor(looper.getCurrentFileName(), isWHSUSY());
             looper.setSilent(false); // Once JEC is set the message will not clash with progress bar.
 
@@ -444,7 +441,7 @@ void babyMaker_v2::AddWHsusyOutput()
     fxsec = new TFile("xsec_susy_13tev.root", "READ");
     if (fxsec -> IsZombie()) {
         std::cout << "Somehow xsec_stop_13TeV.root is corrupted. Exit..." << std::endl;
-        exit(0);
+        exit(3);
     }
     hxsec = (TH1D *) fxsec -> Get("h_xsec_c1n2");
     tx->createBranch<float>("chimass");
@@ -1303,15 +1300,30 @@ void babyMaker_v2::FillTrigger()
         tx->setBranch<int>("HLT_SingleIsoMu8", 1);
         tx->setBranch<int>("HLT_SingleIsoMu17", 1);
     }
-    tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
-    tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
-    tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
-    tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
-    tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
-    tx->setBranch<int>("mc_HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
-    tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
-    tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
-    tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
+    if (isWHSUSY())
+    {
+        tx->setBranch<int>("mc_HLT_DoubleMu", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", 1);
+        tx->setBranch<int>("mc_HLT_MuEG", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl8", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl17", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu8", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu17", 1);
+    }
+    else
+    {
+        tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
+        tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
+        tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
+    }
 }
 
 //##############################################################################################################
@@ -3417,81 +3429,163 @@ std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
 
     // NOTE: "eff" variable names are really "efficiency scale factors"
 
-    // is ee events
-    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+    if (isWHSUSY())
     {
-        // related to lepton legs
-        float e_l0 = trigsf_el_lead(leadpt, leadeta);
-        float e_t1 = trigsf_el_trail(trailpt, traileta);
-        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
-        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = trigsf_diel_dz(smalleta, bigeta);
-        float dzerr = trigsf_diel_dz(smalleta, bigeta, 1) - trigsf_diel_dz(smalleta, bigeta);
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        // is ee events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_el_lead(leadpt, leadeta);
+            float e_t1 = trigdata_el_trail(trailpt, traileta);
+            float d_l0 = trigdata_el_lead(leadpt, leadeta, 1) - trigdata_el_lead(leadpt, leadeta);
+            float d_t1 = trigdata_el_trail(trailpt, traileta, 1) - trigdata_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = trigdata_diel_dz(smalleta, bigeta);
+            float dzerr = trigdata_diel_dz(smalleta, bigeta, 1) - trigdata_diel_dz(smalleta, bigeta);
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
+        // So apply only a flat err of 2%
+
+        // is em events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_el_lead(leadpt, leadeta);
+            float e_t1 = trigdata_mu_trail(trailpt, traileta);
+            float d_l0 = trigdata_el_lead(leadpt, leadeta, 1) - trigdata_el_lead(leadpt, leadeta);
+            float d_t1 = trigdata_mu_trail(trailpt, traileta, 1) - trigdata_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is me events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
+        {
+            // nominal
+            float e_l0 = trigdata_mu_lead(leadpt, leadeta);
+            float e_t1 = trigdata_el_trail(trailpt, traileta);
+            float d_l0 = trigdata_mu_lead(leadpt, leadeta, 1) - trigdata_mu_lead(leadpt, leadeta);
+            float d_t1 = trigdata_el_trail(trailpt, traileta, 1) - trigdata_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is mm events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_mu_lead(leadpt, leadeta);
+            float e_t1 = trigdata_mu_trail(trailpt, traileta);
+            float d_l0 = trigdata_mu_lead(leadpt, leadeta, 1) - trigdata_mu_lead(leadpt, leadeta);
+            float d_t1 = trigdata_mu_trail(trailpt, traileta, 1) - trigdata_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 0.241 * trigdata_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+            float dzerr = 0.241 * (trigdata_dimu_dz(smalleta, bigeta, 1) - trigdata_dimu_dz(smalleta, bigeta));
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+            // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
+            // 8.636 + 0.221 / 36.814 = 0.241
+        }
     }
-
-    // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
-    // So apply only a flat err of 2%
-
-    // is em events
-    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+    else
     {
-        // related to lepton legs
-        float e_l0 = trigsf_el_lead(leadpt, leadeta);
-        float e_t1 = trigsf_mu_trail(trailpt, traileta);
-        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
-        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 1.0;
-        float dzerr = 0.02;
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-    }
+        // is ee events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_el_lead(leadpt, leadeta);
+            float e_t1 = trigsf_el_trail(trailpt, traileta);
+            float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+            float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = trigsf_diel_dz(smalleta, bigeta);
+            float dzerr = trigsf_diel_dz(smalleta, bigeta, 1) - trigsf_diel_dz(smalleta, bigeta);
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
 
-    // is me events
-    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
-    {
-        // nominal
-        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
-        float e_t1 = trigsf_el_trail(trailpt, traileta);
-        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
-        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 1.0;
-        float dzerr = 0.02;
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-    }
+        // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
+        // So apply only a flat err of 2%
 
-    // is mm events
-    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
-    {
-        // related to lepton legs
-        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
-        float e_t1 = trigsf_mu_trail(trailpt, traileta);
-        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
-        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 0.241 * trigsf_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
-        float dzerr = 0.241 * (trigsf_dimu_dz(smalleta, bigeta, 1) - trigsf_dimu_dz(smalleta, bigeta));
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-        // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
-        // 8.636 + 0.221 / 36.814 = 0.241
+        // is em events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_el_lead(leadpt, leadeta);
+            float e_t1 = trigsf_mu_trail(trailpt, traileta);
+            float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+            float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is me events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
+        {
+            // nominal
+            float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+            float e_t1 = trigsf_el_trail(trailpt, traileta);
+            float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+            float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is mm events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+            float e_t1 = trigsf_mu_trail(trailpt, traileta);
+            float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+            float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 0.241 * trigsf_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+            float dzerr = 0.241 * (trigsf_dimu_dz(smalleta, bigeta, 1) - trigsf_dimu_dz(smalleta, bigeta));
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+            // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
+            // 8.636 + 0.221 / 36.814 = 0.241
+        }
     }
     
     // Return result

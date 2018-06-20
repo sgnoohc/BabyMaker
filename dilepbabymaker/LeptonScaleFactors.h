@@ -1,7 +1,7 @@
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:14
+// Created on 2018-06-20 11:51:25
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root diel_dz_eta_v_eta_sf etamax:etamin trigsf_diel_dz
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root diel_dz_eta_v_eta_sf etamax:etamin trigsf_diel_dz
 float trigsf_diel_dz(float etamin_raw, float etamax_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -38,9 +38,9 @@ float trigsf_diel_dz(float etamin_raw, float etamax_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:15
+// Created on 2018-06-20 11:51:27
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root dimu_dz_eta_v_eta_sf etamax:etamin trigsf_dimu_dz
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root dimu_dz_eta_v_eta_sf etamax:etamin trigsf_dimu_dz
 float trigsf_dimu_dz(float etamin_raw, float etamax_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -77,9 +77,9 @@ float trigsf_dimu_dz(float etamin_raw, float etamax_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:17
+// Created on 2018-06-20 11:51:28
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root mu_lead_leg_eta_v_pt_sf |eta|:pt trigsf_mu_lead
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root mu_lead_leg_eta_v_pt_sf |eta|:pt trigsf_mu_lead
 float trigsf_mu_lead(float pt_raw, float eta_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -141,9 +141,9 @@ float trigsf_mu_lead(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:18
+// Created on 2018-06-20 11:51:30
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root mu_trail_leg_eta_v_pt_sf |eta|:pt trigsf_mu_trail
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root mu_trail_leg_eta_v_pt_sf |eta|:pt trigsf_mu_trail
 float trigsf_mu_trail(float pt_raw, float eta_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -205,9 +205,9 @@ float trigsf_mu_trail(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:19
+// Created on 2018-06-20 11:51:32
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root el_lead_leg_eta_v_pt_sf |eta|:pt trigsf_el_lead
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root el_lead_leg_eta_v_pt_sf |eta|:pt trigsf_el_lead
 float trigsf_el_lead(float pt_raw, float eta_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -269,9 +269,9 @@ float trigsf_el_lead(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:21
+// Created on 2018-06-20 11:51:33
 // Created by the command:
-//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff.root el_trail_leg_eta_v_pt_sf |eta|:pt trigsf_el_trail
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root el_trail_leg_eta_v_pt_sf |eta|:pt trigsf_el_trail
 float trigsf_el_trail(float pt_raw, float eta_raw, int isyst=0)
 {
     if (isyst != 1 && isyst != -1 && isyst != 0)
@@ -333,7 +333,341 @@ float trigsf_el_trail(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:22
+// Created on 2018-06-20 11:51:35
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root diel_dz_eta_v_eta_data etamax:etamin trigdata_diel_dz
+float trigdata_diel_dz(float etamin_raw, float etamax_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float etamax = std::min((float) 2.3976, std::max((float) 0.7992, etamax_raw)); // minimum values are just below the first bin upper edge
+    float etamin = std::min((float) 2.3976, std::max((float) 0.7992, etamin_raw)); // minimum values are just below the first bin upper edge
+    if ((etamin) < 0.8 && (etamax) < 0.8) return 0.99167329073 + isyst * 0.00202237884279;
+    if ((etamin) < 1.25 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 1.6 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.1 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 1.25) return 0.993380784988 + isyst * 0.00207678619608;
+    if ((etamin) < 1.25 && (etamax) < 1.25) return 0.9949452281 + isyst * 0.00663357923717;
+    if ((etamin) < 1.6 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.1 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 1.6) return 0.990169465542 + isyst * 0.00358773783115;
+    if ((etamin) < 1.25 && (etamax) < 1.6) return 0.990179359913 + isyst * 0.00692979729748;
+    if ((etamin) < 1.6 && (etamax) < 1.6) return 0.988332271576 + isyst * 0.0157868368838;
+    if ((etamin) < 2.1 && (etamax) < 1.6) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 1.6) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 2.1) return 0.987252056599 + isyst * 0.00288928200473;
+    if ((etamin) < 1.25 && (etamax) < 2.1) return 0.988522827625 + isyst * 0.00604690379428;
+    if ((etamin) < 1.6 && (etamax) < 2.1) return 0.986233174801 + isyst * 0.0112520511495;
+    if ((etamin) < 2.1 && (etamax) < 2.1) return 0.982386767864 + isyst * 0.00935431288644;
+    if ((etamin) < 2.4 && (etamax) < 2.1) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8) return 0.983280599117 + isyst * 0.0054717588547;
+    if ((etamin) < 1.25) return 0.988543689251 + isyst * 0.0195371804617;
+    if ((etamin) < 1.6) return 0.981931447983 + isyst * 0.0348214928483;
+    if ((etamin) < 2.1) return 0.979759395123 + isyst * 0.0192452980226;
+    if ((etamin) < 2.4) return 0.983108103275 + isyst * 0.0811573725718;
+    printf("WARNING in trigdata_diel_dz(): the given phase-space (%f, %f) did not fall under any range!\n", etamin, etamax); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:36
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root dimu_dz_eta_v_eta_data etamax:etamin trigdata_dimu_dz
+float trigdata_dimu_dz(float etamin_raw, float etamax_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float etamax = std::min((float) 2.3976, std::max((float) 0.7992, etamax_raw)); // minimum values are just below the first bin upper edge
+    float etamin = std::min((float) 2.3976, std::max((float) 0.7992, etamin_raw)); // minimum values are just below the first bin upper edge
+    if ((etamin) < 0.8 && (etamax) < 0.8) return 0.8464230299 + isyst * 0.000633248210511;
+    if ((etamin) < 1.25 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 1.6 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.1 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 0.8) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 1.25) return 0.873307883739 + isyst * 0.000640227361499;
+    if ((etamin) < 1.25 && (etamax) < 1.25) return 0.897286653519 + isyst * 0.00210225034977;
+    if ((etamin) < 1.6 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.1 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 1.25) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 1.6) return 0.85926169157 + isyst * 0.000739905533876;
+    if ((etamin) < 1.25 && (etamax) < 1.6) return 0.877065479755 + isyst * 0.00179605811619;
+    if ((etamin) < 1.6 && (etamax) < 1.6) return 0.858474969864 + isyst * 0.00285828484821;
+    if ((etamin) < 2.1 && (etamax) < 1.6) return 0.0 + isyst * 0.0;
+    if ((etamin) < 2.4 && (etamax) < 1.6) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8 && (etamax) < 2.1) return 0.82297706604 + isyst * 0.000672927354893;
+    if ((etamin) < 1.25 && (etamax) < 2.1) return 0.841432511806 + isyst * 0.00166855197768;
+    if ((etamin) < 1.6 && (etamax) < 2.1) return 0.824828624725 + isyst * 0.00178413618768;
+    if ((etamin) < 2.1 && (etamax) < 2.1) return 0.791739761829 + isyst * 0.00209469661641;
+    if ((etamin) < 2.4 && (etamax) < 2.1) return 0.0 + isyst * 0.0;
+    if ((etamin) < 0.8) return 0.836181819439 + isyst * 0.00103221183516;
+    if ((etamin) < 1.25) return 0.862843751907 + isyst * 0.00269080793508;
+    if ((etamin) < 1.6) return 0.843576312065 + isyst * 0.00270671351058;
+    if ((etamin) < 2.1) return 0.811420619488 + isyst * 0.00217863515995;
+    if ((etamin) < 2.4) return 0.832342028618 + isyst * 0.00433814912672;
+    printf("WARNING in trigdata_dimu_dz(): the given phase-space (%f, %f) did not fall under any range!\n", etamin, etamax); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:38
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root mu_lead_leg_eta_v_pt_data |eta|:pt trigdata_mu_lead
+float trigdata_mu_lead(float pt_raw, float eta_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float eta = std::min((float) 2.3976, std::max((float) 0.7992, eta_raw)); // minimum values are just below the first bin upper edge
+    float pt = std::min((float) 199.8, std::max((float) 9.99, pt_raw)); // minimum values are just below the first bin upper edge
+    if ((pt) < 10.0 && fabs(eta) < 0.8) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 0.8) return 0.478672713041 + isyst * 0.00214955547882;
+    if ((pt) < 25.0 && fabs(eta) < 0.8) return 0.923292994499 + isyst * 0.00261568426726;
+    if ((pt) < 30.0 && fabs(eta) < 0.8) return 0.925851583481 + isyst * 0.00179862773612;
+    if ((pt) < 35.0 && fabs(eta) < 0.8) return 0.926776170731 + isyst * 0.00129862325979;
+    if ((pt) < 40.0 && fabs(eta) < 0.8) return 0.926838457584 + isyst * 0.00104417308337;
+    if ((pt) < 50.0 && fabs(eta) < 0.8) return 0.92600029707 + isyst * 0.000720804330712;
+    if ((pt) < 70.0 && fabs(eta) < 0.8) return 0.924240112305 + isyst * 0.00128550069933;
+    if ((pt) < 100.0 && fabs(eta) < 0.8) return 0.919629693031 + isyst * 0.00349354641279;
+    if ((pt) < 200.0 && fabs(eta) < 0.8) return 0.911630868912 + isyst * 0.005460428127;
+    if ((pt) < 10.0 && fabs(eta) < 1.25) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.25) return 0.436684340239 + isyst * 0.00270982654724;
+    if ((pt) < 25.0 && fabs(eta) < 1.25) return 0.928256571293 + isyst * 0.00384368294922;
+    if ((pt) < 30.0 && fabs(eta) < 1.25) return 0.929984033108 + isyst * 0.00271233750153;
+    if ((pt) < 35.0 && fabs(eta) < 1.25) return 0.93038392067 + isyst * 0.0019587792055;
+    if ((pt) < 40.0 && fabs(eta) < 1.25) return 0.930424451828 + isyst * 0.00150239961106;
+    if ((pt) < 50.0 && fabs(eta) < 1.25) return 0.930815398693 + isyst * 0.000991746746393;
+    if ((pt) < 70.0 && fabs(eta) < 1.25) return 0.930238008499 + isyst * 0.00176169573298;
+    if ((pt) < 100.0 && fabs(eta) < 1.25) return 0.928259670734 + isyst * 0.00491019260888;
+    if ((pt) < 200.0 && fabs(eta) < 1.25) return 0.921125710011 + isyst * 0.00774141462348;
+    if ((pt) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.6) return 0.430942744017 + isyst * 0.00298993999172;
+    if ((pt) < 25.0 && fabs(eta) < 1.6) return 0.961563050747 + isyst * 0.004561684942;
+    if ((pt) < 30.0 && fabs(eta) < 1.6) return 0.96415913105 + isyst * 0.00327712821127;
+    if ((pt) < 35.0 && fabs(eta) < 1.6) return 0.964199542999 + isyst * 0.00244843786455;
+    if ((pt) < 40.0 && fabs(eta) < 1.6) return 0.963147044182 + isyst * 0.00192108481257;
+    if ((pt) < 50.0 && fabs(eta) < 1.6) return 0.958740651608 + isyst * 0.00121658309362;
+    if ((pt) < 70.0 && fabs(eta) < 1.6) return 0.944894552231 + isyst * 0.00213483789783;
+    if ((pt) < 100.0 && fabs(eta) < 1.6) return 0.900297224522 + isyst * 0.00588152353686;
+    if ((pt) < 200.0 && fabs(eta) < 1.6) return 0.828313231468 + isyst * 0.00910693469183;
+    if ((pt) < 10.0 && fabs(eta) < 2.1) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 2.1) return 0.389967679977 + isyst * 0.00234321365877;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.912961065769 + isyst * 0.00381891170918;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.922979354858 + isyst * 0.00280534919422;
+    if ((pt) < 35.0 && fabs(eta) < 2.1) return 0.92571169138 + isyst * 0.00211222313625;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.927835345268 + isyst * 0.00171856949441;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.929073929787 + isyst * 0.00113316650339;
+    if ((pt) < 70.0 && fabs(eta) < 2.1) return 0.930434525013 + isyst * 0.00202419806773;
+    if ((pt) < 100.0 && fabs(eta) < 2.1) return 0.925391376019 + isyst * 0.00587530008893;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 0.889071822166 + isyst * 0.00976452971355;
+    if ((pt) < 10.0) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0) return 0.331754356623 + isyst * 0.00287613381802;
+    if ((pt) < 25.0) return 0.82733720541 + isyst * 0.00496433448;
+    if ((pt) < 30.0) return 0.858947336674 + isyst * 0.00373602263843;
+    if ((pt) < 35.0) return 0.877158403397 + isyst * 0.002881592023;
+    if ((pt) < 40.0) return 0.88671630621 + isyst * 0.00244971974101;
+    if ((pt) < 50.0) return 0.896263122559 + isyst * 0.00179797659277;
+    if ((pt) < 70.0) return 0.900450646877 + isyst * 0.00323035977617;
+    if ((pt) < 100.0) return 0.907149612904 + isyst * 0.00955089294127;
+    if ((pt) < 200.0) return 0.878123819828 + isyst * 0.0178055259929;
+    printf("WARNING in trigdata_mu_lead(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:40
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root mu_trail_leg_eta_v_pt_data |eta|:pt trigdata_mu_trail
+float trigdata_mu_trail(float pt_raw, float eta_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float eta = std::min((float) 2.3976, std::max((float) 0.7992, eta_raw)); // minimum values are just below the first bin upper edge
+    float pt = std::min((float) 199.8, std::max((float) 9.99, pt_raw)); // minimum values are just below the first bin upper edge
+    if ((pt) < 10.0 && fabs(eta) < 0.8) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 0.8) return 0.920872926712 + isyst * 0.00339814941781;
+    if ((pt) < 25.0 && fabs(eta) < 0.8) return 0.934034824371 + isyst * 0.00263819264841;
+    if ((pt) < 30.0 && fabs(eta) < 0.8) return 0.935821413994 + isyst * 0.00181296037721;
+    if ((pt) < 35.0 && fabs(eta) < 0.8) return 0.936419546604 + isyst * 0.00130862458267;
+    if ((pt) < 40.0 && fabs(eta) < 0.8) return 0.936534643173 + isyst * 0.00105225833912;
+    if ((pt) < 50.0 && fabs(eta) < 0.8) return 0.935491979122 + isyst * 0.00072627214129;
+    if ((pt) < 70.0 && fabs(eta) < 0.8) return 0.934029996395 + isyst * 0.00129557417944;
+    if ((pt) < 100.0 && fabs(eta) < 0.8) return 0.930490911007 + isyst * 0.00352404337691;
+    if ((pt) < 200.0 && fabs(eta) < 0.8) return 0.925472199917 + isyst * 0.00552160700337;
+    if ((pt) < 10.0 && fabs(eta) < 1.25) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.25) return 0.948898017406 + isyst * 0.0046524458998;
+    if ((pt) < 25.0 && fabs(eta) < 1.25) return 0.955552458763 + isyst * 0.00392729130991;
+    if ((pt) < 30.0 && fabs(eta) < 1.25) return 0.954921245575 + isyst * 0.00276616146186;
+    if ((pt) < 35.0 && fabs(eta) < 1.25) return 0.954522132874 + isyst * 0.00199639208067;
+    if ((pt) < 40.0 && fabs(eta) < 1.25) return 0.953561842442 + isyst * 0.0015300531376;
+    if ((pt) < 50.0 && fabs(eta) < 1.25) return 0.953604578972 + isyst * 0.00100972039121;
+    if ((pt) < 70.0 && fabs(eta) < 1.25) return 0.952963709831 + isyst * 0.00179355081294;
+    if ((pt) < 100.0 && fabs(eta) < 1.25) return 0.951306581497 + isyst * 0.00500039164634;
+    if ((pt) < 200.0 && fabs(eta) < 1.25) return 0.947101056576 + isyst * 0.00790269808945;
+    if ((pt) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.6) return 0.974151551723 + isyst * 0.00528013542692;
+    if ((pt) < 25.0 && fabs(eta) < 1.6) return 0.982259869576 + isyst * 0.0046347760973;
+    if ((pt) < 30.0 && fabs(eta) < 1.6) return 0.981830060482 + isyst * 0.00332186592723;
+    if ((pt) < 35.0 && fabs(eta) < 1.6) return 0.981713593006 + isyst * 0.00248156506182;
+    if ((pt) < 40.0 && fabs(eta) < 1.6) return 0.981789171696 + isyst * 0.00194877493336;
+    if ((pt) < 50.0 && fabs(eta) < 1.6) return 0.981189370155 + isyst * 0.00123777624309;
+    if ((pt) < 70.0 && fabs(eta) < 1.6) return 0.980906546116 + isyst * 0.00219518438351;
+    if ((pt) < 100.0 && fabs(eta) < 1.6) return 0.976019561291 + isyst * 0.00624469166744;
+    if ((pt) < 200.0 && fabs(eta) < 1.6) return 0.94797372818 + isyst * 0.0100563251462;
+    if ((pt) < 10.0 && fabs(eta) < 2.1) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 2.1) return 0.941268801689 + isyst * 0.00430224269445;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.946330308914 + isyst * 0.00392184180004;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.947584271431 + isyst * 0.00286062332388;
+    if ((pt) < 35.0 && fabs(eta) < 2.1) return 0.946399211884 + isyst * 0.00214713536192;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.946510136127 + isyst * 0.00174416531272;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.94539475441 + isyst * 0.00114790148859;
+    if ((pt) < 70.0 && fabs(eta) < 2.1) return 0.945910274982 + isyst * 0.00204912724366;
+    if ((pt) < 100.0 && fabs(eta) < 2.1) return 0.941394150257 + isyst * 0.00595045849224;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 0.909736037254 + isyst * 0.00993123003279;
+    if ((pt) < 10.0) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0) return 0.934750020504 + isyst * 0.00581900716201;
+    if ((pt) < 25.0) return 0.945064783096 + isyst * 0.00547404350699;
+    if ((pt) < 30.0) return 0.945610463619 + isyst * 0.00401029908246;
+    if ((pt) < 35.0) return 0.948687791824 + isyst * 0.00305334459618;
+    if ((pt) < 40.0) return 0.949368298054 + isyst * 0.00257652920031;
+    if ((pt) < 50.0) return 0.949946165085 + isyst * 0.00187705836722;
+    if ((pt) < 70.0) return 0.947215974331 + isyst * 0.00335369998566;
+    if ((pt) < 100.0) return 0.944848656654 + isyst * 0.00984319670994;
+    if ((pt) < 200.0) return 0.919261813164 + isyst * 0.0184162647743;
+    printf("WARNING in trigdata_mu_trail(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:42
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root el_lead_leg_eta_v_pt_data |eta|:pt trigdata_el_lead
+float trigdata_el_lead(float pt_raw, float eta_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float eta = std::min((float) 2.3976, std::max((float) 0.7992, eta_raw)); // minimum values are just below the first bin upper edge
+    float pt = std::min((float) 199.8, std::max((float) 9.99, pt_raw)); // minimum values are just below the first bin upper edge
+    if ((pt) < 10.0 && fabs(eta) < 0.8) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 0.8) return 0.00050448521506 + isyst * 8.92037169391e-05;
+    if ((pt) < 25.0 && fabs(eta) < 0.8) return 0.461387574673 + isyst * 0.00222976242116;
+    if ((pt) < 30.0 && fabs(eta) < 0.8) return 0.934977531433 + isyst * 0.00245368717683;
+    if ((pt) < 35.0 && fabs(eta) < 0.8) return 0.947184741497 + isyst * 0.00173999542634;
+    if ((pt) < 40.0 && fabs(eta) < 0.8) return 0.957806050777 + isyst * 0.00136262942254;
+    if ((pt) < 50.0 && fabs(eta) < 0.8) return 0.96155244112 + isyst * 0.000920512359847;
+    if ((pt) < 70.0 && fabs(eta) < 0.8) return 0.965367615223 + isyst * 0.00166941835984;
+    if ((pt) < 100.0 && fabs(eta) < 0.8) return 0.969835579395 + isyst * 0.00447161707115;
+    if ((pt) < 200.0 && fabs(eta) < 0.8) return 0.969730913639 + isyst * 0.00682288006359;
+    if ((pt) < 10.0 && fabs(eta) < 1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.4) return 0.000588128867093 + isyst * 0.000115375468997;
+    if ((pt) < 25.0 && fabs(eta) < 1.4) return 0.405426889658 + isyst * 0.00261904837259;
+    if ((pt) < 30.0 && fabs(eta) < 1.4) return 0.948272705078 + isyst * 0.00329260887274;
+    if ((pt) < 35.0 && fabs(eta) < 1.4) return 0.961216688156 + isyst * 0.00244412176778;
+    if ((pt) < 40.0 && fabs(eta) < 1.4) return 0.966700553894 + isyst * 0.00192295412348;
+    if ((pt) < 50.0 && fabs(eta) < 1.4) return 0.96971642971 + isyst * 0.00126339672505;
+    if ((pt) < 70.0 && fabs(eta) < 1.4) return 0.971560001373 + isyst * 0.00228190386615;
+    if ((pt) < 100.0 && fabs(eta) < 1.4) return 0.976942360401 + isyst * 0.00624462078774;
+    if ((pt) < 200.0 && fabs(eta) < 1.4) return 0.980085432529 + isyst * 0.00981719292445;
+    if ((pt) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 25.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 35.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 70.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 100.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 200.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 10.0 && fabs(eta) < 2.1) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 2.1) return 0.000714830355719 + isyst * 0.000184634357698;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.434408068657 + isyst * 0.00398518478312;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.96294426918 + isyst * 0.00494792838285;
+    if ((pt) < 35.0 && fabs(eta) < 2.1) return 0.971165657043 + isyst * 0.00374962837805;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.974741280079 + isyst * 0.00305453358961;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.976086974144 + isyst * 0.00220542216985;
+    if ((pt) < 70.0 && fabs(eta) < 2.1) return 0.976740777493 + isyst * 0.00407077719629;
+    if ((pt) < 100.0 && fabs(eta) < 2.1) return 0.97973382473 + isyst * 0.010832308584;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 0.986845970154 + isyst * 0.016928373979;
+    if ((pt) < 10.0) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0) return 0.000214247455006 + isyst * 0.000151512056785;
+    if ((pt) < 25.0) return 0.288551717997 + isyst * 0.00492066383934;
+    if ((pt) < 30.0) return 0.913588643074 + isyst * 0.00770747072602;
+    if ((pt) < 35.0) return 0.953131556511 + isyst * 0.00609843556427;
+    if ((pt) < 40.0) return 0.960922896862 + isyst * 0.00525047877651;
+    if ((pt) < 50.0) return 0.964273512363 + isyst * 0.00413014478686;
+    if ((pt) < 70.0) return 0.967056334019 + isyst * 0.0079481212044;
+    if ((pt) < 100.0) return 0.970224559307 + isyst * 0.0219625096789;
+    if ((pt) < 200.0) return 0.974473536015 + isyst * 0.0350409747407;
+    printf("WARNING in trigdata_el_lead(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:43
+// Created by the command:
+//   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/trigeff_v2.root el_trail_leg_eta_v_pt_data |eta|:pt trigdata_el_trail
+float trigdata_el_trail(float pt_raw, float eta_raw, int isyst=0)
+{
+    if (isyst != 1 && isyst != -1 && isyst != 0)
+        printf("%s",Form("WARNING - in function=%s, isyst=%d is not recommended!\n", __FUNCTION__, isyst));
+    float eta = std::min((float) 2.3976, std::max((float) 0.7992, eta_raw)); // minimum values are just below the first bin upper edge
+    float pt = std::min((float) 199.8, std::max((float) 9.99, pt_raw)); // minimum values are just below the first bin upper edge
+    if ((pt) < 10.0 && fabs(eta) < 0.8) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 0.8) return 0.877000212669 + isyst * 0.00509426142776;
+    if ((pt) < 25.0 && fabs(eta) < 0.8) return 0.930303752422 + isyst * 0.00363888337738;
+    if ((pt) < 30.0 && fabs(eta) < 0.8) return 0.936275362968 + isyst * 0.00245621290149;
+    if ((pt) < 35.0 && fabs(eta) < 0.8) return 0.947199523449 + isyst * 0.00174001559731;
+    if ((pt) < 40.0 && fabs(eta) < 0.8) return 0.957808971405 + isyst * 0.00136263256927;
+    if ((pt) < 50.0 && fabs(eta) < 0.8) return 0.96155333519 + isyst * 0.000920513000743;
+    if ((pt) < 70.0 && fabs(eta) < 0.8) return 0.965367615223 + isyst * 0.00166941835984;
+    if ((pt) < 100.0 && fabs(eta) < 0.8) return 0.969835579395 + isyst * 0.00447161707115;
+    if ((pt) < 200.0 && fabs(eta) < 0.8) return 0.969730913639 + isyst * 0.00682288006359;
+    if ((pt) < 10.0 && fabs(eta) < 1.4) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.4) return 0.872624874115 + isyst * 0.00607979240802;
+    if ((pt) < 25.0 && fabs(eta) < 1.4) return 0.944443106651 + isyst * 0.00470184863292;
+    if ((pt) < 30.0 && fabs(eta) < 1.4) return 0.952896773815 + isyst * 0.00330454153895;
+    if ((pt) < 35.0 && fabs(eta) < 1.4) return 0.961276888847 + isyst * 0.00244423582999;
+    if ((pt) < 40.0 && fabs(eta) < 1.4) return 0.966708362103 + isyst * 0.00192296566459;
+    if ((pt) < 50.0 && fabs(eta) < 1.4) return 0.96971809864 + isyst * 0.0012633983498;
+    if ((pt) < 70.0 && fabs(eta) < 1.4) return 0.971565425396 + isyst * 0.0022819133972;
+    if ((pt) < 100.0 && fabs(eta) < 1.4) return 0.976942360401 + isyst * 0.00624462078774;
+    if ((pt) < 200.0 && fabs(eta) < 1.4) return 0.980085432529 + isyst * 0.00981719292445;
+    if ((pt) < 10.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 25.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 30.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 35.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 40.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 50.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 70.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 100.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 200.0 && fabs(eta) < 1.6) return 0.0 + isyst * 0.0;
+    if ((pt) < 10.0 && fabs(eta) < 2.1) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0 && fabs(eta) < 2.1) return 0.826439201832 + isyst * 0.00848132923258;
+    if ((pt) < 25.0 && fabs(eta) < 2.1) return 0.959271073341 + isyst * 0.0069211953016;
+    if ((pt) < 30.0 && fabs(eta) < 2.1) return 0.967710614204 + isyst * 0.00496617718441;
+    if ((pt) < 35.0 && fabs(eta) < 2.1) return 0.971371293068 + isyst * 0.0037502209587;
+    if ((pt) < 40.0 && fabs(eta) < 2.1) return 0.974818825722 + isyst * 0.0030547150868;
+    if ((pt) < 50.0 && fabs(eta) < 2.1) return 0.976114690304 + isyst * 0.0022054689854;
+    if ((pt) < 70.0 && fabs(eta) < 2.1) return 0.97675794363 + isyst * 0.00407083064138;
+    if ((pt) < 100.0 && fabs(eta) < 2.1) return 0.97973382473 + isyst * 0.010832308584;
+    if ((pt) < 200.0 && fabs(eta) < 2.1) return 0.986845970154 + isyst * 0.016928373979;
+    if ((pt) < 10.0) return 0.0 + isyst * 0.0;
+    if ((pt) < 20.0) return 0.728869855404 + isyst * 0.0116184710407;
+    if ((pt) < 25.0) return 0.88838237524 + isyst * 0.0104521561727;
+    if ((pt) < 30.0) return 0.927452504635 + isyst * 0.00779381211613;
+    if ((pt) < 35.0) return 0.953231453896 + isyst * 0.00609891107417;
+    if ((pt) < 40.0) return 0.961025297642 + isyst * 0.00525089566696;
+    if ((pt) < 50.0) return 0.964372575283 + isyst * 0.00413046109066;
+    if ((pt) < 70.0) return 0.967122733593 + isyst * 0.00794852833318;
+    if ((pt) < 100.0) return 0.970224559307 + isyst * 0.0219625096789;
+    if ((pt) < 200.0) return 0.974473536015 + isyst * 0.0350409747407;
+    printf("WARNING in trigdata_el_trail(): the given phase-space (%f, %f) did not fall under any range!\n", pt, eta); 
+    return 1;
+}
+
+// Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
+// Created on 2018-06-20 11:51:45
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/egammaEffi.txt_EGM2D.root EGamma_SF2D eta:pt lepsf_elec_reco
 float lepsf_elec_reco(float pt_raw, float eta_raw, int isyst=0)
@@ -377,7 +711,7 @@ float lepsf_elec_reco(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:23
+// Created on 2018-06-20 11:51:47
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/egammaEffi.txt_EGM2D.MVA80.root EGamma_SF2D eta:pt lepsf_elec_mva80
 float lepsf_elec_mva80(float pt_raw, float eta_raw, int isyst=0)
@@ -451,7 +785,7 @@ float lepsf_elec_mva80(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:25
+// Created on 2018-06-20 11:51:49
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/egammaEffi.txt_EGM2D.MVA90.root EGamma_SF2D eta:pt lepsf_elec_mva90
 float lepsf_elec_mva90(float pt_raw, float eta_raw, int isyst=0)
@@ -525,7 +859,7 @@ float lepsf_elec_mva90(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:26
+// Created on 2018-06-20 11:51:51
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/elec_sf_3l_iso.root sf_pt_vs_eta eta:pt lepsf_elec_3l_iso
 float lepsf_elec_3l_iso(float pt_raw, float eta_raw, int isyst=0)
@@ -579,7 +913,7 @@ float lepsf_elec_3l_iso(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:27
+// Created on 2018-06-20 11:51:52
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/elec_sf_3l_noiso.root sf_pt_vs_eta eta:pt lepsf_elec_3l_id
 float lepsf_elec_3l_id(float pt_raw, float eta_raw, int isyst=0)
@@ -633,7 +967,7 @@ float lepsf_elec_3l_id(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:29
+// Created on 2018-06-20 11:51:54
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/elec_sf_iso.root sf_pt_vs_eta eta:pt lepsf_elec_ss_iso
 float lepsf_elec_ss_iso(float pt_raw, float eta_raw, int isyst=0)
@@ -687,7 +1021,7 @@ float lepsf_elec_ss_iso(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:30
+// Created on 2018-06-20 11:51:55
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/elec_sf_noiso.root sf_pt_vs_eta eta:pt lepsf_elec_ss_id
 float lepsf_elec_ss_id(float pt_raw, float eta_raw, int isyst=0)
@@ -741,7 +1075,7 @@ float lepsf_elec_ss_id(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:32
+// Created on 2018-06-20 11:51:57
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/muon_trk_sf.root muon_trk_sf |eta|:pt lepsf_muon_trk
 float lepsf_muon_trk(float pt_raw, float eta_raw, int isyst=0)
@@ -767,7 +1101,7 @@ float lepsf_muon_trk(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:33
+// Created on 2018-06-20 11:51:59
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/muon_id_sf.root muon_id_sf |eta|:pt lepsf_muon_id
 float lepsf_muon_id(float pt_raw, float eta_raw, int isyst=0)
@@ -805,7 +1139,7 @@ float lepsf_muon_id(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:34
+// Created on 2018-06-20 11:52:01
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/muon_sf.root sf_pt_vs_eta |eta|:pt lepsf_muon_ss
 float lepsf_muon_ss(float pt_raw, float eta_raw, int isyst=0)
@@ -843,7 +1177,7 @@ float lepsf_muon_ss(float pt_raw, float eta_raw, int isyst=0)
 }
 
 // Auto generated from https://github.com/sgnoohc/rooutil/blob/master/printsf.py
-// Created on 2018-05-06 20:46:36
+// Created on 2018-06-20 11:52:03
 // Created by the command:
 //   > ../rooutil/printsf.py /home/users/phchang/public_html/analysis/www/code/VVVBabyMaker/dilepbabymaker/lepsfrootfiles_20180506/muon_sf_3l.root sf_pt_vs_eta |eta|:pt lepsf_muon_3l
 float lepsf_muon_3l(float pt_raw, float eta_raw, int isyst=0)
