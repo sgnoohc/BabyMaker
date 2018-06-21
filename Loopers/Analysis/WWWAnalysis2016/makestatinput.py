@@ -23,6 +23,8 @@ def main():
 
     filename = "output_sf_applied.root"
     samples = TQSampleFolder.loadSampleFolder("{}:samples".format(filename))
+    samples_jec_up = TQSampleFolder.loadSampleFolder("output_jec_up.root:samples")
+    samples_jec_dn = TQSampleFolder.loadSampleFolder("output_jec_dn.root:samples")
 
     histname = "{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"
 
@@ -75,6 +77,10 @@ def main():
         for systvar in systvars:
             #print systvar
             samples.getHistogram(sampledirpaths[process], histname.replace("Full", "Full" + systvar)).Clone(process + "_" + systvar).Write()
+
+        # JEC systematic histograms
+        samples_jec_up.getHistogram(sampledirpaths[process], histname).Clone(process + "_JECUp").Write()
+        samples_jec_dn.getHistogram(sampledirpaths[process], histname).Clone(process + "_JECDown").Write()
 
         if process == "lostlep":
             lostlep_syst_up   = h_nom.Clone(process + "_LostLepSystUp")

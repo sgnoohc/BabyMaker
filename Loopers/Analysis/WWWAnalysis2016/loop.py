@@ -22,7 +22,8 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.29/skim/", "<-1")
+    #connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.29/skim/", "<-1")
+    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/", "<-1")
 
     #
     #
@@ -159,19 +160,21 @@ def main(index):
     TH1F('Mlvlvjj_wide' , '' , 180 , 0. , 3000.) << ([MTlvlvjj] : '\#it{m}_{lvlvjj} [GeV]');
     #@*/*: Mlvlvjj_wide;
 
-    @BTCRSSeeFull/*: lep_pt0, lep_pt1, MET;
-    @BTCRSSemFull/*: lep_pt0, lep_pt1, MET;
-    @BTCRSSmmFull/*: lep_pt0, lep_pt1, MET;
-    @BTCRSideSSeeFull/*: lep_pt0, lep_pt1, MET;
-    @BTCRSideSSemFull/*: lep_pt0, lep_pt1, MET;
-    @BTCRSideSSmmFull/*: lep_pt0, lep_pt1, MET;
+    TH1F('MTlvlv' , '' , 180 , 0. , 1000.) << ([MTlvlv] : '\#it{m}_{T,lvlv} [GeV]');
+    #@*/*: MTlvlv;
 
-    @LMETCRSSeeFull/*: lep_pt0, lep_pt1, MET, Mjj;
-    @LMETCRSSemFull/*: lep_pt0, lep_pt1, MET, Mjj;
-    @LMETCRSSmmFull/*: lep_pt0, lep_pt1, MET, Mjj;
-    @LMETCR0SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
-    @LMETCR1SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
-    @LMETCR2SFOSFull/*: lep_pt0, lep_pt1, MET, Mjj;
+    @SRSSeeFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSemFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSmmFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSeeFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSemFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSmmFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSeePre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSemPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSmmPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSeePre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSemPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSmmPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
 
     """)
     f.close()
@@ -209,10 +212,12 @@ def main(index):
     customobservables["MTMax3L_up"] = TQWWWMTMax3L("_up")
     customobservables["MTMax3L_dn"] = TQWWWMTMax3L("_dn")
     customobservables["MTlvlvjj"] = TQWWWVariables("MTlvlvjj")
+    customobservables["MTlvlv"] = TQWWWVariables("MTlvlv")
     TQObservable.addObservable(customobservables["MTMax3L"], "MTMax3L")
     TQObservable.addObservable(customobservables["MTMax3L_up"], "MTMax3L_up")
     TQObservable.addObservable(customobservables["MTMax3L_dn"], "MTMax3L_dn")
     TQObservable.addObservable(customobservables["MTlvlvjj"], "MTlvlvjj")
+    TQObservable.addObservable(customobservables["MTlvlv"], "MTlvlv")
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     cuts.printCut("trd")
@@ -243,7 +248,11 @@ def main(index):
     vis = TQAnalysisSampleVisitor(cuts, True)
 
     # Run the job!
-    samples.visitSampleFolders(vis)
+    #samples.visitSampleFolders(vis, "/typebkg")
+    #samples.visitSampleFolders(vis, "/data")
+    #samples.visitSampleFolders(vis, "/fake")
+    #samples.visitSampleFolders(vis, "/sig")
+    samples.visitSampleFolders(vis, "/bsm")
 
     # Write the output histograms and cutflow cut values and etc.
     if index == 0: samples.writeToFile("output.root", True)
