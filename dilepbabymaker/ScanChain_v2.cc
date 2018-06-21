@@ -59,6 +59,7 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             if (isWHSUSY())
             {
                 AddWHsusyOutput();
+                setWHSMSMassAndWeights();
             }
 
             // Loop over electrons
@@ -2028,12 +2029,6 @@ void babyMaker_v2::FillWeights()
             h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
         }
     }
-
-    if (isWHSUSY())
-    {
-        setWHSMSMassAndWeights();
-    }
-
 }
 
 //##############################################################################################################
@@ -2545,6 +2540,7 @@ void babyMaker_v2::setWHSMSMassAndWeights()
         if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
         if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
     }
+    tx->clear();
     tx->setBranch<float>("chimass", mass_chargino);
     tx->setBranch<float>("lspmass", mass_lsp);
 //    std::cout <<  " h_nrawevents_SMS: " << h_nrawevents_SMS <<  std::endl;
