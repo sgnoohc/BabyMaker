@@ -6,12 +6,28 @@
 using namespace std;
 
 //##############################################################################################################
+babyMaker_v2::babyMaker_v2() : coreBtagSFFastSim(true)
+{
+    isDoublyChargedHiggsOutputAdded = false;
+    nWHdoublyChargedHiggsEvents = 0;
+    isWprimeOutputAdded = false;
+    nWprimeToWWWEvents = 0;
+    isWHsusyOutputAdded = false;
+}
+
+//##############################################################################################################
+babyMaker_v2::~babyMaker_v2()
+{
+}
+
+//##############################################################################################################
 void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events, int index, bool verbose)
 {
 
     // Looper
     looper.init(chain, &cms3, max_events);
     looper.setSilent(); // The coreJec.setJECFor function will clash with progress bar otherwise.
+    looper.setFastMode(false);
 
     // Output root file
     CreateOutput(index);
@@ -23,10 +39,28 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             if (verbose)
                 cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
 
-            coreJec.setJECFor(looper.getCurrentFileName());
+            setFilename(looper.getCurrentFileName());
+
+            coreJec.setJECFor(looper.getCurrentFileName(), isWHSUSY());
             looper.setSilent(false); // Once JEC is set the message will not clash with progress bar.
 
-            setFilename(looper.getCurrentFileName());
+            if (isDoublyChargedHiggs())
+            {
+                AddDoublyChargedHiggsOutput();
+                studyDoublyChargedHiggs();
+            }
+
+            if (isWprime())
+            {
+                AddWprimeOutput();
+                studyWprime();
+            }
+
+            if (isWHSUSY())
+            {
+                AddWHsusyOutput();
+                setWHSMSMassAndWeights();
+            }
 
             // Loop over electrons
             ProcessElectrons();
@@ -58,12 +92,23 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
         }
         catch (const std::ios_base::failure& e)
         {
-            break;
+            if (filename.compare(0, 4, "data") == 0)
+            {
+                std::cout << "Found bad event in data" << std::endl;
+                FATALERROR(__FUNCTION__);
+                exit(2);
+            }
             tx->clear(); // clear the TTree of any residual stuff
             if (!looper.handleBadEvent())
                 break;
         }
     }
+
+    if (isDoublyChargedHiggs())
+        cout << "Total W+-H+-+- events " << nWHdoublyChargedHiggsEvents << endl;
+
+    if (isWprime())
+        cout << "Total Wprime to WWW events " << nWprimeToWWWEvents << endl;
 
     looper.printStatus();
 
@@ -345,6 +390,65 @@ void babyMaker_v2::CreateOutput(int index)
     h_neventsinfile->SetBinContent(1, looper.getTChain()->GetEntries()); // this is the bin with value = 0
 }
 
+//##############################################################################################################
+void babyMaker_v2::AddDoublyChargedHiggsOutput()
+{
+    if (isDoublyChargedHiggsOutputAdded)
+        return;
+    tx->createBranch<int>("iswhchannel");
+    tx->createBranch<LV>("w_p4");
+    tx->createBranch<LV>("q0_p4");
+    tx->createBranch<LV>("q1_p4");
+    tx->createBranch<LV>("h_p4");
+    tx->createBranch<LV>("w0_p4");
+    tx->createBranch<LV>("w1_p4");
+    tx->createBranch<LV>("l0_p4");
+    tx->createBranch<LV>("l1_p4");
+    tx->createBranch<LV>("v0_p4");
+    tx->createBranch<LV>("v1_p4");
+    isDoublyChargedHiggsOutputAdded = true;
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddWprimeOutput()
+{
+    if (isWprimeOutputAdded)
+        return;
+    tx->createBranch<int>("iswwwchannel");
+    tx->createBranch<LV>("wprime_p4");
+    tx->createBranch<LV>("wa_p4");
+    tx->createBranch<LV>("la_p4");
+    tx->createBranch<LV>("va_p4");
+    tx->createBranch<LV>("h_p4");
+    tx->createBranch<LV>("w0_p4");
+    tx->createBranch<LV>("w1_p4");
+    tx->createBranch<LV>("l_p4");
+    tx->createBranch<LV>("v_p4");
+    tx->createBranch<LV>("j0_p4");
+    tx->createBranch<LV>("j1_p4");
+    isWprimeOutputAdded = true;
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddWHsusyOutput()
+{
+    if (isWHsusyOutputAdded)
+        return;
+    std::cout << "AddWHsusyOutput" << std::endl;
+    h_nevents_SMS = new TH3F("h_counterSMS", "h_counterSMS", 37, 99, 1024, 19, -1, 474, 35, 0.5, 35.5); //15000 bins!
+    h_nevents_SMS->Sumw2();
+    h_nrawevents_SMS = new TH2F("histNEvts", "h_histNEvts", 37, 99, 1024, 19, -1, 474); //x=mStop, y=mLSP
+    h_nrawevents_SMS->Sumw2();
+    fxsec = new TFile("xsec_susy_13tev.root", "READ");
+    if (fxsec -> IsZombie()) {
+        std::cout << "Somehow xsec_stop_13TeV.root is corrupted. Exit..." << std::endl;
+        exit(3);
+    }
+    hxsec = (TH1D *) fxsec -> Get("h_xsec_c1n2");
+    tx->createBranch<float>("chimass");
+    tx->createBranch<float>("lspmass");
+    isWHsusyOutputAdded = true;
+}
 
 //##############################################################################################################
 void babyMaker_v2::SaveOutput()
@@ -390,6 +494,12 @@ void babyMaker_v2::SaveOutput()
     t_lostlep->Write();
 
     h_neventsinfile->Write();
+
+    if (isWHSUSY())
+    {
+        h_nevents_SMS->Write();
+        h_nrawevents_SMS->Write();
+    }
 }
 
 //##############################################################################################################
@@ -766,9 +876,25 @@ void babyMaker_v2::FillEventInfo()
     }
     else
     {
-        float scale1fb = coreDatasetInfo.getScale1fb();
-        if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.066805 * 91900.  / (91900. + 164800.);
-        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.066805 * 164800. / (91900. + 164800.);
+        float scale1fb = 1;
+        if (isDoublyChargedHiggs())
+            scale1fb = 0.01;
+        else if (isWprime())
+            scale1fb = 0.004;
+        else if (isWHSUSY())
+            scale1fb = 1;
+        else
+            scale1fb = coreDatasetInfo.getScale1fb();
+        // CMS3 www_2l_mia has scale1fb = 1/91900 * 1000. or 1/164800 * 1000.
+        if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.051848 * 1.14082 *  91900. / (91900. + 164800.);
+        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.051848 * 1.1402  * 164800. / (91900. + 164800.);
+        //                                                                ^^^^^^^^   ^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^
+        //                                                                sigma*BR   neg-wgt   tot-evt   tot-evt of both sample
+        // sigma(pp -> WWW) = 208 fb (MadGraph5)    
+        // BR (W -> e,mu,tau+neutrino) = 0.3258
+        // BR (WWW->2l, l=e,mu,tau)) = 3 * (0.3258^2 * (1-0.3258)) + 0.3258^3 = 0.249272
+        // sigma (pp -> WWW) * BR(WWW->2l) = 0.051848
+        //
         tx->setBranch<float>("evt_scale1fb", scale1fb);
         tx->setBranch<int>("evt_passgoodrunlist", true);
     }
@@ -1046,6 +1172,7 @@ void babyMaker_v2::SortLeptonBranches()
 void babyMaker_v2::FillJets()
 {
     coreBtagSF.clearSF();
+    coreBtagSFFastSim.clearSF();
     for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
     {
         int idx = coreJet.index[ijet];
@@ -1062,7 +1189,10 @@ void babyMaker_v2::FillJets()
         {
             tx->pushbackToBranch<LorentzVector>("jets_p4", jet);
             tx->pushbackToBranch<float>("jets_csv", current_csv_val);
-            coreBtagSF.accumulateSF(idx, jet.pt(), jet.eta());
+            if (!isWHSUSY())
+                coreBtagSF.accumulateSF(idx, jet.pt(), jet.eta());
+            else
+                coreBtagSFFastSim.accumulateSF(idx, jet.pt(), jet.eta());
         }
 
         LorentzVector jet_up = jet * (1. + shift);
@@ -1082,11 +1212,22 @@ void babyMaker_v2::FillJets()
 
     if (!cms3.evt_isRealData())
     {
-        tx->setBranch<float>("weight_btagsf"         , coreBtagSF.btagprob_data     / coreBtagSF.btagprob_mc);
-        tx->setBranch<float>("weight_btagsf_heavy_DN", coreBtagSF.btagprob_heavy_DN / coreBtagSF.btagprob_mc);
-        tx->setBranch<float>("weight_btagsf_heavy_UP", coreBtagSF.btagprob_heavy_UP / coreBtagSF.btagprob_mc);
-        tx->setBranch<float>("weight_btagsf_light_DN", coreBtagSF.btagprob_light_DN / coreBtagSF.btagprob_mc);
-        tx->setBranch<float>("weight_btagsf_light_UP", coreBtagSF.btagprob_light_UP / coreBtagSF.btagprob_mc);
+        if (!isWHSUSY())
+        {
+            tx->setBranch<float>("weight_btagsf"         , coreBtagSF.btagprob_data     / coreBtagSF.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_heavy_DN", coreBtagSF.btagprob_heavy_DN / coreBtagSF.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_heavy_UP", coreBtagSF.btagprob_heavy_UP / coreBtagSF.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_light_DN", coreBtagSF.btagprob_light_DN / coreBtagSF.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_light_UP", coreBtagSF.btagprob_light_UP / coreBtagSF.btagprob_mc);
+        }
+        else
+        {
+            tx->setBranch<float>("weight_btagsf"         , coreBtagSFFastSim.btagprob_data     / coreBtagSFFastSim.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_heavy_DN", coreBtagSFFastSim.btagprob_heavy_DN / coreBtagSFFastSim.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_heavy_UP", coreBtagSFFastSim.btagprob_heavy_UP / coreBtagSFFastSim.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_light_DN", coreBtagSFFastSim.btagprob_light_DN / coreBtagSFFastSim.btagprob_mc);
+            tx->setBranch<float>("weight_btagsf_light_UP", coreBtagSFFastSim.btagprob_light_UP / coreBtagSFFastSim.btagprob_mc);
+        }
     }
     else
     {
@@ -1160,15 +1301,30 @@ void babyMaker_v2::FillTrigger()
         tx->setBranch<int>("HLT_SingleIsoMu8", 1);
         tx->setBranch<int>("HLT_SingleIsoMu17", 1);
     }
-    tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
-    tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
-    tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
-    tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
-    tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
-    tx->setBranch<int>("mc_HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
-    tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
-    tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
-    tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
+    if (isWHSUSY())
+    {
+        tx->setBranch<int>("mc_HLT_DoubleMu", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ", 1);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", 1);
+        tx->setBranch<int>("mc_HLT_MuEG", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl8", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl17", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu8", 1);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu17", 1);
+    }
+    else
+    {
+        tx->setBranch<int>("mc_HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
+        tx->setBranch<int>("mc_HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
+        tx->setBranch<int>("mc_HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
+        tx->setBranch<int>("mc_HLT_MuEG", coreTrigger.HLT_MuEG);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl8", coreTrigger.HLT_SingleIsoEl8);
+        tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
+        tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
+    }
 }
 
 //##############################################################################################################
@@ -1216,12 +1372,25 @@ void babyMaker_v2::FillMETFilter()
     }
 
     // in data and MC
-    tx->setBranch<int>("Flag_HBHENoiseFilter", cms3.filt_hbheNoise());
-    tx->setBranch<int>("Flag_HBHEIsoNoiseFilter", cms3.filt_hbheNoiseIso());
-    tx->setBranch<int>("Flag_CSCTightHalo2015Filter", cms3.filt_cscBeamHalo2015());
-    tx->setBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter", cms3.filt_ecalTP());
-    tx->setBranch<int>("Flag_goodVertices", cms3.filt_goodVertices());
-    tx->setBranch<int>("Flag_eeBadScFilter", cms3.filt_eeBadSc());
+    if (!isWHSUSY())
+    {
+        tx->setBranch<int>("Flag_HBHENoiseFilter", cms3.filt_hbheNoise());
+        tx->setBranch<int>("Flag_HBHEIsoNoiseFilter", cms3.filt_hbheNoiseIso());
+        tx->setBranch<int>("Flag_CSCTightHalo2015Filter", cms3.filt_cscBeamHalo2015());
+        tx->setBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter", cms3.filt_ecalTP());
+        tx->setBranch<int>("Flag_goodVertices", cms3.filt_goodVertices());
+        tx->setBranch<int>("Flag_eeBadScFilter", cms3.filt_eeBadSc());
+    }
+    else
+    {
+        tx->setBranch<int>("Flag_HBHENoiseFilter", 1);
+        tx->setBranch<int>("Flag_HBHEIsoNoiseFilter", 1);
+        tx->setBranch<int>("Flag_CSCTightHalo2015Filter", 1);
+        tx->setBranch<int>("Flag_EcalDeadCellTriggerPrimitiveFilter", 1);
+        tx->setBranch<int>("Flag_goodVertices", 1);
+        tx->setBranch<int>("Flag_eeBadScFilter", 1);
+    }
+
     if (!is_cms4)
         tx->setBranch<int>("Flag_badChargedCandidateFilter", badChargedCandidateFilter());
     else
@@ -1230,7 +1399,14 @@ void babyMaker_v2::FillMETFilter()
     // inputs for badMuonFilters in latest cms3 tags
     if (recent_cms3_version)
     {
-        tx->setBranch<int>("Flag_globalTightHalo2016", cms3.filt_globalTightHalo2016());
+        if (!isWHSUSY())
+        {
+            tx->setBranch<int>("Flag_globalTightHalo2016", cms3.filt_globalTightHalo2016());
+        }
+        else
+        {
+            tx->setBranch<int>("Flag_globalTightHalo2016", 1);
+        }
         if (!is_cms4)
             tx->setBranch<int>("Flag_badMuonFilter", badMuonFilter());
         else
@@ -2069,6 +2245,365 @@ bool babyMaker_v2::splitVH()
 }
 
 //##############################################################################################################
+bool babyMaker_v2::studyDoublyChargedHiggs()
+{
+    ProcessGenParticles();
+    if (!isDoublyChargedHiggs()) return false; //file is certainly not doubly charged higgs
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+    bool iswhpmpm = false;
+    int mother_of_w = 0;
+    int wid = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        if (status < 21 || status > 23)
+            continue;
+        if (grandmaId != 2212)
+            continue;
+        if (abs(pdgId) != 24)
+            continue;
+        iswhpmpm = true;
+        mother_of_w = motherId;
+        wid = pdgId;
+    }
+
+    if (!iswhpmpm)
+    {
+        tx->clear();
+        tx->setBranch<int>("iswhchannel", 0);
+        return false;
+    }
+
+    nWHdoublyChargedHiggsEvents++;
+
+    vector<LV> qs;
+    vector<LV> h;
+    vector<LV> w;
+    vector<LV> ws;
+    vector<LV> l;
+    vector<LV> v;
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cout << std::endl;
+    int hid = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        // The quarks from the associated W decay
+        if (status == 23 && grandmaId == wid && motherId == wid && (abs(pdgId) >= 1 && abs(pdgId) <= 4))
+        {
+            qs.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (status == 22 && grandmaId == 2212 && abs(pdgId) == 255)
+        {
+            h.push_back(p4);
+            hid = pdgId;
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (status == 22 && grandmaId == 2212 && abs(pdgId) == 24)
+        {
+            w.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        // Assume that in the particle record doubly charged higgs will always show up before product
+        else if (abs(pdgId) == 24 && motherId == hid)
+        {
+            ws.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        // Assume that in the particle record doubly charged higgs will always show up before product
+        else if (abs(motherId) == 24 && grandmaId == hid && (abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15))
+        {
+            l.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if (abs(motherId) == 24 && grandmaId == hid && (abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16))
+        {
+            v.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+    }
+    std::cout.clear();
+
+    // sanity check
+    if (qs.size() != 2)
+        std::cout << "Found different from 2 quarks " << qs.size() << std::endl;
+    if (h.size() != 1)
+        std::cout << "Found different from 1 doubly charged higgs " << h.size() << std::endl;
+    if (w.size() != 1)
+        std::cout << "Found different from 1 associated w" << w.size() << std::endl;
+    if (ws.size() != 2)
+        std::cout << "Found different from 2 w decays" << ws.size() << std::endl;
+    if (l.size() != 2)
+        std::cout << "Found different from 2 leptons" << l.size() << std::endl;
+    if (v.size() != 2)
+        std::cout << "Found different from 2 neutrinos" << v.size() << std::endl;
+
+    // Fill in tree variable
+    tx->setBranch<int>("iswhchannel", true);
+    tx->setBranch<LV>("w_p4", w[0]);
+    tx->setBranch<LV>("q0_p4", qs[0].pt() > qs[1].pt() ? qs[0] : qs[1]);
+    tx->setBranch<LV>("q1_p4", qs[0].pt() > qs[1].pt() ? qs[1] : qs[0]);
+    tx->setBranch<LV>("h_p4", h[0]);
+    tx->setBranch<LV>("w0_p4", ws[0].pt() > ws[1].pt() ? ws[0] : ws[1]);
+    tx->setBranch<LV>("w1_p4", ws[0].pt() > ws[1].pt() ? ws[1] : ws[0]);
+    tx->setBranch<LV>("l0_p4", l[0].pt() > l[1].pt() ? l[0] : l[1]);
+    tx->setBranch<LV>("l1_p4", l[0].pt() > l[1].pt() ? l[1] : l[0]);
+    tx->setBranch<LV>("v0_p4", v[0].pt() > v[1].pt() ? v[0] : v[1]);
+    tx->setBranch<LV>("v1_p4", v[0].pt() > v[1].pt() ? v[1] : v[0]);
+    return true;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::studyWprime()
+{
+    ProcessGenParticles();
+    if (!isWprime()) return false; //file is certainly not doubly charged higgs
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+
+    // First determine whether it is hww process
+    bool ishww = false;
+    int wa_id = 0;
+    int lep_w_id = 0;
+    int nlep = 0;
+    int nquark = 0;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        // pdgId: 9000002 motherId: 2 grandmaId: 2212 status: 22 p4.pt(): 0 p4.eta(): 22782.3 p4.phi(): 0
+        // pdgId: 24 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 228.906 p4.eta(): 0.701046 p4.phi(): -0.726092
+        // pdgId: 25 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 231.025 p4.eta(): -0.606109 p4.phi(): 2.44679
+        // pdgId: -11 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 109.007 p4.eta(): 0.33666 p4.phi(): -0.587264
+        // pdgId: 12 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
+        // pdgId: -11 motherId: -11 grandmaId: 24 status: 1 p4.pt(): 106.019 p4.eta(): 0.33666 p4.phi(): -0.587264
+        // pdgId: 12 motherId: 12 grandmaId: 24 status: 1 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
+        // pdgId: 5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 219.811 p4.eta(): -0.701156 p4.phi(): 2.5061
+        // pdgId: -5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 17.4443 p4.eta(): 0.915842 p4.phi(): 1.603490
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
+            wa_id = pdgId;
+        if (abs(pdgId) == 24 && motherId == 25)
+            ishww = true;
+//        std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        {
+            nlep++;
+            lep_w_id = motherId;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        {
+            nquark++;
+        }
+    }
+
+    if (!ishww || nlep != 1 || nquark != 2 || lep_w_id != wa_id)
+    {
+        tx->clear();
+        tx->setBranch<int>("iswwwchannel", 0);
+        return false;
+    }
+
+    nWprimeToWWWEvents++;
+
+    std::vector<LV> wprime;
+    std::vector<LV> wa;
+    std::vector<LV> la;
+    std::vector<LV> va;
+    std::vector<LV> h;
+    std::vector<LV> ws;
+    std::vector<LV> l;
+    std::vector<LV> v;
+    std::vector<LV> js;
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cout << std::endl;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        if (abs(pdgId) == 9000002 && status == 22)
+        {
+            wprime.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
+        {
+            wa.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 25 && abs(motherId) == 9000002)
+        {
+            h.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if (abs(pdgId) == 24 && motherId == 25)
+        {
+            ws.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            l.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            v.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
+        {
+            la.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
+        {
+            va.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25)
+        {
+            js.push_back(p4);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+    }
+    std::cout.clear();
+
+    // sanity check
+    if (wprime.size() != 1)
+        std::cout << "Found different from 1 wprime" << wprime.size() << std::endl;
+    if (h.size() != 1)
+        std::cout << "Found different from 1 higgs" << h.size() << std::endl;
+    if (wa.size() != 1)
+        std::cout << "Found different from 1 associated w" << wa.size() << std::endl;
+    if (ws.size() != 2)
+        std::cout << "Found different from 2 w decays" << ws.size() << std::endl;
+    if (l.size() != 1)
+        std::cout << "Found different from 1 leptons" << l.size() << std::endl;
+    if (v.size() != 1)
+        std::cout << "Found different from 1 neutrinos" << v.size() << std::endl;
+    if (la.size() != 1)
+        std::cout << "Found different from 1 leptons" << la.size() << std::endl;
+    if (va.size() != 1)
+        std::cout << "Found different from 1 neutrinos" << va.size() << std::endl;
+    if (js.size() != 2)
+        std::cout << "Found different from 2 quarks " << js.size() << std::endl;
+
+    // Fill in tree variable
+    tx->setBranch<int>("iswwwchannel", true);
+    tx->setBranch<LV>("wprime_p4", wprime[0]);
+    tx->setBranch<LV>("wa_p4", wa[0]);
+    tx->setBranch<LV>("la_p4", la[0]);
+    tx->setBranch<LV>("va_p4", va[0]);
+    tx->setBranch<LV>("h_p4", h[0]);
+    tx->setBranch<LV>("w0_p4", ws[0].pt() > ws[1].pt() ? ws[0] : ws[1]);
+    tx->setBranch<LV>("w1_p4", ws[0].pt() > ws[1].pt() ? ws[1] : ws[0]);
+    tx->setBranch<LV>("l_p4", l[0]);
+    tx->setBranch<LV>("v_p4", v[0]);
+    tx->setBranch<LV>("j0_p4", js[0].pt() > js[1].pt() ? js[0] : js[1]);
+    tx->setBranch<LV>("j1_p4", js[0].pt() > js[1].pt() ? js[1] : js[0]);
+    return true;
+}
+
+//##############################################################################################################
+void babyMaker_v2::setWHSMSMassAndWeights()
+{
+    using namespace tas;
+    //get susy particle masses from sparms
+    float mass_chargino;
+    float mass_lsp;
+    float mass_gluino;
+    for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
+        if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
+        if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
+        if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+    }
+    tx->clear();
+    tx->setBranch<float>("chimass", mass_chargino);
+    tx->setBranch<float>("lspmass", mass_lsp);
+//    std::cout <<  " h_nrawevents_SMS: " << h_nrawevents_SMS <<  std::endl;
+    if (genps_weight() > 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, 1);
+    else if (genps_weight() < 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, -1);
+    float xsec = hxsec->GetBinContent(hxsec->FindBin(mass_chargino));
+    float xsec_uncert = hxsec->GetBinError(hxsec->FindBin(mass_chargino));
+
+    float SMSpdf_weight_up = 1;
+    float SMSpdf_weight_down = 1;
+    float SMSsum_of_weights = 0;
+    float SMSaverage_of_weights = 0;
+    //error on pdf replicas
+    //fastsim has first genweights bin being ==1
+    if (genweights().size() > 111) { //fix segfault
+        for (int ipdf = 10; ipdf < 110; ipdf++) {
+            SMSaverage_of_weights += cms3.genweights().at(ipdf);
+        } // average of weights
+        SMSaverage_of_weights = SMSaverage_of_weights / 100.;
+        for (int ipdf = 10; ipdf < 110; ipdf++) {
+            SMSsum_of_weights += pow(cms3.genweights().at(ipdf) - SMSaverage_of_weights, 2);
+        } //std of weights.
+        SMSpdf_weight_up = (SMSaverage_of_weights + sqrt(SMSsum_of_weights / 99.));
+        SMSpdf_weight_down = (SMSaverage_of_weights - sqrt(SMSsum_of_weights / 99.));
+//        std::cout <<  " h_nevents_SMS: " << h_nevents_SMS <<  std::endl;
+//        std::cout <<  " genweights().size(): " << genweights().size() <<  std::endl;
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 1, genweights()[1]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 2, genweights()[2]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 3, genweights()[3]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 4, genweights()[4]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 5, genweights()[5]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 6, genweights()[6]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 7, genweights()[7]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 8, genweights()[8]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 9, genweights()[9]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 10, SMSpdf_weight_up);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 11, SMSpdf_weight_down);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation. 
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
+    }
+}
+
+//##############################################################################################################
+bool babyMaker_v2::filterWHMass(float chimass, float lspmass)
+{
+    using namespace tas;
+    //get susy particle masses from sparms
+    float mass_chargino;
+    float mass_lsp;
+    for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
+        if (chimass >= 0)
+            if (sparm_names().at(nsparm).Contains("mCh"))
+                if (sparm_values().at(nsparm) != chimass)
+                    return false;
+        if (lspmass >= 0)
+            if (sparm_names().at(nsparm).Contains("mLSP"))
+                if (sparm_values().at(nsparm) != lspmass)
+                    return false;
+    }
+    return true;
+}
+
+//##############################################################################################################
 int babyMaker_v2::gentype_v2()
 {
     bool gammafake = false;
@@ -2148,176 +2683,190 @@ int babyMaker_v2::gentype_v2()
 void babyMaker_v2::setFilename(TString fname)
 {
     // 2016
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "dy_m1050_mgmlm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "dy_m50_mgmlm_ht100_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "dy_m50_mgmlm_ht1200_nonext";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "dy_m50_mgmlm_ht200_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "dy_m50_mgmlm_ht2500_nonext";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17_test/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "dy_m50_mgmlm_ht400_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2"))
         filename = "dy_m50_mgmlm_ht600_nonext";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "dy_m50_mgmlm_ht800_nonext";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v2/V08-00-16/"))
+    if (fname.Contains("DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v2"))
         filename = "dy_m50_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/EWKWMinus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("EWKWMinus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "Wmjj_lnu_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/EWKWPlus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("EWKWPlus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "Wpjj_lnu_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/EWKZ2Jets_ZToLL_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("EWKZ2Jets_ZToLL_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "Zjj_m50_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "sts_4f_leptonic_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "stt_antitop_incdec_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "stt_top_incdec_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "sttw_antitop_nofullhaddecay_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "sttw_top_nofullhaddecay_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ST_tWll_5f_LO_13TeV-MadGraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ST_tWll_5f_LO_13TeV-MadGraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "sttwll_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_www-Private80X-v1/V08-00-16/"))
-        filename = "www_2l_mia";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TEST-www_wwwext-Private80X-v1/V08-00-16/"))
-        filename = "www_2l_ext1_mia";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ttg_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ttbar_incl_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "ttbar_dilep_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "ttbar_1ltop_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "ttbar_1ltbr_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "vh_nonbb_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wgjets_incl_mgmlm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WGstarToLNuEE_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WGstarToLNuEE_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wgstar_lnee_012jets_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WGstarToLNuMuMu_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WGstarToLNuMuMu_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wgstar_lnmm_012jets_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht100_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wjets_ht1200_mgmlm_nonext";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht200_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht2500_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht400_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht600_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wjets_ht800_mgmlm_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wjets_incl_mgmlm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "wwg_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WWTo2L2Nu_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WWTo2L2Nu_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ww_2l2nu_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WWTo2L2Nu_DoubleScattering_13TeV-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WWTo2L2Nu_DoubleScattering_13TeV-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ww_2l2nu_dbl_scat";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WWToLNuQQ_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WWToLNuQQ_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ww_lnuqq_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wwz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wzg_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v3/V08-00-16/"))
+    if (fname.Contains("WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v3"))
         filename = "wz_lnqq_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wz_1l3n_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wz_3lnu_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wzz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/WpWpJJ_EWK-QCD_TuneCUETP8M1_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("WpWpJJ_EWK-QCD_TuneCUETP8M1_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "wpwpjj_ewk-qcd_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "zgamma_2lG_amc";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZZTo2L2Nu_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ZZTo2L2Nu_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "zz_2l2n_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "zz_2l2q_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "zz_2q2n_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZZTo4L_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ZZTo4L_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "zz_4l_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "zzz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/tZq_ll_4f_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("tZq_ll_4f_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "tzq_ll_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "tth_nonbb_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ttHTobb_M125_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ttHTobb_M125_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "tth_bb_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ttWJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ttWJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ttw_incl_mgmlm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/ttZJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("ttZJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "ttz_incl_mgmlm";
     if (fname.Contains("Run2016"))
         filename = "data";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-15to20_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-15to20_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt15";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt20";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt30";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt50";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3"))
         filename = "qcd_mu_pt80";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt120";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-170to300_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-170to300_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_mu_pt170";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1"))
         filename = "qcd_mu_pt300";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_mu_pt470";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt600";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_mu_pt800";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3"))
         filename = "qcd_mu_pt1000";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_em_pt20";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_em_pt30";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_em_pt50";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_em_pt80";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
         filename = "qcd_em_pt120";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_em_pt170";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_em_pt300";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_15to20_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_15to20_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt15";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_20to30_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_20to30_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt20";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_30to80_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_30to80_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt30";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_80to170_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_backup_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_80to170_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_backup_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt80";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_170to250_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_170to250_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt170";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_moriond17/QCD_Pt_250toInf_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/V08-00-16/"))
+    if (fname.Contains("QCD_Pt_250toInf_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
         filename = "qcd_bctoe_pt250";
+
+    // Signal sample 2016
+    if (fname.Contains("TEST-www_www-Private80X-v1"))
+        filename = "www_2l_mia";
+    if (fname.Contains("TEST-www_wwwext-Private80X-v1"))
+        filename = "www_2l_ext1_mia";
+    if (fname.Contains("PrivateWWW_www-cms4"))
+        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
+    if (fname.Contains("PrivateWWW_wwwext-cms4"))
+        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
+
+    // BSM models 2016
+    if (fname.Contains("DoublyChargedHiggsGMmodel_HWW"))
+        filename = "hpmpm_hww";
+    if (fname.Contains("WprimeToWH"))
+        filename = "wprime";
+    if (fname.Contains("SMS-TChiWH_WToLNu_HToVVTauTau"))
+        filename = "whsusy";
 
     // 2017
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))
@@ -2876,81 +3425,163 @@ std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
 
     // NOTE: "eff" variable names are really "efficiency scale factors"
 
-    // is ee events
-    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+    if (isWHSUSY())
     {
-        // related to lepton legs
-        float e_l0 = trigsf_el_lead(leadpt, leadeta);
-        float e_t1 = trigsf_el_trail(trailpt, traileta);
-        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
-        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = trigsf_diel_dz(smalleta, bigeta);
-        float dzerr = trigsf_diel_dz(smalleta, bigeta, 1) - trigsf_diel_dz(smalleta, bigeta);
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        // is ee events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_el_lead(leadpt, leadeta);
+            float e_t1 = trigdata_el_trail(trailpt, traileta);
+            float d_l0 = trigdata_el_lead(leadpt, leadeta, 1) - trigdata_el_lead(leadpt, leadeta);
+            float d_t1 = trigdata_el_trail(trailpt, traileta, 1) - trigdata_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = trigdata_diel_dz(smalleta, bigeta);
+            float dzerr = trigdata_diel_dz(smalleta, bigeta, 1) - trigdata_diel_dz(smalleta, bigeta);
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
+        // So apply only a flat err of 2%
+
+        // is em events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_el_lead(leadpt, leadeta);
+            float e_t1 = trigdata_mu_trail(trailpt, traileta);
+            float d_l0 = trigdata_el_lead(leadpt, leadeta, 1) - trigdata_el_lead(leadpt, leadeta);
+            float d_t1 = trigdata_mu_trail(trailpt, traileta, 1) - trigdata_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is me events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
+        {
+            // nominal
+            float e_l0 = trigdata_mu_lead(leadpt, leadeta);
+            float e_t1 = trigdata_el_trail(trailpt, traileta);
+            float d_l0 = trigdata_mu_lead(leadpt, leadeta, 1) - trigdata_mu_lead(leadpt, leadeta);
+            float d_t1 = trigdata_el_trail(trailpt, traileta, 1) - trigdata_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is mm events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigdata_mu_lead(leadpt, leadeta);
+            float e_t1 = trigdata_mu_trail(trailpt, traileta);
+            float d_l0 = trigdata_mu_lead(leadpt, leadeta, 1) - trigdata_mu_lead(leadpt, leadeta);
+            float d_t1 = trigdata_mu_trail(trailpt, traileta, 1) - trigdata_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 0.241 * trigdata_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+            float dzerr = 0.241 * (trigdata_dimu_dz(smalleta, bigeta, 1) - trigdata_dimu_dz(smalleta, bigeta));
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+            // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
+            // 8.636 + 0.221 / 36.814 = 0.241
+        }
     }
-
-    // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
-    // So apply only a flat err of 2%
-
-    // is em events
-    if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+    else
     {
-        // related to lepton legs
-        float e_l0 = trigsf_el_lead(leadpt, leadeta);
-        float e_t1 = trigsf_mu_trail(trailpt, traileta);
-        float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
-        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 1.0;
-        float dzerr = 0.02;
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-    }
+        // is ee events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 11)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_el_lead(leadpt, leadeta);
+            float e_t1 = trigsf_el_trail(trailpt, traileta);
+            float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+            float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = trigsf_diel_dz(smalleta, bigeta);
+            float dzerr = trigsf_diel_dz(smalleta, bigeta, 1) - trigsf_diel_dz(smalleta, bigeta);
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
 
-    // is me events
-    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
-    {
-        // nominal
-        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
-        float e_t1 = trigsf_el_trail(trailpt, traileta);
-        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
-        float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 1.0;
-        float dzerr = 0.02;
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-    }
+        // emu trigger's DZ filter was near 100% given statistics error also same-sign analysis observes the same.
+        // So apply only a flat err of 2%
 
-    // is mm events
-    if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
-    {
-        // related to lepton legs
-        float e_l0 = trigsf_mu_lead(leadpt, leadeta);
-        float e_t1 = trigsf_mu_trail(trailpt, traileta);
-        float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
-        float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
-        float tempeff = 1.0;
-        float temperr = 0.0;
-        std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
-        // dz
-        float dzeff = 0.241 * trigsf_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
-        float dzerr = 0.241 * (trigsf_dimu_dz(smalleta, bigeta, 1) - trigsf_dimu_dz(smalleta, bigeta));
-        eff = tempeff * dzeff;
-        err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
-        // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
-        // 8.636 + 0.221 / 36.814 = 0.241
+        // is em events
+        if (abs(lep_pdgId[0]) == 11 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_el_lead(leadpt, leadeta);
+            float e_t1 = trigsf_mu_trail(trailpt, traileta);
+            float d_l0 = trigsf_el_lead(leadpt, leadeta, 1) - trigsf_el_lead(leadpt, leadeta);
+            float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is me events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 11)
+        {
+            // nominal
+            float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+            float e_t1 = trigsf_el_trail(trailpt, traileta);
+            float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+            float d_t1 = trigsf_el_trail(trailpt, traileta, 1) - trigsf_el_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 1.0;
+            float dzerr = 0.02;
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+        }
+
+        // is mm events
+        if (abs(lep_pdgId[0]) == 13 && abs(lep_pdgId[1]) == 13)
+        {
+            // related to lepton legs
+            float e_l0 = trigsf_mu_lead(leadpt, leadeta);
+            float e_t1 = trigsf_mu_trail(trailpt, traileta);
+            float d_l0 = trigsf_mu_lead(leadpt, leadeta, 1) - trigsf_mu_lead(leadpt, leadeta);
+            float d_t1 = trigsf_mu_trail(trailpt, traileta, 1) - trigsf_mu_trail(trailpt, traileta);
+            float tempeff = 1.0;
+            float temperr = 0.0;
+            std::tie(tempeff, temperr) = getCombinedTrigEffandError(e_l0, 0., 0., e_t1, d_l0, 0., 0., d_t1);
+            // dz
+            float dzeff = 0.241 * trigsf_dimu_dz(smalleta, bigeta) + (1 - 0.241) * 1; // Because DZ filter only affects Period H
+            float dzerr = 0.241 * (trigsf_dimu_dz(smalleta, bigeta, 1) - trigsf_dimu_dz(smalleta, bigeta));
+            eff = tempeff * dzeff;
+            err = eff * sqrt(pow(temperr / tempeff, 2) + pow(dzerr / dzeff, 2));
+            // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
+            // 8.636 + 0.221 / 36.814 = 0.241
+        }
     }
     
     // Return result

@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <stdlib.h>
 
 // ROOT
 #include "TChain.h"
@@ -18,6 +19,7 @@
 #include "TBenchmark.h"
 #include "TLorentzVector.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TROOT.h"
 #include "TFile.h"
 #include "TChain.h"
@@ -108,6 +110,7 @@ private:
     CoreUtil::jec coreJec;
     CoreUtil::grl coreGRL;
     CoreUtil::btag coreBtagSF;
+    CoreUtil::btag coreBtagSFFastSim;
     CoreUtil::puwgt corePUWgt;
     CoreUtil::trigger coreTrigger;
     CoreUtil::genpart coreGenPart;
@@ -136,10 +139,20 @@ private:
 
     bool isData;
 
+    bool isDoublyChargedHiggsOutputAdded;
+    int nWHdoublyChargedHiggsEvents;
+    bool isWprimeOutputAdded;
+    int nWprimeToWWWEvents;
+    bool isWHsusyOutputAdded;
+    TH3F* h_nevents_SMS;
+    TH2F* h_nrawevents_SMS;
+    TH1D* hxsec;
+    TFile* fxsec;
+
 public:
 
-    babyMaker_v2() {}
-    ~babyMaker_v2() {}
+    babyMaker_v2();
+    ~babyMaker_v2();
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1, int index = 1, bool verbose = false);
 
     void CreateOutput(int index=1);
@@ -224,6 +237,22 @@ public:
     std::tuple<float, float> getTrigSFandError(int lepton_id_version=2);
 
     void FATALERROR(const char* funcname="");
+
+    // Doubly Charged Higgs process related
+    bool isDoublyChargedHiggs() { return filename.find("hpmpm_hww") != string::npos; }
+    void AddDoublyChargedHiggsOutput();
+    bool studyDoublyChargedHiggs();
+
+    // Wprime process related
+    bool isWprime() { return filename.find("wprime") != string::npos; }
+    void AddWprimeOutput();
+    bool studyWprime();
+
+    // WH susy process related
+    bool isWHSUSY() { return filename.find("whsusy") != string::npos; }
+    void AddWHsusyOutput();
+    void setWHSMSMassAndWeights();
+    bool filterWHMass(float, float);
 
 };
 
