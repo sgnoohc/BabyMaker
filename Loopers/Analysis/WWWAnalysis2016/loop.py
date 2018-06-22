@@ -1,5 +1,9 @@
 #!/bin/env python
 
+ntuplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/"
+
+#########################################################################################
+
 import os
 import sys
 import ROOT
@@ -22,8 +26,50 @@ def main(index):
     # Connect input baby ntuple
     #
     #
-    #connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.29/skim/", "<-1")
-    connectNtuples(samples, "../samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/", "<-1")
+    connectNtuples(samples, "../samples.cfg", ntuplepath, "<-1")
+
+    #
+    #
+    # Connect bsm samples
+    #
+    #
+
+    header_str = "SampleID , path , priority , usemcweights , treename , usefakeweight , variation"
+
+    # Wprime sample
+    wprimemasses = [600, 1200]
+    config_strs = [header_str]
+    for wprimemass in wprimemasses:
+        config_strs.append("wprime_*m{mass}*, /bsm/wprime/{mass}, -2, true, t_ss, false, nominal".format(mass=wprimemass))
+
+    # Doubly charged higgs samples
+    hpmpmmasses = [200]
+    for hpmpmmass in hpmpmmasses:
+        config_strs.append("hpmpm_*m{mass}*, /bsm/hpmpm/{mass}, -2, true, t_ss, false, nominal".format(mass=hpmpmmass))
+
+    # SUSY c1n2->WH + LSPs samples
+    chimasses = [150 + i*25 for i in xrange(10) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        lspmasses[0] = lspmasses[0] + 1
+        lspmasses[-1] = lspmasses[-1] - 1
+        for lspmass in lspmasses:
+            config_strs.append("whsusy_fullscan*, /bsm/whsusy/{mchi}/{mlsp}, -2, true, t_ss, false, nominal".format(mchi=chimass, mlsp=lspmass))
+
+    # Add BSM samples
+    addNtuples(samples, "\n".join(config_strs), ntuplepath)
+
+    # For SUSY samples, set mchi and mlsp tag
+    chimasses = [150 + i*25 for i in xrange(10) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        lspmasses[0] = lspmasses[0] + 1
+        lspmasses[-1] = lspmasses[-1] - 1
+        for lspmass in lspmasses:
+            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mchi", chimass)
+            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mlsp", lspmass)
 
     #
     #
@@ -193,7 +239,16 @@ def main(index):
 
     # Eventlist jobs (use this if we want to print out some event information in a text format e.g. run, lumi, evt or other variables.)
     eventlistjob = TQEventlistAnalysisJob("eventlist")
-    eventlistjob.importJobsFromTextFiles("eventlist.cfg", cuts, "*", True)
+    eventlist_filename = ".eventlist.cfg"
+    f = open(eventlist_filename, "w")
+    f.write("""
+    lepton: run << run, lumi << lumi, evt << evt;
+    @ARSSemFull: lepton;
+    @ARSideSSemFull: lepton;
+    @LMETCRSSemFull: lepton;
+    """)
+    f.close()
+    eventlistjob.importJobsFromTextFiles(eventlist_filename, cuts, "*", True)
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
     if index < 0:

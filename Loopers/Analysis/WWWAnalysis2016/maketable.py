@@ -35,48 +35,27 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bsm/whsusy/150/1", "(150,1)")
-    printer.addCutflowProcess("/bsm/whsusy/150/24", "(150,24)")
-    printer.addCutflowProcess("/bsm/whsusy/200/1", "(200,1)")
-    printer.addCutflowProcess("/bsm/whsusy/200/25", "(200,25)")
-    printer.addCutflowProcess("/bsm/whsusy/200/50", "(200,50)")
-    printer.addCutflowProcess("/bsm/whsusy/200/74", "(200,74)")
-    printer.addCutflowProcess("/bsm/whsusy/225/1", "(225,1)")
-    printer.addCutflowProcess("/bsm/whsusy/225/25", "(225,25)")
-    printer.addCutflowProcess("/bsm/whsusy/225/50", "(225,50)")
-    printer.addCutflowProcess("/bsm/whsusy/225/75", "(225,75)")
-    printer.addCutflowProcess("/bsm/whsusy/225/99", "(225,99)")
-    printer.addCutflowProcess("/bsm/whsusy/250/1", "(250,1)")
-    printer.addCutflowProcess("/bsm/whsusy/250/25", "(250,25)")
-    printer.addCutflowProcess("/bsm/whsusy/250/50", "(250,50)")
-    printer.addCutflowProcess("/bsm/whsusy/250/75", "(250,75)")
-    printer.addCutflowProcess("/bsm/whsusy/250/100", "(250,100)")
-    printer.addCutflowProcess("/bsm/whsusy/250/124", "(250,124)")
-    printer.addCutflowProcess("/bsm/whsusy/300/1", "(300,1)")
-    printer.addCutflowProcess("/bsm/whsusy/300/25", "(300,25)")
-    printer.addCutflowProcess("/bsm/whsusy/300/50", "(300,50)")
-    printer.addCutflowProcess("/bsm/whsusy/300/75", "(300,75)")
-    printer.addCutflowProcess("/bsm/whsusy/300/100", "(300,100)")
-    printer.addCutflowProcess("/bsm/whsusy/300/125", "(300,125)")
-    printer.addCutflowProcess("/bsm/whsusy/300/150", "(300,150)")
-    printer.addCutflowProcess("/bsm/whsusy/300/174", "(300,174)")
-    printer.addCutflowProcess("/bsm/whsusy/400/1", "(400,1)")
-    printer.addCutflowProcess("/bsm/whsusy/400/25", "(400,25)")
-    printer.addCutflowProcess("/bsm/whsusy/400/50", "(400,50)")
-    printer.addCutflowProcess("/bsm/whsusy/400/75", "(400,75)")
-    printer.addCutflowProcess("/bsm/whsusy/400/100", "(400,100)")
-    printer.addCutflowProcess("/bsm/whsusy/400/125", "(400,125)")
-    printer.addCutflowProcess("/bsm/whsusy/400/150", "(400,150)")
-    printer.addCutflowProcess("/bsm/whsusy/400/175", "(400,175)")
-    printer.addCutflowProcess("/bsm/whsusy/400/200", "(400,200)")
-    printer.addCutflowProcess("/bsm/whsusy/400/225", "(400,225)")
-    printer.addCutflowProcess("/bsm/whsusy/400/250", "(400,250)")
-    printer.addCutflowProcess("/bsm/whsusy/400/274", "(400,274)")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bsm/wprime/600", "Wprime 600 GeV")
-    printer.addCutflowProcess("/bsm/wprime/1200", "Wprime 1200 GeV")
-    printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bsm/hpmpm/200", "H^{#pm#pm} 200 GeV")
+
+    # Wprime sample
+    wprimemasses = [600, 1200]
+    for wprimemass in wprimemasses:
+        printer.addCutflowProcess("/bsm/wprime/{}".format(wprimemass), "W'[{}]".format(wprimemass))
+
+    # Doubly charged higgs samples
+    hpmpmmasses = [200]
+    for hpmpmmass in hpmpmmasses:
+        printer.addCutflowProcess("/bsm/hpmpm/{}".format(hpmpmmass), "H++[{}]".format(hpmpmmass))
+
+    # SUSY c1n2->WH + LSPs samples
+    chimasses = [150 + i*25 for i in xrange(10) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        lspmasses[0] = lspmasses[0] + 1
+        lspmasses[-1] = lspmasses[-1] - 1
+        for lspmass in lspmasses:
+            printer.addCutflowProcess("/bsm/whsusy/{}/{}".format(chimass, lspmass), "({},{})".format(chimass, lspmass))
+
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
     printer.addCutflowProcess("/sig/www", "non-higgs")
