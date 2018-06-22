@@ -7,8 +7,8 @@ from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisi
 from rooutil.qutils import *
 from errors import E
 
-#filename = "output_sf_applied.root"
-filename = "output.root"
+filename = "output_sf_applied.root"
+#filename = "output.root"
 
 ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("{}:samples".format(filename))

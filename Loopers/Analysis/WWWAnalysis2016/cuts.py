@@ -86,7 +86,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     tqcuts["Presel"] = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
     # WH SUSY sample mass filter and xsec expression
-    tqcuts["SUSY"] = TQCut("SUSY", "SUSY", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?chimass==$(mchi)&&lspmass==$(mlsp):1}", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?[(0.06272+0.2137+0.02619)*(0.3258)*(0.5)*(0.5)]*[TH1Map:/home/users/phchang/public_html/analysis/www/code/VVVBabyMakerProduction/dilepbabymaker/xsec_susy_13tev.root:h_xsec_c1n2([chimass])]*1000./[TH1Map:/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/whsusy_fullscan_skim_1_1.root:histNEvts([chimass] , [lspmass])]:1}")
+    tqcuts["SUSY"] = TQCut("SUSY", "SUSY", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?chimass==$(mchi)&&lspmass==$(mlsp):1}", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?[(0.06272+0.2137+0.02619)*(0.3258)]*[TH1Map:/home/users/phchang/public_html/analysis/www/code/VVVBabyMakerProduction/dilepbabymaker/xsec_susy_13tev.root:h_xsec_c1n2([chimass])]*1000./[TH1Map:/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/whsusy_fullscan_skim_1_1.root:histNEvts([chimass] , [lspmass])]:1}")
 
     # The dilepton channel base cut
     tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")

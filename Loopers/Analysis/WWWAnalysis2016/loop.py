@@ -307,7 +307,8 @@ def main(index):
     #samples.visitSampleFolders(vis, "/data")
     #samples.visitSampleFolders(vis, "/fake")
     #samples.visitSampleFolders(vis, "/sig")
-    samples.visitSampleFolders(vis, "/bsm")
+    #samples.visitSampleFolders(vis, "/bsm")
+    samples.visitSampleFolders(vis)
 
     # Write the output histograms and cutflow cut values and etc.
     if index == 0: samples.writeToFile("output.root", True)
