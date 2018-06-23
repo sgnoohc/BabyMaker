@@ -334,4 +334,5 @@ def printTable(samples):
 blind()
 printTable(samples)
 printCutflow(samples, "SR")
+printCutflow(samples, "SUSY")
 #printCutflow(samples, "Presel")
