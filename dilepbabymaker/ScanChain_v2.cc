@@ -47,6 +47,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             // Loop over Jets
             ProcessJets();
 
+            // Loop over fatJets
+            ProcessFatJets();
+
             // Process MET (recalculate etc.)
             ProcessMET();
 
@@ -157,6 +160,23 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<float>>("jets_csv");
     tx->createBranch<vector<float>>("jets_up_csv");
     tx->createBranch<vector<float>>("jets_dn_csv");
+
+    tx->createBranch<vector<LorentzVector>>("ak8jets_p4");
+    tx->createBranch<vector<float>>("ak8jets_softdropMass");
+    tx->createBranch<vector<float>>("ak8jets_prunedMass");
+    tx->createBranch<vector<float>>("ak8jets_trimmedMass");
+    tx->createBranch<vector<float>>("ak8jets_mass");
+    tx->createBranch<vector<float>>("ak8jets_nJettinessTau1");
+    tx->createBranch<vector<float>>("ak8jets_nJettinessTau2");
+    tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet1");
+    tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet2");
+    tx->createBranch<vector<float>>("ak8jets_puppi_softdropMass");
+    tx->createBranch<vector<float>>("ak8jets_puppi_nJettinessTau1");
+    tx->createBranch<vector<float>>("ak8jets_puppi_nJettinessTau2");
+    tx->createBranch<vector<float>>("ak8jets_puppi_eta");
+    tx->createBranch<vector<float>>("ak8jets_puppi_phi");
+    tx->createBranch<vector<float>>("ak8jets_puppi_pt");
+    tx->createBranch<vector<float>>("ak8jets_puppi_mass");
 
     tx->createBranch<float>("met_pt");
     tx->createBranch<float>("met_phi");
@@ -406,6 +426,9 @@ void babyMaker_v2::ProcessMuons() { coreMuon.process(isVetoMuon); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessJets() { coreJet.process(coreJec); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessFatJets() { coreFatJet.process(coreJec); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessMET() { coreMET.process(coreJec); }
@@ -720,6 +743,9 @@ void babyMaker_v2::FillOutput()
 
     // Fill baby ntuple branches for jets
     FillJets();
+
+    // Fill baby ntuple branches for fat-jets
+    FillFatJets();
 
     // Organize jets by sorting by their pt
     SortJetBranches();
@@ -1046,6 +1072,7 @@ void babyMaker_v2::SortLeptonBranches()
 void babyMaker_v2::FillJets()
 {
     coreBtagSF.clearSF();
+    //std::cout << "coreJet.index.size() = " << coreJet.index.size() << std::endl;
     for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
     {
         int idx = coreJet.index[ijet];
@@ -1096,6 +1123,37 @@ void babyMaker_v2::FillJets()
         tx->setBranch<float>("weight_btagsf_light_DN", 1);
         tx->setBranch<float>("weight_btagsf_light_UP", 1);
     }
+
+}
+
+void babyMaker_v2::FillFatJets()
+{
+  for (unsigned ijet = 0; ijet < coreFatJet.index.size(); ++ijet)
+  {
+    int idx = coreJet.index[ijet];
+    float corr = coreJet.corrs[ijet];
+    float shift = coreJet.shifts[ijet];
+    LorentzVector fatjet = cms3.ak8jets_p4()[idx] * cms3.ak8jets_undoJEC()[idx] * corr;
+    if (fatjet.pt() > 20)
+    {
+      tx->pushbackToBranch<LorentzVector>("ak8jets_p4", fatjet);
+      tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_prunedMass", cms3.ak8jets_prunedMass()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_trimmedMass", cms3.ak8jets_trimmedMass()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]); 
+      tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_mass", cms3.ak8jets_mass()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1", cms3.ak8jets_softdropPuppiSubjet1()[idx].M());
+      tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2", cms3.ak8jets_softdropPuppiSubjet2()[idx].M());     
+      tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau1", cms3.ak8jets_puppi_nJettinessTau1()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau2", cms3.ak8jets_puppi_nJettinessTau2()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_eta", cms3.ak8jets_puppi_eta()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_phi", cms3.ak8jets_puppi_phi()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_pt", cms3.ak8jets_puppi_pt()[idx]);
+      tx->pushbackToBranch<float>("ak8jets_puppi_mass", cms3.ak8jets_puppi_mass()[idx]);
+    }
+  }
 }
 
 //##############################################################################################################
