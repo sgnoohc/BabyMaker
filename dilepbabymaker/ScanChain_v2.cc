@@ -1072,7 +1072,6 @@ void babyMaker_v2::SortLeptonBranches()
 void babyMaker_v2::FillJets()
 {
     coreBtagSF.clearSF();
-    //std::cout << "coreJet.index.size() = " << coreJet.index.size() << std::endl;
     for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
     {
         int idx = coreJet.index[ijet];
