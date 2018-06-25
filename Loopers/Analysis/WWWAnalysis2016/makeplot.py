@@ -118,6 +118,7 @@ def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot
                 "legend_scaley": 1.1,
                 "output_name": "{}/{}_frmethod.pdf".format(output_plot_dir, output_name),
                 "bkg_sort_method": "unsorted",
+                #"yaxis_range": [0., 21],
                 #"signal_scale": 2
                 }
     alloptions.update(options)
@@ -139,9 +140,64 @@ def plot_frmethod(histname, output_name, systs=None, options={}, plotfunc=p.plot
     #p.add_frac_syst(qflip, 1.0)
 
     www = samples.getHistogram("/sig", histname).Clone("WWW")
-    #www.Scale(5)
-    sigs = [ www, samples.getHistogram("/bsm/wprime/1200", histname).Clone("W'")  ]
-    sigs = [ www ]
+    #sigs = [ www ]
+    sigs = [ ]
+    bgs  = [ 
+             photon,
+             qflip,
+             fake_cn,
+             lostlep,
+             prompt,
+             www,
+             ]
+    data =   samples.getHistogram("/data", histname).Clone("Data")
+    colors = [ 920, 2007, 2005, 2003, 2001, 2 ]
+    plotfunc(
+            sigs = sigs,
+            bgs  = bgs,
+            data = data,
+            colors = colors,
+            syst = systs,
+            options=alloptions)
+
+#_____________________________________________________________________________________
+def plot_bsm(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist):
+    # Options
+    alloptions= {
+                "ratio_range":[0.0,2.0],
+                #"nbins": 30,
+                "autobin": True,
+                "legend_scalex": 1.8,
+                "legend_scaley": 1.1,
+                "output_name": "{}/{}_bsm.pdf".format(output_plot_dir, output_name),
+                "bkg_sort_method": "unsorted",
+                #"yaxis_range": [0., 21],
+                #"signal_scale": 2
+                }
+    alloptions.update(options)
+    # Fake background
+    histnameup = histname.replace("Full", "FullFakeUp")
+    fake_cn = samples.getHistogram("/fake", histname).Clone("Non-prompt")
+    #fake_up = samples.getHistogram("/fake", histnameup).Clone("Non-prompt")
+    #p.add_diff_to_error(fake_cn, fake_up)
+    #p.add_frac_syst(fake_cn, 2.3)
+
+    # other bkg
+    prompt = samples.getHistogram("/typebkg/prompt", histname).Clone("Irredu.")
+    lostlep = samples.getHistogram("/typebkg/lostlep", histname).Clone("Lost/three lep")
+    photon = samples.getHistogram("/typebkg/photon", histname).Clone("#gamma#rightarrowlepton")
+    qflip =samples.getHistogram("/typebkg/qflip", histname).Clone("Charge mis-id")
+    #p.add_frac_syst(prompt, 0.2)
+    #p.add_frac_syst(lostlep, 0.3)
+    #p.add_frac_syst(photon, 0.5)
+    #p.add_frac_syst(qflip, 1.0)
+
+    www = samples.getHistogram("/sig", histname).Clone("WWW")
+    hpmpm = samples.getHistogram("/bsm/hpmpm/200", histname).Clone("H^{#pm#pm} [200 GeV]")
+    wprime600 = samples.getHistogram("/bsm/wprime/600", histname).Clone("W' [600 GeV]")
+    wprime1200 = samples.getHistogram("/bsm/wprime/1200", histname).Clone("W' [1.2 TeV]")
+    #hpmpm.Scale(0.1)
+    sigs = [ www, hpmpm, wprime600, wprime1200 ]
     bgs  = [ 
              photon,
              qflip,
@@ -179,6 +235,14 @@ def dofrmethod(hname):
     return False
 
 #_____________________________________________________________________________________
+def dobsm(hname):
+    if hname.find("MllSS") != -1: return True
+    if hname.find("Mjj")   != -1: return True
+    if hname.find("MTlvlv") != -1: return True
+    if hname.find("Mlvlvjj") != -1: return True
+    return False
+
+#_____________________________________________________________________________________
 def plotall(histnames):
     import multiprocessing
     jobs = []
@@ -213,6 +277,12 @@ def plotall(histnames):
             jobs.append(proc)
             proc.start()
 
+        # Plotting for bsm
+        if dobsm(hname):
+            proc = multiprocessing.Process(target=plot_bsm, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            jobs.append(proc)
+            proc.start()
+
         # For scanning cuts to optimize
         #proc = multiprocessing.Process(target=plot, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": hname.find("WZ") == -1, "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_cut_scan})
         #jobs.append(proc)
@@ -233,6 +303,14 @@ if __name__ == "__main__":
     #histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
 
     histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+    #histnames.extend(["SRSSeeFull/MllSS+SRSSemFull/MllSS+SRSSmmFull/MllSS"])
+    #histnames.extend(["SRSSeeFull/MTlvlv+SRSSemFull/MTlvlv+SRSSmmFull/MTlvlv"])
+    #histnames.extend(["SRSSeeFull/Mlvlvjj_wide+SRSSemFull/Mlvlvjj_wide+SRSSmmFull/Mlvlvjj_wide"])
+    #histnames.extend(["SRSSeeFull/Mjj+SRSSemFull/Mjj+SRSSmmFull/Mjj"])
+    #histnames.extend(["SRSSeePre/MllSS+SRSSemPre/MllSS+SRSSmmPre/MllSS"])
+    #histnames.extend(["SRSSeePre/MTlvlv+SRSSemPre/MTlvlv+SRSSmmPre/MTlvlv"])
+    #histnames.extend(["SRSSeePre/Mlvlvjj_wide+SRSSemPre/Mlvlvjj_wide+SRSSmmPre/Mlvlvjj_wide"])
+    #histnames.extend(["SRSSeePre/Mjj+SRSSemPre/Mjj+SRSSmmPre/Mjj"])
     #histnames.extend(["{SRSSeeFullFakeUp,SRSSemFullFakeUp,SRSSmmFullFakeUp,SideSSeeFullFakeUp,SideSSemFullFakeUp,SideSSmmFullFakeUp,SR0SFOSFullFakeUp,SR1SFOSFullFakeUp,SR2SFOSFullFakeUp}"])
 
     #histnames.extend(["{GCR0SFOSPre}"])

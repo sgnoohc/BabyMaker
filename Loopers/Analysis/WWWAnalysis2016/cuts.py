@@ -32,8 +32,6 @@ systvars = {
         "FakeClosureElDown" : "{$(usefakeweight)?ffwgt_closure_el_dn/ffwgt:1}",
         "FakeClosureMuUp"   : "{$(usefakeweight)?ffwgt_closure_mu_up/ffwgt:1}",
         "FakeClosureMuDown" : "{$(usefakeweight)?ffwgt_closure_mu_dn/ffwgt:1}",
-        #"LostLepSystUp"     : "1",
-        #"LostLepSystDown"   : "1",
         }
 
 def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",btagsfvar_suffix=""): #define _up _dn etc.
@@ -58,15 +56,12 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     #
     #
     PreselCuts = [
-    ["{$(is_prompt)?(bkgtype==\"trueSS\"||bkgtype==\"trueWWW\"):1}"                  , "1"                             ] , 
-    ["{$(is_lostlep)?(bkgtype==\"SSLL\"||bkgtype==\"true3L\"||bkgtype==\"3lLL\"):1}" , "1"                             ] , 
     # https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/EXOT-2016-10/fig_05b.png taking 2pb -> 2 pb / 0.57 * 0.21 * (0.21 * (1-0.21)) / 8107
     # Took 2pb from the 600 GeV point (rounded)
     # 8107 = total semileptonic same-sign (from Wprime sample itself with splitWprime function in dilepbabymaker)
     # only one factor of (0.21 * (1-0.21)) because it's counted with same sign
     # 0.21 = HWW or W->lv (l = e or mu only, as 8107 was determined with e/mu only)
-    ["1"                                                                             , "{\"$(path)\"==\"/bsm/wprime/600\"?0.01504089059:1}" ] ,
-    ["1"                                                                             , "{\"$(path)\"==\"/sig/www\"?0.895:1}" ] , 
+    #["1"                                                                             , "{\"$(path)\"==\"/bsm/wprime/600\"?0.01504089059:1}" ] ,
     ["1"                                                                             , "evt_scale1fb"                  ] , 
     ["1"                                                                             , "purewgt"                       ] , 
     ["1"                                                                             , "{$(usefakeweight)?ffwgt:35.9}" ] , 
@@ -90,6 +85,9 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # Eventually at the end of the function this object will be returned
     tqcuts["Presel"] = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
+    # WH SUSY sample mass filter and xsec expression
+    tqcuts["SUSY"] = TQCut("SUSY", "SUSY", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?chimass==$(mchi)&&lspmass==$(mlsp):1}", "{\"$(path)\"==\"/bsm/whsusy/$(mchi)/$(mlsp)\"?[(0.06272+0.2137+0.02619)*(0.3258)]*[TH1Map:/home/users/phchang/public_html/analysis/www/code/VVVBabyMakerProduction/dilepbabymaker/xsec_susy_13tev.root:h_xsec_c1n2([chimass])]*1000./[TH2Map:/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.1/skim/whsusy_fullscan_skim_1_1.root:histNEvts([chimass] , [lspmass])]:1}")
+
     # The dilepton channel base cut
     tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1)*(lep_pt[0]>25.)*(lep_pt[1]>25.):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
     #tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
@@ -102,6 +100,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     #tqcuts["SRDilep"] = TQCut("SRDilep" , "SRDilep" , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}")
 
     # The cut hierarchies are defined by adding "children" cuts via function TQCut::addCut
+    tqcuts["SUSY"].addCut(tqcuts["Presel"])
     tqcuts["Presel"].addCut(tqcuts["SRDilep"])
     tqcuts["Presel"].addCut(tqcuts["SRTrilep"])
 
@@ -655,7 +654,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     tqcuts["SRTrilep"].addCut(tqcuts["GCR0SFOS"])
 
     # Return the "Root node" which holds all cuts in a tree structure
-    return tqcuts["Presel"]
+    return tqcuts["SUSY"]
 
 if __name__ == "__main__":
 

@@ -8,7 +8,7 @@ from rooutil.qutils import *
 from errors import E
 
 filename = "output_sf_applied.root"
-filename = "output.root"
+#filename = "output.root"
 
 ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("{}:samples".format(filename))
@@ -35,7 +35,27 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/typebkg)", "Signif. (MC)")
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
-    printer.addCutflowProcess("/bsm/wprime/600", "wprime 600")
+
+    # Wprime sample
+    wprimemasses = [600, 1200]
+    for wprimemass in wprimemasses:
+        printer.addCutflowProcess("/bsm/wprime/{}".format(wprimemass), "W'[{}]".format(wprimemass))
+
+    # Doubly charged higgs samples
+    hpmpmmasses = [200]
+    for hpmpmmass in hpmpmmasses:
+        printer.addCutflowProcess("/bsm/hpmpm/{}".format(hpmpmmass), "H++[{}]".format(hpmpmmass))
+
+    # SUSY c1n2->WH + LSPs samples
+    chimasses = [150 + i*25 for i in xrange(10) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        lspmasses[0] = lspmasses[0] + 1
+        lspmasses[-1] = lspmasses[-1] - 1
+        for lspmass in lspmasses:
+            printer.addCutflowProcess("/bsm/whsusy/{}/{}".format(chimass, lspmass), "({},{})".format(chimass, lspmass))
+
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
     printer.addCutflowProcess("/sig/www", "non-higgs")
@@ -102,7 +122,7 @@ def printCutflow(samples, regionname):
     for counter in samples.getListOfCounterNames():
         #if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
         if str(counter).find(regionname) != -1:
-            title = samples.getCounter("/sig", str(counter)).GetTitle()
+            title = samples.getCounter("/bsm", str(counter)).GetTitle()
             cutkeys.append(str(title)+str(counter))
             cutnames[cutkeys[-1]] = str(counter)
             cuts[str(counter)] = str(title)
@@ -313,4 +333,6 @@ def printTable(samples):
 # Print cutflow table
 blind()
 printTable(samples)
-printCutflow(samples, "SRSS")
+printCutflow(samples, "SR")
+printCutflow(samples, "SUSY")
+#printCutflow(samples, "Presel")
