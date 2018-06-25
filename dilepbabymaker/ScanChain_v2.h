@@ -76,6 +76,7 @@
 #include "coreutil/jet.h"
 #include "coreutil/met.h"
 #include "coreutil/track.h"
+#include "coreutil/fatjet.h"
 
 #define VVV_TIGHT_SS VVV_cutbased_tight_v4
 #define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
@@ -118,6 +119,7 @@ private:
     CoreUtil::muon coreMuon;
     CoreUtil::datasetinfo coreDatasetInfo;
     CoreUtil::jet coreJet;
+    CoreUtil::fatjet coreFatJet;
     CoreUtil::met coreMET;
     CoreUtil::track coreTrack;
 
@@ -166,6 +168,7 @@ public:
     void ProcessElectrons();
     void ProcessMuons();
     void ProcessJets();
+    void ProcessFatJets();
     void ProcessMET();
     void ProcessTracks();
 
@@ -180,6 +183,7 @@ public:
     void FillElectrons();
     void FillMuons();
     void FillJets();
+    void FillFatJets();
     void FillMET();
     void FillTracks();
     void FillGenParticles();
