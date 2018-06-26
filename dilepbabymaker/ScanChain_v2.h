@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <stdlib.h>
+#include <mutex>
 
 // ROOT
 #include "TChain.h"
@@ -137,13 +138,6 @@ private:
 
     std::string filename;
 
-    bool isData;
-
-    bool isDoublyChargedHiggsOutputAdded;
-    int nWHdoublyChargedHiggsEvents;
-    bool isWprimeOutputAdded;
-    int nWprimeToWWWEvents;
-    bool isWHsusyOutputAdded;
     TH3F* h_nevents_SMS;
     TH2F* h_nrawevents_SMS;
     TH1D* hxsec;
@@ -156,10 +150,13 @@ public:
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1, int index = 1, bool verbose = false);
 
     void CreateOutput(int index=1);
+    void CreateBSMSampleSpecificOutput();
 
     void SaveOutput();
 
     void ConfigureGoodRunsList();
+
+    void SlaveBegin(int index=1);
 
     void ProcessTriggers();
     void ProcessGenParticles();
@@ -208,6 +205,7 @@ public:
     void Fill3LLeptonVariables();
     void FillEventTags();
     void FillWeights();
+    void FillGenWeights();
 
     // Calculator
     static int passCount(const vector<int>& vec);
@@ -252,6 +250,7 @@ public:
     bool isWHSUSY() { return filename.find("whsusy") != string::npos; }
     void AddWHsusyOutput();
     void setWHSMSMassAndWeights();
+    void setWHSMSMass();
     bool filterWHMass(float, float);
 
 };

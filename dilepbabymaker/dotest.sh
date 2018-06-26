@@ -12,3 +12,6 @@
 ./processBaby dummy /hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root 10000
 ./processBaby dummy /hadoop/cms/store/user/namin/ProjectMetis/DoubleMuon_Run2017B-PromptReco-v1_MINIAOD_CMS4_V00-00-06/merged_ntuple_1.root 10000
 
+
+# Testing CMS4 2016 Fast sim SMS sample
+./processBaby dummy /hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root 10000

@@ -8,11 +8,6 @@ using namespace std;
 //##############################################################################################################
 babyMaker_v2::babyMaker_v2() : coreBtagSFFastSim(true)
 {
-    isDoublyChargedHiggsOutputAdded = false;
-    nWHdoublyChargedHiggsEvents = 0;
-    isWprimeOutputAdded = false;
-    nWprimeToWWWEvents = 0;
-    isWHsusyOutputAdded = false;
 }
 
 //##############################################################################################################
@@ -26,11 +21,6 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
 
     // Looper
     looper.init(chain, &cms3, max_events);
-    looper.setSilent(); // The coreJec.setJECFor function will clash with progress bar otherwise.
-    looper.setFastMode(false);
-
-    // Output root file
-    CreateOutput(index);
 
     while (looper.nextEvent())
     {
@@ -39,34 +29,18 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             if (verbose)
                 cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
 
-            setFilename(looper.getCurrentFileName());
-
-            coreJec.setJECFor(looper.getCurrentFileName(), isWHSUSY());
-            looper.setSilent(false); // Once JEC is set the message will not clash with progress bar.
-
-            if (isDoublyChargedHiggs())
-            {
-                AddDoublyChargedHiggsOutput();
-                studyDoublyChargedHiggs();
-            }
-
-            if (isWprime())
-            {
-                AddWprimeOutput();
-                studyWprime();
-            }
-
-            if (isWHSUSY())
-            {
-                AddWHsusyOutput();
-                setWHSMSMassAndWeights();
-            }
+            // Some of the sample specific things need to be set prior to processing the very first event
+            // Similar to "SlaveBegin()" concept in TSelector of ROOT
+            SlaveBegin(index);
 
             // Loop over electrons
             ProcessElectrons();
 
             // Loop over muons
             ProcessMuons();
+
+            // For Gen-level weights the total weights need to be saved so must be called before skipping events
+            FillGenWeights();
 
             // Check preselection
             if (!PassPresel())
@@ -104,17 +78,29 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
         }
     }
 
-    if (isDoublyChargedHiggs())
-        cout << "Total W+-H+-+- events " << nWHdoublyChargedHiggsEvents << endl;
-
-    if (isWprime())
-        cout << "Total Wprime to WWW events " << nWprimeToWWWEvents << endl;
-
     looper.printStatus();
 
     SaveOutput();
 //    t->SetDirectory(0);
 }
+
+//##############################################################################################################
+std::once_flag flag_output;
+std::once_flag flag_bsm_output;
+void babyMaker_v2::SlaveBegin(int index)
+{
+    // Set std::string filename based on the file path of the CMS3/4 baby ntuple
+    // This determines which JEC to load and affects the behavior of the baby maker
+    setFilename(looper.getCurrentFileName());
+    coreJec.setJECFor(looper.getCurrentFileName(), isWHSUSY());
+
+    // Output root file
+    std::call_once(flag_output, &babyMaker_v2::CreateOutput, this, index);
+
+    // BSM samples need some specifics things to be set prior to starting the processing
+    std::call_once(flag_bsm_output, &babyMaker_v2::CreateBSMSampleSpecificOutput, this);
+}
+
 
 //##############################################################################################################
 void babyMaker_v2::CreateOutput(int index)
@@ -209,6 +195,8 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("met_up_phi");
     tx->createBranch<float>("met_dn_pt");
     tx->createBranch<float>("met_dn_phi");
+    tx->createBranch<float>("genmet_pt");
+    tx->createBranch<float>("genmet_phi");
 
     tx->createBranch<int>("firstgoodvertex");
     tx->createBranch<int>("nTrueInt");
@@ -251,6 +239,8 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("Flag_badMuons");
     tx->createBranch<int>("Flag_duplicateMuons");
     tx->createBranch<int>("Flag_noBadMuons");
+
+    tx->createBranch<int>("fastsimfilt");
 
     // Summary variables
     tx->createBranch<int>("nVlep");
@@ -383,6 +373,9 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("weight_pdf_down");
     tx->createBranch<float>("weight_alphas_down");
     tx->createBranch<float>("weight_alphas_up");
+    tx->createBranch<float>("weight_isr");
+    tx->createBranch<float>("weight_isr_up");
+    tx->createBranch<float>("weight_isr_down");
 
     tx->clear();
 
@@ -393,8 +386,6 @@ void babyMaker_v2::CreateOutput(int index)
 //##############################################################################################################
 void babyMaker_v2::AddDoublyChargedHiggsOutput()
 {
-    if (isDoublyChargedHiggsOutputAdded)
-        return;
     tx->createBranch<int>("iswhchannel");
     tx->createBranch<LV>("w_p4");
     tx->createBranch<LV>("q0_p4");
@@ -406,14 +397,11 @@ void babyMaker_v2::AddDoublyChargedHiggsOutput()
     tx->createBranch<LV>("l1_p4");
     tx->createBranch<LV>("v0_p4");
     tx->createBranch<LV>("v1_p4");
-    isDoublyChargedHiggsOutputAdded = true;
 }
 
 //##############################################################################################################
 void babyMaker_v2::AddWprimeOutput()
 {
-    if (isWprimeOutputAdded)
-        return;
     tx->createBranch<int>("iswwwchannel");
     tx->createBranch<LV>("wprime_p4");
     tx->createBranch<LV>("wa_p4");
@@ -426,15 +414,11 @@ void babyMaker_v2::AddWprimeOutput()
     tx->createBranch<LV>("v_p4");
     tx->createBranch<LV>("j0_p4");
     tx->createBranch<LV>("j1_p4");
-    isWprimeOutputAdded = true;
 }
 
 //##############################################################################################################
 void babyMaker_v2::AddWHsusyOutput()
 {
-    if (isWHsusyOutputAdded)
-        return;
-    std::cout << "AddWHsusyOutput" << std::endl;
     h_nevents_SMS = new TH3F("h_counterSMS", "h_counterSMS", 37, 99, 1024, 19, -1, 474, 35, 0.5, 35.5); //15000 bins!
     h_nevents_SMS->Sumw2();
     h_nrawevents_SMS = new TH2F("histNEvts", "h_histNEvts", 37, 99, 1024, 19, -1, 474); //x=mStop, y=mLSP
@@ -447,7 +431,6 @@ void babyMaker_v2::AddWHsusyOutput()
     hxsec = (TH1D *) fxsec -> Get("h_xsec_c1n2");
     tx->createBranch<float>("chimass");
     tx->createBranch<float>("lspmass");
-    isWHsusyOutputAdded = true;
 }
 
 //##############################################################################################################
@@ -499,6 +482,25 @@ void babyMaker_v2::SaveOutput()
     {
         h_nevents_SMS->Write();
         h_nrawevents_SMS->Write();
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::CreateBSMSampleSpecificOutput()
+{
+    if (isDoublyChargedHiggs())
+    {
+        AddDoublyChargedHiggsOutput();
+    }
+
+    if (isWprime())
+    {
+        AddWprimeOutput();
+    }
+
+    if (isWHSUSY())
+    {
+        AddWHsusyOutput();
     }
 }
 
@@ -1248,6 +1250,8 @@ void babyMaker_v2::FillMET()
     tx->setBranch<float>("met_up_phi", coreMET.met_up_phi);
     tx->setBranch<float>("met_dn_pt", coreMET.met_dn_pt);
     tx->setBranch<float>("met_dn_phi", coreMET.met_dn_phi);
+    tx->setBranch<float>("genmet_pt", cms3.gen_met());
+    tx->setBranch<float>("genmet_phi", cms3.gen_metPhi());
 }
 
 //##############################################################################################################
@@ -1445,6 +1449,37 @@ void babyMaker_v2::FillMETFilter()
                 !cms3.evt_isRealData()
             )
         );
+
+    // fastsim filter for SMS sample
+    if (isWHSUSY())
+    {
+        // FastSim filter, Nominal Jets
+        bool fastsimfilt = false;
+        for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
+        {
+            int idx = coreJet.index[ijet];
+            float corr = coreJet.corrs[ijet];
+            LV p4 = cms3.pfjets_p4()[idx] * cms3.pfjets_undoJEC()[idx] * corr;
+            if (p4.Pt() < 30) continue;
+            if (fabs(p4.Eta()) > 5.0) continue;
+            bool isgenmatch = false;
+            for (unsigned int gix = 0; gix < cms3.genjets_p4NoMuNoNu().size(); ++gix)
+            {
+                if (ROOT::Math::VectorUtil::DeltaR(cms3.genjets_p4NoMuNoNu()[gix], p4) < 0.3)
+                {
+                    isgenmatch = true;
+                    break;
+                }
+            }
+            if (isgenmatch)
+                continue;
+            if (cms3.pfjets_chargedHadronE().at(idx)/ (cms3.pfjets_undoJEC().at(idx) * p4.energy()) > 0.1)
+                continue;
+            fastsimfilt = true;
+            break;
+        }
+        tx->setBranch<int>("fastsimfilt", fastsimfilt);
+    }
 }
 
 //##############################################################################################################
@@ -1981,9 +2016,112 @@ void babyMaker_v2::FillWeights()
         tx->setBranch<float>("trigsf_up", 1);
         tx->setBranch<float>("trigsf_dn", 1);
     }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillGenWeights()
+{
+    if (cms3.evt_isRealData())
+        return;
 
     // scale pdf variation
-    if (!cms3.evt_isRealData())
+    if (isWHSUSY())
+    {
+        using namespace tas;
+        setWHSMSMass(); 
+        const float& mass_chargino = tx->getBranch<float>("chimass");
+        const float& mass_lsp = tx->getBranch<float>("lspmass");
+        if (mass_chargino < 0 || mass_lsp < 0)
+            FATALERROR(__FUNCTION__);
+
+        if (genps_weight() > 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, 1);
+        else if (genps_weight() < 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, -1);
+        float xsec = hxsec->GetBinContent(hxsec->FindBin(mass_chargino));
+        float xsec_uncert = hxsec->GetBinError(hxsec->FindBin(mass_chargino));
+
+        float SMSpdf_weight_up = 1;
+        float SMSpdf_weight_down = 1;
+        float SMSsum_of_weights = 0;
+        float SMSaverage_of_weights = 0;
+        //error on pdf replicas
+        //fastsim has first genweights bin being ==1
+        if (genweights().size() > 111) { //fix segfault
+            for (int ipdf = 10; ipdf < 110; ipdf++) {
+                SMSaverage_of_weights += cms3.genweights().at(ipdf);
+            } // average of weights
+            SMSaverage_of_weights = SMSaverage_of_weights / 100.;
+            for (int ipdf = 10; ipdf < 110; ipdf++) {
+                SMSsum_of_weights += pow(cms3.genweights().at(ipdf) - SMSaverage_of_weights, 2);
+            } //std of weights.
+            SMSpdf_weight_up = (SMSaverage_of_weights + sqrt(SMSsum_of_weights / 99.));
+            SMSpdf_weight_down = (SMSaverage_of_weights - sqrt(SMSsum_of_weights / 99.));
+            // NOTE: The SMS samples have a shifted index (instead of 0 being fr_r1_f1 it is 1)
+            tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[1]);
+            tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[2]);
+            tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[3]);
+            tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[4]);
+            tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[5]);
+            tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[6]);
+            tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[7]);
+            tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[8]);
+            tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[9]);
+            tx->setBranch<float>("weight_pdf_up", SMSpdf_weight_up);
+            tx->setBranch<float>("weight_pdf_down", SMSpdf_weight_up);
+            tx->setBranch<float>("weight_alphas_down", cms3.genweights()[110]);
+            tx->setBranch<float>("weight_alphas_up", cms3.genweights()[111]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 1, genweights()[1]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 2, genweights()[2]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 3, genweights()[3]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 4, genweights()[4]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 5, genweights()[5]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 6, genweights()[6]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 7, genweights()[7]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 8, genweights()[8]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 9, genweights()[9]);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 10, SMSpdf_weight_up);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 11, SMSpdf_weight_down);
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation. 
+            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
+
+            // ISR weights
+            LV hardsystem;
+            for (unsigned int genx = 0; genx < genps_p4().size(); genx++)
+            {
+                if ((abs(genps_id().at(genx)) == 1000024 || abs(genps_id().at(genx)) == 1000023) && genps_isLastCopy().at(genx))
+                    hardsystem += genps_p4().at(genx);
+            }
+
+            float weight_ISR = 0;
+            float weight_ISRup = 0;
+            float weight_ISRdown = 0;
+            if (hardsystem.pt() > 600.)
+                weight_ISR = .783;
+            else if (hardsystem.pt() > 400.)
+                weight_ISR = .912;
+            else if (hardsystem.pt() > 300.)
+                weight_ISR = 1.;
+            else if (hardsystem.pt() > 200.)
+                weight_ISR = 1.057;
+            else if (hardsystem.pt() > 150.)
+                weight_ISR = 1.150;
+            else if (hardsystem.pt() > 100.)
+                weight_ISR = 1.179;
+            else if (hardsystem.pt() > 50.)
+                weight_ISR = 1.052;
+            else
+                weight_ISR = 1.;
+            float isrweight_unc = fabs(weight_ISR - 1);
+            weight_ISRup = 1. + isrweight_unc;
+            weight_ISRdown = 1. - isrweight_unc;
+            tx->setBranch<float>("weight_isr", weight_ISR);
+            tx->setBranch<float>("weight_isr_up", weight_ISRup);
+            tx->setBranch<float>("weight_isr_down", weight_ISRdown);
+            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 19, weight_ISR);
+            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 20, weight_ISRup);
+            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 21, weight_ISRdown);
+        }
+    }
+    else
     {
         float sum_of_pdf_weights = 0;
         float average_of_pdf_weights = 0;
@@ -2281,8 +2419,6 @@ bool babyMaker_v2::studyDoublyChargedHiggs()
         return false;
     }
 
-    nWHdoublyChargedHiggsEvents++;
-
     vector<LV> qs;
     vector<LV> h;
     vector<LV> w;
@@ -2421,8 +2557,6 @@ bool babyMaker_v2::studyWprime()
         tx->setBranch<int>("iswwwchannel", 0);
         return false;
     }
-
-    nWprimeToWWWEvents++;
 
     std::vector<LV> wprime;
     std::vector<LV> wa;
@@ -2581,6 +2715,24 @@ void babyMaker_v2::setWHSMSMassAndWeights()
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation. 
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
     }
+}
+
+//##############################################################################################################
+void babyMaker_v2::setWHSMSMass()
+{
+    using namespace tas;
+    //get susy particle masses from sparms
+    float mass_chargino;
+    float mass_lsp;
+    float mass_gluino;
+    for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
+        if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
+        if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
+        if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+    }
+    tx->clear();
+    tx->setBranch<float>("chimass", mass_chargino);
+    tx->setBranch<float>("lspmass", mass_lsp);
 }
 
 //##############################################################################################################
