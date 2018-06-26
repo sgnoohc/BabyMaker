@@ -7,8 +7,9 @@ from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisi
 from rooutil.qutils import *
 from errors import E
 
-filename = "output_sf_applied.root"
+#filename = "output_sf_applied.root"
 #filename = "output.root"
+filename = sys.argv[1]
 
 ROOT.gROOT.SetBatch(True)
 samples = TQSampleFolder.loadSampleFolder("{}:samples".format(filename))
@@ -36,25 +37,29 @@ def addProcesses(printer, showdata, prettyversion=True):
     #printer.addCutflowProcess("$signif(/sig,/fake+typebkg/prompt+typebkg/qflip+typebkg/photon+typebkg/lostlep)", "Signif. (w/ Fake est.)")
     printer.addCutflowProcess("|", "|")
 
-    # Wprime sample
-    wprimemasses = [600, 1200]
-    for wprimemass in wprimemasses:
-        printer.addCutflowProcess("/bsm/wprime/{}".format(wprimemass), "W'[{}]".format(wprimemass))
+    ## Wprime sample
+    #wprimemasses = [600,800,1000,1200,1400,1600,1800,2000,2500,3500,4000,4500,5000,5500,6000]
+    #for wprimemass in wprimemasses:
+    #    printer.addCutflowProcess("/bsm/wprime/{}".format(wprimemass), "W'[{}]".format(wprimemass))
 
-    # Doubly charged higgs samples
-    hpmpmmasses = [200]
-    for hpmpmmass in hpmpmmasses:
-        printer.addCutflowProcess("/bsm/hpmpm/{}".format(hpmpmmass), "H++[{}]".format(hpmpmmass))
+    ## Doubly charged higgs samples
+    #hpmpmmasses = [200,300,400,500,600,900,1000,1500,2000]
+    #for hpmpmmass in hpmpmmasses:
+    #    printer.addCutflowProcess("/bsm/hpmpm/{}".format(hpmpmmass), "H++[{}]".format(hpmpmmass))
 
-    # SUSY c1n2->WH + LSPs samples
-    chimasses = [150 + i*25 for i in xrange(10) ]
-    for chimass in chimasses:
-        # The LSP mass scans are defined as the following
-        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
-        lspmasses[0] = lspmasses[0] + 1
-        lspmasses[-1] = lspmasses[-1] - 1
-        for lspmass in lspmasses:
-            printer.addCutflowProcess("/bsm/whsusy/{}/{}".format(chimass, lspmass), "({},{})".format(chimass, lspmass))
+    ## SUSY c1n2->WH + LSPs samples
+    #chimasses = [125 + i*25 for i in xrange(13) ]
+    #for chimass in chimasses:
+    #    # The LSP mass scans are defined as the following
+    #    lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+    #    if len(lspmasses) > 1:
+    #        lspmasses[0] = lspmasses[0] + 1
+    #        lspmasses[-1] = lspmasses[-1] - 1
+    #    else:
+    #        lspmasses[0] = lspmasses[0] + 1
+    #    if chimass == 125: chimass = 127
+    #    for lspmass in lspmasses:
+    #        printer.addCutflowProcess("/bsm/whsusy/{}/{}".format(chimass, lspmass), "({},{})".format(chimass, lspmass))
 
     printer.addCutflowProcess("|", "|")
     printer.addCutflowProcess("/sig", "WWW")
@@ -197,6 +202,37 @@ def printCutflowSSWZExtrapolation(samples, variation=""):
 ########################################################################################
 #_______________________________________________________________________________
 # Supports only printing out by process boundaries
+def print9SignalRegions(samples):
+    printer = TQCutflowPrinter(samples)
+    printer.addCutflowCut("SRSSeeFull", "Full Selection: SRSSee", True)
+    printer.addCutflowCut("SRSSemFull", "Full Selection: SRSSem", True)
+    printer.addCutflowCut("SRSSmmFull", "Full Selection: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("SideSSeeFull", "Full Selection: SideSSee", True)
+    printer.addCutflowCut("SideSSemFull", "Full Selection: SideSSem", True)
+    printer.addCutflowCut("SideSSmmFull", "Full Selection: SideSSmm", True)
+    printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("SR0SFOSFull", "Full Selection: SR0SFOS", True)
+    printer.addCutflowCut("SR1SFOSFull", "Full Selection: SR1SFOS", True)
+    printer.addCutflowCut("SR2SFOSFull", "Full Selection: SR2SFOS", True)
+    addProcesses(printer, showdata=True)
+    table = printer.createTable("style.firstColumnAlign=l")
+    path = "cutflows/"
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+    table.writeCSV("cutflows/9signal.csv")
+    table.writeHTML("cutflows/9signal.html")
+    table.writeLaTeX("cutflows/9signal.tex")
+    table.writePlain("cutflows/9signal.txt")
+
+########################################################################################
+#_______________________________________________________________________________
+# Supports only printing out by process boundaries
 def printTable(samples):
     printer = TQCutflowPrinter(samples)
     printer.addCutflowCut("SRSSeeFull", "Full Selection: SRSSee", True)
@@ -314,6 +350,10 @@ def printTable(samples):
     printer.addCutflowCut("SR1SFOSFullFakeClosureMuUp", "FullFakeClosureMuUp Selection: SR1SFOS", True)
     printer.addCutflowCut("SR2SFOSFullFakeClosureMuUp", "FullFakeClosureMuUp Selection: SR2SFOS", True)
     printer.addCutflowCut("|", "|", True)
+    printer.addCutflowCut("VBSCRSSeeFull", "BTCRSide: SRSSee", True)
+    printer.addCutflowCut("VBSCRSSemFull", "BTCRSide: SRSSem", True)
+    printer.addCutflowCut("VBSCRSSmmFull", "BTCRSide: SRSSmm", True)
+    printer.addCutflowCut("|", "|", True)
     addProcesses(printer, showdata=True)
     table = printer.createTable("style.firstColumnAlign=l")
     path = "cutflows/"
@@ -332,7 +372,8 @@ def printTable(samples):
 
 # Print cutflow table
 blind()
+print9SignalRegions(samples)
 printTable(samples)
-printCutflow(samples, "SR")
-printCutflow(samples, "SUSY")
+#printCutflow(samples, "SR")
+#printCutflow(samples, "SUSY")
 #printCutflow(samples, "Presel")

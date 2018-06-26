@@ -193,11 +193,15 @@ def plot_bsm(histname, output_name, systs=None, options={}, plotfunc=p.plot_hist
     #p.add_frac_syst(qflip, 1.0)
 
     www = samples.getHistogram("/sig", histname).Clone("WWW")
-    hpmpm = samples.getHistogram("/bsm/hpmpm/200", histname).Clone("H^{#pm#pm} [200 GeV]")
-    wprime600 = samples.getHistogram("/bsm/wprime/600", histname).Clone("W' [600 GeV]")
-    wprime1200 = samples.getHistogram("/bsm/wprime/1200", histname).Clone("W' [1.2 TeV]")
-    #hpmpm.Scale(0.1)
-    sigs = [ www, hpmpm, wprime600, wprime1200 ]
+    hpmpm200 = samples.getHistogram("/bsm/hpmpm/200", histname).Clone("H^{#pm#pm} [200 GeV]")
+    hpmpm600 = samples.getHistogram("/bsm/hpmpm/600", histname).Clone("H^{#pm#pm} [600 GeV]")
+    hpmpm1000 = samples.getHistogram("/bsm/hpmpm/1000", histname).Clone("H^{#pm#pm} [1000 GeV]")
+    hpmpm2000 = samples.getHistogram("/bsm/hpmpm/2000", histname).Clone("H^{#pm#pm} [2000 GeV]")
+    hpmpm200  .Scale( 30 / hpmpm200.Integral())
+    hpmpm600  .Scale( 30 / hpmpm600.Integral())
+    hpmpm1000 .Scale( 30 / hpmpm1000.Integral())
+    hpmpm2000 .Scale( 30 / hpmpm2000.Integral())
+    sigs = [ www, hpmpm200, hpmpm600, hpmpm1000, hpmpm2000 ]
     bgs  = [ 
              photon,
              qflip,
@@ -279,7 +283,7 @@ def plotall(histnames):
 
         # Plotting for bsm
         if dobsm(hname):
-            proc = multiprocessing.Process(target=plot_bsm, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":15, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
+            proc = multiprocessing.Process(target=plot_bsm, args=[hname, hfilename], kwargs={"systs":None, "options":{"blind": isblind(hname), "autobin":False, "nbins":30, "lumi_value":35.9, "yaxis_log":False}, "plotfunc": p.plot_hist})
             jobs.append(proc)
             proc.start()
 
@@ -303,6 +307,7 @@ if __name__ == "__main__":
     #histnames.extend(["{ARSSeeFull,ARSSemFull,ARSSmmFull,ARSideSSeeFull,ARSideSSemFull,ARSideSSmmFull,AR0SFOSFull,AR1SFOSFull,AR2SFOSFull}"])
 
     histnames.extend(["{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"])
+    histnames.extend(["SRSSeeFull/MllSS_wide+SRSSemFull/MllSS_wide+SRSSmmFull/MllSS_wide+SideSSeeFull/MllSS_wide+SideSSemFull/MllSS_wide+SideSSmmFull/MllSS_wide"])
     #histnames.extend(["SRSSeeFull/MllSS+SRSSemFull/MllSS+SRSSmmFull/MllSS"])
     #histnames.extend(["SRSSeeFull/MTlvlv+SRSSemFull/MTlvlv+SRSSmmFull/MTlvlv"])
     #histnames.extend(["SRSSeeFull/Mlvlvjj_wide+SRSSemFull/Mlvlvjj_wide+SRSSmmFull/Mlvlvjj_wide"])
