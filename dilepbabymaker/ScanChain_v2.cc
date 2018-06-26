@@ -1129,9 +1129,9 @@ void babyMaker_v2::FillFatJets()
 {
   for (unsigned ijet = 0; ijet < coreFatJet.index.size(); ++ijet)
   {
-    int idx = coreJet.index[ijet];
-    float corr = coreJet.corrs[ijet];
-    float shift = coreJet.shifts[ijet];
+    int idx = coreFatJet.index[ijet];
+    float corr = coreFatJet.corrs[ijet];
+    float shift = coreFatJet.shifts[ijet];
     LorentzVector fatjet = cms3.ak8jets_p4()[idx] * cms3.ak8jets_undoJEC()[idx] * corr;
     if (fatjet.pt() > 20)
     {
