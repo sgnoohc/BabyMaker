@@ -127,7 +127,7 @@ def printCutflow(samples, regionname):
     for counter in samples.getListOfCounterNames():
         #if str(counter).find(regionname) != -1 and str(counter).find("cut") != -1:
         if str(counter).find(regionname) != -1:
-            title = samples.getCounter("/bsm", str(counter)).GetTitle()
+            title = samples.getCounter("/sig", str(counter)).GetTitle()
             cutkeys.append(str(title)+str(counter))
             cutnames[cutkeys[-1]] = str(counter)
             cuts[str(counter)] = str(title)
@@ -372,8 +372,8 @@ def printTable(samples):
 
 # Print cutflow table
 blind()
-print9SignalRegions(samples)
-printTable(samples)
-#printCutflow(samples, "SR")
+#print9SignalRegions(samples)
+#printTable(samples)
+printCutflow(samples, "SR")
 #printCutflow(samples, "SUSY")
 #printCutflow(samples, "Presel")

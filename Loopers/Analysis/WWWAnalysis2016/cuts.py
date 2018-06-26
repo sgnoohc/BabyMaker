@@ -113,7 +113,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # SSee region
     #
     # The same-sign dielectron channel signal region selection cuts
-    tqcuts["SRSSee"]        = TQCut("SRSSee"        , "SRSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)*(MllSS>40.)" , "trigsf"+trigsfvar_suffix)
+    tqcuts["SRSSee"]        = TQCut("SRSSee"        , "SRSSee:"                     , "(passSSee)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ)*(MllSS>40.)" , "trigsf"+trigsfvar_suffix)
     tqcuts["SRSSeeZeeVt"]   = TQCut("SRSSeeZeeVt"   , "SRSSee: 0. Z veto"           , "abs(MllSS-91.1876)>10."                           , "1")
     tqcuts["SRSSeeTVeto"]   = TQCut("SRSSeeTVeto"   , "SRSSee: 1. n_{isotrack} = 0" , "nisoTrack_mt2_cleaned_VVV_cutbased_veto==0"       , "1")
     tqcuts["SRSSeeNj2"]     = TQCut("SRSSeeNj2"     , "SRSSee: 2. n_{j} #geq 2"     , "nj30"+jecvar_suffix+">= 2"                        , "1")
@@ -204,7 +204,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # 0SFOS region
     #
     # The three lepton region with 0 opposite-sign pair with same flavor
-    tqcuts["SR0SFOS"]           = TQCut("SR0SFOS"           , "SR0SFOS:"                               , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
+    tqcuts["SR0SFOS"]           = TQCut("SR0SFOS"           , "SR0SFOS:"                               , "(nSFOS==0)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
     tqcuts["SR0SFOSNj1"]        = TQCut("SR0SFOSNj1"        , "SR0SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
     tqcuts["SR0SFOSNb0"]        = TQCut("SR0SFOSNb0"        , "SR0SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
     tqcuts["SR0SFOSPre"]        = TQCut("SR0SFOSPre"        , "0SFOS"                                  , "1"                                                                                    , "1")
@@ -235,7 +235,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # 1SFOS region
     #
     # The three lepton region with 1 opposite-sign pair with same flavor
-    tqcuts["SR1SFOS"]           = TQCut("SR1SFOS"           , "SR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
+    tqcuts["SR1SFOS"]           = TQCut("SR1SFOS"           , "SR1SFOS:"                               , "(nSFOS==1)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
     tqcuts["SR1SFOSNj1"]        = TQCut("SR1SFOSNj1"        , "SR1SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
     tqcuts["SR1SFOSNb0"]        = TQCut("SR1SFOSNb0"        , "SR1SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
     tqcuts["SR1SFOSPre"]        = TQCut("SR1SFOSPre"        , "1SFOS"                                  , "1"                                                                                    , "1")
@@ -266,7 +266,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
     # 2SFOS region
     #
     # The three lepton region with 2 opposite-sign pair with same flavor
-    tqcuts["SR2SFOS"]           = TQCut("SR2SFOS"           , "SR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
+    tqcuts["SR2SFOS"]           = TQCut("SR2SFOS"           , "SR2SFOS:"                               , "(nSFOS==2)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)"                      , "trigsf"+trigsfvar_suffix)
     tqcuts["SR2SFOSNj1"]        = TQCut("SR2SFOSNj1"        , "SR2SFOS: 1. n_{j} #leq 1"               , "nj"+jecvar_suffix+"<=1"                                                               , "1")
     tqcuts["SR2SFOSNb0"]        = TQCut("SR2SFOSNb0"        , "SR2SFOS: 2. n_{b} = 0"                  , "nb"+jecvar_suffix+"==0"                                                               , "weight_btagsf"+btagsfvar_suffix)
     tqcuts["SR2SFOSPre"]        = TQCut("SR2SFOSPre"        , "2SFOS"                                  , "1"                                                                                    , "1")
@@ -382,7 +382,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             name_edits={"SR":"WZCR"},
             cut_edits={
                 "SRDilep" : TQCut("WZCRDilep" , "WZCRDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
-                "SRSSee" : TQCut("WZCRSSee" , "WZCRSSee:" , "(abs(Mll3L-91.1876)<10.||abs(Mll3L1-91.1876)<10.)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
+                "SRSSee" : TQCut("WZCRSSee" , "WZCRSSee:" , "(abs(Mll3L-91.1876)<10.||abs(Mll3L1-91.1876)<10.)*(passSSee)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSem" : TQCut("WZCRSSem" , "WZCRSSem:" , "(abs(Mll3L-91.1876)<10.||abs(Mll3L1-91.1876)<10.)*(passSSem)*(mc_HLT_MuEG==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSmm" : TQCut("WZCRSSmm" , "WZCRSSmm:" , "(abs(Mll3L-91.1876)<10.||abs(Mll3L1-91.1876)<10.)*(passSSmm)*(mc_HLT_DoubleMu==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSeeMjjW" : TQCut("WZCRSSeeMjjW" , "WZCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
@@ -452,7 +452,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             name_edits={"SR":"BTWZCR"},
             cut_edits={
                 "SRDilep" : TQCut("BTWZCRDilep" , "BTWZCRDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
-                "SRSSee" : TQCut("BTWZCRSSee" , "BTWZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
+                "SRSSee" : TQCut("BTWZCRSSee" , "BTWZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSem" : TQCut("BTWZCRSSem" , "BTWZCRSSem:" , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSmm" : TQCut("BTWZCRSSmm" , "BTWZCRSSmm:" , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSeeMjjW" : TQCut("BTWZCRSSeeMjjW" , "BTWZCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
@@ -469,7 +469,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             name_edits={"Side":"BTWZCR"},
             cut_edits={
                 "SideDilep" : TQCut("BTWZCRSideDilep" , "BTWZCRSideDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
-                "SideSSee" : TQCut("BTWZCRSideSSee" , "BTWZCRSideSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)" , "trigsf"+trigsfvar_suffix),
+                "SideSSee" : TQCut("BTWZCRSideSSee" , "BTWZCRSideSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ)" , "trigsf"+trigsfvar_suffix),
                 "SideSSem" : TQCut("BTWZCRSideSSem" , "BTWZCRSideSSem:" , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)" , "trigsf"+trigsfvar_suffix),
                 "SideSSmm" : TQCut("BTWZCRSideSSmm" , "BTWZCRSideSSmm:" , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)" , "trigsf"+trigsfvar_suffix),
                 "SideSSeeMjjW" : TQCut("BTWZCRSideSSeeMjjW" , "BTWZCRSideSSee: 4. |Mjj-80| < 15" , "1" , "1"),
@@ -567,13 +567,13 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             cut=tqcuts["SRTrilep"],
             name_edits={"SR":"TTZCR"},
             cut_edits={
-                "SR0SFOS"    : TQCut("TTZCR0SFOS"    , "TTZCR0SFOS:"                 , "(nSFOS==0)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR0SFOS"    : TQCut("TTZCR0SFOS"    , "TTZCR0SFOS:"                 , "(nSFOS==0)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
                 "SR0SFOSNj1" : TQCut("TTZCR0SFOSNj2" , "TTZCR0SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
                 "SR0SFOSNb0" : TQCut("TTZCR0SFOSNb1" , "TTZCR0SFOS: 2. n_{b} #geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
-                "SR1SFOS"    : TQCut("TTZCR1SFOS"    , "TTZCR1SFOS:"                 , "(nSFOS==1)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR1SFOS"    : TQCut("TTZCR1SFOS"    , "TTZCR1SFOS:"                 , "(nSFOS==1)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
                 "SR1SFOSNj1" : TQCut("TTZCR1SFOSNj2" , "TTZCR1SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
                 "SR1SFOSNb0" : TQCut("TTZCR1SFOSNb1" , "TTZCR1SFOS: 2. n_{b} $geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
-                "SR2SFOS"    : TQCut("TTZCR2SFOS"    , "TTZCR2SFOS:"                 , "(nSFOS==2)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
+                "SR2SFOS"    : TQCut("TTZCR2SFOS"    , "TTZCR2SFOS:"                 , "(nSFOS==2)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix),
                 "SR2SFOSNj1" : TQCut("TTZCR2SFOSNj2" , "TTZCR2SFOS: 1. n_{j} #geq 2" , "nj"+jecvar_suffix+">=2"                                          , "1"),
                 "SR2SFOSNb0" : TQCut("TTZCR2SFOSNb1" , "TTZCR2SFOS: 2. n_{b} $geq 1" , "nb"+jecvar_suffix+">=1"                                          , "weight_btagsf"+btagsfvar_suffix),
                 },
@@ -618,7 +618,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             name_edits={"SR":"LMETWZCR"},
             cut_edits={
                 "SRDilep" : TQCut("LMETWZCRDilep" , "LMETWZCRDilep" , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf"+lepsfvar_suffix+"}"),
-                "SRSSee" : TQCut("LMETWZCRSSee" , "LMETWZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
+                "SRSSee" : TQCut("LMETWZCRSSee" , "LMETWZCRSSee:" , "(nSFOSinZ>=1)*(passSSee)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSem" : TQCut("LMETWZCRSSem" , "LMETWZCRSSem:" , "(nSFOSinZ>=1)*(passSSem)*(mc_HLT_MuEG==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSmm" : TQCut("LMETWZCRSSmm" , "LMETWZCRSSmm:" , "(nSFOSinZ>=1)*(passSSmm)*(mc_HLT_DoubleMu==1)*(MllSS>10.)" , "trigsf"+trigsfvar_suffix),
                 "SRSSeeMjjW" : TQCut("LMETWZCRSSeeMjjW" , "LMETWZCRSSee: 4. |Mjj-80| < 15" , "1" , "1"),
@@ -647,7 +647,7 @@ def getWWWAnalysisCuts(lepsfvar_suffix="",trigsfvar_suffix="",jecvar_suffix="",b
             cut=tqcuts["SR0SFOS"],
             name_edits={"SR":"GCR"},
             cut_edits={
-                "SR0SFOS" : TQCut("GCR0SFOS" , "GCR0SFOS:" , "(nSFOSinZ==0)*(met_pt<30)*(abs(M3l-91.1876)<20)*(mc_HLT_DoubleEl_DZ_2||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix)
+                "SR0SFOS" : TQCut("GCR0SFOS" , "GCR0SFOS:" , "(nSFOSinZ==0)*(met_pt<30)*(abs(M3l-91.1876)<20)*(mc_HLT_DoubleEl||mc_HLT_DoubleEl_DZ||mc_HLT_MuEG||mc_HLT_DoubleMu)" , "trigsf"+trigsfvar_suffix)
                 },
             cutdict=tqcuts,
             )

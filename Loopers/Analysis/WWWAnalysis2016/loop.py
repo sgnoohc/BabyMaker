@@ -322,7 +322,7 @@ def addBSMsamples(samples):
             samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mchi", chimass)
             samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mlsp", lspmass)
 
-    os.system(config_filename)
+    os.system("rm {}".format(config_filename))
 
 if __name__ == "__main__":
 
