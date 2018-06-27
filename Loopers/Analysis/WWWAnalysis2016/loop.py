@@ -16,7 +16,7 @@ def main(samples, sample_to_run, extra_args):
 
     index = int(extra_args[0])
 
-    sample_to_run_prefix = sample_to_run.replace("/","-")
+    sample_to_run_prefix = pathToUniqStr(sample_to_run)
 
     isparallel = (sample_to_run != "")
 
@@ -201,6 +201,11 @@ def main(samples, sample_to_run, extra_args):
     @SR0SFOSFull: lepton;
     @SR1SFOSFull: lepton;
     @SR2SFOSFull: lepton;
+    @WZCRSSeeFull: lepton;
+    @WZCRSSemFull: lepton;
+    @WZCRSSmmFull: lepton;
+    @WZCR1SFOSFull: lepton;
+    @WZCR2SFOSFull: lepton;
     """)
     f.close()
     eventlistjob.importJobsFromTextFiles(eventlist_filename, cuts, "*", True if not isparallel else False)

@@ -370,10 +370,12 @@ def printTable(samples):
     table.writePlain("cutflows/yield.txt")
 
 
-# Print cutflow table
-blind()
-#print9SignalRegions(samples)
-#printTable(samples)
-printCutflow(samples, "SR")
-#printCutflow(samples, "SUSY")
-#printCutflow(samples, "Presel")
+if __name__ == "__main__":
+
+    # Print cutflow table
+    blind()
+    print9SignalRegions(samples)
+    printTable(samples)
+    #printCutflow(samples, "WZCR")
+    #printCutflow(samples, "SUSY")
+    #printCutflow(samples, "Presel")
