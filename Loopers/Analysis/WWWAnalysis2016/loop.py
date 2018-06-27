@@ -12,64 +12,13 @@ from rooutil.qutils import *
 sys.path.append("..")
 from cuts import *
 
-def main(index):
+def main(samples, sample_to_run, extra_args):
 
-    #
-    #
-    # Create the master TQSampleFolder
-    #
-    #
-    samples = TQSampleFolder("samples")
+    index = int(extra_args[0])
 
-    #
-    #
-    # Connect input baby ntuple
-    #
-    #
-    connectNtuples(samples, "../samples.cfg", ntuplepath, "<-1")
+    sample_to_run_prefix = pathToUniqStr(sample_to_run)
 
-    #
-    #
-    # Connect bsm samples
-    #
-    #
-
-    header_str = "SampleID , path , priority , usemcweights , treename , usefakeweight , variation"
-
-    # Wprime sample
-    wprimemasses = [600, 1200]
-    config_strs = [header_str]
-    for wprimemass in wprimemasses:
-        config_strs.append("wprime_*m{mass}*, /bsm/wprime/{mass}, -2, true, t_ss, false, nominal".format(mass=wprimemass))
-
-    # Doubly charged higgs samples
-    hpmpmmasses = [200]
-    for hpmpmmass in hpmpmmasses:
-        config_strs.append("hpmpm_*m{mass}*, /bsm/hpmpm/{mass}, -2, true, t_ss, false, nominal".format(mass=hpmpmmass))
-
-    # SUSY c1n2->WH + LSPs samples
-    chimasses = [150 + i*25 for i in xrange(10) ]
-    for chimass in chimasses:
-        # The LSP mass scans are defined as the following
-        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
-        lspmasses[0] = lspmasses[0] + 1
-        lspmasses[-1] = lspmasses[-1] - 1
-        for lspmass in lspmasses:
-            config_strs.append("whsusy_fullscan*, /bsm/whsusy/{mchi}/{mlsp}, -2, true, t_ss, false, nominal".format(mchi=chimass, mlsp=lspmass))
-
-    # Add BSM samples
-    addNtuples(samples, "\n".join(config_strs), ntuplepath)
-
-    # For SUSY samples, set mchi and mlsp tag
-    chimasses = [150 + i*25 for i in xrange(10) ]
-    for chimass in chimasses:
-        # The LSP mass scans are defined as the following
-        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
-        lspmasses[0] = lspmasses[0] + 1
-        lspmasses[-1] = lspmasses[-1] - 1
-        for lspmass in lspmasses:
-            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mchi", chimass)
-            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mlsp", lspmass)
+    isparallel = (sample_to_run != "")
 
     #
     #
@@ -86,11 +35,14 @@ def main(index):
     # Define histograms
     #
     #
-    histojob_filename = ".histo.cfg"
+    histojob_filename = ".histo.{}.cfg".format(sample_to_run_prefix)
     f = open(histojob_filename, "w")
     f.write("""
     TH1F('MllSS' , '' , 180 , 0. , 300.) << (MllSS : '\#it{m}_{ll} [GeV]');
     #@*/*: MllSS;
+
+    TH1F('MllSS_wide' , '' , 180 , 0. , 2000.) << (MllSS : '\#it{m}_{ll} [GeV]');
+    #@*/*: MllSS_wide;
 
     TH1F('MllZ' , '' , 180 , 60. , 120.) << (MllSS : '\#it{m}_{ll} [GeV]');
     #@*/*: MllZ;
@@ -209,18 +161,15 @@ def main(index):
     TH1F('MTlvlv' , '' , 180 , 0. , 1000.) << ([MTlvlv] : '\#it{m}_{T,lvlv} [GeV]');
     #@*/*: MTlvlv;
 
-    @SRSSeeFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SRSSemFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SRSSmmFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSeeFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSemFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSmmFull/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SRSSeePre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SRSSemPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SRSSmmPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSeePre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSemPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
-    @SideSSmmPre/*: MllSS, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSeeFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSemFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SRSSmmFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSeeFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSemFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SideSSmmFull/*: MllSS_wide, MTlvlv, Mjj, Mlvlvjj_wide;
+    @SR0SFOSFull/* :MllSS_wide, MTlvlv;
+    @SR1SFOSFull/* :MllSS_wide, MTlvlv;
+    @SR2SFOSFull/* :MllSS_wide, MTlvlv;
 
     """)
     f.close()
@@ -231,7 +180,7 @@ def main(index):
     #
     #
     histojob = TQHistoMakerAnalysisJob()
-    histojob.importJobsFromTextFiles(histojob_filename, cuts, "*", True)
+    histojob.importJobsFromTextFiles(histojob_filename, cuts, "*", True if not isparallel else False)
 
     # Analysis jobs
     cutflowjob = TQCutflowAnalysisJob("cutflow")
@@ -239,22 +188,27 @@ def main(index):
 
     # Eventlist jobs (use this if we want to print out some event information in a text format e.g. run, lumi, evt or other variables.)
     eventlistjob = TQEventlistAnalysisJob("eventlist")
-    eventlist_filename = ".eventlist.cfg"
+    eventlist_filename = ".eventlist.{}.cfg".format(sample_to_run_prefix)
     f = open(eventlist_filename, "w")
     f.write("""
     lepton: run << run, lumi << lumi, evt << evt;
-    @ARSSemFull: lepton;
-    @ARSideSSemFull: lepton;
-    @LMETCRSSemFull: lepton;
+    @SRSSeeFull: lepton;
+    @SRSSemFull: lepton;
+    @SRSSmmFull: lepton;
+    @SideSSeeFull: lepton;
+    @SideSSemFull: lepton;
+    @SideSSmmFull: lepton;
+    @SR0SFOSFull: lepton;
+    @SR1SFOSFull: lepton;
+    @SR2SFOSFull: lepton;
+    @WZCRSSeeFull: lepton;
+    @WZCRSSemFull: lepton;
+    @WZCRSSmmFull: lepton;
+    @WZCR1SFOSFull: lepton;
+    @WZCR2SFOSFull: lepton;
     """)
     f.close()
-    eventlistjob.importJobsFromTextFiles(eventlist_filename, cuts, "*", True)
-
-    # Print cuts and numebr of booked analysis jobs for debugging purpose
-    if index < 0:
-        samples.printContents("t[*status]dr")
-        cuts.printCut("trd")
-        return
+    eventlistjob.importJobsFromTextFiles(eventlist_filename, cuts, "*", True if not isparallel else False)
 
     #
     #
@@ -275,7 +229,8 @@ def main(index):
     TQObservable.addObservable(customobservables["MTlvlv"], "MTlvlv")
 
     # Print cuts and numebr of booked analysis jobs for debugging purpose
-    cuts.printCut("trd")
+    if not isparallel:
+        cuts.printCut("trd")
 
     #
     #
@@ -303,23 +258,82 @@ def main(index):
     vis = TQAnalysisSampleVisitor(cuts, True)
 
     # Run the job!
-    #samples.visitSampleFolders(vis, "/typebkg")
-    #samples.visitSampleFolders(vis, "/data")
-    #samples.visitSampleFolders(vis, "/fake")
-    #samples.visitSampleFolders(vis, "/sig")
-    #samples.visitSampleFolders(vis, "/bsm")
-    samples.visitSampleFolders(vis)
+    if sample_to_run:
+        samples.visitSampleFolders(vis, "{}".format(sample_to_run))
+    else:
+        samples.visitSampleFolders(vis)
 
     # Write the output histograms and cutflow cut values and etc.
-    if index == 0: samples.writeToFile("output.root", True)
-    if index == 1: samples.writeToFile("output_jec_up.root", True)
-    if index == 2: samples.writeToFile("output_jec_dn.root", True)
+    prefix = "output"
+    if sample_to_run: prefix = ".output_{}".format(sample_to_run_prefix)
+    if index == 0: samples.writeToFile("{}_normal.root".format(prefix), True)
+    if index == 1: samples.writeToFile("{}_jec_up.root".format(prefix), True)
+    if index == 2: samples.writeToFile("{}_jec_dn.root".format(prefix), True)
+
+    os.system("rm {}".format(eventlist_filename))
+    os.system("rm {}".format(histojob_filename))
+
+def addBSMsamples(samples):
+
+    #
+    #
+    # Connect bsm samples
+    #
+    #
+
+    header_str = "SampleID , path , priority , usemcweights , treename , usefakeweight , variation"
+
+    # Wprime sample
+    wprimemasses = [600,800,1000,1200,1400,1600,1800,2000,2500,3500,4000,4500,5000,5500,6000]
+    config_strs = [header_str]
+    for wprimemass in wprimemasses:
+        config_strs.append("wprime_m{mass}_*, /bsm/wprime/{mass}, -2, true, t_ss, false, nominal".format(mass=wprimemass))
+
+    # Doubly charged higgs samples
+    hpmpmmasses = [200,300,400,500,600,900,1000,1500,2000]
+    for hpmpmmass in hpmpmmasses:
+        config_strs.append("hpmpm_m{mass}_*, /bsm/hpmpm/{mass}, -2, true, t_ss, false, nominal".format(mass=hpmpmmass))
+
+    # SUSY c1n2->WH + LSPs samples
+    chimasses = [125 + i*25 for i in xrange(13) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        if len(lspmasses) > 1:
+            lspmasses[0] = lspmasses[0] + 1
+            lspmasses[-1] = lspmasses[-1] - 1
+        else:
+            lspmasses[0] = lspmasses[0] + 1
+        if chimass == 125: chimass = 127
+        for lspmass in lspmasses:
+            config_strs.append("whsusy_fullscan*, /bsm/whsusy/{mchi}/{mlsp}, -2, true, t_ss, false, nominal".format(mchi=chimass, mlsp=lspmass))
+
+    # Add BSM samples
+    config_filename = ".temp.{}.samples.cfg".format(os.getpid())
+    addNtuples(samples, "\n".join(config_strs), ntuplepath, config_filename)
+
+    # For SUSY samples, set mchi and mlsp tag
+    chimasses = [125 + i*25 for i in xrange(13) ]
+    for chimass in chimasses:
+        # The LSP mass scans are defined as the following
+        lspmasses = [ i*25 for i in xrange(((chimass - 125) / 25) + 1) ]
+        if len(lspmasses) > 1:
+            lspmasses[0] = lspmasses[0] + 1
+            lspmasses[-1] = lspmasses[-1] - 1
+        else:
+            lspmasses[0] = lspmasses[0] + 1
+        if chimass == 125: chimass = 127
+        for lspmass in lspmasses:
+            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mchi", chimass)
+            samples.getSampleFolder("/bsm/whsusy/{}/{}".format(chimass, lspmass)).setTagInteger("mlsp", lspmass)
+
+    os.system("rm {}".format(config_filename))
 
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print "Usage:"
-        print "  python {} INDEX".format(sys.argv[0])
+        print "  python {} INDEX [SAMPLE]".format(sys.argv[0])
         print ""
         print "  INDEX determines which variation to run"
         print " -1 : print cuts and samples and exit"
@@ -329,4 +343,24 @@ if __name__ == "__main__":
         print ""
         sys.exit()
 
-    main(int(sys.argv[1]))
+    # Create the master TQSampleFolder
+    samples = TQSampleFolder("samples")
+
+    # Connect input baby ntuple
+    connectNtuples(samples, "../samples.cfg", ntuplepath, "<-1")
+
+    # Add BSM samples
+    addBSMsamples(samples)
+
+    if len(sys.argv) >= 3:
+        # Run single job
+        main(samples, str(sys.argv[2]), [int(sys.argv[1])])
+    else:
+        # Run parallel jobs
+        runParallel(16, main, samples, [sys.argv[1]])
+        if int(sys.argv[1]) == 0: os.system("python rooutil/qframework/share/tqmerge -o output.root -t analysis .output_-*normal.root")
+        if int(sys.argv[1]) == 1: os.system("python rooutil/qframework/share/tqmerge -o output_jec_up.root -t analysis .output_-*jec_up.root")
+        if int(sys.argv[1]) == 2: os.system("python rooutil/qframework/share/tqmerge -o output_jec_dn.root -t analysis .output_-*jec_dn.root")
+        os.system("rm .output_-*")
+        os.system("rm .temp.*")
+

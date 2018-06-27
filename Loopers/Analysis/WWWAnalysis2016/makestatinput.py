@@ -11,9 +11,6 @@ import math
 
 ROOT.gROOT.SetBatch(True)
 
-
-
-
 def apply_lostlep_syst(th1, isup):
     systs = [0.1350, 0.0840, 0.1099, 0.0892, 0.1025, 0.0769, 0.1227, 0.1090, 0.1094]
     for index, syst in enumerate(systs):
@@ -44,6 +41,8 @@ def main(model="sm", mass0=-1, mass1=-1):
     samples_jec_dn = TQSampleFolder.loadSampleFolder("output_jec_dn.root:samples")
 
     histname = "{SRSSeeFull,SRSSemFull,SRSSmmFull,SideSSeeFull,SideSSemFull,SideSSmmFull,SR0SFOSFull,SR1SFOSFull,SR2SFOSFull}"
+    if model == "hpmpm":
+        histname = "SRSSeeFull/MllSS+SRSSemFull/MllSS+SRSSmmFull/MllSS+SideSSeeFull/MllSS+SideSSemFull/MllSS+SideSSmmFull/MllSS"
 
     processes = [ "vbsww" , "ttw" , "lostlep" , "photon" , "qflip" , "prompt" , "fake" , "www" ,]
 
@@ -62,6 +61,8 @@ def main(model="sm", mass0=-1, mass1=-1):
             "fake"    : "/fake",
             "www"     : sigmodel,
             }
+
+    print sigmodel
 
     # Create output file
     ofile = ROOT.TFile("statinputs/hist_{}.root".format(suffix), "recreate")
