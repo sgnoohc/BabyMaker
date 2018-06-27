@@ -300,19 +300,24 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("DPhi3lMET");
     tx->createBranch<float>("DPhi3lMET_up");
     tx->createBranch<float>("DPhi3lMET_dn");
+    tx->createBranch<float>("DPhi3lMET_gen");
     tx->createBranch<float>("MTmax");
     tx->createBranch<float>("MTmax_up");
     tx->createBranch<float>("MTmax_dn");
+    tx->createBranch<float>("MTmax_gen");
     tx->createBranch<float>("MTmin");
     tx->createBranch<float>("MTmin_up");
     tx->createBranch<float>("MTmin_dn");
+    tx->createBranch<float>("MTmin_gen");
 
     tx->createBranch<float>("MT3rd");
     tx->createBranch<float>("MT3rd_up");
     tx->createBranch<float>("MT3rd_dn");
+    tx->createBranch<float>("MT3rd_gen");
     tx->createBranch<float>("MTmax3L");
     tx->createBranch<float>("MTmax3L_up");
     tx->createBranch<float>("MTmax3L_dn");
+    tx->createBranch<float>("MTmax3L_gen");
 
     tx->createBranch<int>("passSSee");
     tx->createBranch<int>("passSSem");
@@ -1804,12 +1809,16 @@ void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
     const float& met_up_phi = tx->getBranch<float>("met_up_phi");
     const float& met_dn_pt = tx->getBranch<float>("met_dn_pt");
     const float& met_dn_phi = tx->getBranch<float>("met_dn_phi");
+    const float& genmet_pt = tx->getBranch<float>("genmet_pt");
+    const float& genmet_phi = tx->getBranch<float>("genmet_phi");
     LV MET;
     LV MET_up;
     LV MET_dn;
+    LV MET_gen;
     MET.SetPxPyPzE(met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
     MET_up.SetPxPyPzE(met_up_pt * TMath::Cos(met_up_phi), met_up_pt * TMath::Sin(met_up_phi), 0, met_up_pt);
     MET_dn.SetPxPyPzE(met_dn_pt * TMath::Cos(met_dn_phi), met_dn_pt * TMath::Sin(met_dn_phi), 0, met_dn_pt);
+    MET_gen.SetPxPyPzE(genmet_pt * TMath::Cos(genmet_phi), genmet_pt * TMath::Sin(genmet_phi), 0, genmet_pt);
 
     float MT0    = mT(lep_p4[idx0], MET);
     float MT1    = mT(lep_p4[idx1], MET);
@@ -1817,13 +1826,17 @@ void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
     float MT1_up = mT(lep_p4[idx1], MET_up);
     float MT0_dn = mT(lep_p4[idx0], MET_dn);
     float MT1_dn = mT(lep_p4[idx1], MET_dn);
+    float MT0_gen = mT(lep_p4[idx0], MET_gen);
+    float MT1_gen = mT(lep_p4[idx1], MET_gen);
 
     tx->setBranch<float>("MTmax", MT0 > MT1 ? MT0 : MT1);
     tx->setBranch<float>("MTmax_up", MT0_up > MT1_up ? MT0_up : MT1_up);
     tx->setBranch<float>("MTmax_dn", MT0_dn > MT1_dn ? MT0_dn : MT1_dn);
+    tx->setBranch<float>("MTmax_gen", MT0_gen > MT1_gen ? MT0_gen : MT1_gen);
     tx->setBranch<float>("MTmin", MT0 < MT1 ? MT0 : MT1);
     tx->setBranch<float>("MTmin_up", MT0_up < MT1_up ? MT0_up : MT1_up);
     tx->setBranch<float>("MTmin_dn", MT0_dn < MT1_dn ? MT0_dn : MT1_dn);
+    tx->setBranch<float>("MTmin_gen", MT0_gen < MT1_gen ? MT0_gen : MT1_gen);
 }
 
 //##############################################################################################################
@@ -1874,17 +1887,22 @@ void babyMaker_v2::Fill3LLeptonVariables()
     const float& met_up_phi = tx->getBranch<float>("met_up_phi");
     const float& met_dn_pt = tx->getBranch<float>("met_dn_pt");
     const float& met_dn_phi = tx->getBranch<float>("met_dn_phi");
+    const float& genmet_pt = tx->getBranch<float>("genmet_pt");
+    const float& genmet_phi = tx->getBranch<float>("genmet_phi");
     LV MET;
     LV MET_up;
     LV MET_dn;
+    LV MET_gen;
     MET.SetPxPyPzE( met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
     MET_up.SetPxPyPzE( met_up_pt * TMath::Cos(met_up_phi), met_up_pt * TMath::Sin(met_up_phi), 0, met_up_pt);
     MET_dn.SetPxPyPzE( met_dn_pt * TMath::Cos(met_dn_phi), met_dn_pt * TMath::Sin(met_dn_phi), 0, met_dn_pt);
+    MET_gen.SetPxPyPzE(genmet_pt * TMath::Cos(genmet_phi), genmet_pt * TMath::Sin(genmet_phi), 0, genmet_pt);
 
     // Set MET lep related variables
     tx->setBranch<float>("DPhi3lMET"   , fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET   )));
     tx->setBranch<float>("DPhi3lMET_up", fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET_up)));
     tx->setBranch<float>("DPhi3lMET_dn", fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET_dn)));
+    tx->setBranch<float>("DPhi3lMET_gen", fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET_gen)));
 
     if (nSFOS == 1)
     {
@@ -1895,6 +1913,7 @@ void babyMaker_v2::Fill3LLeptonVariables()
         tx->setBranch<float>("MT3rd"   , mT(lep_p4[idx], MET   ));
         tx->setBranch<float>("MT3rd_up", mT(lep_p4[idx], MET_up));
         tx->setBranch<float>("MT3rd_dn", mT(lep_p4[idx], MET_dn));
+        tx->setBranch<float>("MT3rd_gen", mT(lep_p4[idx], MET_gen));
     }
 
     float MT0    = mT(lep_p4[0], MET);
@@ -1906,10 +1925,14 @@ void babyMaker_v2::Fill3LLeptonVariables()
     float MT0_dn = mT(lep_p4[0], MET_dn);
     float MT1_dn = mT(lep_p4[1], MET_dn);
     float MT2_dn = mT(lep_p4[2], MET_dn);
+    float MT0_gen = mT(lep_p4[0], MET_gen);
+    float MT1_gen = mT(lep_p4[1], MET_gen);
+    float MT2_gen = mT(lep_p4[2], MET_gen);
 
     tx->setBranch<float>("MTmax3L", TMath::Max(MT0, TMath::Max(MT1, MT2)));
     tx->setBranch<float>("MTmax3L_up", TMath::Max(MT0_up, TMath::Max(MT1_up, MT2_up)));
     tx->setBranch<float>("MTmax3L_dn", TMath::Max(MT0_dn, TMath::Max(MT1_dn, MT2_dn)));
+    tx->setBranch<float>("MTmax3L_gen", TMath::Max(MT0_gen, TMath::Max(MT1_gen, MT2_gen)));
 }
 
 //##############################################################################################################
