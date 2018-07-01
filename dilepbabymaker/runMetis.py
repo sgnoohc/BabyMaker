@@ -36,6 +36,7 @@ job_tag = "WWW_v1.0.29" # There was a bug that got created due to veto leptons b
 #job_tag = "WWW_v1.1.4" # W, ttbar, WW, WZ for reprocessing single lepton events
 
 job_tag = "WWW_v1.2.1" # CMS4 2016 data for comparison
+job_tag = "WWW_v1.2.2" # Fat jet included!
 
 ###################################################################################################################
 ###################################################################################################################

@@ -1287,7 +1287,7 @@ void babyMaker_v2::FillFatJets()
             tx->pushbackToBranch<LorentzVector>("ak8jets_p4", fatjet);
             tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
             tx->pushbackToBranch<float>("ak8jets_prunedMass", cms3.ak8jets_prunedMass()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_trimmedMass", cms3.ak8jets_trimmedMass()[idx]);
+//            tx->pushbackToBranch<float>("ak8jets_trimmedMass", cms3.ak8jets_trimmedMass()[idx]);
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]); 
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
             tx->pushbackToBranch<float>("ak8jets_mass", cms3.ak8jets_mass()[idx]);
@@ -3658,6 +3658,7 @@ std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
 
     // NOTE: "eff" variable names are really "efficiency scale factors"
 
+    // For Fast Sim the trigger emulator is not used so apply the efficiency
     if (isWHSUSY())
     {
         // is ee events
