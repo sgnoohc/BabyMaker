@@ -23,14 +23,14 @@ for logfile in logfiles:
     lines = f.readlines()
 
     content = ' '.join(lines)
-    found = ("[CheckCorrupt]" in content.split())
+    found = ("[CheckCorrupt]" in content.split() or "Failed" in content.split())
     hadoopsuccess = (content.find("Hadoop Copy Job Success") != -1)
 
     if not hadoopsuccess:
         continue
     if found:
         print "=========================================================================="
-        print "Found a file with [CheckCorrupt]:", logfile
+        print "Found an entirely failed file or a corrupted read:", logfile
 
         badfile_total_events = []
         for line in lines:

@@ -59,6 +59,13 @@ echo "Will merge $in_folder/*.root into $out_file"
 echo root -l -n -b -q mergeHadoopFiles.C\(\"${in_folder}\",\"${out_file}\"\)
 #root -l -n -b -q mergeHadoopFiles.C+\(\"${in_folder}\",\"${out_file}\"\)
 hadd -f $out_file $in_folder/*.root
+if [ $? -eq 0 ]; then
+    echo "Successfully hadded files"
+    :
+else
+    echo "Failed to hadd the files"
+    exit
+fi
 
 
 ## Perform Skim
