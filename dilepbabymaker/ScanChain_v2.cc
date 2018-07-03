@@ -215,8 +215,8 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("met_up_phi");
     tx->createBranch<float>("met_dn_pt");
     tx->createBranch<float>("met_dn_phi");
-    tx->createBranch<float>("genmet_pt");
-    tx->createBranch<float>("genmet_phi");
+    tx->createBranch<float>("met_gen_pt");
+    tx->createBranch<float>("met_gen_phi");
 
     tx->createBranch<int>("firstgoodvertex");
     tx->createBranch<int>("nTrueInt");
@@ -1313,8 +1313,8 @@ void babyMaker_v2::FillMET()
     tx->setBranch<float>("met_up_phi", coreMET.met_up_phi);
     tx->setBranch<float>("met_dn_pt", coreMET.met_dn_pt);
     tx->setBranch<float>("met_dn_phi", coreMET.met_dn_phi);
-    tx->setBranch<float>("genmet_pt", cms3.gen_met());
-    tx->setBranch<float>("genmet_phi", cms3.gen_metPhi());
+    tx->setBranch<float>("met_gen_pt", cms3.gen_met());
+    tx->setBranch<float>("met_gen_phi", cms3.gen_metPhi());
 }
 
 //##############################################################################################################
@@ -1867,8 +1867,8 @@ void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
     const float& met_up_phi = tx->getBranch<float>("met_up_phi");
     const float& met_dn_pt = tx->getBranch<float>("met_dn_pt");
     const float& met_dn_phi = tx->getBranch<float>("met_dn_phi");
-    const float& genmet_pt = tx->getBranch<float>("genmet_pt");
-    const float& genmet_phi = tx->getBranch<float>("genmet_phi");
+    const float& met_gen_pt = tx->getBranch<float>("met_gen_pt");
+    const float& met_gen_phi = tx->getBranch<float>("met_gen_phi");
     LV MET;
     LV MET_up;
     LV MET_dn;
@@ -1876,7 +1876,7 @@ void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
     MET.SetPxPyPzE(met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
     MET_up.SetPxPyPzE(met_up_pt * TMath::Cos(met_up_phi), met_up_pt * TMath::Sin(met_up_phi), 0, met_up_pt);
     MET_dn.SetPxPyPzE(met_dn_pt * TMath::Cos(met_dn_phi), met_dn_pt * TMath::Sin(met_dn_phi), 0, met_dn_pt);
-    MET_gen.SetPxPyPzE(genmet_pt * TMath::Cos(genmet_phi), genmet_pt * TMath::Sin(genmet_phi), 0, genmet_pt);
+    MET_gen.SetPxPyPzE(met_gen_pt * TMath::Cos(met_gen_phi), met_gen_pt * TMath::Sin(met_gen_phi), 0, met_gen_pt);
 
     float MT0    = mT(lep_p4[idx0], MET);
     float MT1    = mT(lep_p4[idx1], MET);
@@ -1945,8 +1945,8 @@ void babyMaker_v2::Fill3LLeptonVariables()
     const float& met_up_phi = tx->getBranch<float>("met_up_phi");
     const float& met_dn_pt = tx->getBranch<float>("met_dn_pt");
     const float& met_dn_phi = tx->getBranch<float>("met_dn_phi");
-    const float& genmet_pt = tx->getBranch<float>("genmet_pt");
-    const float& genmet_phi = tx->getBranch<float>("genmet_phi");
+    const float& met_gen_pt = tx->getBranch<float>("met_gen_pt");
+    const float& met_gen_phi = tx->getBranch<float>("met_gen_phi");
     LV MET;
     LV MET_up;
     LV MET_dn;
@@ -1954,7 +1954,7 @@ void babyMaker_v2::Fill3LLeptonVariables()
     MET.SetPxPyPzE( met_pt * TMath::Cos(met_phi), met_pt * TMath::Sin(met_phi), 0, met_pt);
     MET_up.SetPxPyPzE( met_up_pt * TMath::Cos(met_up_phi), met_up_pt * TMath::Sin(met_up_phi), 0, met_up_pt);
     MET_dn.SetPxPyPzE( met_dn_pt * TMath::Cos(met_dn_phi), met_dn_pt * TMath::Sin(met_dn_phi), 0, met_dn_pt);
-    MET_gen.SetPxPyPzE(genmet_pt * TMath::Cos(genmet_phi), genmet_pt * TMath::Sin(genmet_phi), 0, genmet_pt);
+    MET_gen.SetPxPyPzE(met_gen_pt * TMath::Cos(met_gen_phi), met_gen_pt * TMath::Sin(met_gen_phi), 0, met_gen_pt);
 
     // Set MET lep related variables
     tx->setBranch<float>("DPhi3lMET"   , fabs(ROOT::Math::VectorUtil::DeltaPhi((lep_p4[0] + lep_p4[1] + lep_p4[2]), MET   )));
