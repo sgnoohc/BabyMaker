@@ -3,7 +3,7 @@
 
 #include "fakerate_baseline_v2_ss.C"
 #include "fakerate_baseline_v2_3l.C"
-#include "fakerate_v3.h"
+#include "../dilepbabymaker/fakerate_v3.h"
 
 // Commented out as it is old
 float trigeff_dimu_dz(float etatrail, float etalead, int isyst=0)
@@ -1863,171 +1863,171 @@ float fakerate_baseline_v2_3l_el_qcd_unc(float Eta, float conecorrPT)
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 
-//______________________________________________________________________________________
-float fakerate_mu_data(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_mu_data(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_mu_data(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_mu_data(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_mu_data(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_mu_data(Eta, conecorrPT);
-}
-float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_mu_data_unc(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_mu_data_unc(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_mu_data_unc(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_mu_data_unc(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_mu_data_unc(Eta, conecorrPT);
-}
-//______________________________________________________________________________________
-float fakerate_mu_qcd(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_mu_qcd(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_mu_qcd(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_mu_qcd(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_mu_qcd(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_mu_qcd(Eta, conecorrPT);
-}
-float fakerate_mu_qcd_unc(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_mu_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_mu_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_mu_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_mu_qcd_unc(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_mu_qcd_unc(Eta, conecorrPT);
-}
-
-//______________________________________________________________________________________
-float fakerate_el_data(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_el_data(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_el_data(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_el_data(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_el_data(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_el_data(Eta, conecorrPT);
-}
-float fakerate_el_data_unc(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_el_data_unc(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_el_data_unc(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_el_data_unc(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_el_data_unc(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_el_data_unc(Eta, conecorrPT);
-}
-//______________________________________________________________________________________
-float fakerate_el_qcd(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_el_qcd(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_el_qcd(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_el_qcd(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_el_qcd(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_el_qcd(Eta, conecorrPT);
-}
-float fakerate_el_qcd_unc(float Eta, float conecorrPT, int version=0)
-{
-    if (version == -1)
-    {
-        return fakerate_baseline_v2_3l_el_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == 1)
-    {
-        return fakerate_baseline_v2_ss_el_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == -2)
-    {
-        return fakerate_baseline_v3_3l_el_qcd_unc(Eta, conecorrPT);
-    }
-    if (version == 2)
-    {
-        return fakerate_baseline_v3_ss_el_qcd_unc(Eta, conecorrPT);
-    }
-    return fakerate_baseline_v1_el_qcd_unc(Eta, conecorrPT);
-}
+////______________________________________________________________________________________
+//float fakerate_mu_data(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_mu_data(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_mu_data(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_mu_data(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_mu_data(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_mu_data(Eta, conecorrPT);
+//}
+//float fakerate_mu_data_unc(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_mu_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_mu_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_mu_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_mu_data_unc(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_mu_data_unc(Eta, conecorrPT);
+//}
+////______________________________________________________________________________________
+//float fakerate_mu_qcd(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_mu_qcd(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_mu_qcd(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_mu_qcd(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_mu_qcd(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_mu_qcd(Eta, conecorrPT);
+//}
+//float fakerate_mu_qcd_unc(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_mu_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_mu_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_mu_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_mu_qcd_unc(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_mu_qcd_unc(Eta, conecorrPT);
+//}
+//
+////______________________________________________________________________________________
+//float fakerate_el_data(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_el_data(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_el_data(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_el_data(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_el_data(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_el_data(Eta, conecorrPT);
+//}
+//float fakerate_el_data_unc(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_el_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_el_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_el_data_unc(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_el_data_unc(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_el_data_unc(Eta, conecorrPT);
+//}
+////______________________________________________________________________________________
+//float fakerate_el_qcd(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_el_qcd(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_el_qcd(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_el_qcd(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_el_qcd(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_el_qcd(Eta, conecorrPT);
+//}
+//float fakerate_el_qcd_unc(float Eta, float conecorrPT, int version=0)
+//{
+//    if (version == -1)
+//    {
+//        return fakerate_baseline_v2_3l_el_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == 1)
+//    {
+//        return fakerate_baseline_v2_ss_el_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == -2)
+//    {
+//        return fakerate_baseline_v3_3l_el_qcd_unc(Eta, conecorrPT);
+//    }
+//    if (version == 2)
+//    {
+//        return fakerate_baseline_v3_ss_el_qcd_unc(Eta, conecorrPT);
+//    }
+//    return fakerate_baseline_v1_el_qcd_unc(Eta, conecorrPT);
+//}
 
 
 //______________________________________________________________________________________
