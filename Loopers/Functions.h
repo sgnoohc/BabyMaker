@@ -22,13 +22,7 @@
 #include <fstream>
 #include <tuple>
 
-#define USE_CMS3_WWW100 
-// CMS3
-#ifdef USE_CMS3_WWW100
-#include "CMS3_WWW106.h"
-#else
-#include "CMS3_WWW0118.h"
-#endif
+#include "CMS3_WWW121.h"
 
 #ifndef FUNCTION_H
 #define FUNCTION_H
@@ -63,13 +57,11 @@ string process(string filename, bool SS, vector<int> tightlep, vector<int> loose
 bool   vetophotonprocess(string filename, bool process);//true if W,DY,tt,etc. is photonfake; true if Wg,Zg,ttg,etc. is not photonfake. else false.
 
 bool  getleptonindices_v0(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, int version=0, float pTSS=30., float pT3l=20.);//deprecated
-#ifdef USE_CMS3_WWW100
 bool  getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, float pTSS=25., float pT3l=20.);
 int   NtightSS(float pTSS=25);
 int   NlooseSS(float pTSS=25);
 int   Ntight3l(float pT3l=20);
 int   Nloose3l(float pT3l=20);
-#endif
 bool  istightlepton(int i, int version);
 bool  islooselepton(int i, int version);
 float coneCorrPt(int lepi, int version=0);//apply only to loose but not tight leptons
@@ -82,7 +74,7 @@ bool  getMjjAndDeta(float &Mjj, float &MjjL, float &Detajj, int jec=0);
 float calcMTmax(vector<int> lepindex, LorentzVector MET, bool compareSSpairs=false);
 float calcMTmax(int index1, int index2, LorentzVector MET);
 
-bool  passTriggers(bool MCoffline=true, bool MCtrigger=false, float leadleppt=25., float trailleppt=20.);
+bool  passTriggers(bool MCoffline=true, bool MCtrigger=true, float leadleppt=25., float trailleppt=20.);
 bool  passofflineTriggers(vector<int> tightlep, vector<int> looselep={});
 bool  passonlineTriggers(vector<int> tightlep, vector<int> looselep={});//I'll duplicate and goodrun selection by hand - I think this way it is easier
 bool  passFilters_v0();
@@ -98,7 +90,7 @@ int    isARSS(                              bool preselect=false, int jec=0,    
 int    isCRSS(                              bool preselect=false, int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=1);
 bool   passAnySS(int &SR, int &AR, int &CR, bool preselect=false, int jec=0, bool noZ=false, bool btag=false, bool Mjjside=false, int version=1);
 
-bool   passJet3lstate(int jec=0);
+bool   passJet3lstate(int jec=0,  bool btag=false);
 int    isSR3l_v0(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
 int    isAR3l_v0(vector<int> tightlep, vector<int> looselep,               bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);
 int    isCR3l_v0(vector<int> tightlep,                                     bool preselect=false, int nj=-1, int nb=-1, LorentzVector MET = LorentzVector(0,0,0,0), int jec=0, bool btag=false, int version=0);

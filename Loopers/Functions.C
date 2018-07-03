@@ -297,7 +297,6 @@ bool getleptonindices_v0(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, 
   return true;
 }
 
-#ifdef USE_CMS3_WWW100
 bool getleptonindices_v2(vector<int> &iSS, vector<int> &i3l, vector<int> &iaSS, vector<int> &ia3l, vector<int> &vSS, vector<int> &v3l, vector<int> &vaSS, vector<int> &va3l, float pTSS, float pT3l){
   iSS.clear();
   i3l.clear();
@@ -353,8 +352,6 @@ int Nloose3l(float pT3l){
   }
   return n;
 }
-
-#endif
 
 float coneCorrPt(int lepi, int version){
   float coneptcorr = 0;
@@ -601,11 +598,20 @@ bool passTriggers(bool MCoffline, bool MCtrigger, float leadleppt, float traille
     if(nel25>=1&&nel>=2) return true;
     return false;
   }
-  if(nmu>=2&&(HLT_DoubleMu()) )                             return true;
-  if(nmu25>=1&&nel>=1&&HLT_MuEG())                          return true;
-  if(nel25>=1&&nmu>=1&&HLT_MuEG())                          return true;
-  if(nel25>=1&&nel>=2&&(HLT_DoubleEl()||HLT_DoubleEl_DZ())) return true;
-  return false;
+  if(isData()){
+    if(nmu>=2&&(HLT_DoubleMu()) )                             return true;
+    if(nmu25>=1&&nel>=1&&HLT_MuEG())                          return true;
+    if(nel25>=1&&nmu>=1&&HLT_MuEG())                          return true;
+    if(nel25>=1&&nel>=2&&(HLT_DoubleEl()||HLT_DoubleEl_DZ())) return true;
+    return false;
+  }
+  else {
+    if(nmu>=2&&(mc_HLT_DoubleMu()) )                                return true;
+    if(nmu25>=1&&nel>=1&&mc_HLT_MuEG())                             return true;
+    if(nel25>=1&&nmu>=1&&mc_HLT_MuEG())                             return true;
+    if(nel25>=1&&nel>=2&&(mc_HLT_DoubleEl()||mc_HLT_DoubleEl_DZ())) return true;
+    return false;
+  }
 }
 
 bool passofflineTriggers(vector<int> tightlep, vector<int> looselep){

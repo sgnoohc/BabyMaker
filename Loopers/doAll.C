@@ -1,7 +1,10 @@
 {
 
+  //gROOT->ProcessLine(".L Functions112.C+"); 
   gROOT->ProcessLine(".L Functions.C+"); 
 
+  //gROOT->ProcessLine(".L PUTester.C++");
+  //gROOT->ProcessLine(".L InvestigateSRs.C++");
   gROOT->ProcessLine(".L SRLooper.C++");
   //gROOT->ProcessLine(".L Skimmer.C++");
   //gROOT->ProcessLine(".L Check3lWZCR.C++");
@@ -10,6 +13,8 @@
   //gROOT->ProcessLine(".L FakeRateMethod.C++");
   //gROOT->ProcessLine(".L FakeRateClosure.C++");
   //gROOT->ProcessLine(".L ValidationLooper.C++");
+  //gROOT->ProcessLine(".L LowMETvalidation.C++");
+  //gROOT->ProcessLine(".L LeptonSmearingForQflips.C++");
 
 
   const unsigned int chainsize = 15;
@@ -17,8 +22,14 @@
   string dataset[chainsize];
 
   //lightly skimmed babies
-  string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.12/skim/";
-
+  //string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.11/skim/";
+  //string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/";
+  //string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.26/skim/";
+  //string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23.patch1/skim/";
+  //string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.1.2/skim/";//no signal exists here :(
+  //string babylocation  = "/nfs-7/userdata/haweber/WWWskims/WWW_v1.0.11/";
+  //string babylocation  = "/nfs-7/userdata/bhashemi/WWW_babies/WWW_v0.1.18/skim/";
+  string babylocation  = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.2.2/skim/";
   string myhelper;
 
   dataset[0] = "WWW";
@@ -75,8 +86,8 @@
   myhelper = babylocation + "wjets_ht800_mgmlm_ext1*.root";             ch[7]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht1200_mgmlm_nonext*.root";          ch[7]->Add(myhelper.c_str());
   myhelper = babylocation + "wjets_ht2500_mgmlm_ext1*.root";            ch[7]->Add(myhelper.c_str());
-  myhelper = babylocation + "Wpjj_lnu_madgraph*.root";                  ch[7]->Add(myhelper.c_str());
-  myhelper = babylocation + "Wmjj_lnu_madgraph*.root";                  ch[7]->Add(myhelper.c_str());
+  //myhelper = babylocation + "Wpjj_lnu_madgraph*.root";                  ch[7]->Add(myhelper.c_str());
+  //myhelper = babylocation + "Wmjj_lnu_madgraph*.root";                  ch[7]->Add(myhelper.c_str());
   
   dataset[8] = "Zjets";
   ch[8] = new TChain("t");
@@ -130,7 +141,9 @@
   int j = 0;
   for(int i = 0; i<chainsize; ++i){
     //if(i>=3&&i<=15) continue;//don't run over individual samples (but for signal) - run over combined background instead
-    if (i != 0) continue;
+    //if (i != 10) continue;
+    //if (i != 0) continue;
+    //if (i != 3 && i != 7) continue;
     TChain *mych = ch[i];
     string mydataset = dataset[i];
     cout << "Now entering " << mydataset << endl;
