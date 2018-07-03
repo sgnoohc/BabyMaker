@@ -6,3 +6,4 @@ eval `scramv1 runtime -sh`
 cd - > /dev/null
 
 export LD_LIBRARY_PATH=$PWD/rooutil:$LD_LIBRARY_PATH
+export COREDIR=$PWD/../CORE/

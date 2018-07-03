@@ -4,7 +4,7 @@ import os
 import sys
 import ROOT
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob, TQHWWPlotter, TQEventlistAnalysisJob
-from qutils import *
+from rooutil.qutils import *
 
 def main(index):
 
@@ -38,16 +38,18 @@ def main(index):
     ["1"                                          , "evt_scale1fb"                  ] ,
     ["1"                                          , "purewgt"                       ] ,
     ["1"                                          , "{$(usefakeweight)?ffwgt:35.9}" ] ,
+    ["firstgoodvertex==0"                         , "1"                             ] ,
     ["Flag_AllEventFilters"                       , "1"                             ] ,
     ["vetophoton==0"                              , "1"                             ] ,
-    ["MllSS > 10"                                 , "1"                             ] ,
+    ["MllSS > 20"                                 , "1"                             ] ,
+    ["evt_passgoodrunlist"                        , "1"                               ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
 
     tqcuts = {}
     tqcuts["Presel"]         = TQCut("Presel", "Presel", PreselCutExpr, PreselWgtExpr)
 
-    tqcuts["CutDilep"]       = TQCut("CutDilep"       , "CutDilep"               , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf}")
+    tqcuts["CutDilep"]       = TQCut("CutDilep"       , "CutDilep"               , "{$(usefakeweight)?(nVlep==2)*(nLlep==2)*(nTlep==1):(nVlep==2)*(nLlep==2)*(nTlep==2)}" , "{$(usefakeweight)?1.:lepsf_up}")
     tqcuts["CutSSee"]        = TQCut("CutSSee"        , "SSee:"                  , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf")
     tqcuts["CutSSem"]        = TQCut("CutSSem"        , "SSem:"                  , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf")
     tqcuts["CutSSmm"]        = TQCut("CutSSmm"        , "SSmm:"                  , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf")
@@ -60,12 +62,18 @@ def main(index):
     tqcuts["CutSSeeMjjW"]    = TQCut("CutSSeeMjjW"    , "SSee: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
     tqcuts["CutSSemMjjW"]    = TQCut("CutSSemMjjW"    , "SSem: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
     tqcuts["CutSSmmMjjW"]    = TQCut("CutSSmmMjjW"    , "SSmm: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
-    tqcuts["CutSSeeMjjL"]    = TQCut("CutSSeeMjjL"    , "SSee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSemMjjL"]    = TQCut("CutSSemMjjL"    , "SSem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSmmMjjL"]    = TQCut("CutSSmmMjjL"    , "SSmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSeeDetajjL"] = TQCut("CutSSeeDetajjL" , "SSee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
-    tqcuts["CutSSemDetajjL"] = TQCut("CutSSemDetajjL" , "SSem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
-    tqcuts["CutSSmmDetajjL"] = TQCut("CutSSmmDetajjL" , "SSmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSeeMjjL"]    = TQCut("CutSSeeMjjL"    , "SSee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSemMjjL"]    = TQCut("CutSSemMjjL"    , "SSem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSmmMjjL"]    = TQCut("CutSSmmMjjL"    , "SSmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSeeDetajjL"] = TQCut("CutSSeeDetajjL" , "SSee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSemDetajjL"] = TQCut("CutSSemDetajjL" , "SSem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSmmDetajjL"] = TQCut("CutSSmmDetajjL" , "SSmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSeeMjjL"]    = TQCut("CutSSeeMjjL"    , "SSee: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSemMjjL"]    = TQCut("CutSSemMjjL"    , "SSem: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSmmMjjL"]    = TQCut("CutSSmmMjjL"    , "SSmm: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSeeDetajjL"] = TQCut("CutSSeeDetajjL" , "SSee: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
+    tqcuts["CutSSemDetajjL"] = TQCut("CutSSemDetajjL" , "SSem: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
+    tqcuts["CutSSmmDetajjL"] = TQCut("CutSSmmDetajjL" , "SSmm: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
     tqcuts["CutSSeeMET"]     = TQCut("CutSSeeMET"     , "SSee: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
     tqcuts["CutSSemMET"]     = TQCut("CutSSemMET"     , "SSem: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
     tqcuts["CutSSmmMET"]     = TQCut("CutSSmmMET"     , "SSmm: 6. MET > 0"       , "1."                                                                                   , "1")
@@ -76,7 +84,7 @@ def main(index):
     tqcuts["CutSSeeZeeVt"] = TQCut("CutSSeeZeeVt", "SSee0: Z veto" , "abs(MllSS-91.1876)>10.", "1");
     tqcuts["CutSSemMTmax"] = TQCut("CutSSemMTmax", "SSem0: MTmax" , "MTmax>90.", "1");
 
-    tqcuts["CutTrilep"]        = TQCut("CutTrilep"        , "CutTrilep"                , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf}")
+    tqcuts["CutTrilep"]        = TQCut("CutTrilep"        , "CutTrilep"                , "{$(usefakeweight)?(nVlep==3)*(nLlep==3)*(nTlep==2):(nVlep==3)*(nLlep==3)*(nTlep==3)}" , "{$(usefakeweight)?1.:lepsf_up}")
     tqcuts["CutSSWZee"]        = TQCut("CutSSWZee"        , "SSWZee: "                 , "(passSSee)*(mc_HLT_DoubleEl_DZ_2==1)"                                                 , "trigsf")
     tqcuts["CutSSWZem"]        = TQCut("CutSSWZem"        , "SSWZem: "                 , "(passSSem)*(mc_HLT_MuEG==1)"                                                          , "trigsf")
     tqcuts["CutSSWZmm"]        = TQCut("CutSSWZmm"        , "SSWZmm: "                 , "(passSSmm)*(mc_HLT_DoubleMu==1)"                                                      , "trigsf")
@@ -86,21 +94,36 @@ def main(index):
     tqcuts["CutSSWZeeNb0"]     = TQCut("CutSSWZeeNb0"     , "SSWZee: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
     tqcuts["CutSSWZemNb0"]     = TQCut("CutSSWZemNb0"     , "SSWZem: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
     tqcuts["CutSSWZmmNb0"]     = TQCut("CutSSWZmmNb0"     , "SSWZmm: 2. n_{b} = 0"     , "nb==0"                                                                                , "weight_btagsf")
-    tqcuts["CutSSWZeeMjjW"]    = TQCut("CutSSWZeeMjjW"    , "SSWZee: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
-    tqcuts["CutSSWZemMjjW"]    = TQCut("CutSSWZemMjjW"    , "SSWZem: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
-    tqcuts["CutSSWZmmMjjW"]    = TQCut("CutSSWZmmMjjW"    , "SSWZmm: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
-    tqcuts["CutSSWZeeMjjL"]    = TQCut("CutSSWZeeMjjL"    , "SSWZee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSWZemMjjL"]    = TQCut("CutSSWZemMjjL"    , "SSWZem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSWZmmMjjL"]    = TQCut("CutSSWZmmMjjL"    , "SSWZmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
-    tqcuts["CutSSWZeeDetajjL"] = TQCut("CutSSWZeeDetajjL" , "SSWZee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
-    tqcuts["CutSSWZemDetajjL"] = TQCut("CutSSWZemDetajjL" , "SSWZem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
-    tqcuts["CutSSWZmmDetajjL"] = TQCut("CutSSWZmmDetajjL" , "SSWZmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSWZeeMjjW"]    = TQCut("CutSSWZeeMjjW"    , "SSWZee: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+#    tqcuts["CutSSWZemMjjW"]    = TQCut("CutSSWZemMjjW"    , "SSWZem: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+#    tqcuts["CutSSWZmmMjjW"]    = TQCut("CutSSWZmmMjjW"    , "SSWZmm: 3. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+#    tqcuts["CutSSWZeeMjjL"]    = TQCut("CutSSWZeeMjjL"    , "SSWZee: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSWZemMjjL"]    = TQCut("CutSSWZemMjjL"    , "SSWZem: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSWZmmMjjL"]    = TQCut("CutSSWZmmMjjL"    , "SSWZmm: 4. MjjL < 400"    , "MjjL<400."                                                                            , "1")
+#    tqcuts["CutSSWZeeDetajjL"] = TQCut("CutSSWZeeDetajjL" , "SSWZee: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSWZemDetajjL"] = TQCut("CutSSWZemDetajjL" , "SSWZem: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+#    tqcuts["CutSSWZmmDetajjL"] = TQCut("CutSSWZmmDetajjL" , "SSWZmm: 5. DetajjL < 1.5" , "DetajjL<1.5"                                                                          , "1")
+    tqcuts["CutSSWZeeMjjW"]    = TQCut("CutSSWZeeMjjW"    , "SSWZee: 3. |Mjj-80| < 15" , "1"                                                                                    , "1")
+    tqcuts["CutSSWZemMjjW"]    = TQCut("CutSSWZemMjjW"    , "SSWZem: 3. |Mjj-80| < 15" , "1"                                                                                    , "1")
+    tqcuts["CutSSWZmmMjjW"]    = TQCut("CutSSWZmmMjjW"    , "SSWZmm: 3. |Mjj-80| < 15" , "1"                                                                                    , "1")
+    tqcuts["CutSSWZeeMjjL"]    = TQCut("CutSSWZeeMjjL"    , "SSWZee: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSWZemMjjL"]    = TQCut("CutSSWZemMjjL"    , "SSWZem: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSWZmmMjjL"]    = TQCut("CutSSWZmmMjjL"    , "SSWZmm: 4. MjjL < 400"    , "1"                                                                                    , "1")
+    tqcuts["CutSSWZeeDetajjL"] = TQCut("CutSSWZeeDetajjL" , "SSWZee: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
+    tqcuts["CutSSWZemDetajjL"] = TQCut("CutSSWZemDetajjL" , "SSWZem: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
+    tqcuts["CutSSWZmmDetajjL"] = TQCut("CutSSWZmmDetajjL" , "SSWZmm: 5. DetajjL < 1.5" , "1"                                                                                    , "1")
     tqcuts["CutSSWZeeMET"]     = TQCut("CutSSWZeeMET"     , "SSWZee: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
     tqcuts["CutSSWZemMET"]     = TQCut("CutSSWZemMET"     , "SSWZem: 6. MET > 60"      , "met_pt>60."                                                                           , "1")
     tqcuts["CutSSWZmmMET"]     = TQCut("CutSSWZmmMET"     , "SSWZmm: 6. MET > 0"       , "1."                                                                                   , "1")
-    tqcuts["CutSSWZeeMllSS"]   = TQCut("CutSSWZeeMllSS"   , "SSWZee: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
-    tqcuts["CutSSWZemMllSS"]   = TQCut("CutSSWZemMllSS"   , "SSWZem: 7. MllSS > 40"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSWZeeMllSS"]   = TQCut("CutSSWZeeMllSS"   , "SSWZee: 7. MllSS > 60"    , "MllSS>60."                                                                            , "1")
+    tqcuts["CutSSWZemMllSS"]   = TQCut("CutSSWZemMllSS"   , "SSWZem: 7. MllSS > 60"    , "MllSS>60."                                                                            , "1")
     tqcuts["CutSSWZmmMllSS"]   = TQCut("CutSSWZmmMllSS"   , "SSWZmm: 7. MllSS > 40"    , "MllSS>40."                                                                            , "1")
+    tqcuts["CutSSWZeeMjjWin"]  = TQCut("CutSSWZeeMjjWin"  , "SSWZee: 8. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZemMjjWin"]  = TQCut("CutSSWZemMjjWin"  , "SSWZem: 8. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZmmMjjWin"]  = TQCut("CutSSWZmmMjjWin"  , "SSWZmm: 8. |Mjj-80| < 15" , "abs(Mjj-80.)<15."                                                                     , "1")
+    tqcuts["CutSSWZeeMjjWout"] = TQCut("CutSSWZeeMjjWout" , "SSWZee: 9. |Mjj-80| > 15" , "abs(Mjj-80.)>15."                                                                     , "1")
+    tqcuts["CutSSWZemMjjWout"] = TQCut("CutSSWZemMjjWout" , "SSWZem: 9. |Mjj-80| > 15" , "abs(Mjj-80.)>15."                                                                     , "1")
+    tqcuts["CutSSWZmmMjjWout"] = TQCut("CutSSWZmmMjjWout" , "SSWZmm: 9. |Mjj-80| > 15" , "abs(Mjj-80.)>15."                                                                     , "1")
 
     tqcuts["CutSSWZeeZeeVt"] = TQCut("CutSSWZeeZeeVt", "SSWZee: 0. Z veto" , "abs(MllSS-91.1876)>10.", "1");
     tqcuts["CutSSWZemMTmax"] = TQCut("CutSSWZemMTmax", "SSWZem: 0. MTmax" , "MTmax>90.", "1");
@@ -161,6 +184,12 @@ def main(index):
     tqcuts["CutSSWZeeMET"].addCut(tqcuts["CutSSWZeeMllSS"])
     tqcuts["CutSSWZemMET"].addCut(tqcuts["CutSSWZemMllSS"])
     tqcuts["CutSSWZmmMET"].addCut(tqcuts["CutSSWZmmMllSS"])
+    tqcuts["CutSSWZeeMllSS"].addCut(tqcuts["CutSSWZeeMjjWin"])
+    tqcuts["CutSSWZemMllSS"].addCut(tqcuts["CutSSWZemMjjWin"])
+    tqcuts["CutSSWZmmMllSS"].addCut(tqcuts["CutSSWZmmMjjWin"])
+    tqcuts["CutSSWZeeMllSS"].addCut(tqcuts["CutSSWZeeMjjWout"])
+    tqcuts["CutSSWZemMllSS"].addCut(tqcuts["CutSSWZemMjjWout"])
+    tqcuts["CutSSWZmmMllSS"].addCut(tqcuts["CutSSWZmmMjjWout"])
 
     #
     #
@@ -183,6 +212,18 @@ def main(index):
 
     TH1F('Mjj' , '' , 180 , 0. , 300.) << (Mjj : '\#it{m}_{jj} [GeV]');
     @*/*: Mjj;
+
+    TH1F('MjjL' , '' , 180 , 0. , 750.) << (MjjL : '\#it{m}_{jj,central,leading} [GeV]');
+    @*/*: MjjL;
+
+    TH1F('DetajjL' , '' , 180 , 0. , 8.) << (DetajjL : '\#it{m}_{jj,central,leading} [GeV]');
+    @*/*: DetajjL;
+
+    TH1F('MjjVBF' , '' , 180 , 0. , 750.) << (MjjVBF : '\#it{m}_{jj,central,leading} [GeV]');
+    @*/*: MjjVBF;
+
+    TH1F('DetajjVBF' , '' , 180 , 0. , 8.) << (DetajjVBF : '\#it{m}_{jj,central,leading} [GeV]');
+    @*/*: DetajjVBF;
 
     TH1F('MET' , '' , 180 , 0. , 180.) << (met_pt : 'MET [GeV]');
     @*/*: MET;

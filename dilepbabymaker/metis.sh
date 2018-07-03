@@ -78,15 +78,21 @@ echo ">>> export COREDIR=$PWD/CORE/"
 export COREDIR=$PWD/CORE/
 echo ">>> ./processBaby dummy ${INPUTFILENAMES} -1"
 INPUTFILES=$(echo ${INPUTFILENAMES} | tr ',' ' ')
+ISDATA=false
+if [[ ${INPUTFILENAMES} == *Run201* ]]; then
+    ISDATA=true
+fi
 INDEX=1
 for file in $INPUTFILES; do
     ./processBaby dummy "$file" -1 ${INDEX} &
     JOBS[${INDEX}]=$!
+    FILES[${INDEX}]="$file"
     INDEX=$((INDEX + 1))
 done
 GOODOUTPUTS=""
 INDEX=1
 HASBADJOB=false
+NFAILED=0
 for job in "${JOBS[@]}"; do
     wait $job
     JOBSTATUS=$?
@@ -95,22 +101,34 @@ for job in "${JOBS[@]}"; do
     echo ""
     if [ $JOBSTATUS -eq 0 ]; then
         echo ""
-        echo "Job #${INDEX} Success"
+        echo "Job #${INDEX} Success "${FILES[${INDEX}]}
         echo ""
         GOODOUTPUTS="${GOODOUTPUTS} output_${INDEX}.root"
     else
         echo ""
-        echo "Job #${INDEX} Failed"
+        echo "Job #${INDEX} Failed "${FILES[${INDEX}]}
         echo ""
         HASBADJOB=true
+        NFAILED=$((NFAILED+1))
     fi
     INDEX=$((INDEX+1))
 done
-if [ "$HASBADJOB" = false ]; then
-    hadd -f output.root ${GOODOUTPUTS}
+if [ "$ISDATA" = true ]; then
+    if [ "$HASBADJOB" = false ]; then
+        hadd -f output.root ${GOODOUTPUTS}
+    else
+        echo "[ERROR::HASBADJOB] This is a data sample. So it is pertinent to have EVERY job succeed."
+        echo "[ERROR::HASBADJOB] This set of job has ${NFAILED} failed job. So will not produce output.root nor copy it to hadoop."
+        exit
+    fi
 else
-    echo "[ERROR::HASBADJOB] This set of job has a failed job. So will not produce output.root nor copy it to hadoop."
-    exit
+    if [ ${NFAILED} -le 1 ]; then
+        hadd -f output.root ${GOODOUTPUTS}
+    else
+        echo "[ERROR::HASBADJOB] This is a MC sample. so it is less pertinent to have EVERY job succeed."
+        echo "[ERROR::HASBADJOB] This set of job has ${NFAILED} failed job more than 1. So will not produce output.root nor copy it to hadoop."
+        exit
+    fi
 fi
 
 ###################################################################################################
@@ -170,9 +188,9 @@ else
         fi
     fi
     if [ $? -eq 0 ]; then
-        echo "Job Success"
+        echo "Hadoop Copy Job Success"
     else
-        echo "Job Failed"
+        echo "HAdoop Copy Job Failed"
     fi
     date
 fi

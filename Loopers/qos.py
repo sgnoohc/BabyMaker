@@ -4,7 +4,7 @@ import os
 import sys
 import ROOT
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob, TQHWWPlotter, TQEventlistAnalysisJob
-from qutils import *
+from rooutil.qutils import *
 
 def main(index):
 
@@ -42,6 +42,8 @@ def main(index):
     ["vetophoton==0"                              , "1"                             ] ,
     ["lep_pdgId[0]*lep_pdgId[1]<0"                , "1"                             ] ,
     ["MllSS > 10"                                 , "1"                             ] ,
+    ["firstgoodvertex==0"                         , "1"                             ] ,
+    ["evt_passgoodrunlist"                        , "1"                             ] ,
     ]
     PreselCutExpr, PreselWgtExpr = combexpr(PreselCuts)
 
@@ -223,11 +225,23 @@ def main(index):
     TH1F('lep_relIso03EAv2Lep1' , '' , 180 , 0. , 1.2 ) << (lep_relIso03EAv2Lep[1] : '\#it{I}_{Rel,R=0.3,EA-v2,Lep}');
     @*/*: lep_relIso03EAv2Lep1;
 
-    TH1F('lep_ip3d0' , '' , 180 , -0.05 , 0.05 ) << (lep_ip3d[0] : 'IP3D');
+    TH1F('lep_ip3d0' , '' , 180 , -0.02 , 0.02 ) << (lep_ip3d[0] : 'IP3D');
     @*/*: lep_ip3d0;
 
-    TH1F('lep_ip3d1' , '' , 180 , -0.05 , 0.05 ) << (lep_ip3d[1] : 'IP3D');
+    TH1F('lep_ip3d1' , '' , 180 , -0.02 , 0.02 ) << (lep_ip3d[1] : 'IP3D');
     @*/*: lep_ip3d1;
+
+    TH1F('lep_dxy0' , '' , 180 , -0.02 , 0.02 ) << (lep_dxy[0] : 'dxy');
+    @*/*: lep_dxy0;
+
+    TH1F('lep_dxy1' , '' , 180 , -0.02 , 0.02 ) << (lep_dxy[1] : 'dxy');
+    @*/*: lep_dxy1;
+
+    TH1F('lep_dz0' , '' , 180 , -0.02 , 0.02 ) << (lep_dz[0] : 'dz');
+    @*/*: lep_dz0;
+
+    TH1F('lep_dz1' , '' , 180 , -0.02 , 0.02 ) << (lep_dz[1] : 'dz');
+    @*/*: lep_dz1;
 
     TH1F('ntrk' , '' , 3 , 0. , 3. ) << (nisoTrack_mt2_cleaned_VVV_cutbased_veto : 'N_{track}');
     @*/*: ntrk;
@@ -296,6 +310,8 @@ def main(index):
         # Get all sample lists
         sample_names, sample_full_names = getSampleLists(samples)
 
+        print len(sample_names)
+
         # Select the job based on the index
         sample_name = sample_names[index]
         sample_full_name = sample_full_names[sample_name]
@@ -315,41 +331,48 @@ def main(index):
 
 
 def getNTotalSample():
-    # Create the master TQSampleFolder
     samples = TQSampleFolder("samples")
-
-    # Created a sample information parser
-    parser = TQXSecParser(samples);
-
-    # Read the configuration file that contains what sample names are and how to categorize them
-    parser.readCSVfile("samples.cfg")
-    parser.readMappingFromColumn("*path*")
-    parser.enableSamplesWithPriorityGreaterThan("priority", 2)
-    parser.addAllSamples(True)
-
-    # Decide that path where the root files are sitting
-    import socket
-    if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
-        samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
-    else:
-        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/"
-
-    # By "visiting" the samples with the initializer we actually hook up the samples with root files
-    init = TQSampleInitializer(samplepath, 1)
-    samples.visitMe(init)
-
-    # Get all the samples to run
-    sample_names = []
-    sample_full_names = {}
-    for i in samples.getListOfSamples():
-        if i.getNSamples(True) == 0:
-            sample_name = i.GetName()
-            nice_name = sample_name.replace(".root", "")
-            sample_names.append(nice_name)
-            sample_full_names[nice_name] = sample_name
-
-    print len(sample_names)
+    connectNtuples(samples, "samples.cfg", "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/", ">2", ">3")
+    # Get all sample lists
+    sample_names, sample_full_names = getSampleLists(samples)
     return len(sample_names)
+
+#
+#    # Create the master TQSampleFolder
+#    samples = TQSampleFolder("samples")
+#
+#    # Created a sample information parser
+#    parser = TQXSecParser(samples);
+#
+#    # Read the configuration file that contains what sample names are and how to categorize them
+#    parser.readCSVfile("samples.cfg")
+#    parser.readMappingFromColumn("*path*")
+#    parser.enableSamplesWithPriorityGreaterThan("priority", 2)
+#    parser.addAllSamples(True)
+#
+#    # Decide that path where the root files are sitting
+#    import socket
+#    if socket.gethostname().find("pcc007") != -1: # philip's local mac computer
+#        samplepath = "/Users/phchang/work/analyses/www/code/VVVBabyMaker/Loopers/samples/"
+#    else:
+#        samplepath = "/nfs-7/userdata/phchang/WWW_babies/WWW_v1.0.23/skim/"
+#
+#    # By "visiting" the samples with the initializer we actually hook up the samples with root files
+#    init = TQSampleInitializer(samplepath, 1)
+#    samples.visitMe(init)
+#
+#    # Get all the samples to run
+#    sample_names = []
+#    sample_full_names = {}
+#    for i in samples.getListOfSamples():
+#        if i.getNSamples(True) == 0:
+#            sample_name = i.GetName()
+#            nice_name = sample_name.replace(".root", "")
+#            sample_names.append(nice_name)
+#            sample_full_names[nice_name] = sample_name
+#
+#    print len(sample_names)
+#    return len(sample_names)
 
 if __name__ == "__main__":
 
@@ -375,56 +398,3 @@ if __name__ == "__main__":
     else:
 
         main(int(sys.argv[1]))
-
-
-#######################################
-    #tqcuts["CutOSee"] = TQCut("CutOSee" , "OS: ee" , "(lep_pdgId[0]*lep_pdgId[1]==-121)*(mc_HLT_DoubleEl_DZ_2==1)" , 
-    #"""[TH2Map:lepsfrootfiles/trigeff.root:diel_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
-
-    #tqcuts["CutOSem"] = TQCut("CutOSem" , "OS: em" , "(lep_pdgId[0]*lep_pdgId[1]==-143)*(mc_HLT_MuEG==1)" , 
-    #"""[abs(lep_pdgId[0])==11]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]
-    #   +[abs(lep_pdgId[0])==13]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:el_lead_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""") # Trail and lead are identical
-
-    #tqcuts["CutOSmm"] = TQCut("CutOSmm" , "OS: mm" , "(lep_pdgId[0]*lep_pdgId[1]==-169)*(mc_HLT_DoubleMu==1)" , 
-    #"""[TH2Map:lepsfrootfiles/trigeff.root:dimu_dz_eta_v_eta_sf([(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[0])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[1])],[(abs(lep_eta[0])>abs(lep_eta[1]))*abs(lep_eta[1])+(abs(lep_eta[0])<=abs(lep_eta[1]))*abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_lead_leg_eta_v_pt_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/trigeff.root:mu_trail_leg_eta_v_pt_sf([abs(lep_eta[1])],[lep_pt[1]])]""")
-
-    #tqcuts["CutOSeeLepSF"] = TQCut("CutOSeeLepSF" , "OS: LepSF" , "1" , 
-    #"""[TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
-
-    #tqcuts["CutOSemLepSF"] = TQCut("CutOSemLepSF" , "OS: LepSF" , "1" ,
-    #"""[abs(lep_pdgId[0])==11]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[0]],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]
-    #   +[abs(lep_pdgId[0])==13]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/egammaEffi.txt_EGM2D.MVA80.root:EGamma_SF2D([lep_eta[1]],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/elec_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
-
-    #tqcuts["CutOSmmLepSF"] = TQCut("CutOSmmLepSF", "OS: LepSF" , "1",
-    #"""[TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[0])])]*
-    #   [TH1Map:lepsfrootfiles/muon_trk_sf.root:muon_trk_sf([abs(lep_eta[1])])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_id_sf.root:muon_id_sf([abs(lep_eta[1])],[lep_pt[1]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[0])],[lep_pt[0]])]*
-    #   [TH2Map:lepsfrootfiles/muon_sf.root:sf_pt_vs_eta([abs(lep_eta[1])],[lep_pt[1]])]""")
-

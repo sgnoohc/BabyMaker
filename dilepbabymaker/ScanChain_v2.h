@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <stdlib.h>
+#include <mutex>
 
 // ROOT
 #include "TChain.h"
@@ -18,6 +20,7 @@
 #include "TBenchmark.h"
 #include "TLorentzVector.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TROOT.h"
 #include "TFile.h"
 #include "TChain.h"
@@ -74,6 +77,7 @@
 #include "coreutil/jet.h"
 #include "coreutil/met.h"
 #include "coreutil/track.h"
+#include "coreutil/fatjet.h"
 
 #define VVV_TIGHT_SS VVV_cutbased_tight_v4
 #define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
@@ -108,6 +112,7 @@ private:
     CoreUtil::jec coreJec;
     CoreUtil::grl coreGRL;
     CoreUtil::btag coreBtagSF;
+    CoreUtil::btag coreBtagSFFastSim;
     CoreUtil::puwgt corePUWgt;
     CoreUtil::trigger coreTrigger;
     CoreUtil::genpart coreGenPart;
@@ -115,6 +120,7 @@ private:
     CoreUtil::muon coreMuon;
     CoreUtil::datasetinfo coreDatasetInfo;
     CoreUtil::jet coreJet;
+    CoreUtil::fatjet coreFatJet;
     CoreUtil::met coreMET;
     CoreUtil::track coreTrack;
 
@@ -128,35 +134,45 @@ private:
     TTree* t_photon;
     TTree* t_lostlep;
     TTree* t_fakes;
+    TH1F* h_neventsinfile;
     RooUtil::TTreeX* tx;
+    RooUtil::Looper<CMS3> looper;
 
     std::string filename;
 
-    bool isData;
+    TH3F* h_nevents_SMS;
+    TH2F* h_nrawevents_SMS;
+    TH1D* hxsec;
+    TFile* fxsec;
 
 public:
 
-    babyMaker_v2() {}
-    ~babyMaker_v2() {}
+    babyMaker_v2();
+    ~babyMaker_v2();
     void ScanChain_v2(TChain*, std::string = "testSample", int max_events = -1, int index = 1, bool verbose = false);
 
     void CreateOutput(int index=1);
+    void CreateBSMSampleSpecificOutput();
 
     void SaveOutput();
 
     void ConfigureGoodRunsList();
+
+    void SlaveBegin(int index=1);
 
     void ProcessTriggers();
     void ProcessGenParticles();
     void ProcessElectrons();
     void ProcessMuons();
     void ProcessJets();
+    void ProcessFatJets();
     void ProcessMET();
     void ProcessTracks();
 
     bool PassPresel();
     bool PassPresel_v1();
     bool PassPresel_v2();
+    bool PassPresel_v3();
 
     void FillOutput();
 
@@ -164,6 +180,7 @@ public:
     void FillElectrons();
     void FillMuons();
     void FillJets();
+    void FillFatJets();
     void FillMET();
     void FillTracks();
     void FillGenParticles();
@@ -192,6 +209,7 @@ public:
     void Fill3LLeptonVariables();
     void FillEventTags();
     void FillWeights();
+    void FillGenWeights();
 
     // Calculator
     static int passCount(const vector<int>& vec);
@@ -213,12 +231,31 @@ public:
     tuple<bool, int, int> isSSCR();
 
     // special weights
-    std::tuple<float, float> getlepFakeRateandError(bool data, int version=2);
+    std::tuple<float, float, int> getlepFakeRateandErrorandLooseLepIdx(bool data, int version=2);
     std::tuple<float, float> getlepSFandError(int index, int lepton_id_version=2);
     std::tuple<float, float> getlepSFWeightandError(int lepton_id_version=2);
     static std::tuple<float, float> getCombinedTrigEffandError(float, float, float, float, float, float, float, float);
     std::tuple<float, float> getTrigEffandError(int lepton_id_version=2);
     std::tuple<float, float> getTrigSFandError(int lepton_id_version=2);
+
+    void FATALERROR(const char* funcname="");
+
+    // Doubly Charged Higgs process related
+    bool isDoublyChargedHiggs() { return filename.find("hpmpm_hww") != string::npos; }
+    void AddDoublyChargedHiggsOutput();
+    bool studyDoublyChargedHiggs();
+
+    // Wprime process related
+    bool isWprime() { return filename.find("wprime") != string::npos; }
+    void AddWprimeOutput();
+    bool studyWprime();
+
+    // WH susy process related
+    bool isWHSUSY() { return filename.find("whsusy") != string::npos; }
+    void AddWHsusyOutput();
+    void setWHSMSMassAndWeights();
+    void setWHSMSMass();
+    bool filterWHMass(float, float);
 
 };
 

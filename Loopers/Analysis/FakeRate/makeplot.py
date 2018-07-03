@@ -6,6 +6,7 @@ import ROOT
 from QFramework import TQSampleFolder, TQXSecParser, TQCut, TQAnalysisSampleVisitor, TQSampleInitializer, TQCutflowAnalysisJob, TQCutflowPrinter, TQHistoMakerAnalysisJob
 from rooutil import plottery_wrapper as p
 from plottery import plottery as ply
+from rooutil.syncfiles.pyfiles.errors import E
 
 ROOT.gROOT.SetBatch(True)
 samples_cn = TQSampleFolder.loadSampleFolder("output.root:samples")
@@ -13,6 +14,19 @@ samples_up = TQSampleFolder.loadSampleFolder("output_up.root:samples")
 samples_dn = TQSampleFolder.loadSampleFolder("output_dn.root:samples")
 
 output_plot_dir = "plots"
+
+#_________________________________________________________
+def compute_fake_factor_1d(th1):
+    for ix in xrange(0, th1.GetNbinsX()+2):
+        frnom = th1.GetBinContent(ix)
+        frerr = th1.GetBinError(ix)
+        fr = E(frnom, frerr) 
+        if fr.val != 0 and fr.val != 1:
+            ff = fr / (E(1., 0.) - fr)
+        else:
+            ff = E(0., 0.)
+        th1.SetBinContent(ix, ff.val)
+        th1.SetBinError(ix, ff.err)
 
 #___________________________________________________________________________
 # Function to retrieve SF
@@ -51,8 +65,8 @@ mu3lsf_up = ewksf("OneMu3lTightEWKCR", "m", samples_up)
 el3lsf_dn = ewksf("OneEl3lTightEWKCR", "e", samples_dn)
 mu3lsf_dn = ewksf("OneMu3lTightEWKCR", "m", samples_dn)
 
-print "EWK NF el", el3lsf_cn, el3lsf_up, el3lsf_dn
-print "EWK NF mu", mu3lsf_cn, mu3lsf_up, mu3lsf_dn
+print "EWK NF el3l", el3lsf_cn, el3lsf_up, el3lsf_dn
+print "EWK NF mu3l", mu3lsf_cn, mu3lsf_up, mu3lsf_dn
 
 #___________________________________________________________________________
 # "proc" could be one of ["datael", "datamu", "top", "w", "dy", "qcdel", "qcdmu"]
@@ -104,9 +118,9 @@ def get_histogram(samples, proc, cut, variable, applysf=False):
     # Apply ewk sf
     if applysf:
         sf = 1.0
-        if samples == samples_cn: sf = (musf_cn if ismu else elsf_cn) if is3l else (mu3lsf_cn if ismu else el3lsf_cn)
-        if samples == samples_up: sf = (musf_up if ismu else elsf_up) if is3l else (mu3lsf_up if ismu else el3lsf_up)
-        if samples == samples_dn: sf = (musf_dn if ismu else elsf_dn) if is3l else (mu3lsf_dn if ismu else el3lsf_dn)
+        if samples == samples_cn: sf = (musf_cn if ismu else elsf_cn) if not is3l else (mu3lsf_cn if ismu else el3lsf_cn)
+        if samples == samples_up: sf = (musf_up if ismu else elsf_up) if not is3l else (mu3lsf_up if ismu else el3lsf_up)
+        if samples == samples_dn: sf = (musf_dn if ismu else elsf_dn) if not is3l else (mu3lsf_dn if ismu else el3lsf_dn)
         if proc == "top": hist.Scale(sf)
         if proc == "w"  : hist.Scale(sf)
         if proc == "dy" : hist.Scale(sf)
@@ -204,7 +218,7 @@ def compute_nvtx_reweighting():
 
 
 #___________________________________________________________________________
-def plot_stack(cut, var, dosf=False, options={}):
+def plot_stack(cut, var, dosf=False, options={}, noqcd=False):
 
     # Setting variables to be used for option setting
     output_name = cut + "_" + var
@@ -232,18 +246,23 @@ def plot_stack(cut, var, dosf=False, options={}):
     alloptions.update(options)
 
     # Colors of the MC histograms
-    colors = [ 2005, 2003, 2001, 920 ] # in order of top, Z, W, QCD
+    #colors = [ 2005, 2003, 2001, 920 ] # in order of top, Z, W, QCD
+    colors = [ 2003, 2001, 920 ] # in order of top, Z, W, QCD
 
     # Retrieve histograms
-    h_cn_data = get_histogram(samples_cn, "data" , cut , var , dosf)
-    h_cn_top  = get_histogram(samples_cn, "top"  , cut , var , dosf)
-    h_cn_w    = get_histogram(samples_cn, "w"    , cut , var , dosf)
-    h_cn_dy   = get_histogram(samples_cn, "dy"   , cut , var , dosf)
-    h_cn_qcd  = get_histogram(samples_cn, "qcd"  , cut , var , dosf)
+    smp = samples_cn
+    h_cn_data = get_histogram(smp, "data" , cut , var , dosf)
+    h_cn_top  = get_histogram(smp, "top"  , cut , var , dosf)
+    h_cn_w    = get_histogram(smp, "w"    , cut , var , dosf)
+    h_cn_dy   = get_histogram(smp, "dy"   , cut , var , dosf)
+    h_cn_qcd  = get_histogram(smp, "qcd"  , cut , var , dosf)
 
     # Arrange the histograms
     sigs = []
-    bgs = [ h_cn_top, h_cn_dy, h_cn_w, h_cn_qcd ]
+    #bgs = [ h_cn_top, h_cn_dy, h_cn_w, h_cn_qcd ]
+    #if noqcd: bgs = [ h_cn_top, h_cn_dy, h_cn_w ]
+    bgs = [ h_cn_dy, h_cn_w, h_cn_qcd ]
+    if noqcd: bgs = [ h_cn_dy, h_cn_w ]
     data = h_cn_data
 
     # Plot!
@@ -255,7 +274,7 @@ def plot_stack(cut, var, dosf=False, options={}):
             options=alloptions)
 
 #___________________________________________________________________________
-def plot_closure(cut, var, options={}):
+def plot_closure(cut, var, options={}, doprintclosure=False):
 
     # Sanity check that the name of the cut contains "Predict"
     # If not, then quietly exit the function without doing anything
@@ -280,8 +299,8 @@ def plot_closure(cut, var, options={}):
 
     # Options
     alloptions= {
-                "ratio_range":[0.4,1.6],
-                "nbins": 15,
+                "ratio_range":[0.0,2.0],
+                "nbins": 9,
                 "legend_scalex": 1.4,
                 "legend_scaley": 1.0,
                 "legend_smart": True,
@@ -320,6 +339,14 @@ def plot_closure(cut, var, options={}):
     sigs = []
     bgs = [ h_loose_cn_top, h_loose_cn_w ]
     data = h_tight_cn_top
+
+    # if do print closure then print the ratio
+    if doprintclosure:
+        prd = p.get_total_hist(bgs)
+        est = h_tight_cn_top.Clone("estimate")
+        prd_num = E(prd.GetBinContent(1), prd.GetBinError(1))
+        est_num = E(est.GetBinContent(1), est.GetBinError(1))
+        print est_num, prd_num, est_num / prd_num
 
     # Plot!
     p.plot_hist(
@@ -410,16 +437,84 @@ def plot_fakerate(cutloose, cuttight, var, dosf=False, options={}):
     p.add_diff_to_error(h_data_cn_fakerate, h_data_up_fakerate, h_data_dn_fakerate)
 
     # Get QCD fake rate
-    h_qcd_fakerate = get_qcd_fakerate(samples_cn, cutloose, cuttight, var, dosf)
-    h_qcd_fakerate.SetName("QCD FR")
+    h_qcd_cn_fakerate = get_qcd_fakerate(samples_cn, cutloose, cuttight, var, dosf)
+    h_qcd_up_fakerate = get_qcd_fakerate(samples_up, cutloose, cuttight, var, dosf)
+    h_qcd_dn_fakerate = get_qcd_fakerate(samples_dn, cutloose, cuttight, var, dosf)
+
+    # Compute error
+    p.add_diff_to_error(h_qcd_cn_fakerate, h_qcd_up_fakerate, h_qcd_dn_fakerate)
+
+    h_qcd_cn_fakerate.SetName("QCD FR")
 
     # Plot!
     p.plot_hist(
             sigs = [],
-            bgs  = [h_qcd_fakerate],
+            bgs  = [h_qcd_cn_fakerate],
             data = h_data_cn_fakerate,
             colors = [2],
             options=alloptions)
+
+#___________________________________________________________________________
+def plot_fakefactor(cutloose, cuttight, var, dosf=False, options={}):
+
+    # Setting variables to be used for option setting
+    output_name = cutloose + "_" + var
+    isvarbin = output_name.find("varbin") != -1
+    divide_by_bin_width = isvarbin
+    yaxis_log = isvarbin
+    yaxis_range = [1e3, 1e10] if isvarbin else []
+    ismu = cuttight.find("Mu") != -1
+
+    # Options
+    alloptions= {
+                "ratio_range":[0.0,2.0 if ismu else 2.5],
+                "legend_scalex": 1.0,
+                "legend_scaley": 1.0,
+                "legend_smart": True,
+                "legend_alignment": "topleft",
+                "output_name": "plots/{}_fakefactorcomp.pdf".format(output_name),
+                "bkg_sort_method": "unsorted",
+                "divide_by_bin_width": divide_by_bin_width,
+                "yaxis_log": yaxis_log,
+                "yaxis_range": yaxis_range,
+                "yaxis_label": "Fake factor",
+                "legend_datalabel": "Data FF",
+                "draw_points": True,
+                }
+
+    # Whatever the option passed through the argument can override anything
+    alloptions.update(options)
+
+    # Retrieve fake rate histograms
+    h_data_cn_fakerate = get_datadriven_fakerate(samples_cn, cutloose, cuttight, var, dosf)
+    h_data_up_fakerate = get_datadriven_fakerate(samples_up, cutloose, cuttight, var, dosf)
+    h_data_dn_fakerate = get_datadriven_fakerate(samples_dn, cutloose, cuttight, var, dosf)
+
+    # Compute error
+    p.add_diff_to_error(h_data_cn_fakerate, h_data_up_fakerate, h_data_dn_fakerate)
+
+    # Get QCD fake rate
+    h_qcd_cn_fakerate = get_qcd_fakerate(samples_cn, cutloose, cuttight, var, dosf)
+    h_qcd_up_fakerate = get_qcd_fakerate(samples_up, cutloose, cuttight, var, dosf)
+    h_qcd_dn_fakerate = get_qcd_fakerate(samples_dn, cutloose, cuttight, var, dosf)
+
+    # Compute error
+    p.add_diff_to_error(h_qcd_cn_fakerate, h_qcd_up_fakerate, h_qcd_dn_fakerate)
+
+    h_qcd_cn_fakerate.SetName("QCD FF")
+
+    compute_fake_factor_1d(h_data_cn_fakerate)
+    compute_fake_factor_1d(h_qcd_cn_fakerate)
+
+    # Plot!
+    p.plot_hist(
+            sigs = [],
+            bgs  = [h_qcd_cn_fakerate],
+            data = h_data_cn_fakerate,
+            colors = [2],
+            options=alloptions)
+
+
 
 
 
@@ -434,14 +529,38 @@ if __name__ == "__main__":
     jobs.append(multiprocessing.Process(target=compute_nvtx_reweighting))
 
     # Computing Nvtx reweighting function
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3NoNvtxRewgt", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3NoNvtxRewgt", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3NoNvtxRewgt", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3NoNvtxRewgt", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3", "nvtx")))
-    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3", "nvtx")))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3NoNvtxRewgt", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3NoNvtxRewgt", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR3", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneElTightEWKCR3", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3NoNvtxRewgt", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3NoNvtxRewgt", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMu3lTightEWKCR3", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+    jobs.append(multiprocessing.Process(target=plot_stack, args=("OneEl3lTightEWKCR3", "nvtx", False, {"bkg_sort_method":"ascending", "legend_scaley":1.3}, True)))
+
+    # Plotting lepton pT variable
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMuTightEWKCR"   , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneElTightEWKCR"   , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMu3lTightEWKCR" , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneEl3lTightEWKCR" , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMuTight"        , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneElTight"        , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMu3lTight"      , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneEl3lTight"      , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMuLoose"        , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneElLoose"        , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMu3lLoose"      , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneEl3lLoose"      , "lep_pt" , True , {"nbins": 90  , "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+
+    # Plotting pt corr variable
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMuTight"        , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneElTight"        , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMu3lTight"      , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneEl3lTight"      , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , True)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMuLoose"        , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneElLoose"        , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneMu3lLoose"      , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
+    jobs.append(multiprocessing.Process(target=plot_stack , args=("OneEl3lLoose"      , "lep_ptcorrvarbincoarse" , True , { "yaxis_log":True , "yaxis_range":[5e2 , 1e7]} , False)))
 
     # Plotting MT variable
     jobs.append(multiprocessing.Process(target=plot_stack, args=("OneMuTightEWKCR", "MTOneLepFixed")))
@@ -465,31 +584,41 @@ if __name__ == "__main__":
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneMu3lLoose", "OneMu3lTight", "mu3l_ptcorrcoarse_vs_etacoarse", True)))
     jobs.append(multiprocessing.Process(target=plot_fakerate, args=("OneEl3lLoose", "OneEl3lTight", "el3l_ptcorrcoarse_vs_etacoarse", True)))
 
+    # Plotting the fakerate comparison between QCD and data
+    jobs.append(multiprocessing.Process(target=plot_fakefactor, args=("OneMuLoose", "OneMuTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_fakefactor, args=("OneElLoose", "OneElTight", "lep_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_fakefactor, args=("OneMu3lLoose", "OneMu3lTight", "mu3l_ptcorrcoarse_vs_etacoarse", True)))
+    jobs.append(multiprocessing.Process(target=plot_fakefactor, args=("OneEl3lLoose", "OneEl3lTight", "el3l_ptcorrcoarse_vs_etacoarse", True)))
+
     # Plotting some closure plots
-    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "mu_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "mu_yield", {}, True)))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "Mjj_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "Mll_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "MET_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "nb_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "nj30_mu")))
-    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "mu_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredict", "mu_pt")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "mu_yield", {}, True)))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "Mjj_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "Mll_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "MET_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "nb_mu")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "nj30_mu")))
-    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "el_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoMuLoosePredictBVeto", "mu_pt")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "el_yield", {}, True)))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "Mjj_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "Mll_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "MET_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "nb_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "nj30_el")))
-    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "el_yield")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictComb", "el_pt")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "el_yield", {}, True)))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "Mjj_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "Mll_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "MET_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "nb_el")))
     jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "nj30_el")))
+    jobs.append(multiprocessing.Process(target=plot_closure, args=("TwoElLoosePredictBVetoComb", "el_pt")))
 
     # Multi-thread processing
     for job in jobs:

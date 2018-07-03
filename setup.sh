@@ -8,12 +8,8 @@ echo "Grabbing Dependancies..."
 
 git clone git@github.com:sgnoohc/CORE.git
 cd CORE/
-git checkout 2017
-cd ..
-git clone git@github.com:cmstas/NtupleTools.git
-git clone git@github.com:cmstas/Software.git
-cd Software/
-git checkout root6
+#git checkout origin/2017
+git apply /home/users/phchang/public_html/MetSelections_CMS3Compatible.patch
 cd ..
 
 echo "git checkout submodules"
@@ -32,14 +28,9 @@ export LD_LIBRARY_PATH=$PWD/rooutil:$LD_LIBRARY_PATH
 
 echo "Building CORE, this might take a few minutes..."
 cd dilepbabymaker/
+source ./localsetup.sh
 ln -s ../CORE 
 make -j15
 
 echo "Testing the babymaker..."
 ./dotest.sh
-
-cd ../NtupleTools/AutoTwopler/
-. setup.sh
-cd ../../dilepbabymaker/batchsubmit/
-
-echo "You are ready to choose samples and run ducks.py"
