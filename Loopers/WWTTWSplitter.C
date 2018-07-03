@@ -21,14 +21,20 @@
 #include <fstream>
 
 // CMS3
-#define USE_CMS3_WWW100 
+//#define USE_CMS3_WWW100 
 
+//#include "Functions112.h"
+//#include "CMS3_WWW112.cc"
 #include "Functions.h"
+#include "CMS3_WWW121.cc"
+/*
+#include "Functions112.h"
 #ifdef USE_CMS3_WWW100
-#include "CMS3_WWW106.cc"
+#include "CMS3_WWW112.cc"
 #else
 #include "CMS3_WWW0118.cc"
 #endif
+*/
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -62,6 +68,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
   vector<float>  hup;        hup.clear();
 
   histonames.push_back("SRyield");                        hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
+  histonames.push_back("SRyield_Mjjside");                hbins.push_back(6); hlow.push_back(0); hup.push_back(6);
 
   map<string, TH1D*> histos =  bookhistograms(skimFilePrefix, histonames,hbins, hlow, hup, rootdir,true);
   cout << "Loaded histograms" << endl;
@@ -116,7 +123,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
       if(!isData()&&applyPUrewgt)    weight *= purewgt();
       if(!isData()&&applylepSF)      weight *= lepsf();
-      if(!isData()&&applytrigSF)     weight *= trigeff();
+      if(!isData()&&applytrigSF)     weight *= trigsf();
       
       if(isData()){
 	if(!passFilters())                      continue;
@@ -129,12 +136,27 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       string sample   = skimFilePrefix;
       if(splitVH(fname)){ sample = "WHtoWWW"; }
       string sn = string(bkgtype().Data());
-      if(sample!="ttV"&&sample!="WW") continue;
+      //if(sample!="ttV"&&sample!="WW") continue;
       if(vetophoton()) continue;
       
       int SRSS = isSRSS(); 
       int SR3l = isSR3l();
-      
+      int SRSSside = isSRSS(false,0,false,true); 
+      float maxMT = -1;
+      LorentzVector METlv; METlv.SetPxPyPzE(met_pt()*TMath::Cos(met_phi()),met_pt()*TMath::Sin(met_phi()),0,met_pt());
+      if(nVlep()==3){
+        for(int i = 0; i<nVlep();++i){
+          if((lep_pass_VVV_cutbased_3l_fo()[i] || lep_pass_VVV_cutbased_3l_tight()[i]) && lep_p4()[i].Pt()>20.) {
+            if(mT(lep_p4()[i],METlv)>maxMT) maxMT = mT(lep_p4()[i],METlv);
+          }
+        }
+      }
+      if(maxMT<=90.){
+        if(SR3l==0) SR3l = -1;
+      }
+      if(met_pt()<=60.){
+        if(SRSSside==2) SRSSside = -1;
+      }
       bool trueSS = (sn =="trueSS");
       bool true3l = (sn=="true3l"||sn=="trueWWW");      
       bool isWWnotVBSDPS = (fname.find("ww_2l2nu_powheg")  !=string::npos)||(fname.find("ww_2l2nu_powheg")  !=string::npos);
@@ -149,7 +171,8 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       else if(Ntight3l()==3&&nVlep()==3&&isTTX&&true3l){ sn2 = "ttV3l"; if(sn!="ttVSS") sn  = "OtherttV"; }
       else if(                           isTTX        ){ sn  = "OtherttV";              sn2 = "OtherttV"; }
 
-      if(!(blindSR&&isData())) fillSRhisto(histos, "SRyield",       sample, sn, sn2, SRSS, SR3l, weight, weight);      
+      if(!(blindSR&&isData())) fillSRhisto(histos, "SRyield",         sample, sn, sn2, SRSS,     SR3l, weight, weight);      
+      if(!(blindSR&&isData())) fillSRhisto(histos, "SRyield_Mjjside", sample, sn, sn2, SRSSside, SR3l, weight, weight);      
       
     }//event loop
   

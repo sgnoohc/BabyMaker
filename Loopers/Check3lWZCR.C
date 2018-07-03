@@ -24,7 +24,7 @@
 //#include "Functions112.h"
 //#include "CMS3_WWW112.cc"
 #include "Functions.h"
-#include "CMS3_WWW106.cc"
+#include "CMS3_WWW121.cc"
 #include "../CORE/Tools/dorky/dorky.h"
 #include "../CORE/Tools/dorky/dorky.cc"
 #include "../CORE/Tools/goodrun.h"
@@ -256,7 +256,7 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(!isData()&&btagreweighting) weight *= weight_btagsf();
       if(!isData()&&applyPUrewgt)    weight *= purewgt();
       if(!isData()&&applylepSF)      weight *= lepsf();
-      if(!isData()&&applytrigSF)     weight *= trigeff();
+      if(!isData()&&applytrigSF)     weight *= trigsf();
 
       if(isData()){
         if(!passFilters())                      continue;
@@ -275,8 +275,10 @@ int ScanChain( TChain* chain, bool fast = true, int nEvents = -1, string skimFil
       if(fname.find("wz_"      )!=string::npos) { WZ  = true; }
       if(fname.find("zz_"      )!=string::npos) { WZ  = true; }
       double xsecweightttZ(0.), xsecweightWZ(0.);
-      if(ttZ) xsecweightttZ = 0.197896;
-      if(WZ)  xsecweightWZ  = 0.0579957;
+      //if(ttZ) xsecweightttZ = 0.197896;
+      //if(WZ)  xsecweightWZ  = 0.0579957;
+      if(ttZ) xsecweightttZ = 0.04;
+      if(WZ)  xsecweightWZ  = 0.04;
       
       int SRSS[40], SR3l[40];
       int dummy = -1;
