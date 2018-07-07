@@ -3012,11 +3012,11 @@ bool babyMaker_v2::studyWWW()
             {
                 if (neu0.pt() == 0)
                 {
-                    neu0 = l[i];
+                    neu0 = v[i];
                 }
                 else
                 {
-                    neu1 = l[i];
+                    neu1 = v[i];
                 }
             }
         }
