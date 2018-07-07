@@ -64,6 +64,9 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_ev
             // Loop over charged particle candidates
             ProcessTracks();
 
+            // Truth level variables studies for WWW
+            studyWWW();
+
             // Fill baby ntuple
             FillOutput();
         }
@@ -442,6 +445,44 @@ void babyMaker_v2::AddWprimeOutput()
 }
 
 //##############################################################################################################
+void babyMaker_v2::AddWWWOutput()
+{
+    tx->createBranch<int>("iswhwww");
+    tx->createBranch<int>("www_channel"); // 0 == all hadronic, 1 == 1lep , 2 == 2SS, 3 == 3lep, 4 == 2OS
+    tx->createBranch<int>("has_tau"); // 0 == all hadronic, 1 == 1lep , 2 == 2SS, 3 == 3lep, 4 == 2OS
+
+    tx->createBranch<vector<LV>>("w_p4");
+    tx->createBranch<vector<int>>("w_islep");
+    tx->createBranch<vector<int>>("w_isstar");
+    tx->createBranch<vector<int>>("w_isH");
+
+    tx->createBranch<vector<LV>>("l_p4");
+    tx->createBranch<vector<float>>("l_w_pt");
+    tx->createBranch<vector<float>>("l_w_eta");
+    tx->createBranch<vector<float>>("l_w_phi");
+    tx->createBranch<vector<int>>("l_w_id");
+    tx->createBranch<vector<int>>("l_isstar");
+    tx->createBranch<vector<int>>("l_isH");
+    tx->createBranch<vector<int>>("l_istau");
+
+    tx->createBranch<vector<LV>>("q_p4");
+    tx->createBranch<vector<float>>("q_w_pt");
+    tx->createBranch<vector<float>>("q_w_eta");
+    tx->createBranch<vector<float>>("q_w_phi");
+    tx->createBranch<vector<int>>("q_w_id");
+    tx->createBranch<vector<int>>("q_isstar");
+    tx->createBranch<vector<int>>("q_isH");
+
+    tx->createBranch<float>("dRllSS");
+    tx->createBranch<float>("dRqqSS");
+
+    tx->createBranch<float>("DPhill_higgs");
+    tx->createBranch<float>("Mll_higgs");
+    tx->createBranch<float>("MT_higgs");
+
+}
+
+//##############################################################################################################
 void babyMaker_v2::AddWHsusyOutput()
 {
     h_nevents_SMS = new TH3F("h_counterSMS", "h_counterSMS", 37, 99, 1024, 19, -1, 474, 35, 0.5, 35.5); //15000 bins!
@@ -526,6 +567,11 @@ void babyMaker_v2::CreateBSMSampleSpecificOutput()
     if (isWHSUSY())
     {
         AddWHsusyOutput();
+    }
+
+    if (isWWW() || isVH() || isWHSUSY())
+    {
+        AddWWWOutput();
     }
 }
 
@@ -1681,6 +1727,12 @@ int babyMaker_v2::passCount(const vector<int>& v)
 }
 
 //##############################################################################################################
+void babyMaker_v2::sortVecP4(vector<LV>& v)
+{
+    std::sort(v.begin(), v.end(), [](const LV& a, const LV& b){return a.pt() > b.pt();});
+}
+
+//##############################################################################################################
 int babyMaker_v2::nSFOS()
 {
     int nSFOS = 0;
@@ -2452,15 +2504,25 @@ bool babyMaker_v2::splitVH()
     if (filename.find("vh_nonbb_amcnlo") == string::npos) return false; //file is certainly no WHtoWWW
     bool isHtoWW = false;
     bool isWnotFromH = false;
-    for (unsigned int i = 0; i < tx->getBranch<vector<int>>("genPart_pdgId").size(); ++i)
+    bool isZthere = false;
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
     {
-        if (abs(tx->getBranch<vector<int>>("genPart_pdgId")[i]) != 24) continue;
-        if (tx->getBranch<vector<int>>("genPart_status")[i] != 22) continue;
-        if (abs(tx->getBranch<vector<int>>("genPart_motherId")[i]) == 25)  isHtoWW     = true;
-        if (abs(tx->getBranch<vector<int>>("genPart_motherId")[i]) != 2)   isWnotFromH = true;
-        if (isHtoWW && isWnotFromH) break;
+
+//        if (genPart_status[i] == 22)
+//            std::cout <<  " genPart_pdgId[i]: " << genPart_pdgId[i] <<  " genPart_status[i]: " << genPart_status[i] <<  " genPart_motherId[i]: " << genPart_motherId[i] <<  std::endl;
+
+        if (abs(genPart_pdgId[i]) == 23 && genPart_status[i] == 22) isZthere = true;
+
+        if (abs(genPart_pdgId[i]) != 24) continue;
+        if (genPart_status[i] != 22) continue;
+        if (abs(genPart_motherId[i]) == 25)  isHtoWW     = true;
+        if (abs(genPart_motherId[i]) != 2)   isWnotFromH = true;
+        if (isHtoWW && isWnotFromH && !isZthere) break;
     }
-    return isHtoWW && isWnotFromH;
+    return isHtoWW && isWnotFromH && !isZthere;
 }
 
 //##############################################################################################################
@@ -2743,6 +2805,317 @@ bool babyMaker_v2::studyWprime()
 }
 
 //##############################################################################################################
+bool babyMaker_v2::studyWWW()
+{
+    ProcessGenParticles();
+    if (!isWWW() && !isWHSUSY()) return false;
+    if (isWHWWW()) tx->setBranch<int>("iswhwww", 1);
+    if (isSMWWW()) tx->setBranch<int>("iswhwww", 0);
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<int>& genPart_mother_idx = coreGenPart.genPart_mother_idx;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+
+    std::cout.setstate(std::ios_base::failbit);
+
+    std::cout << std::endl;
+    vector<LV> h;
+    vector<LV> w;
+    vector<int> w_m_id;
+    vector<LV> l;
+    vector<int> l_id;
+    vector<int> l_m_idx;
+    vector<LV> v;
+    vector<int> v_m_idx;
+    vector<LV> q;
+    vector<int> q_m_idx;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        int mother_idx = genPart_mother_idx[i];
+        LV p4 = genPart_p4[i];
+
+        // The W bosons (status 22)
+        if (status == 22 && abs(pdgId) == 24)
+        {
+            w.push_back(p4);
+            w_m_id.push_back(motherId);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        // W decays
+        else if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && ((status == 23 || status == 1) || (abs(pdgId) == 15 && status == 2)) && abs(motherId) == 24)
+        {
+            l.push_back(p4);
+            l_id.push_back(pdgId);
+            l_m_idx.push_back(mother_idx);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && ((status == 23 || status == 1) || (abs(pdgId) == 16 && status == 2)) && abs(motherId) == 24)
+        {
+            v.push_back(p4);
+            v_m_idx.push_back(mother_idx);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        else if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && (status == 23 || status == 1) && abs(motherId) == 24)
+        {
+            q.push_back(p4);
+            q_m_idx.push_back(mother_idx);
+            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+    }
+
+    std::cout <<  " w.size(): " << w.size() <<  std::endl;
+    std::cout <<  " q.size(): " << q.size() <<  std::endl;
+    std::cout <<  " l.size(): " << l.size() <<  std::endl;
+    std::cout <<  " v.size(): " << v.size() <<  std::endl;
+
+    std::cout.clear();
+
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        int mother_idx = genPart_mother_idx[i];
+        LV p4 = genPart_p4[i];
+
+        std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+    }
+
+    if (isWHSUSY() && w.size() != 3)
+        return false;
+
+//    // Sanity check
+//    if (w.size() != 3)
+//    {
+//        std::cout << "Found different from 3 w = " << w.size() << std::endl;
+//    }
+
+//    // Sanity check
+//    if (w.size() != 3)
+//    {
+//        std::cout << "Found different from 3 w = " << w.size() << std::endl;
+//        for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+//        {
+//            int pdgId = genPart_pdgId[i];
+//            int status = genPart_status[i];
+//            int motherId = genPart_motherId[i];
+//            int grandmaId = genPart_grandmaId[i];
+//            int mother_idx = genPart_mother_idx[i];
+//            LV p4 = genPart_p4[i];
+//            //if (abs(pdgId) == 24)
+//            //    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//        }
+//
+//        bool isHtoWW = false;
+//        bool isZthere = false;
+//        for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+//        {
+//            if (abs(genPart_pdgId[i]) == 23) isZthere = true;
+//            if (abs(genPart_pdgId[i]) == 24 && genPart_status[i] == 22 && abs(genPart_motherId[i]) == 25) isHtoWW = true;
+//            if (isHtoWW && isZthere) break;
+//        }
+//        std::cout <<  " isHtoWW: " << isHtoWW <<  " isZthere: " << isZthere <<  std::endl;
+//
+//    }
+
+    // Set has_tau
+    bool has_tau = false;
+    for (unsigned i = 0; i < l_id.size(); ++i) if (abs(l_id[i]) == 15) has_tau = true;
+    tx->setBranch<int>("has_tau", has_tau);
+
+    // Set www_channel
+    if      (l_id.size() == 2 && l_id[0] * l_id[1] > 0) tx->setBranch<int>("www_channel", 2);
+    else if (l_id.size() == 2 && l_id[0] * l_id[1] < 0) tx->setBranch<int>("www_channel", 4);
+    else if (l_id.size() == 3) tx->setBranch<int>("www_channel", 3);
+    else if (l_id.size() == 1) tx->setBranch<int>("www_channel", 1);
+    else if (l_id.size() == 0) tx->setBranch<int>("www_channel", 0);
+    else FATALERROR(__FUNCTION__);
+
+    // Set w boson variables
+    for (unsigned i = 0; i < w.size(); ++i)
+    {
+        tx->pushbackToBranch<LV>("w_p4", w[i]);
+        tx->pushbackToBranch<int>("w_isH", abs(w_m_id[i]) == 25);
+        tx->pushbackToBranch<int>("w_isstar", w[i].mass() < 65.);
+    }
+
+    // Set leptons
+    for (unsigned i = 0; i < l.size(); ++i)
+    {
+        tx->pushbackToBranch<LV>("l_p4", l[i]);
+        tx->pushbackToBranch<float>("l_w_pt", genPart_p4[l_m_idx[i]].pt());
+        tx->pushbackToBranch<float>("l_w_eta", genPart_p4[l_m_idx[i]].eta());
+        tx->pushbackToBranch<float>("l_w_phi", genPart_p4[l_m_idx[i]].phi());
+        tx->pushbackToBranch<int>("l_w_id", genPart_pdgId[l_m_idx[i]]);
+        tx->pushbackToBranch<int>("l_isH", abs(genPart_motherId[l_m_idx[i]]) == 25);
+        tx->pushbackToBranch<int>("l_isstar", genPart_p4[l_m_idx[i]].mass() < 65.);
+        tx->pushbackToBranch<int>("l_istau", abs(l_id[i]) == 15);
+    }
+
+    // Set quarks
+    for (unsigned i = 0; i < q.size(); ++i)
+    {
+        tx->pushbackToBranch<LV>("q_p4", q[i]);
+        tx->pushbackToBranch<float>("q_w_pt", genPart_p4[q_m_idx[i]].pt());
+        tx->pushbackToBranch<float>("q_w_eta", genPart_p4[q_m_idx[i]].eta());
+        tx->pushbackToBranch<float>("q_w_phi", genPart_p4[q_m_idx[i]].phi());
+        tx->pushbackToBranch<int>("q_w_id", genPart_pdgId[q_m_idx[i]]);
+        tx->pushbackToBranch<int>("q_isH", abs(genPart_motherId[q_m_idx[i]]) == 25);
+        tx->pushbackToBranch<int>("q_isstar", genPart_p4[q_m_idx[i]].mass() < 65.);
+    }
+
+    tx->sortVecBranchesByPt("w_p4", {}, {"w_isH", "w_isstar"}, {});
+    tx->sortVecBranchesByPt("l_p4", {"l_w_pt", "l_w_eta", "l_w_phi"}, {"l_isH", "l_isstar", "l_istau"}, {});
+    tx->sortVecBranchesByPt("q_p4", {"q_w_pt", "q_w_eta", "q_w_phi"}, {"q_isH", "q_isstar"}, {});
+
+    if (l.size() == 2)
+    {
+        tx->setBranch<float>("dRllSS", ROOT::Math::VectorUtil::DeltaR(l[0], l[1]));
+    }
+    if (q.size() == 2)
+    {
+        tx->setBranch<float>("dRqqSS", ROOT::Math::VectorUtil::DeltaR(q[0], q[1]));
+    }
+
+    if (l.size() == 3 && isWHWWW())
+    {
+        LV lep0;
+        LV lep1;
+        for (unsigned i = 0; i < l.size(); ++i)
+        {
+            if (abs(genPart_motherId[l_m_idx[i]]) == 25)
+            {
+                if (lep0.pt() == 0)
+                {
+                    lep0 = l[i];
+                }
+                else
+                {
+                    lep1 = l[i];
+                }
+            }
+        }
+
+        LV neu0;
+        LV neu1;
+        for (unsigned i = 0; i < v.size(); ++i)
+        {
+            if (abs(genPart_motherId[v_m_idx[i]]) == 25)
+            {
+                if (neu0.pt() == 0)
+                {
+                    neu0 = l[i];
+                }
+                else
+                {
+                    neu1 = l[i];
+                }
+            }
+        }
+
+        tx->setBranch<float>("Mll_higgs", (lep0 + lep1).mass());
+        tx->setBranch<float>("DPhill_higgs", abs(ROOT::Math::VectorUtil::DeltaPhi(lep0, lep1)));
+        tx->setBranch<float>("MT_higgs", mT(lep0 + lep1, neu0 + neu1));
+    }
+
+
+//    tx->pushbackToBranch<LV>("v_p4");
+//    tx->pushbackToBranch<LV>("v_w_p4");
+//    tx->pushbackToBranch<int>("v_isstar");
+//    tx->pushbackToBranch<int>("v_isH");
+//
+//    tx->pushbackToBranch<LV>("q_p4");
+//    tx->pushbackToBranch<LV>("q_w_p4");
+//    tx->pushbackToBranch<int>("q_isstar");
+//    tx->pushbackToBranch<int>("q_isH");
+
+//    tx->setBranch<LV>("w0_p4", w[0]);
+//    tx->setBranch<LV>("w1_p4", w[1]);
+//    tx->setBranch<LV>("w2_p4", w[2]);
+//    tx->setBranch<int>("w0_islep");
+//    tx->setBranch<int>("w1_islep");
+//    tx->setBranch<int>("w2_islep");
+//    tx->setBranch<int>("w0_isstar");
+//    tx->setBranch<int>("w1_isstar");
+//    tx->setBranch<int>("w2_isstar");
+//    tx->setBranch<int>("w0_isH");
+//    tx->setBranch<int>("w1_isH");
+//    tx->setBranch<int>("w2_isH");
+//    tx->setBranch<LV>("l0_p4");
+//    tx->setBranch<LV>("l1_p4");
+//    tx->setBranch<LV>("l2_p4");
+//    tx->setBranch<LV>("v0_p4");
+//    tx->setBranch<LV>("v1_p4");
+//    tx->setBranch<LV>("v2_p4");
+//    tx->setBranch<LV>("q0_p4");
+//    tx->setBranch<LV>("q1_p4");
+//    tx->setBranch<LV>("q2_p4");
+//    tx->setBranch<LV>("q3_p4");
+//    tx->setBranch<LV>("q4_p4");
+//    tx->setBranch<LV>("q5_p4");
+//    tx->setBranch<int>("l0_windex");
+//    tx->setBranch<int>("l1_windex");
+//    tx->setBranch<int>("l2_windex");
+//    tx->setBranch<int>("v0_windex");
+//    tx->setBranch<int>("v1_windex");
+//    tx->setBranch<int>("v2_windex");
+//    tx->setBranch<int>("q0_windex");
+//    tx->setBranch<int>("q1_windex");
+//    tx->setBranch<int>("q2_windex");
+//    tx->setBranch<int>("q3_windex");
+//    tx->setBranch<int>("q4_windex");
+//    tx->setBranch<int>("q5_windex");
+//    tx->setBranch<LV>("l0_w_p4");
+//    tx->setBranch<LV>("l1_w_p4");
+//    tx->setBranch<LV>("l2_w_p4");
+//    tx->setBranch<LV>("v0_w_p4");
+//    tx->setBranch<LV>("v1_w_p4");
+//    tx->setBranch<LV>("v2_w_p4");
+//    tx->setBranch<LV>("q0_w_p4");
+//    tx->setBranch<LV>("q1_w_p4");
+//    tx->setBranch<LV>("q2_w_p4");
+//    tx->setBranch<LV>("q3_w_p4");
+//    tx->setBranch<LV>("q4_w_p4");
+//    tx->setBranch<LV>("q5_w_p4");
+//    tx->setBranch<int>("l0_isstar");
+//    tx->setBranch<int>("l1_isstar");
+//    tx->setBranch<int>("l2_isstar");
+//    tx->setBranch<int>("v0_isstar");
+//    tx->setBranch<int>("v1_isstar");
+//    tx->setBranch<int>("v2_isstar");
+//    tx->setBranch<int>("q0_isstar");
+//    tx->setBranch<int>("q1_isstar");
+//    tx->setBranch<int>("q2_isstar");
+//    tx->setBranch<int>("q3_isstar");
+//    tx->setBranch<int>("q4_isstar");
+//    tx->setBranch<int>("q5_isstar");
+//    tx->setBranch<int>("l0_isH");
+//    tx->setBranch<int>("l1_isH");
+//    tx->setBranch<int>("l2_isH");
+//    tx->setBranch<int>("v0_isH");
+//    tx->setBranch<int>("v1_isH");
+//    tx->setBranch<int>("v2_isH");
+//    tx->setBranch<int>("q0_isH");
+//    tx->setBranch<int>("q1_isH");
+//    tx->setBranch<int>("q2_isH");
+//    tx->setBranch<int>("q3_isH");
+//    tx->setBranch<int>("q4_isH");
+//    tx->setBranch<int>("q5_isH");
+//    tx->setBranch<int>("l0_istau");
+//    tx->setBranch<int>("l1_istau");
+//    tx->setBranch<int>("l2_istau");
+
+}
+
+//##############################################################################################################
 void babyMaker_v2::setWHSMSMassAndWeights()
 {
     using namespace tas;
@@ -2750,10 +3123,18 @@ void babyMaker_v2::setWHSMSMassAndWeights()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
-        if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
-        if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
-        if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+    if (filename.find("whsusy-2l") == string::npos)
+    {
+        for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
+            if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
+            if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
+            if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+        }
+    }
+    else
+    {
+        mass_chargino = 200;
+        mass_lsp = 50;
     }
     tx->clear();
     tx->setBranch<float>("chimass", mass_chargino);
@@ -2806,10 +3187,18 @@ void babyMaker_v2::setWHSMSMass()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
-        if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
-        if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
-        if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+    if (filename.find("whsusy-2l") == string::npos)
+    {
+        for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
+            if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
+            if (sparm_names().at(nsparm).Contains("mLSP")) mass_lsp = sparm_values().at(nsparm);
+            if (sparm_names().at(nsparm).Contains("mGl")) mass_gluino = sparm_values().at(nsparm);
+        }
+    }
+    else
+    {
+        mass_chargino = 200;
+        mass_lsp = 50;
     }
     tx->clear();
     tx->setBranch<float>("chimass", mass_chargino);
@@ -3098,8 +3487,12 @@ void babyMaker_v2::setFilename(TString fname)
         filename = "hpmpm_hww";
     if (fname.Contains("WprimeToWH"))
         filename = "wprime";
-    if (fname.Contains("SMS-TChiWH_WToLNu_HToVVTauTau"))
+    if (fname.Contains("TChiHH"))
         filename = "whsusy";
+    if (fname.Contains("TChiWH"))
+        filename = "whsusy";
+    if (fname.Contains("TChiWH_HToVVTauTau_HToBB")) // The dataset name is a misnomer. it's actually WH->W(VVtautau)->2lep filter
+        filename = "whsusy-2l";
 
     // 2017
     if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))

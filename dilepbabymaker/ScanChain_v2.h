@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <mutex>
+#include <algorithm>
 
 // ROOT
 #include "TChain.h"
@@ -240,6 +241,16 @@ public:
 
     void FATALERROR(const char* funcname="");
 
+    // Truth level studies
+
+    // WWW signal sample
+    bool isSMWWW() { return filename.find("www_2l") != string::npos; }
+    bool isVH()    { return filename.find("vh_nonbb") != string::npos; }
+    bool isWHWWW() { return splitVH(); }
+    bool isWWW() { return isSMWWW() || isWHWWW(); }
+    void AddWWWOutput();
+    bool studyWWW();
+
     // Doubly Charged Higgs process related
     bool isDoublyChargedHiggs() { return filename.find("hpmpm_hww") != string::npos; }
     void AddDoublyChargedHiggsOutput();
@@ -251,11 +262,14 @@ public:
     bool studyWprime();
 
     // WH susy process related
+    bool isSMSFastSim() { return filename.find("whsusy") != string::npos; }
     bool isWHSUSY() { return filename.find("whsusy") != string::npos; }
     void AddWHsusyOutput();
     void setWHSMSMassAndWeights();
     void setWHSMSMass();
     bool filterWHMass(float, float);
+
+    static void sortVecP4(std::vector<LV>& p4s);
 
 };
 

@@ -106,6 +106,7 @@ samples = [
 "/PrivateWWW/wwwext-cms4-Private80X-v1/MINIAODSIM" ,
 
 "/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM",
+"/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2/MINIAODSIM",
 
 "/DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM",
 "/DoublyChargedHiggsGMmodel_HWW_M300_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM",
@@ -291,6 +292,7 @@ samples_short_name = {
 "/PrivateWWW/www-cms4-Private80X-v1/MINIAODSIM"                                                                                                                                 : "www_2l_mia",
 "/PrivateWWW/wwwext-cms4-Private80X-v1/MINIAODSIM"                                                                                                                              : "www_2l_ext1_mia",
 "/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM"             : "whsusy_fullscan",
+"/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2/MINIAODSIM"    : "hhsusy_fullscan",
 
 # Data
 "/DoubleEG/Run2016B-03Feb2017_ver2-v2/CMS3"                                                                                                                                     : "data_Run2016B_03feb2017rereco_unmerged_ee_v2",
@@ -644,6 +646,7 @@ dslocscms4 = {
 "/PrivateWWW/www-cms4-Private80X-v1/MINIAODSIM"                                                                                                                                 : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/PrivateWWW_www-cms4-Private80X-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
 "/PrivateWWW/wwwext-cms4-Private80X-v1/MINIAODSIM"                                                                                                                              : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/PrivateWWW_wwwext-cms4-Private80X-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
 "/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM"             : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
+"/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2/MINIAODSIM"    : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
 
 "/DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM"  : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
 "/DoublyChargedHiggsGMmodel_HWW_M300_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM"  : "/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/DoublyChargedHiggsGMmodel_HWW_M300_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2_MINIAODSIM_CMS4_V00-00-02_2017Sep27/",
