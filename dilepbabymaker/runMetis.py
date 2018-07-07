@@ -37,6 +37,7 @@ job_tag = "WWW_v1.0.29" # There was a bug that got created due to veto leptons b
 
 job_tag = "WWW_v1.2.1" # CMS4 2016 data for comparison
 job_tag = "WWW_v1.2.2" # Fat jet included!
+job_tag = "WWW_v1.2.3" # Truth level information of the WWW samples
 
 ###################################################################################################################
 ###################################################################################################################
@@ -106,7 +107,7 @@ samples = [
 "/PrivateWWW/wwwext-cms4-Private80X-v1/MINIAODSIM" ,
 
 "/SMS-TChiWH_WToLNu_HToVVTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM",
-"/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2/MINIAODSIM",
+#"/SMS-TChiHH_HToWWZZTauTau_HToWWZZTauTau_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16MiniAODv2-PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v2/MINIAODSIM",
 
 "/DoublyChargedHiggsGMmodel_HWW_M200_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM",
 "/DoublyChargedHiggsGMmodel_HWW_M300_13TeV-madgraph/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM",
@@ -810,7 +811,6 @@ metis_dashboard_path = os.path.join(metis_path, "dashboard")
 exec_path = os.path.join(main_dir, "metis.sh")
 merge_exec_path = os.path.join(main_dir, "merge.sh")
 hadoop_path = "metis/wwwbaby/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
-#hadoop_path = "metis/wwwbaby" # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
 args = ""
 
 doCMS4 = False
@@ -830,21 +830,6 @@ while True:
 
     #for sample in sorted(samples):
     for sample in samples:
-
-#        # Use DIS to parse hadoop path from MINIAOD sample name
-#        loc = ""
-#        result = dis_client.query(q=sample, typ="snt")
-#        status = result["response"]["status"]
-#        if status == "success":
-#            payloads = result["response"]["payload"]
-#            for payload in payloads:
-#                #print payload
-#                if not doCMS4:
-#                    if payload["cms3tag"].find("CMS4") != -1: continue
-#                    loc = payload["location"]
-#                else:
-#                    if payload["cms3tag"].find("CMS3") != -1: continue
-#                    loc = payload["location"]
 
         loc = dslocs[sample]
 
