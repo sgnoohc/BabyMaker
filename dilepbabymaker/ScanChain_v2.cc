@@ -290,6 +290,10 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("Mjj_up");
     tx->createBranch<float>("Mjj_dn");
 
+    tx->createBranch<float>("MjjDR1");
+    tx->createBranch<float>("MjjDR1_up");
+    tx->createBranch<float>("MjjDR1_dn");
+
     tx->createBranch<float>("MjjVBF");
     tx->createBranch<float>("MjjVBF_up");
     tx->createBranch<float>("MjjVBF_dn");
@@ -1760,6 +1764,7 @@ void babyMaker_v2::FillJetVariables(int variation)
     TString DetajjL_bn   = variation == 0 ? "DetajjL"    : variation == 1 ? "DetajjL_up"    : "DetajjL_dn";
     TString MjjVBF_bn    = variation == 0 ? "MjjVBF"     : variation == 1 ? "MjjVBF_up"     : "MjjVBF_dn";
     TString DetajjVBF_bn = variation == 0 ? "DetajjVBF"  : variation == 1 ? "DetajjVBF_up"  : "DetajjVBF_dn";
+    TString MjjDR1_bn    = variation == 0 ? "MjjDR1"     : variation == 1 ? "MjjDR1_up"     : "MjjDR1_dn";
 
     int nj = 0;
     int nj30 = 0;
@@ -1768,8 +1773,10 @@ void babyMaker_v2::FillJetVariables(int variation)
     float MjjL = -999;
     float DetajjL = -999;
     float MjjVBF = -999;
+    float MjjDR1 = -999;
     float DetajjVBF = -999;
     float tmpDR = 9999;
+    float tmpDR_DR1 = 9999;
     for (unsigned int i = 0; i < tx->getBranch<vector<float>>(jets_csv).size(); ++i)
     {
         const LV& p4 = tx->getBranch<vector<LV>>(jets_p4)[i];
@@ -1810,6 +1817,13 @@ void babyMaker_v2::FillJetVariables(int variation)
                     Mjj = (p4 + p4_2).M();
                 }
 
+                // Choose the jets with angle closest to dR = 1
+                if (abs(this_dR - 1) < abs(tmpDR_DR1 - 1))
+                {
+                    tmpDR_DR1 = this_dR;
+                    MjjDR1 = (p4 + p4_2).M();
+                }
+
                 // If they were not set then set (this makes it choose two leading ones)
                 if (MjjL < 0)
                 {
@@ -1837,6 +1851,7 @@ void babyMaker_v2::FillJetVariables(int variation)
     tx->setBranch<float>(MjjL_bn, MjjL);
     tx->setBranch<float>(DetajjL_bn, DetajjL);
     tx->setBranch<float>(MjjVBF_bn, MjjVBF);
+    tx->setBranch<float>(MjjDR1_bn, MjjDR1);
     tx->setBranch<float>(DetajjVBF_bn, DetajjVBF);
 }
 
