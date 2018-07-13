@@ -290,9 +290,33 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("Mjj_up");
     tx->createBranch<float>("Mjj_dn");
 
+    tx->createBranch<float>("DRjj");
+    tx->createBranch<float>("DRjj_up");
+    tx->createBranch<float>("DRjj_dn");
+
+    tx->createBranch<LV>("jet0_wtag_p4");
+    tx->createBranch<LV>("jet0_wtag_p4_up");
+    tx->createBranch<LV>("jet0_wtag_p4_dn");
+
+    tx->createBranch<LV>("jet1_wtag_p4");
+    tx->createBranch<LV>("jet1_wtag_p4_up");
+    tx->createBranch<LV>("jet1_wtag_p4_dn");
+
     tx->createBranch<float>("MjjDR1");
     tx->createBranch<float>("MjjDR1_up");
     tx->createBranch<float>("MjjDR1_dn");
+
+    tx->createBranch<float>("DRjjDR1");
+    tx->createBranch<float>("DRjjDR1_up");
+    tx->createBranch<float>("DRjjDR1_dn");
+
+    tx->createBranch<LV>("jet0_wtag_p4_DR1");
+    tx->createBranch<LV>("jet0_wtag_p4_DR1_up");
+    tx->createBranch<LV>("jet0_wtag_p4_DR1_dn");
+
+    tx->createBranch<LV>("jet1_wtag_p4_DR1");
+    tx->createBranch<LV>("jet1_wtag_p4_DR1_up");
+    tx->createBranch<LV>("jet1_wtag_p4_DR1_dn");
 
     tx->createBranch<float>("MjjVBF");
     tx->createBranch<float>("MjjVBF_up");
@@ -464,6 +488,7 @@ void babyMaker_v2::AddWWWOutput()
     tx->createBranch<vector<float>>("l_w_pt");
     tx->createBranch<vector<float>>("l_w_eta");
     tx->createBranch<vector<float>>("l_w_phi");
+    tx->createBranch<vector<float>>("l_w_mass");
     tx->createBranch<vector<int>>("l_w_id");
     tx->createBranch<vector<int>>("l_isstar");
     tx->createBranch<vector<int>>("l_isH");
@@ -473,6 +498,7 @@ void babyMaker_v2::AddWWWOutput()
     tx->createBranch<vector<float>>("q_w_pt");
     tx->createBranch<vector<float>>("q_w_eta");
     tx->createBranch<vector<float>>("q_w_phi");
+    tx->createBranch<vector<float>>("q_w_mass");
     tx->createBranch<vector<int>>("q_w_id");
     tx->createBranch<vector<int>>("q_isstar");
     tx->createBranch<vector<int>>("q_isH");
@@ -1765,6 +1791,12 @@ void babyMaker_v2::FillJetVariables(int variation)
     TString MjjVBF_bn    = variation == 0 ? "MjjVBF"     : variation == 1 ? "MjjVBF_up"     : "MjjVBF_dn";
     TString DetajjVBF_bn = variation == 0 ? "DetajjVBF"  : variation == 1 ? "DetajjVBF_up"  : "DetajjVBF_dn";
     TString MjjDR1_bn    = variation == 0 ? "MjjDR1"     : variation == 1 ? "MjjDR1_up"     : "MjjDR1_dn";
+    TString DRjj_bn      = variation == 0 ? "DRjj"       : variation == 1 ? "DRjj_up"       : "DRjj_dn";
+    TString DRjjDR1_bn   = variation == 0 ? "DRjjDR1"    : variation == 1 ? "DRjjDR1_up"    : "DRjjDR1_dn";
+    TString j0_p4_bn     = variation == 0 ? "jet0_wtag_p4"      : variation == 1 ? "jet0_wtag_p4_up"      : "jet0_wtag_p4_dn";
+    TString j1_p4_bn     = variation == 0 ? "jet1_wtag_p4"      : variation == 1 ? "jet1_wtag_p4_up"      : "jet1_wtag_p4_dn";
+    TString j0_p4_DR1_bn = variation == 0 ? "jet0_wtag_p4_DR1"  : variation == 1 ? "jet0_wtag_p4_DR1_up"  : "jet0_wtag_p4_DR1_dn";
+    TString j1_p4_DR1_bn = variation == 0 ? "jet1_wtag_p4_DR1"  : variation == 1 ? "jet1_wtag_p4_DR1_up"  : "jet1_wtag_p4_DR1_dn";
 
     int nj = 0;
     int nj30 = 0;
@@ -1777,6 +1809,12 @@ void babyMaker_v2::FillJetVariables(int variation)
     float DetajjVBF = -999;
     float tmpDR = 9999;
     float tmpDR_DR1 = 9999;
+    float DRjj = -999;
+    float DRjjDR1 = -999;
+    LV j0_p4;
+    LV j1_p4;
+    LV j0_p4_DR1;
+    LV j1_p4_DR1;
     for (unsigned int i = 0; i < tx->getBranch<vector<float>>(jets_csv).size(); ++i)
     {
         const LV& p4 = tx->getBranch<vector<LV>>(jets_p4)[i];
@@ -1815,13 +1853,19 @@ void babyMaker_v2::FillJetVariables(int variation)
                 {
                     tmpDR = this_dR;
                     Mjj = (p4 + p4_2).M();
+                    DRjj = tmpDR;
+                    j0_p4 = p4.pt() > p4_2.pt() ? p4 : p4_2;
+                    j1_p4 = p4.pt() > p4_2.pt() ? p4_2 : p4;
                 }
 
                 // Choose the jets with angle closest to dR = 1
-                if (abs(this_dR - 1) < abs(tmpDR_DR1 - 1))
+                if (abs(this_dR - 1.) < abs(tmpDR_DR1 - 1.))
                 {
                     tmpDR_DR1 = this_dR;
                     MjjDR1 = (p4 + p4_2).M();
+                    DRjjDR1 = tmpDR_DR1;
+                    j0_p4_DR1 = p4.pt() > p4_2.pt() ? p4 : p4_2;
+                    j1_p4_DR1 = p4.pt() > p4_2.pt() ? p4_2 : p4;
                 }
 
                 // If they were not set then set (this makes it choose two leading ones)
@@ -1853,6 +1897,12 @@ void babyMaker_v2::FillJetVariables(int variation)
     tx->setBranch<float>(MjjVBF_bn, MjjVBF);
     tx->setBranch<float>(MjjDR1_bn, MjjDR1);
     tx->setBranch<float>(DetajjVBF_bn, DetajjVBF);
+    tx->setBranch<float>(DRjj_bn, DRjj);
+    tx->setBranch<float>(DRjjDR1_bn, DRjjDR1);
+    tx->setBranch<LV>(j0_p4_bn, j0_p4);
+    tx->setBranch<LV>(j1_p4_bn, j1_p4);
+    tx->setBranch<LV>(j0_p4_DR1_bn, j0_p4_DR1);
+    tx->setBranch<LV>(j1_p4_DR1_bn, j1_p4_DR1);
 }
 
 //##############################################################################################################
@@ -2891,18 +2941,6 @@ bool babyMaker_v2::studyWWW()
 
     std::cout.clear();
 
-    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
-    {
-        int pdgId = genPart_pdgId[i];
-        int status = genPart_status[i];
-        int motherId = genPart_motherId[i];
-        int grandmaId = genPart_grandmaId[i];
-        int mother_idx = genPart_mother_idx[i];
-        LV p4 = genPart_p4[i];
-
-        std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-    }
-
     if (isWHSUSY() && w.size() != 3)
         return false;
 
@@ -2969,6 +3007,7 @@ bool babyMaker_v2::studyWWW()
         tx->pushbackToBranch<float>("l_w_pt", genPart_p4[l_m_idx[i]].pt());
         tx->pushbackToBranch<float>("l_w_eta", genPart_p4[l_m_idx[i]].eta());
         tx->pushbackToBranch<float>("l_w_phi", genPart_p4[l_m_idx[i]].phi());
+        tx->pushbackToBranch<float>("l_w_mass", genPart_p4[l_m_idx[i]].mass());
         tx->pushbackToBranch<int>("l_w_id", genPart_pdgId[l_m_idx[i]]);
         tx->pushbackToBranch<int>("l_isH", abs(genPart_motherId[l_m_idx[i]]) == 25);
         tx->pushbackToBranch<int>("l_isstar", genPart_p4[l_m_idx[i]].mass() < 65.);
@@ -2982,14 +3021,15 @@ bool babyMaker_v2::studyWWW()
         tx->pushbackToBranch<float>("q_w_pt", genPart_p4[q_m_idx[i]].pt());
         tx->pushbackToBranch<float>("q_w_eta", genPart_p4[q_m_idx[i]].eta());
         tx->pushbackToBranch<float>("q_w_phi", genPart_p4[q_m_idx[i]].phi());
+        tx->pushbackToBranch<float>("q_w_mass", genPart_p4[q_m_idx[i]].mass());
         tx->pushbackToBranch<int>("q_w_id", genPart_pdgId[q_m_idx[i]]);
         tx->pushbackToBranch<int>("q_isH", abs(genPart_motherId[q_m_idx[i]]) == 25);
         tx->pushbackToBranch<int>("q_isstar", genPart_p4[q_m_idx[i]].mass() < 65.);
     }
 
     tx->sortVecBranchesByPt("w_p4", {}, {"w_isH", "w_isstar"}, {});
-    tx->sortVecBranchesByPt("l_p4", {"l_w_pt", "l_w_eta", "l_w_phi"}, {"l_isH", "l_isstar", "l_istau"}, {});
-    tx->sortVecBranchesByPt("q_p4", {"q_w_pt", "q_w_eta", "q_w_phi"}, {"q_isH", "q_isstar"}, {});
+    tx->sortVecBranchesByPt("l_p4", {"l_w_pt", "l_w_eta", "l_w_phi", "l_w_mass"}, {"l_isH", "l_isstar", "l_istau"}, {});
+    tx->sortVecBranchesByPt("q_p4", {"q_w_pt", "q_w_eta", "q_w_phi", "q_w_mass"}, {"q_isH", "q_isstar"}, {});
 
     if (l.size() == 2)
     {

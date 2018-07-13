@@ -251,6 +251,7 @@ samples = [
 "/PrivateWWW/www-cms4-Private80X-v1/MINIAODSIM",
 "/PrivateWWW/wwwext-cms4-Private80X-v1/MINIAODSIM",
 "/VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM",
+"/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM" ,
 ]
 
 samples_short_name = {

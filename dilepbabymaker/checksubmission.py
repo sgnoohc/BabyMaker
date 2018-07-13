@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, 'ProjectMetis/scripts')
 import dis_client
 
-version = "v1.2.2"
+version = "v1.2.3"
 
 logfiles = glob.glob("ProjectMetis/tasks/*{}/logs/std_logs/*.out".format(version))
 
