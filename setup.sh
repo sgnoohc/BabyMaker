@@ -5,12 +5,12 @@
 #=====================================
 
 # Setup CORE
-echo "Grabbing Dependancies..."
-git clone git@github.com:sgnoohc/CORE.git
-cd CORE/
+#echo "Grabbing Dependancies..."
+#git clone git@github.com:sgnoohc/CORE.git
+#cd CORE/
 #git checkout origin/2017
-git apply /home/users/phchang/public_html/MetSelections_CMS3Compatible.patch
-cd ..
+#git apply /home/users/phchang/public_html/MetSelections_CMS3Compatible.patch
+#cd ..
 
 # Git checkout submodules
 echo "git checkout submodules"

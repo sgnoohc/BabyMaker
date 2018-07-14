@@ -64,6 +64,8 @@
 #include "rooutil/looper.h"
 #include "rooutil/ttreex.h"
 #include "rooutil/printutil.h"
+#include "rooutil/fileutil.h"
+#include "rooutil/calc.h"
 
 // CoreUtil
 #include "coreutil/jec.h"
@@ -79,6 +81,7 @@
 #include "coreutil/met.h"
 #include "coreutil/track.h"
 #include "coreutil/fatjet.h"
+#include "coreutil/sample.h"
 
 #define VVV_TIGHT_SS VVV_cutbased_tight_v4
 #define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
@@ -90,7 +93,6 @@
 
 #define VVV_VETO VVV_cutbased_veto_v4
 #define VVV_VETO_NOISO VVV_cutbased_veto_noiso_v4
-
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
@@ -107,9 +109,19 @@ typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 class babyMaker_v2
 {
 
+public:
+
+    enum BabyMode
+    {
+         kWWWBaby = 0
+        ,kFRBaby  = 1
+        ,kOSBaby  = 2
+        ,kTnPBaby = 3
+        ,kAllBaby = 4
+    };
+
 private:
 
-    SimPa simpa;
     CoreUtil::jec coreJec;
     CoreUtil::grl coreGRL;
     CoreUtil::btag coreBtagSF;
@@ -124,6 +136,7 @@ private:
     CoreUtil::fatjet coreFatJet;
     CoreUtil::met coreMET;
     CoreUtil::track coreTrack;
+    CoreUtil::sample coreSample;
 
     TFile* ofile;
     TTree* t;
@@ -146,11 +159,19 @@ private:
     TH1D* hxsec;
     TFile* fxsec;
 
+    // BabyMode
+    BabyMode babymode;
+
 public:
 
     babyMaker_v2();
     ~babyMaker_v2();
+
+    int ProcessCMS4(TString filepaths, int max_events = -1, int index = 1, bool verbose = false);
+
     void ScanChain_v2(TChain*, int max_events = -1, int index = 1, bool verbose = false);
+
+    void SetBabyMode(BabyMode bm) { babymode = bm; }
 
     void CreateOutput(int index=1);
     void CreateBSMSampleSpecificOutput();
@@ -170,13 +191,28 @@ public:
     void ProcessMET();
     void ProcessTracks();
 
+    bool PassWWWPreselection();
+    bool PassFRPreselection();
+    bool PassOSPreselection();
+    bool PassTnPPreselection();
+
     bool PassPresel();
     bool PassPresel_v1();
     bool PassPresel_v2();
     bool PassPresel_v3();
 
+    void ProcessLeptons();
+    void ProcessNonLeptonObjects();
+
+    void ProcessBaby(BabyMode);
+    void ProcessWWWBaby();
+    void ProcessFRBaby();
+    void ProcessOSBaby();
+    void ProcessTnPBaby();
+
     void FillOutput();
 
+    void FillTruthLevelStudyVariables();
     void FillEventInfo();
     void FillElectrons();
     void FillMuons();
@@ -203,6 +239,9 @@ public:
     static bool isVetoMuonNoIso_OldVersion(int);
     static bool isVetoElectronNoIso_OldVersion(int);
 
+    // Sample handling
+    TString nicename() { return coreSample.nicename(looper.getCurrentFileName()); }
+
     // Fill variables
     void FillJetVariables(int variation);
     void FillLeptonVariables();
@@ -211,6 +250,7 @@ public:
     void FillEventTags();
     void FillWeights();
     void FillGenWeights();
+    void FillGenWeightsNominal();
 
     // Calculator
     static int passCount(const vector<int>& vec);
@@ -222,9 +262,9 @@ public:
     float get2SFOSMll1();
     float calcMTmax(LorentzVector MET, bool compareSSpairs);
     float mT(LV p4, LV met);
+    bool passTrigger();
 
     // Event tagging
-    void setFilename(TString);
     TString process();
     bool splitVH();
     int gentype_v2();
@@ -242,32 +282,37 @@ public:
     void FATALERROR(const char* funcname="");
 
     // Truth level studies
-
     // WWW signal sample
-    bool isSMWWW() { return filename.find("www_2l") != string::npos; }
-    bool isVH()    { return filename.find("vh_nonbb") != string::npos; }
+    bool isSMWWW() { return nicename().BeginsWith("www_2l"); }
+    bool isVH()    { return nicename().BeginsWith("vh_nonbb"); }
     bool isWHWWW() { return splitVH(); }
     bool isWWW() { return isSMWWW() || isWHWWW(); }
     void AddWWWOutput();
     bool studyWWW();
+    bool studyWHWWW();
 
     // Doubly Charged Higgs process related
-    bool isDoublyChargedHiggs() { return filename.find("hpmpm_hww") != string::npos; }
+    bool isDoublyChargedHiggs() { return nicename().BeginsWith("hpmpm_hww"); }
     void AddDoublyChargedHiggsOutput();
     bool studyDoublyChargedHiggs();
 
     // Wprime process related
-    bool isWprime() { return filename.find("wprime") != string::npos; }
+    bool isWprime() { return nicename().BeginsWith("wprime"); }
     void AddWprimeOutput();
-    bool studyWprime();
+    bool studyHiggsDecay();
+    std::tuple<std::vector<LV>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, float, float> getReBoostedDRDEtaDPhi(int ptBoost, const LV& higgs_p4, const vector<LV>& higgsdecay_p4, float ref_deta=-999, float ref_dphi=-999);
+    std::tuple<float, float> FillReBoostedVariables(TString bname, int ptBoost, const LV& higgs_p4, const vector<LV>& decay_p4, const vector<int>& decay_id, const vector<int>& decay_isstar, float ref_deta=-999, float ref_dphi=-999);
+    void FillDecayProductsDRVariables(int pt);
 
     // WH susy process related
-    bool isSMSFastSim() { return filename.find("whsusy") != string::npos; }
-    bool isWHSUSY() { return filename.find("whsusy") != string::npos; }
+    bool isFastSim() { return isWHSUSY(); }
+    bool isSMSFastSim() { return nicename().BeginsWith("whsusy"); }
+    bool isWHSUSY() { return nicename().BeginsWith("whsusy"); }
     void AddWHsusyOutput();
     void setWHSMSMassAndWeights();
     void setWHSMSMass();
     bool filterWHMass(float, float);
+    void FillGenWeightsForWHSUSY();
 
     static void sortVecP4(std::vector<LV>& p4s);
 

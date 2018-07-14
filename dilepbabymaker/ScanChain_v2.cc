@@ -6,13 +6,21 @@
 using namespace std;
 
 //##############################################################################################################
-babyMaker_v2::babyMaker_v2() : coreBtagSFFastSim(true)
+babyMaker_v2::babyMaker_v2() : coreBtagSFFastSim(true), babymode(kWWWBaby)
 {
 }
 
 //##############################################################################################################
 babyMaker_v2::~babyMaker_v2()
 {
+}
+
+//##############################################################################################################
+int babyMaker_v2::ProcessCMS4(TString filepaths, int max_events, int index, bool verbose)
+{
+    TChain* chain = RooUtil::FileUtil::createTChain("Events", filepaths);
+    ScanChain_v2(chain, max_events, index, verbose);
+    return 0;
 }
 
 //##############################################################################################################
@@ -33,46 +41,13 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, int max_events, int index, bool v
             // Similar to "SlaveBegin()" concept in TSelector of ROOT
             SlaveBegin(index);
 
-            // Loop over electrons
-            ProcessElectrons();
+            // Now process the baby ntuples
+            ProcessBaby(babymode);
 
-            // Loop over muons
-            ProcessMuons();
-
-            // For Gen-level weights the total weights need to be saved so must be called before skipping events
-            FillGenWeights();
-
-            // Check preselection
-            if (!PassPresel())
-                continue;
-
-            // Triggers
-            ProcessTriggers();
-
-            // Loop over gen particles
-            ProcessGenParticles();
-
-            // Loop over Jets
-            ProcessJets();
-
-            // Loop over fatJets
-            ProcessFatJets();
-
-            // Process MET (recalculate etc.)
-            ProcessMET();
-
-            // Loop over charged particle candidates
-            ProcessTracks();
-
-            // Truth level variables studies for WWW
-            studyWWW();
-
-            // Fill baby ntuple
-            FillOutput();
         }
         catch (const std::ios_base::failure& e)
         {
-            if (filename.compare(0, 4, "data") == 0)
+            if (nicename().BeginsWith("data"))
             {
                 std::cout << "Found bad event in data" << std::endl;
                 FATALERROR(__FUNCTION__);
@@ -87,7 +62,6 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, int max_events, int index, bool v
     looper.printStatus();
 
     SaveOutput();
-//    t->SetDirectory(0);
 }
 
 //##############################################################################################################
@@ -95,16 +69,17 @@ std::once_flag flag_output;
 std::once_flag flag_bsm_output;
 void babyMaker_v2::SlaveBegin(int index)
 {
-    // Set std::string filename based on the file path of the CMS3/4 baby ntuple
-    // This determines which JEC to load and affects the behavior of the baby maker
-    setFilename(looper.getCurrentFileName());
-    coreJec.setJECFor(looper.getCurrentFileName(), isWHSUSY());
+    // Provide which file it is and whether it is fast sim or not to JEC to determine which file to load
+    coreJec.setJECFor(looper.getCurrentFileName(), isFastSim());
 
     // Output root file
     std::call_once(flag_output, &babyMaker_v2::CreateOutput, this, index);
 
     // BSM samples need some specifics things to be set prior to starting the processing
     std::call_once(flag_bsm_output, &babyMaker_v2::CreateBSMSampleSpecificOutput, this);
+
+    // For Gen-level weights the total weights need to be saved so must be called before skipping events
+    FillGenWeights();
 }
 
 
@@ -142,6 +117,11 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<int>("mc_HLT_SingleIsoEl17");
     tx->createBranch<int>("mc_HLT_SingleIsoMu8");
     tx->createBranch<int>("mc_HLT_SingleIsoMu17");
+
+    tx->createBranch<int>("pass_duplicate_ee_em_mm");
+    tx->createBranch<int>("pass_duplicate_mm_em_ee");
+
+    tx->createBranch<int>("passTrigger");
 
     tx->createBranch<vector<LorentzVector>>("lep_p4");
     tx->createBranch<vector<float>>("lep_pt");
@@ -435,6 +415,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("weight_isr_down");
 
     tx->createBranch<TString>("CMS4path");
+    tx->createBranch<int>("CMS4index");
 
     tx->clear();
 
@@ -461,18 +442,180 @@ void babyMaker_v2::AddDoublyChargedHiggsOutput()
 //##############################################################################################################
 void babyMaker_v2::AddWprimeOutput()
 {
-    tx->createBranch<int>("iswwwchannel");
-    tx->createBranch<LV>("wprime_p4");
-    tx->createBranch<LV>("wa_p4");
-    tx->createBranch<LV>("la_p4");
-    tx->createBranch<LV>("va_p4");
-    tx->createBranch<LV>("h_p4");
-    tx->createBranch<LV>("w0_p4");
-    tx->createBranch<LV>("w1_p4");
-    tx->createBranch<LV>("l_p4");
-    tx->createBranch<LV>("v_p4");
-    tx->createBranch<LV>("j0_p4");
-    tx->createBranch<LV>("j1_p4");
+    tx->createBranch<int>("higgsdecay");
+    tx->createBranch<int>("nlep");
+    tx->createBranch<int>("nquark");
+    tx->createBranch<int>("wa_id");
+    tx->createBranch<LV>("higgs_p4");
+    tx->createBranch<vector<LV>>("decay_p4");
+    tx->createBranch<vector<int>>("decay_id");
+    tx->createBranch<vector<int>>("decay_isstar");
+    tx->createBranch<vector<LV>>("lepton_p4");
+    tx->createBranch<vector<int>>("lepton_id");
+    tx->createBranch<vector<int>>("lepton_isstar");
+    tx->createBranch<vector<LV>>("quark_p4");
+    tx->createBranch<vector<int>>("quark_id");
+    tx->createBranch<vector<int>>("quark_isstar");
+    tx->createBranch<float>("lqq_max_dr");
+    tx->createBranch<float>("lq0_dr");
+    tx->createBranch<float>("lq1_dr");
+    tx->createBranch<float>("qq_dr");
+
+    tx->createBranch<vector<LV>>("boosted0_decay_p4");
+    tx->createBranch<vector<int>>("boosted0_decay_id");
+    tx->createBranch<vector<int>>("boosted0_decay_isstar");
+    tx->createBranch<vector<float>>("boosted0_decay_h_dr");
+    tx->createBranch<vector<float>>("boosted0_decay_h_deta");
+    tx->createBranch<vector<float>>("boosted0_decay_h_dphi");
+    tx->createBranch<vector<float>>("boosted0_decay_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted0_decay_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted0_lepton_p4");
+    tx->createBranch<vector<int>>("boosted0_lepton_id");
+    tx->createBranch<vector<int>>("boosted0_lepton_isstar");
+    tx->createBranch<vector<float>>("boosted0_lepton_h_dr");
+    tx->createBranch<vector<float>>("boosted0_lepton_h_deta");
+    tx->createBranch<vector<float>>("boosted0_lepton_h_dphi");
+    tx->createBranch<vector<float>>("boosted0_lepton_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted0_lepton_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted0_quark_p4");
+    tx->createBranch<vector<int>>("boosted0_quark_id");
+    tx->createBranch<vector<int>>("boosted0_quark_isstar");
+    tx->createBranch<vector<float>>("boosted0_quark_h_dr");
+    tx->createBranch<vector<float>>("boosted0_quark_h_deta");
+    tx->createBranch<vector<float>>("boosted0_quark_h_dphi");
+    tx->createBranch<vector<float>>("boosted0_quark_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted0_quark_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted250_decay_p4");
+    tx->createBranch<vector<int>>("boosted250_decay_id");
+    tx->createBranch<vector<int>>("boosted250_decay_isstar");
+    tx->createBranch<vector<float>>("boosted250_decay_h_dr");
+    tx->createBranch<vector<float>>("boosted250_decay_h_deta");
+    tx->createBranch<vector<float>>("boosted250_decay_h_dphi");
+    tx->createBranch<vector<float>>("boosted250_decay_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted250_decay_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted250_lepton_p4");
+    tx->createBranch<vector<int>>("boosted250_lepton_id");
+    tx->createBranch<vector<int>>("boosted250_lepton_isstar");
+    tx->createBranch<vector<float>>("boosted250_lepton_h_dr");
+    tx->createBranch<vector<float>>("boosted250_lepton_h_deta");
+    tx->createBranch<vector<float>>("boosted250_lepton_h_dphi");
+    tx->createBranch<vector<float>>("boosted250_lepton_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted250_lepton_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted250_quark_p4");
+    tx->createBranch<vector<int>>("boosted250_quark_id");
+    tx->createBranch<vector<int>>("boosted250_quark_isstar");
+    tx->createBranch<vector<float>>("boosted250_quark_h_dr");
+    tx->createBranch<vector<float>>("boosted250_quark_h_deta");
+    tx->createBranch<vector<float>>("boosted250_quark_h_dphi");
+    tx->createBranch<vector<float>>("boosted250_quark_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted250_quark_h_dphi_rotated");
+
+    tx->createBranch<float>("boosted250_lqq_max_dr");
+    tx->createBranch<float>("boosted250_lq0_dr");
+    tx->createBranch<float>("boosted250_lq1_dr");
+    tx->createBranch<float>("boosted250_qq_dr");
+
+    tx->createBranch<vector<LV>>("boosted500_decay_p4");
+    tx->createBranch<vector<int>>("boosted500_decay_id");
+    tx->createBranch<vector<int>>("boosted500_decay_isstar");
+    tx->createBranch<vector<float>>("boosted500_decay_h_dr");
+    tx->createBranch<vector<float>>("boosted500_decay_h_deta");
+    tx->createBranch<vector<float>>("boosted500_decay_h_dphi");
+    tx->createBranch<vector<float>>("boosted500_decay_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted500_decay_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted500_lepton_p4");
+    tx->createBranch<vector<int>>("boosted500_lepton_id");
+    tx->createBranch<vector<int>>("boosted500_lepton_isstar");
+    tx->createBranch<vector<float>>("boosted500_lepton_h_dr");
+    tx->createBranch<vector<float>>("boosted500_lepton_h_deta");
+    tx->createBranch<vector<float>>("boosted500_lepton_h_dphi");
+    tx->createBranch<vector<float>>("boosted500_lepton_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted500_lepton_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted500_quark_p4");
+    tx->createBranch<vector<int>>("boosted500_quark_id");
+    tx->createBranch<vector<int>>("boosted500_quark_isstar");
+    tx->createBranch<vector<float>>("boosted500_quark_h_dr");
+    tx->createBranch<vector<float>>("boosted500_quark_h_deta");
+    tx->createBranch<vector<float>>("boosted500_quark_h_dphi");
+    tx->createBranch<vector<float>>("boosted500_quark_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted500_quark_h_dphi_rotated");
+
+    tx->createBranch<float>("boosted500_lqq_max_dr");
+    tx->createBranch<float>("boosted500_lq0_dr");
+    tx->createBranch<float>("boosted500_lq1_dr");
+    tx->createBranch<float>("boosted500_qq_dr");
+
+    tx->createBranch<vector<LV>>("boosted1000_decay_p4");
+    tx->createBranch<vector<int>>("boosted1000_decay_id");
+    tx->createBranch<vector<int>>("boosted1000_decay_isstar");
+    tx->createBranch<vector<float>>("boosted1000_decay_h_dr");
+    tx->createBranch<vector<float>>("boosted1000_decay_h_deta");
+    tx->createBranch<vector<float>>("boosted1000_decay_h_dphi");
+    tx->createBranch<vector<float>>("boosted1000_decay_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1000_decay_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted1000_lepton_p4");
+    tx->createBranch<vector<int>>("boosted1000_lepton_id");
+    tx->createBranch<vector<int>>("boosted1000_lepton_isstar");
+    tx->createBranch<vector<float>>("boosted1000_lepton_h_dr");
+    tx->createBranch<vector<float>>("boosted1000_lepton_h_deta");
+    tx->createBranch<vector<float>>("boosted1000_lepton_h_dphi");
+    tx->createBranch<vector<float>>("boosted1000_lepton_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1000_lepton_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted1000_quark_p4");
+    tx->createBranch<vector<int>>("boosted1000_quark_id");
+    tx->createBranch<vector<int>>("boosted1000_quark_isstar");
+    tx->createBranch<vector<float>>("boosted1000_quark_h_dr");
+    tx->createBranch<vector<float>>("boosted1000_quark_h_deta");
+    tx->createBranch<vector<float>>("boosted1000_quark_h_dphi");
+    tx->createBranch<vector<float>>("boosted1000_quark_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1000_quark_h_dphi_rotated");
+
+    tx->createBranch<float>("boosted1000_lqq_max_dr");
+    tx->createBranch<float>("boosted1000_lq0_dr");
+    tx->createBranch<float>("boosted1000_lq1_dr");
+    tx->createBranch<float>("boosted1000_qq_dr");
+
+    tx->createBranch<vector<LV>>("boosted1500_decay_p4");
+    tx->createBranch<vector<int>>("boosted1500_decay_id");
+    tx->createBranch<vector<int>>("boosted1500_decay_isstar");
+    tx->createBranch<vector<float>>("boosted1500_decay_h_dr");
+    tx->createBranch<vector<float>>("boosted1500_decay_h_deta");
+    tx->createBranch<vector<float>>("boosted1500_decay_h_dphi");
+    tx->createBranch<vector<float>>("boosted1500_decay_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1500_decay_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted1500_lepton_p4");
+    tx->createBranch<vector<int>>("boosted1500_lepton_id");
+    tx->createBranch<vector<int>>("boosted1500_lepton_isstar");
+    tx->createBranch<vector<float>>("boosted1500_lepton_h_dr");
+    tx->createBranch<vector<float>>("boosted1500_lepton_h_deta");
+    tx->createBranch<vector<float>>("boosted1500_lepton_h_dphi");
+    tx->createBranch<vector<float>>("boosted1500_lepton_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1500_lepton_h_dphi_rotated");
+
+    tx->createBranch<vector<LV>>("boosted1500_quark_p4");
+    tx->createBranch<vector<int>>("boosted1500_quark_id");
+    tx->createBranch<vector<int>>("boosted1500_quark_isstar");
+    tx->createBranch<vector<float>>("boosted1500_quark_h_dr");
+    tx->createBranch<vector<float>>("boosted1500_quark_h_deta");
+    tx->createBranch<vector<float>>("boosted1500_quark_h_dphi");
+    tx->createBranch<vector<float>>("boosted1500_quark_h_deta_rotated");
+    tx->createBranch<vector<float>>("boosted1500_quark_h_dphi_rotated");
+
+    tx->createBranch<float>("boosted1500_lqq_max_dr");
+    tx->createBranch<float>("boosted1500_lq0_dr");
+    tx->createBranch<float>("boosted1500_lq1_dr");
+    tx->createBranch<float>("boosted1500_qq_dr");
+
 }
 
 //##############################################################################################################
@@ -592,7 +735,7 @@ void babyMaker_v2::CreateBSMSampleSpecificOutput()
         AddDoublyChargedHiggsOutput();
     }
 
-    if (isWprime())
+    if (isWprime() || isVH())
     {
         AddWprimeOutput();
     }
@@ -606,6 +749,99 @@ void babyMaker_v2::CreateBSMSampleSpecificOutput()
     {
         AddWWWOutput();
     }
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessBaby(BabyMode babymode)
+{
+    // Process leptons via CoreUtil
+    ProcessLeptons();
+
+    // Based on the baby mode now preselect and if it doesn't pass return
+    switch (babymode)
+    {
+        case kWWWBaby: if (!PassWWWPreselection()) return; break;
+        case kFRBaby:  if (!PassFRPreselection ()) return; break;
+        case kOSBaby:  if (!PassOSPreselection ()) return; break;
+        case kTnPBaby: if (!PassTnPPreselection()) return; break;
+        case kAllBaby: /* no cut is applied accept all */  break;
+        default: return;
+    }
+
+    // Process other non-lepton objects via CoreUtil
+    ProcessNonLeptonObjects();
+
+    // Now process the rest of the stuff
+    switch (babymode)
+    {
+        case kWWWBaby: ProcessWWWBaby(); break;
+        case kFRBaby:  ProcessFRBaby (); break;
+        case kOSBaby:  ProcessOSBaby (); break;
+        case kTnPBaby: ProcessTnPBaby(); break;
+        case kAllBaby: ProcessWWWBaby(); break;
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessLeptons()
+{
+    // Loop over electrons
+    ProcessElectrons();
+
+    // Loop over muons
+    ProcessMuons();
+
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessNonLeptonObjects()
+{
+    // Triggers
+    ProcessTriggers();
+
+    // Loop over gen particles
+    ProcessGenParticles();
+
+    // Loop over Jets
+    ProcessJets();
+
+    // Loop over fatJets
+    ProcessFatJets();
+
+    // Process MET (recalculate etc.)
+    ProcessMET();
+
+    // Loop over charged particle candidates
+    ProcessTracks();
+}
+
+
+//##############################################################################################################
+void babyMaker_v2::ProcessWWWBaby()
+{
+    // Fill baby ntuple
+    FillOutput();
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessFRBaby()
+{
+    // Fill baby ntuple
+    FillOutput();
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessOSBaby()
+{
+    // Fill baby ntuple
+    FillOutput();
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessTnPBaby()
+{
+    // Fill baby ntuple
+    FillOutput();
 }
 
 //##############################################################################################################
@@ -631,6 +867,12 @@ void babyMaker_v2::ProcessMET() { coreMET.process(coreJec); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessTracks() { coreTrack.process(); }
+
+//##############################################################################################################
+bool babyMaker_v2::PassWWWPreselection()
+{
+    return PassPresel();
+}
 
 //##############################################################################################################
 bool babyMaker_v2::PassPresel()
@@ -791,7 +1033,7 @@ bool babyMaker_v2::PassPresel_v2()
     if (nveto == 1)
     {
         // Check if data,
-        bool isdata = filename.compare(0, 4, "data") == 0;
+        bool isdata = nicename().BeginsWith("data");
         if (isdata)
         {
             // If data then check the triggers
@@ -814,13 +1056,13 @@ bool babyMaker_v2::PassPresel_v2()
             // If it reaches this point, then it means that none of the trigger passed
             return false;
         }
-        bool isqcd = filename.compare(0, 4, "qcd_") == 0;
-        bool isttbar = filename.compare(0, 6, "ttbar_") == 0;
-        bool isW = filename.compare(0, 6, "wjets_") == 0;
-        bool isZ = filename.compare(0, 3, "dy_") == 0;
-        bool isWW = filename.compare(0, 3, "ww_") == 0;
-        bool isWZ = filename.compare(0, 3, "wz_") == 0;
-        bool isZZ = filename.compare(0, 3, "zz_") == 0;
+        bool isqcd   = nicename().BeginsWith("qcd_");
+        bool isttbar = nicename().BeginsWith("ttbar_");
+        bool isW     = nicename().BeginsWith("wjets_");
+        bool isZ     = nicename().BeginsWith("dy_");
+        bool isWW    = nicename().BeginsWith("ww_");
+        bool isWZ    = nicename().BeginsWith("wz_");
+        bool isZZ    = nicename().BeginsWith("zz_");
         return isqcd || isttbar || isW || isZ || isWW || isWZ || isZZ;
     }
 
@@ -922,8 +1164,96 @@ bool babyMaker_v2::PassPresel_v3()
 }
 
 //##############################################################################################################
+bool babyMaker_v2::PassFRPreselection()
+{
+    // Select 2 SS lepton events or 3 or more lepton events
+    vector<int> el_idx = coreElectron.index;
+    vector<int> mu_idx = coreMuon.index;
+
+    if (el_idx.size() + mu_idx.size() == 1)
+    {
+        // Check if data,
+        bool isdata = nicename().BeginsWith("data") == 0;
+        if (isdata)
+        {
+            // If data then check the triggers
+            // These triggers are checked in coreutil, but to optimize the code performance I hand check them if data
+            // I don't wish to run coreTrigger.process() for all events
+            if (el_idx.size() == 1)
+            {
+                int HLT_SingleIsoEl17 = passHLTTriggerPattern("HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30_v");
+                if (HLT_SingleIsoEl17 > 0) return true;
+                int HLT_SingleIsoEl8 = passHLTTriggerPattern("HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v");
+                if (HLT_SingleIsoEl8 > 0) return true;
+            }
+            else if (mu_idx.size() == 1)
+            {
+                int HLT_SingleIsoMu17 = passHLTTriggerPattern("HLT_Mu17_TrkIsoVVL_v");
+                if (HLT_SingleIsoMu17 > 0) return true;
+                int HLT_SingleIsoMu8 = passHLTTriggerPattern("HLT_Mu8_TrkIsoVVL_v");
+                if (HLT_SingleIsoMu8 > 0) return true;
+            }
+            // If it reaches this point, then it means that none of the trigger passed
+            return false;
+        }
+        bool isqcd   = nicename().BeginsWith("qcd_");
+        bool isttbar = nicename().BeginsWith("ttbar_");
+        bool isW     = nicename().BeginsWith("wjets_");
+        bool isZ     = nicename().BeginsWith("dy_");
+        bool isWW    = nicename().BeginsWith("ww_");
+        bool isWZ    = nicename().BeginsWith("wz_");
+        bool isZZ    = nicename().BeginsWith("zz_");
+        return isqcd || isttbar || isW || isZ || isWW || isWZ || isZZ;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//##############################################################################################################
+bool babyMaker_v2::PassOSPreselection()
+{
+    // Select 2 SS lepton events or 3 or more lepton events
+    vector<int> el_idx = coreElectron.index;
+    vector<int> mu_idx = coreMuon.index;
+
+    // If 2 veto leptons
+    if (el_idx.size() + mu_idx.size() < 2)
+        return false;
+
+    // The 2 veto leptons of 20 GeV each at the least must pass 3L tight options
+    int ntight = 0;
+    for (auto& iel : coreElectron.index)
+    {
+        if (cms3.els_p4()[iel].pt() > 20. && passElectronSelection_VVV(iel, VVV_TIGHT_3L))
+            ntight++;
+    }
+    for (auto& imu : coreMuon.index)
+    {
+        if (cms3.mus_p4()[imu].pt() > 20. && passMuonSelection_VVV(imu, VVV_TIGHT_3L))
+            ntight++;
+    }
+
+    if (ntight >= 2)
+        return true;
+    else
+        return false;
+}
+
+//##############################################################################################################
+bool babyMaker_v2::PassTnPPreselection()
+{
+    return PassPresel();
+}
+
+//##############################################################################################################
 void babyMaker_v2::FillOutput()
 {
+
+    // Truth level variables studies for WWW
+    FillTruthLevelStudyVariables();
 
     // Fill baby ntuple branches with event information (evt, lumi etc.)
     FillEventInfo();
@@ -955,9 +1285,6 @@ void babyMaker_v2::FillOutput()
     // Fill generatore level particles
     FillGenParticles();
 
-    // Fill trigger bits
-    FillTrigger();
-
     // Fill vertex info
     FillVertexInfo();
 
@@ -967,11 +1294,27 @@ void babyMaker_v2::FillOutput()
     // Fill summary variables
     FillSummaryVariables();
 
+    // Fill trigger bits (This comes after summary variables and leptons
+    FillTrigger();
+
     // Fill Weights
     FillWeights();
 
     // Fill TTree (NOTE: also clears internal variables)
     FillTTree();
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillTruthLevelStudyVariables()
+{
+    // WWW sample truth level study
+    studyWWW();
+
+    // Higgs pt dependent variable study
+    studyHiggsDecay();
+
+    // Study doubly charged higgs sample
+    studyDoublyChargedHiggs();
 }
 
 //##############################################################################################################
@@ -984,6 +1327,7 @@ void babyMaker_v2::FillEventInfo()
     if (cms3.evt_isRealData())
     {
         tx->setBranch<float>("evt_scale1fb", 1);
+        tx->setBranch<float>("xsec_br", 1);
         tx->setBranch<int>("evt_passgoodrunlist", goodrun(cms3.evt_run(), cms3.evt_lumiBlock()));
     }
     else
@@ -997,19 +1341,42 @@ void babyMaker_v2::FillEventInfo()
             scale1fb = 1;
         else
             scale1fb = coreDatasetInfo.getScale1fb();
+
+        float xsec = 1;
+        if (isDoublyChargedHiggs())
+            xsec = 1;
+        else if (isWprime())
+            xsec = 1;
+        else if (isWHSUSY())
+            xsec = 1;
+        else
+            xsec = coreDatasetInfo.getXsec();
+
         // CMS3 www_2l_mia has scale1fb = 1/91900 * 1000. or 1/164800 * 1000.
-        if (filename.find("www_2l_mia")      != string::npos) scale1fb *= 0.051848 * 1.14082 *  91900. / (91900. + 164800.);
-        if (filename.find("www_2l_ext1_mia") != string::npos) scale1fb *= 0.051848 * 1.1402  * 164800. / (91900. + 164800.);
-        //                                                                ^^^^^^^^   ^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^
-        //                                                                sigma*BR   neg-wgt   tot-evt   tot-evt of both sample
-        // sigma(pp -> WWW) = 208 fb (MadGraph5)    
+        // CMS4 WWW samples are set to "nicename() == "www_2l_", so below snippet will be skipped
+        /* deprecated */ //if (nicename().BeginsWith("www_2l_mia_cms3")     ) scale1fb *= 0.053842752 * 1.14082 *  91900. / (91900. + 164800.);
+        /* deprecated */ //if (nicename().BeginsWith("www_2l_ext1_mia_cms3")) scale1fb *= 0.053842752 * 1.1402  * 164800. / (91900. + 164800.);
+        //                                                                                ^^^^^^^^^^^   ^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^
+        //                                                                                 sigma*BR     neg-wgt   tot-evt   tot-evt of both sample
+        // sigma(pp -> WWW) = 216 fb (MadGraph5)
         // BR (W -> e,mu,tau+neutrino) = 0.3258
         // BR (WWW->2l, l=e,mu,tau)) = 3 * (0.3258^2 * (1-0.3258)) + 0.3258^3 = 0.249272
-        // sigma (pp -> WWW) * BR(WWW->2l) = 0.051848
+        // sigma (pp -> WWW) * BR(WWW->2l) = 53.842752
         //
+
+        // 216/208.6 fb as the scale1fb data store is 208.6 in CORE.
+        // But do this only for 2017 production.
+        // This is because the 2016 production did not have this factor applied but rather applied at the looper level.
+        // So for posterity (to produces same results with the tagged code) do not apply this for 2016
+        if (nicename().BeginsWith("www_2l_") && coreSample.is2017(looper.getCurrentFileName()))
+            scale1fb *= 1.035475; 
+
         tx->setBranch<float>("evt_scale1fb", scale1fb);
+        tx->setBranch<float>("xsec_br", xsec);
         tx->setBranch<int>("evt_passgoodrunlist", true);
     }
+    tx->setBranch<TString>("CMS4path", looper.getCurrentFileName());
+    tx->setBranch<int>("CMS4index", looper.getCurrentEventIndex());
 }
 
 //##############################################################################################################
@@ -1364,21 +1731,35 @@ void babyMaker_v2::FillFatJets()
         if (fatjet.pt() > 20)
         {
             tx->pushbackToBranch<LorentzVector>("ak8jets_p4", fatjet);
-            tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_prunedMass", cms3.ak8jets_prunedMass()[idx]);
+            // 2016 CMS4 has a different naming scheme
+            if (coreSample.is2016(looper.getCurrentFileName()))
+            {
+                tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_prunedMass", cms3.ak8jets_prunedMass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_mass", cms3.ak8jets_mass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau1", cms3.ak8jets_puppi_nJettinessTau1()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau2", cms3.ak8jets_puppi_nJettinessTau2()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_eta", cms3.ak8jets_puppi_eta()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_phi", cms3.ak8jets_puppi_phi()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_pt", cms3.ak8jets_puppi_pt()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_puppi_mass", cms3.ak8jets_puppi_mass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1", cms3.ak8jets_softdropPuppiSubjet1()[idx].M());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2", cms3.ak8jets_softdropPuppiSubjet2()[idx].M());
+            }
+            // 2017 uses PUPPI for default and several of these mass variables are not even provided
+            else if (coreSample.is2017(looper.getCurrentFileName()))
+            {
+                tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1", cms3.ak8jets_softdropPuppiSubjet1()[idx].M());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2", cms3.ak8jets_softdropPuppiSubjet2()[idx].M());
+            }
+
+
+            // Some how cannot find the following in CMS4 2016... unfortunate
 //            tx->pushbackToBranch<float>("ak8jets_trimmedMass", cms3.ak8jets_trimmedMass()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]); 
-            tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_mass", cms3.ak8jets_mass()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1", cms3.ak8jets_softdropPuppiSubjet1()[idx].M());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2", cms3.ak8jets_softdropPuppiSubjet2()[idx].M());     
-            tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau1", cms3.ak8jets_puppi_nJettinessTau1()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau2", cms3.ak8jets_puppi_nJettinessTau2()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_eta", cms3.ak8jets_puppi_eta()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_phi", cms3.ak8jets_puppi_phi()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_pt", cms3.ak8jets_puppi_pt()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_puppi_mass", cms3.ak8jets_puppi_mass()[idx]);
         }
     }
 }
@@ -1470,6 +1851,116 @@ void babyMaker_v2::FillTrigger()
         tx->setBranch<int>("mc_HLT_SingleIsoEl17", coreTrigger.HLT_SingleIsoEl17);
         tx->setBranch<int>("mc_HLT_SingleIsoMu8", coreTrigger.HLT_SingleIsoMu8);
         tx->setBranch<int>("mc_HLT_SingleIsoMu17", coreTrigger.HLT_SingleIsoMu17);
+    }
+    if (cms3.evt_isRealData())
+    {
+        bool trig_ee = coreTrigger.HLT_DoubleEl || coreTrigger.HLT_DoubleEl_DZ;
+        bool trig_em = coreTrigger.HLT_MuEG;
+        bool trig_mm = coreTrigger.HLT_DoubleMu;
+        bool is_pd_ee = nicename().BeginsWith("data_ee");
+        bool is_pd_em = nicename().BeginsWith("data_em");
+        bool is_pd_mm = nicename().BeginsWith("data_mm");
+        bool pass_duplicate_ee_em_mm = false;
+        bool pass_duplicate_mm_em_ee = false;
+        if (is_pd_ee)
+        {
+            if (trig_ee)
+                pass_duplicate_ee_em_mm = true;
+            if (!trig_mm && !trig_em && trig_ee)
+                pass_duplicate_mm_em_ee = true;
+        }
+        else if (is_pd_em)
+        {
+            if (!trig_ee && trig_em)
+                pass_duplicate_ee_em_mm = true;
+            if (!trig_mm && trig_em)
+                pass_duplicate_mm_em_ee = true;
+        }
+        else if (is_pd_mm)
+        {
+            if (!trig_ee && !trig_em && trig_mm)
+                pass_duplicate_ee_em_mm = true;
+            if (trig_mm)
+                pass_duplicate_mm_em_ee = true;
+        }
+        tx->setBranch<int>("pass_duplicate_ee_em_mm", pass_duplicate_ee_em_mm);
+        tx->setBranch<int>("pass_duplicate_mm_em_ee", pass_duplicate_mm_em_ee);
+    }
+    else
+    {
+        tx->setBranch<int>("pass_duplicate_ee_em_mm", 1);
+        tx->setBranch<int>("pass_duplicate_mm_em_ee", 1);
+    }
+    tx->setBranch<int>("passTrigger", passTrigger());
+}
+
+//##############################################################################################################
+bool babyMaker_v2::passTrigger()
+{
+    if (tx->getBranch<int>("nLlep", true) < 2)
+        return false;
+
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const int mc_HLT_DoubleEl    = tx->getBranch<int>("mc_HLT_DoubleEl", true);
+    const int mc_HLT_DoubleEl_DZ = tx->getBranch<int>("mc_HLT_DoubleEl_DZ", true);
+    const int mc_HLT_MuEG        = tx->getBranch<int>("mc_HLT_MuEG", true);
+    const int mc_HLT_DoubleMu    = tx->getBranch<int>("mc_HLT_DoubleMu", true);
+    const int nVlep              = tx->getBranch<int>("nVlep", true);
+    const int nLlep              = tx->getBranch<int>("nLlep", true);
+
+
+    if (nVlep != 2 && nVlep != 3)
+        return 0;
+
+    if (nLlep != 2 && nLlep != 3)
+        return 0;
+
+    if (lep_pdgId.size() < 2)
+        return 0;
+
+    if (nVlep == 2 && nLlep == 2)
+    {
+        int lepprod = lep_pdgId.at(0)*lep_pdgId.at(1);
+        if (abs(lepprod) == 121)
+            return (mc_HLT_DoubleEl || mc_HLT_DoubleEl_DZ);
+        else if (abs(lepprod) == 143)
+            return mc_HLT_MuEG;
+        else if (abs(lepprod) == 169)
+            return mc_HLT_DoubleMu;
+        else
+            return 0;
+    }
+    else if (nVlep == 3 && nLlep == 3)
+    {
+        int lepprod01 = lep_pdgId.at(0)*lep_pdgId.at(1);
+        if (abs(lepprod01) == 121 && (mc_HLT_DoubleEl || mc_HLT_DoubleEl_DZ))
+            return true;
+        else if (abs(lepprod01) == 143 && mc_HLT_MuEG)
+            return true;
+        else if (abs(lepprod01) == 169 && mc_HLT_DoubleMu)
+            return true;
+
+        int lepprod02 = lep_pdgId.at(0)*lep_pdgId.at(2);
+        if (abs(lepprod02) == 121 && (mc_HLT_DoubleEl || mc_HLT_DoubleEl_DZ))
+            return true;
+        else if (abs(lepprod02) == 143 && mc_HLT_MuEG)
+            return true;
+        else if (abs(lepprod02) == 169 && mc_HLT_DoubleMu)
+            return true;
+
+        int lepprod12 = lep_pdgId.at(1)*lep_pdgId.at(2);
+        if (abs(lepprod12) == 121 && (mc_HLT_DoubleEl || mc_HLT_DoubleEl_DZ))
+            return true;
+        else if (abs(lepprod12) == 143 && mc_HLT_MuEG)
+            return true;
+        else if (abs(lepprod12) == 169 && mc_HLT_DoubleMu)
+            return true;
+
+        return false;
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -1862,7 +2353,7 @@ void babyMaker_v2::FillJetVariables(int variation)
                 }
 
                 // Choose the jets with angle closest to dR = 1
-                if (abs(this_dR - 1.) < abs(tmpDR_DR1 - 1.))
+                if (fabs(this_dR - 1.) < fabs(tmpDR_DR1 - 1.))
                 {
                     tmpDR_DR1 = this_dR;
                     MjjDR1 = (p4 + p4_2).M();
@@ -1936,8 +2427,8 @@ void babyMaker_v2::FillLeptonVariables()
 
     //bool isSS = (nVlep == 2 && nLlep == 2);
     //bool is3L = (nVlep >= 3 && nLlep == 3);
-    bool isSS = (nVlep == 2);
-    bool is3L = (nVlep == 3);
+    bool isSS = (nLlep == 2);
+    bool is3L = (nLlep == 3);
 
     // is SS events then set the SS related variables
     if (isSS)
@@ -1964,8 +2455,8 @@ void babyMaker_v2::FillLeptonVariables()
 //##############################################################################################################
 void babyMaker_v2::FillSSLeptonVariables(int idx0, int idx1)
 {
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
 
     // Fill the same-sign pairs lep id tag
     tx->setBranch<int>("passSSee", (lep_pdgId[idx0] * lep_pdgId[idx1]) == 121);
@@ -2045,8 +2536,8 @@ void babyMaker_v2::Fill3LLeptonVariables()
     tx->setBranch<int>("nSFOS", nSFOS);
     tx->setBranch<int>("nSFOSinZ", nSFOSinZ);
 
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
 
     // Extra variables related to the three leptons
     tx->setBranch<float>("M3l", (lep_p4[0] + lep_p4[1] + lep_p4[2]).mass());
@@ -2123,6 +2614,10 @@ void babyMaker_v2::FillEventTags()
 //##############################################################################################################
 void babyMaker_v2::FillWeights()
 {
+
+    if (tx->getBranch<int>("nLlep") < 2)
+        return;
+
     if (cms3.evt_isRealData())
     {
         tx->setBranch<float>("purewgt", 1);
@@ -2138,7 +2633,7 @@ void babyMaker_v2::FillWeights()
     }
 
     // fakerate
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
     float ffwgt;
     float ffwgterr;
     int loose_lep_idx;
@@ -2149,7 +2644,7 @@ void babyMaker_v2::FillWeights()
     std::tie(ffwgtqcd, ffwgtqcderr, loose_lep_idx_qcd) = getlepFakeRateandErrorandLooseLepIdx(false);
     // The closure is taken from the statistical uncertainty of the closure test
     // The closure central values are better than 27% and 28%
-    // electron closure fSumw[1]=1, x=0.5, error=0.279466 
+    // electron closure fSumw[1]=1, x=0.5, error=0.279466
     // muon closure     fSumw[1]=1, x=0.5, error=0.268032
     const double el_closure = 0.279466;
     const double mu_closure = 0.268032;
@@ -2227,154 +2722,162 @@ void babyMaker_v2::FillGenWeights()
 
     // scale pdf variation
     if (isWHSUSY())
-    {
-        using namespace tas;
-        setWHSMSMass(); 
-        const float& mass_chargino = tx->getBranch<float>("chimass");
-        const float& mass_lsp = tx->getBranch<float>("lspmass");
-        if (mass_chargino < 0 || mass_lsp < 0)
-            FATALERROR(__FUNCTION__);
-
-        if (genps_weight() > 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, 1);
-        else if (genps_weight() < 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, -1);
-        float xsec = hxsec->GetBinContent(hxsec->FindBin(mass_chargino));
-        float xsec_uncert = hxsec->GetBinError(hxsec->FindBin(mass_chargino));
-
-        float SMSpdf_weight_up = 1;
-        float SMSpdf_weight_down = 1;
-        float SMSsum_of_weights = 0;
-        float SMSaverage_of_weights = 0;
-        //error on pdf replicas
-        //fastsim has first genweights bin being ==1
-        if (genweights().size() > 111) { //fix segfault
-            for (int ipdf = 10; ipdf < 110; ipdf++) {
-                SMSaverage_of_weights += cms3.genweights().at(ipdf);
-            } // average of weights
-            SMSaverage_of_weights = SMSaverage_of_weights / 100.;
-            for (int ipdf = 10; ipdf < 110; ipdf++) {
-                SMSsum_of_weights += pow(cms3.genweights().at(ipdf) - SMSaverage_of_weights, 2);
-            } //std of weights.
-            SMSpdf_weight_up = (SMSaverage_of_weights + sqrt(SMSsum_of_weights / 99.));
-            SMSpdf_weight_down = (SMSaverage_of_weights - sqrt(SMSsum_of_weights / 99.));
-            // NOTE: The SMS samples have a shifted index (instead of 0 being fr_r1_f1 it is 1)
-            tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[1]);
-            tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[2]);
-            tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[3]);
-            tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[4]);
-            tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[5]);
-            tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[6]);
-            tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[7]);
-            tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[8]);
-            tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[9]);
-            tx->setBranch<float>("weight_pdf_up", SMSpdf_weight_up);
-            tx->setBranch<float>("weight_pdf_down", SMSpdf_weight_up);
-            tx->setBranch<float>("weight_alphas_down", cms3.genweights()[110]);
-            tx->setBranch<float>("weight_alphas_up", cms3.genweights()[111]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 1, genweights()[1]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 2, genweights()[2]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 3, genweights()[3]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 4, genweights()[4]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 5, genweights()[5]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 6, genweights()[6]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 7, genweights()[7]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 8, genweights()[8]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 9, genweights()[9]);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 10, SMSpdf_weight_up);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 11, SMSpdf_weight_down);
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation. 
-            h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
-
-            // ISR weights
-            LV hardsystem;
-            for (unsigned int genx = 0; genx < genps_p4().size(); genx++)
-            {
-                if ((abs(genps_id().at(genx)) == 1000024 || abs(genps_id().at(genx)) == 1000023) && genps_isLastCopy().at(genx))
-                    hardsystem += genps_p4().at(genx);
-            }
-
-            float weight_ISR = 0;
-            float weight_ISRup = 0;
-            float weight_ISRdown = 0;
-            if (hardsystem.pt() > 600.)
-                weight_ISR = .783;
-            else if (hardsystem.pt() > 400.)
-                weight_ISR = .912;
-            else if (hardsystem.pt() > 300.)
-                weight_ISR = 1.;
-            else if (hardsystem.pt() > 200.)
-                weight_ISR = 1.057;
-            else if (hardsystem.pt() > 150.)
-                weight_ISR = 1.150;
-            else if (hardsystem.pt() > 100.)
-                weight_ISR = 1.179;
-            else if (hardsystem.pt() > 50.)
-                weight_ISR = 1.052;
-            else
-                weight_ISR = 1.;
-            float isrweight_unc = fabs(weight_ISR - 1);
-            weight_ISRup = 1. + isrweight_unc;
-            weight_ISRdown = 1. - isrweight_unc;
-            tx->setBranch<float>("weight_isr", weight_ISR);
-            tx->setBranch<float>("weight_isr_up", weight_ISRup);
-            tx->setBranch<float>("weight_isr_down", weight_ISRdown);
-            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 19, weight_ISR);
-            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 20, weight_ISRup);
-            h_nevents_SMS->Fill(mass_chargino, mass_lsp, 21, weight_ISRdown);
-        }
-    }
+        FillGenWeightsForWHSUSY();
     else
-    {
-        float sum_of_pdf_weights = 0;
-        float average_of_pdf_weights = 0;
-        //error on pdf replicas
-        if (cms3.genweights().size() > 110)
+        FillGenWeightsNominal();
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillGenWeightsForWHSUSY()
+{
+    using namespace tas;
+    setWHSMSMass();
+    const float& mass_chargino = tx->getBranch<float>("chimass");
+    const float& mass_lsp = tx->getBranch<float>("lspmass");
+    if (mass_chargino < 0 || mass_lsp < 0)
+        FATALERROR(__FUNCTION__);
+
+    if (genps_weight() > 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, 1);
+    else if (genps_weight() < 0) h_nrawevents_SMS -> Fill(mass_chargino, mass_lsp, -1);
+    float xsec = hxsec->GetBinContent(hxsec->FindBin(mass_chargino));
+    float xsec_uncert = hxsec->GetBinError(hxsec->FindBin(mass_chargino));
+
+    float SMSpdf_weight_up = 1;
+    float SMSpdf_weight_down = 1;
+    float SMSsum_of_weights = 0;
+    float SMSaverage_of_weights = 0;
+    //error on pdf replicas
+    //fastsim has first genweights bin being ==1
+    if (genweights().size() > 111) { //fix segfault
+        for (int ipdf = 10; ipdf < 110; ipdf++) {
+            SMSaverage_of_weights += cms3.genweights().at(ipdf);
+        } // average of weights
+        SMSaverage_of_weights = SMSaverage_of_weights / 100.;
+        for (int ipdf = 10; ipdf < 110; ipdf++) {
+            SMSsum_of_weights += pow(cms3.genweights().at(ipdf) - SMSaverage_of_weights, 2);
+        } //std of weights.
+        SMSpdf_weight_up = (SMSaverage_of_weights + sqrt(SMSsum_of_weights / 99.));
+        SMSpdf_weight_down = (SMSaverage_of_weights - sqrt(SMSsum_of_weights / 99.));
+        // NOTE: The SMS samples have a shifted index (instead of 0 being fr_r1_f1 it is 1)
+        tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[1]);
+        tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[2]);
+        tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[3]);
+        tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[4]);
+        tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[5]);
+        tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[6]);
+        tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[7]);
+        tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[8]);
+        tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[9]);
+        tx->setBranch<float>("weight_pdf_up", SMSpdf_weight_up);
+        tx->setBranch<float>("weight_pdf_down", SMSpdf_weight_up);
+        tx->setBranch<float>("weight_alphas_down", cms3.genweights()[110]);
+        tx->setBranch<float>("weight_alphas_up", cms3.genweights()[111]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 1, genweights()[1]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 2, genweights()[2]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 3, genweights()[3]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 4, genweights()[4]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 5, genweights()[5]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 6, genweights()[6]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 7, genweights()[7]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 8, genweights()[8]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 9, genweights()[9]);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 10, SMSpdf_weight_up);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 11, SMSpdf_weight_down);
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation.
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
+
+        // ISR weights
+        LV hardsystem;
+        for (unsigned int genx = 0; genx < genps_p4().size(); genx++)
         {
-            // average of weights
-            for (int ipdf = 9; ipdf < 109; ipdf++)
-            {
-                average_of_pdf_weights += cms3.genweights().at(ipdf);
-            }
-            average_of_pdf_weights =  average_of_pdf_weights / 100;
-            //std of weights.
-            for (int ipdf = 9; ipdf < 109; ipdf++)
-            {
-                sum_of_pdf_weights += (cms3.genweights().at(ipdf) - average_of_pdf_weights) * (cms3.genweights().at(ipdf) - average_of_pdf_weights);
-            }
-            tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[0]);
-            tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[1]);
-            tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[2]);
-            tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[3]);
-            tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[4]);
-            tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[5]);
-            tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[6]);
-            tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[7]);
-            tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[8]);
-            tx->setBranch<float>("weight_pdf_up", (average_of_pdf_weights + sqrt(sum_of_pdf_weights / 99)));
-            tx->setBranch<float>("weight_pdf_down", (average_of_pdf_weights - sqrt(sum_of_pdf_weights / 99)));
-            tx->setBranch<float>("weight_alphas_down", cms3.genweights()[109]);
-            tx->setBranch<float>("weight_alphas_up", cms3.genweights()[110]);
-            h_neventsinfile->Fill(1, tx->getBranch<float>("weight_fr_r1_f1"));
-            h_neventsinfile->Fill(2, tx->getBranch<float>("weight_fr_r1_f2"));
-            h_neventsinfile->Fill(3, tx->getBranch<float>("weight_fr_r1_f0p5"));
-            h_neventsinfile->Fill(4, tx->getBranch<float>("weight_fr_r2_f1"));
-            h_neventsinfile->Fill(5, tx->getBranch<float>("weight_fr_r2_f2"));
-            h_neventsinfile->Fill(6, tx->getBranch<float>("weight_fr_r2_f0p5"));
-            h_neventsinfile->Fill(7, tx->getBranch<float>("weight_fr_r0p5_f1"));
-            h_neventsinfile->Fill(8, tx->getBranch<float>("weight_fr_r0p5_f2"));
-            h_neventsinfile->Fill(9, tx->getBranch<float>("weight_fr_r0p5_f0p5"));
-            h_neventsinfile->Fill(10, tx->getBranch<float>("weight_pdf_up"));
-            h_neventsinfile->Fill(11, tx->getBranch<float>("weight_pdf_down"));
-            h_neventsinfile->Fill(12, tx->getBranch<float>("weight_alphas_down"));
-            h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
+            if ((abs(genps_id().at(genx)) == 1000024 || abs(genps_id().at(genx)) == 1000023) && genps_isLastCopy().at(genx))
+                hardsystem += genps_p4().at(genx);
         }
+
+        float weight_ISR = 0;
+        float weight_ISRup = 0;
+        float weight_ISRdown = 0;
+        if (hardsystem.pt() > 600.)
+            weight_ISR = .783;
+        else if (hardsystem.pt() > 400.)
+            weight_ISR = .912;
+        else if (hardsystem.pt() > 300.)
+            weight_ISR = 1.;
+        else if (hardsystem.pt() > 200.)
+            weight_ISR = 1.057;
+        else if (hardsystem.pt() > 150.)
+            weight_ISR = 1.150;
+        else if (hardsystem.pt() > 100.)
+            weight_ISR = 1.179;
+        else if (hardsystem.pt() > 50.)
+            weight_ISR = 1.052;
+        else
+            weight_ISR = 1.;
+        float isrweight_unc = fabs(weight_ISR - 1);
+        weight_ISRup = 1. + isrweight_unc;
+        weight_ISRdown = 1. - isrweight_unc;
+        tx->setBranch<float>("weight_isr", weight_ISR);
+        tx->setBranch<float>("weight_isr_up", weight_ISRup);
+        tx->setBranch<float>("weight_isr_down", weight_ISRdown);
+        h_nevents_SMS->Fill(mass_chargino, mass_lsp, 19, weight_ISR);
+        h_nevents_SMS->Fill(mass_chargino, mass_lsp, 20, weight_ISRup);
+        h_nevents_SMS->Fill(mass_chargino, mass_lsp, 21, weight_ISRdown);
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillGenWeightsNominal()
+{
+    float sum_of_pdf_weights = 0;
+    float average_of_pdf_weights = 0;
+    //error on pdf replicas
+    if (cms3.genweights().size() > 110)
+    {
+        // average of weights
+        for (int ipdf = 9; ipdf < 109; ipdf++)
+        {
+            average_of_pdf_weights += cms3.genweights().at(ipdf);
+        }
+        average_of_pdf_weights =  average_of_pdf_weights / 100;
+        //std of weights.
+        for (int ipdf = 9; ipdf < 109; ipdf++)
+        {
+            sum_of_pdf_weights += (cms3.genweights().at(ipdf) - average_of_pdf_weights) * (cms3.genweights().at(ipdf) - average_of_pdf_weights);
+        }
+        tx->setBranch<float>("weight_fr_r1_f1", cms3.genweights()[0]);
+        tx->setBranch<float>("weight_fr_r1_f2", cms3.genweights()[1]);
+        tx->setBranch<float>("weight_fr_r1_f0p5", cms3.genweights()[2]);
+        tx->setBranch<float>("weight_fr_r2_f1", cms3.genweights()[3]);
+        tx->setBranch<float>("weight_fr_r2_f2", cms3.genweights()[4]);
+        tx->setBranch<float>("weight_fr_r2_f0p5", cms3.genweights()[5]);
+        tx->setBranch<float>("weight_fr_r0p5_f1", cms3.genweights()[6]);
+        tx->setBranch<float>("weight_fr_r0p5_f2", cms3.genweights()[7]);
+        tx->setBranch<float>("weight_fr_r0p5_f0p5", cms3.genweights()[8]);
+        tx->setBranch<float>("weight_pdf_up", (average_of_pdf_weights + sqrt(sum_of_pdf_weights / 99)));
+        tx->setBranch<float>("weight_pdf_down", (average_of_pdf_weights - sqrt(sum_of_pdf_weights / 99)));
+        tx->setBranch<float>("weight_alphas_down", cms3.genweights()[109]);
+        tx->setBranch<float>("weight_alphas_up", cms3.genweights()[110]);
+        h_neventsinfile->Fill(1, tx->getBranch<float>("weight_fr_r1_f1"));
+        h_neventsinfile->Fill(2, tx->getBranch<float>("weight_fr_r1_f2"));
+        h_neventsinfile->Fill(3, tx->getBranch<float>("weight_fr_r1_f0p5"));
+        h_neventsinfile->Fill(4, tx->getBranch<float>("weight_fr_r2_f1"));
+        h_neventsinfile->Fill(5, tx->getBranch<float>("weight_fr_r2_f2"));
+        h_neventsinfile->Fill(6, tx->getBranch<float>("weight_fr_r2_f0p5"));
+        h_neventsinfile->Fill(7, tx->getBranch<float>("weight_fr_r0p5_f1"));
+        h_neventsinfile->Fill(8, tx->getBranch<float>("weight_fr_r0p5_f2"));
+        h_neventsinfile->Fill(9, tx->getBranch<float>("weight_fr_r0p5_f0p5"));
+        h_neventsinfile->Fill(10, tx->getBranch<float>("weight_pdf_up"));
+        h_neventsinfile->Fill(11, tx->getBranch<float>("weight_pdf_down"));
+        h_neventsinfile->Fill(12, tx->getBranch<float>("weight_alphas_down"));
+        h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
     }
 }
 
 //##############################################################################################################
 float babyMaker_v2::get0SFOSMll()
 {
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     int pdgid0 = lep_pdgId[0];
     int pdgid1 = lep_pdgId[1];
@@ -2395,8 +2898,8 @@ float babyMaker_v2::get0SFOSMll()
 //##############################################################################################################
 float babyMaker_v2::get0SFOSMee()
 {
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     int pdgid0 = lep_pdgId[0];
     int pdgid1 = lep_pdgId[1];
@@ -2414,8 +2917,8 @@ float babyMaker_v2::get0SFOSMee()
 //##############################################################################################################
 float babyMaker_v2::get1SFOSMll()
 {
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     int pdgid0 = lep_pdgId[0];
     int pdgid1 = lep_pdgId[1];
@@ -2436,8 +2939,8 @@ float babyMaker_v2::get1SFOSMll()
 //##############################################################################################################
 float babyMaker_v2::get2SFOSMll0()
 {
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     int pdgid0 = lep_pdgId[0];
     int pdgid1 = lep_pdgId[1];
@@ -2458,8 +2961,8 @@ float babyMaker_v2::get2SFOSMll0()
 //##############################################################################################################
 float babyMaker_v2::get2SFOSMll1()
 {
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     int pdgid0 = lep_pdgId[0];
     int pdgid1 = lep_pdgId[1];
@@ -2493,9 +2996,9 @@ tuple<bool, int, int> babyMaker_v2::isSSCR()
 {
     // Assumes that the FillElectron/FillMuon is done
     // Retrieve some info we need from the lepton containers
-    const vector<int>& lep_pdgId  = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<int>& lep_charge = tx->getBranch<vector<int>>("lep_charge");
-    const vector<int>& lep_tight  = tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_tight");
+    const vector<int>& lep_pdgId  = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<int>& lep_charge = tx->getBranch<vector<int>>("lep_charge", true);
+    const vector<int>& lep_tight  = tx->getBranch<vector<int>>("lep_pass_VVV_cutbased_tight", true);
 
     // Count the number of tight "SSID" leptons
     int ntight = passCount(lep_tight);
@@ -2538,11 +3041,11 @@ tuple<bool, int, int> babyMaker_v2::isSSCR()
 //##############################################################################################################
 TString babyMaker_v2::process()
 {
-    if (cms3.evt_isRealData())                            return "Data";
-    if (splitVH())                                        return "WHtoWWW";
-    if (filename.find("www_2l_")         != string::npos) return "WWW";
-    if (filename.find("www_incl_amcnlo") != string::npos) return "WWWv2";
-    if (filename.find("data_")           != string::npos) return "Data";
+    if (cms3.evt_isRealData())                    return "Data";
+    if (splitVH())                                return "WHtoWWW";
+    if (nicename().BeginsWith("www_2l_"))         return "WWW";
+    if (nicename().BeginsWith("www_incl_amcnlo")) return "WWWv2";
+    if (nicename().BeginsWith("data_"))           return "Data";
     if (tx->getBranch<int>("nVlep") == 2 && tx->getBranch<int>("nLlep") == 2)
     {
         if (tx->getBranch<int>("nLlep") < 2) return "not2l";
@@ -2569,7 +3072,7 @@ TString babyMaker_v2::process()
 //##############################################################################################################
 bool babyMaker_v2::splitVH()
 {
-    if (filename.find("vh_nonbb_amcnlo") == string::npos) return false; //file is certainly no WHtoWWW
+    if (!nicename().BeginsWith("vh_nonbb_amcnlo")) return false; //file is certainly no WHtoWWW
     bool isHtoWW = false;
     bool isWnotFromH = false;
     bool isZthere = false;
@@ -2714,162 +3217,361 @@ bool babyMaker_v2::studyDoublyChargedHiggs()
 }
 
 //##############################################################################################################
-bool babyMaker_v2::studyWprime()
+bool babyMaker_v2::studyHiggsDecay()
 {
     ProcessGenParticles();
-    if (!isWprime()) return false; //file is certainly not doubly charged higgs
+    if (!isWprime() && !isVH()) return false; //file is certainly not doubly charged higgs
+    const vector<int>& genPart_idx = coreGenPart.genPart_idx;
     const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
     const vector<int>& genPart_status = coreGenPart.genPart_status;
     const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
     const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
     const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
 
-    // First determine whether it is hww process
-    bool ishww = false;
-    int wa_id = 0;
-    int lep_w_id = 0;
-    int nlep = 0;
-    int nquark = 0;
+    // Find Higgs and the 2 decay 4 vector
+    vector<int> higgs_idx;
+    vector<LV> higgs_p4;
+    vector<int> higgsdecay_idx;
+    vector<LV> higgsdecay_p4;
+    vector<int> higgsdecay_id;
+    vector<int> higgsdecay_isstar;
+    // WW decay
+    bool isWW = false;
+    vector<int> lepton_idx;
+    vector<int> lepton_id;
+    vector<int> lepton_mid;
+    vector<int> lepton_isstar;
+    vector<LV> lepton_p4;
+    vector<int> neutrino_idx;
+    vector<int> neutrino_id;
+    vector<LV> neutrino_p4;
+    vector<int> quark_idx;
+    vector<int> quark_id;
+    vector<int> quark_mid;
+    vector<int> quark_isstar;
+    vector<LV> quark_p4;
+    vector<int> lepton_from_tau_idx;
+    vector<int> lepton_from_tau_id;
+    vector<LV> lepton_from_tau_p4;
     for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
     {
-        // pdgId: 9000002 motherId: 2 grandmaId: 2212 status: 22 p4.pt(): 0 p4.eta(): 22782.3 p4.phi(): 0
-        // pdgId: 24 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 228.906 p4.eta(): 0.701046 p4.phi(): -0.726092
-        // pdgId: 25 motherId: 9000002 grandmaId: 9000002 status: 22 p4.pt(): 231.025 p4.eta(): -0.606109 p4.phi(): 2.44679
-        // pdgId: -11 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 109.007 p4.eta(): 0.33666 p4.phi(): -0.587264
-        // pdgId: 12 motherId: 24 grandmaId: 9000002 status: 23 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
-        // pdgId: -11 motherId: -11 grandmaId: 24 status: 1 p4.pt(): 106.019 p4.eta(): 0.33666 p4.phi(): -0.587264
-        // pdgId: 12 motherId: 12 grandmaId: 24 status: 1 p4.pt(): 121.885 p4.eta(): 0.963943 p4.phi(): -0.850172
-        // pdgId: 5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 219.811 p4.eta(): -0.701156 p4.phi(): 2.5061
-        // pdgId: -5 motherId: 25 grandmaId: 9000002 status: 23 p4.pt(): 17.4443 p4.eta(): 0.915842 p4.phi(): 1.603490
+        int idx = genPart_idx[i];
         int pdgId = genPart_pdgId[i];
         int status = genPart_status[i];
         int motherId = genPart_motherId[i];
         int grandmaId = genPart_grandmaId[i];
         LV p4 = genPart_p4[i];
-        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
-            wa_id = pdgId;
-        if (abs(pdgId) == 24 && motherId == 25)
-            ishww = true;
-//        std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        if (abs(pdgId) == 25 && ((abs(motherId) == 9000002 && isWprime())||(status == 22 && isVH())))
         {
-            nlep++;
-            lep_w_id = motherId;
+            higgs_idx.push_back(idx);
+            higgs_p4.push_back(p4);
         }
-        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25 && status == 23)
+        if (motherId == 25 && pdgId != 25)
         {
-            nquark++;
+            higgsdecay_idx.push_back(idx);
+            higgsdecay_p4.push_back(p4);
+            higgsdecay_id.push_back(pdgId);
+            higgsdecay_isstar.push_back(p4.mass() < 63.);
+            if (abs(pdgId) == 24) isWW = true;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && ((status == 23 || status == 1) || (abs(pdgId) == 15 && status == 2)) && abs(motherId) == 24 && abs(grandmaId) == 25)
+        {
+            lepton_idx.push_back(idx);
+            lepton_id.push_back(pdgId);
+            lepton_mid.push_back(motherId);
+            lepton_p4.push_back(p4);
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && (status == 23 || status == 1) && abs(motherId) == 24 && abs(grandmaId) == 25)
+        {
+            neutrino_idx.push_back(idx);
+            neutrino_id.push_back(pdgId);
+            neutrino_p4.push_back(p4);
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4))
+        {
+//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 11 && abs(pdgId) <= 16))
+        {
+//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 5) && (status == 23 || status == 1) && abs(motherId) == 24) // up to pdgid = 5 because W "can" decay to bc
+        {
+            if ( (abs(grandmaId) == 25 && isVH()) || (isWprime()) )
+            {
+                quark_idx.push_back(idx);
+                quark_id.push_back(pdgId);
+                quark_mid.push_back(motherId);
+                quark_p4.push_back(p4);
+//                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+            }
         }
     }
 
-    if (!ishww || nlep != 1 || nquark != 2 || lep_w_id != wa_id)
+//    std::cout <<  " higgs_idx.size(): " << higgs_idx.size() <<  " higgsdecay_idx.size(): " << higgsdecay_idx.size() <<  std::endl;
+//    for (auto& hd_id : higgsdecay_id)
+//        std::cout <<  " hd_id: " << hd_id <<  std::endl;
+//    for (auto& h_idx : higgs_idx)
+//        std::cout <<  " h_idx: " << h_idx <<  std::endl;
+//
+//    LV sumdecay = higgsdecay_p4[0] + higgsdecay_p4[1];
+//
+//    std::cout <<  " sumdecay.pt(): " << sumdecay.pt() <<  " sumdecay.eta(): " << sumdecay.eta() <<  " sumdecay.phi(): " << sumdecay.phi() <<  " sumdecay.energy(): " << sumdecay.energy() <<  " sumdecay.mass(): " << sumdecay.mass() <<  std::endl;
+//    std::cout <<  " higgs_p4[0].pt(): " << higgs_p4[0].pt() <<  " higgs_p4[0].eta(): " << higgs_p4[0].eta() <<  " higgs_p4[0].phi(): " << higgs_p4[0].phi() <<  " higgs_p4[0].energy(): " << higgs_p4[0].energy() <<  " higgs_p4[0].mass(): " << higgs_p4[0].mass() <<  std::endl;
+
+    if (isWW)
     {
-        tx->clear();
-        tx->setBranch<int>("iswwwchannel", 0);
-        return false;
+        if (lepton_idx.size() + neutrino_idx.size() + quark_idx.size() != 4)
+        {
+            std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+            std::cout <<  " lepton_idx.size(): " << lepton_idx.size() <<  " quark_idx.size(): " << quark_idx.size() <<  std::endl;
+            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+            {
+                int idx = genPart_idx[i];
+                int pdgId = genPart_pdgId[i];
+                int status = genPart_status[i];
+                int motherId = genPart_motherId[i];
+                int grandmaId = genPart_grandmaId[i];
+                LV p4 = genPart_p4[i];
+//                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                if (abs(motherId) == 15 && abs(grandmaId) == 24)
+                {
+//                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                }
+            }
+        }
+        bool hastau = false;
+        for (auto& id : lepton_id)
+        {
+            if (abs(id) == 15)
+            {
+                hastau = true;
+            }
+        }
+        if (hastau)
+        {
+            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+            {
+                int idx = genPart_idx[i];
+                int pdgId = genPart_pdgId[i];
+                int status = genPart_status[i];
+                int motherId = genPart_motherId[i];
+                int grandmaId = genPart_grandmaId[i];
+                LV p4 = genPart_p4[i];
+                //                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                if (abs(motherId) == 15)
+                {
+//                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                }
+            }
+        }
     }
 
-    std::vector<LV> wprime;
-    std::vector<LV> wa;
-    std::vector<LV> la;
-    std::vector<LV> va;
-    std::vector<LV> h;
-    std::vector<LV> ws;
-    std::vector<LV> l;
-    std::vector<LV> v;
-    std::vector<LV> js;
+    // Save information for H
+    tx->setBranch<LV>("higgs_p4", higgs_p4[0]);
 
-    std::cout.setstate(std::ios_base::failbit);
-    std::cout << std::endl;
-    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    // Save information for H->XX
+    tx->setBranch<int>("higgsdecay", abs(higgsdecay_id[0]));
+    tx->setBranch<vector<LV>>("decay_p4", higgsdecay_p4);
+    tx->setBranch<vector<int>>("decay_id", higgsdecay_id);
+    tx->setBranch<vector<int>>("decay_isstar", higgsdecay_isstar);
+    tx->sortVecBranchesByPt("decay_p4", {}, {"decay_id", "decay_isstar"}, {});
+
+    // Compute and fill the boosted variables as well as toe rotation
+    // This also returns the reference vector
+    float deta0, dphi0;
+    float deta250, dphi250;
+    float deta500, dphi500;
+    float deta1000, dphi1000;
+    float deta1500, dphi1500;
+    std::tie(deta0, dphi0) = FillReBoostedVariables("decay"  , 0  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta250, dphi250) = FillReBoostedVariables("decay"  , 250  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta500, dphi500) = FillReBoostedVariables("decay"  , 500  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta1000, dphi1000) = FillReBoostedVariables("decay"  , 1000 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta1500, dphi1500) = FillReBoostedVariables("decay"  , 1500 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+
+    // If not WW stop here and move on
+    if (abs(higgsdecay_id[0]) != 24) return true;
+
+    // First save the information about the leptonic/hadronic channel information
+    tx->setBranch<int>("nlep", lepton_id.size());
+    tx->setBranch<int>("nquark", quark_id.size());
+
+    // Determining which lepton or quarks had the mother of off-shell W
+    int wstar_id = 0;
+    for (unsigned i = 0; i < higgsdecay_id.size(); ++i)
     {
-        int pdgId = genPart_pdgId[i];
-        int status = genPart_status[i];
-        int motherId = genPart_motherId[i];
-        int grandmaId = genPart_grandmaId[i];
-        LV p4 = genPart_p4[i];
-        if (abs(pdgId) == 9000002 && status == 22)
+        if (higgsdecay_p4[i].mass() < 63.) // Perhaps you "could" have 62.5 and 62.5 ..? probably very unlikely
         {
-            wprime.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if (abs(pdgId) == 24 && abs(motherId) == 9000002)
-        {
-            wa.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if (abs(pdgId) == 25 && abs(motherId) == 9000002)
-        {
-            h.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if (abs(pdgId) == 24 && motherId == 25)
-        {
-            ws.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && grandmaId == 25)
-        {
-            l.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && grandmaId == 25)
-        {
-            v.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
-        {
-            la.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && abs(motherId) == 24 && abs(grandmaId) == 9000002)
-        {
-            va.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4) && abs(motherId) == 24 && grandmaId == 25)
-        {
-            js.push_back(p4);
-            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+            wstar_id = higgsdecay_id[i];
+            break;
         }
     }
-    std::cout.clear();
 
-    // sanity check
-    if (wprime.size() != 1)
-        std::cout << "Found different from 1 wprime" << wprime.size() << std::endl;
-    if (h.size() != 1)
-        std::cout << "Found different from 1 higgs" << h.size() << std::endl;
-    if (wa.size() != 1)
-        std::cout << "Found different from 1 associated w" << wa.size() << std::endl;
-    if (ws.size() != 2)
-        std::cout << "Found different from 2 w decays" << ws.size() << std::endl;
-    if (l.size() != 1)
-        std::cout << "Found different from 1 leptons" << l.size() << std::endl;
-    if (v.size() != 1)
-        std::cout << "Found different from 1 neutrinos" << v.size() << std::endl;
-    if (la.size() != 1)
-        std::cout << "Found different from 1 leptons" << la.size() << std::endl;
-    if (va.size() != 1)
-        std::cout << "Found different from 1 neutrinos" << va.size() << std::endl;
-    if (js.size() != 2)
-        std::cout << "Found different from 2 quarks " << js.size() << std::endl;
+    // Finding off-shell failed. Sanity check.
+    if (wstar_id == 0)
+    {
+        std::cout << "Failed to find off-shell W" << std::endl;
+        FATALERROR(__FUNCTION__);
+    }
 
-    // Fill in tree variable
-    tx->setBranch<int>("iswwwchannel", true);
-    tx->setBranch<LV>("wprime_p4", wprime[0]);
-    tx->setBranch<LV>("wa_p4", wa[0]);
-    tx->setBranch<LV>("la_p4", la[0]);
-    tx->setBranch<LV>("va_p4", va[0]);
-    tx->setBranch<LV>("h_p4", h[0]);
-    tx->setBranch<LV>("w0_p4", ws[0].pt() > ws[1].pt() ? ws[0] : ws[1]);
-    tx->setBranch<LV>("w1_p4", ws[0].pt() > ws[1].pt() ? ws[1] : ws[0]);
-    tx->setBranch<LV>("l_p4", l[0]);
-    tx->setBranch<LV>("v_p4", v[0]);
-    tx->setBranch<LV>("j0_p4", js[0].pt() > js[1].pt() ? js[0] : js[1]);
-    tx->setBranch<LV>("j1_p4", js[0].pt() > js[1].pt() ? js[1] : js[0]);
+    // Compute whether specific quark or lepton had a off-shell mother or not
+    for (auto& id : lepton_mid) lepton_isstar.push_back(id == wstar_id);
+    for (auto& id : quark_mid ) quark_isstar .push_back(id == wstar_id);
+
+    // Save lepton and quark information
+    tx->setBranch<vector<LV>>("lepton_p4", lepton_p4);
+    tx->setBranch<vector<int>>("lepton_id", lepton_id);
+    tx->setBranch<vector<int>>("lepton_isstar", lepton_isstar);
+    tx->sortVecBranchesByPt("lepton_p4", {}, {"lepton_id", "lepton_isstar"}, {});
+    tx->setBranch<vector<LV>>("quark_p4", quark_p4);
+    tx->setBranch<vector<int>>("quark_id", quark_id);
+    tx->setBranch<vector<int>>("quark_isstar", quark_isstar);
+    tx->sortVecBranchesByPt("quark_p4", {}, {"quark_id", "quark_isstar"}, {});
+
+    // Now start boosting things to normalize to certain set higgs pt
+    FillReBoostedVariables("lepton" , 0    , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta0   , dphi0   );
+    FillReBoostedVariables("lepton" , 250  , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta250 , dphi250 );
+    FillReBoostedVariables("lepton" , 500  , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta500 , dphi500 );
+    FillReBoostedVariables("lepton" , 1000 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1000, dphi1000);
+    FillReBoostedVariables("lepton" , 1500 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1500, dphi1500);
+    FillReBoostedVariables("quark"  , 0    , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta0   , dphi0    );
+    FillReBoostedVariables("quark"  , 250  , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta250 , dphi250  );
+    FillReBoostedVariables("quark"  , 500  , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta500 , dphi500  );
+    FillReBoostedVariables("quark"  , 1000 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1000, dphi1000 );
+    FillReBoostedVariables("quark"  , 1500 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1500, dphi1500 );
+
+    FillDecayProductsDRVariables(250);
+    FillDecayProductsDRVariables(500);
+    FillDecayProductsDRVariables(1000);
+    FillDecayProductsDRVariables(1500);
+
+
     return true;
+}
+
+//##############################################################################################################
+std::tuple<float, float> babyMaker_v2::FillReBoostedVariables(TString bname, int ptBoost, const LV& higgs_p4, const vector<LV>& decay_p4, const vector<int>& decay_id, const vector<int>& decay_isstar, float ref_deta, float ref_dphi)
+{
+    vector<LV> decay_boosted_p4;
+    vector<float> decay_h_dr;
+    vector<float> decay_h_deta;
+    vector<float> decay_h_dphi;
+    vector<float> decay_h_deta_rotated;
+    vector<float> decay_h_dphi_rotated;
+    float ref_vec_deta;
+    float ref_vec_dphi;
+
+    // Get all the various re-boosted p4, dr, deta, dphi values
+    std::tie(decay_boosted_p4, decay_h_dr, decay_h_deta, decay_h_dphi, decay_h_deta_rotated, decay_h_dphi_rotated, ref_vec_deta, ref_vec_dphi) = getReBoostedDRDEtaDPhi(ptBoost, higgs_p4, decay_p4, ref_deta, ref_dphi);
+
+    // Set branches
+    tx->setBranch<vector<LV>>   (TString::Format("boosted%d_%s_p4"    , ptBoost, bname.Data()), decay_boosted_p4);
+    tx->setBranch<vector<int>>  (TString::Format("boosted%d_%s_id"    , ptBoost, bname.Data()), decay_id);
+    tx->setBranch<vector<int>>  (TString::Format("boosted%d_%s_isstar", ptBoost, bname.Data()), decay_isstar);
+    tx->setBranch<vector<float>>(TString::Format("boosted%d_%s_h_dr"  , ptBoost, bname.Data()), decay_h_dr);
+    tx->setBranch<vector<float>>(TString::Format("boosted%d_%s_h_deta", ptBoost, bname.Data()), decay_h_deta);
+    tx->setBranch<vector<float>>(TString::Format("boosted%d_%s_h_dphi", ptBoost, bname.Data()), decay_h_dphi);
+    tx->setBranch<vector<float>>(TString::Format("boosted%d_%s_h_deta_rotated", ptBoost, bname.Data()), decay_h_deta_rotated);
+    tx->setBranch<vector<float>>(TString::Format("boosted%d_%s_h_dphi_rotated", ptBoost, bname.Data()), decay_h_dphi_rotated);
+
+    tx->sortVecBranchesByPt(
+            TString::Format("boosted%d_%s_p4", ptBoost, bname.Data()),
+            {
+                TString::Format("boosted%d_%s_h_dr", ptBoost, bname.Data()),
+                TString::Format("boosted%d_%s_h_deta", ptBoost, bname.Data()),
+                TString::Format("boosted%d_%s_h_dphi", ptBoost, bname.Data()),
+                TString::Format("boosted%d_%s_h_deta_rotated", ptBoost, bname.Data()),
+                TString::Format("boosted%d_%s_h_dphi_rotated", ptBoost, bname.Data())
+            },
+            {
+                TString::Format("boosted%d_%s_id", ptBoost, bname.Data()),
+                TString::Format("boosted%d_%s_isstar", ptBoost, bname.Data())
+            },
+            {});
+
+    return make_tuple(ref_vec_deta, ref_vec_dphi);
+}
+
+//##############################################################################################################
+std::tuple<std::vector<LV>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, float, float> babyMaker_v2::getReBoostedDRDEtaDPhi(int ptBoost, const LV& higgs_p4, const vector<LV>& higgsdecay_p4, float ref_deta, float ref_dphi)
+{
+
+    // Return the values
+    if (higgsdecay_p4.size() == 0)
+        return make_tuple(std::vector<LV>(), std::vector<float>(), std::vector<float>(), std::vector<float>(), std::vector<float>(), std::vector<float>(), -999, -999);
+
+    // Compute the boost vectors
+    TLorentzVector target_tlv = RooUtil::Calc::getTLV(higgs_p4);
+    if (ptBoost == 0)
+        target_tlv.SetPtEtaPhiM(target_tlv.Pt(), target_tlv.Eta(), target_tlv.Phi(), target_tlv.M());
+    else
+        target_tlv.SetPtEtaPhiM(ptBoost, target_tlv.Eta(), target_tlv.Phi(), target_tlv.M());
+    TVector3 to_target = target_tlv.BoostVector();
+    TVector3 to_higgs = RooUtil::Calc::boostVector(higgs_p4);
+
+    // Re-compute all the decay product with the provided boost vector
+    vector<LV> boosted_decay_p4;
+    for (unsigned int i = 0; i < higgsdecay_p4.size(); ++i)
+    {
+        LV decay = RooUtil::Calc::getBoosted(higgsdecay_p4[i], -to_higgs);
+        RooUtil::Calc::boost(decay, to_target);
+        boosted_decay_p4.push_back(decay);
+    }
+
+    // Compute the higgs and re-boosted objects' dr, deta, dphi
+    vector<float> boosted_decay_h_dr;
+    vector<float> boosted_decay_h_deta;
+    vector<float> boosted_decay_h_dphi;
+
+    //for (auto& p4 : boosted_decay_p4)
+    for (unsigned int i = 0; i < boosted_decay_p4.size(); ++i)
+    {
+        LV p4 = boosted_decay_p4[i];
+        boosted_decay_h_dr.push_back(RooUtil::Calc::DeltaR(p4, higgs_p4));
+        boosted_decay_h_deta.push_back(RooUtil::Calc::DeltaEta(p4, higgs_p4));
+        boosted_decay_h_dphi.push_back(RooUtil::Calc::DeltaPhi(p4, higgs_p4));
+    }
+
+    // Compute the rotation angle based off of the leading decay particle
+    int lead_idx = boosted_decay_p4[0].pt() > boosted_decay_p4[1].pt() ? 0 : 1;
+    TVector2 ref_vec(boosted_decay_h_deta[lead_idx], boosted_decay_h_dphi[lead_idx]);
+    if (ref_dphi != -999)
+        ref_vec.Set(ref_deta, ref_dphi);
+
+    vector<float> boosted_decay_h_deta_rotated;
+    vector<float> boosted_decay_h_dphi_rotated;
+    for (unsigned i = 0; i < boosted_decay_h_deta.size(); ++i)
+    {
+        TVector2 ang_vec;
+        ang_vec.Set(boosted_decay_h_deta[i], boosted_decay_h_dphi[i]);
+        TVector2 new_vec = ang_vec.Rotate(-ref_vec.Phi() + TMath::Pi() / 2.);
+        boosted_decay_h_deta_rotated.push_back(new_vec.Px());
+        boosted_decay_h_dphi_rotated.push_back(new_vec.Py());
+    }
+
+    // Return the values
+    return make_tuple(boosted_decay_p4, boosted_decay_h_dr, boosted_decay_h_deta, boosted_decay_h_dphi, boosted_decay_h_deta_rotated, boosted_decay_h_dphi_rotated, (float) ref_vec.Px(), (float) ref_vec.Py());
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillDecayProductsDRVariables(int pt)
+{
+    // if not lvqq decay then no point of calculating this max dr
+    if (tx->getBranch<int>("nlep", true) != 1)
+        return;
+    const vector<LV>& lepton_p4 = tx->getBranch<vector<LV>>(TString::Format("boosted%d_lepton_p4", pt), true);
+    const vector<LV>& quark_p4 = tx->getBranch<vector<LV>>(TString::Format("boosted%d_quark_p4", pt), true);
+    const LV& l_p4 = lepton_p4[0];
+    const LV& q0_p4 = quark_p4[0];
+    const LV& q1_p4 = quark_p4[1];
+    float lq0_dr = RooUtil::Calc::DeltaR(l_p4, q0_p4);
+    float lq1_dr = RooUtil::Calc::DeltaR(l_p4, q1_p4);
+    float q0q1_dr = RooUtil::Calc::DeltaR(q0_p4, q1_p4);
+    tx->setBranch<float>(TString::Format("boosted%d_lqq_max_dr", pt), max(lq0_dr, max(lq1_dr, q0q1_dr)));
+    tx->setBranch<float>(TString::Format("boosted%d_lq0_dr", pt), lq0_dr);
+    tx->setBranch<float>(TString::Format("boosted%d_lq1_dr", pt), lq1_dr);
+    tx->setBranch<float>(TString::Format("boosted%d_qq_dr", pt), q0q1_dr);
 }
 
 //##############################################################################################################
@@ -3080,7 +3782,7 @@ bool babyMaker_v2::studyWWW()
         }
 
         tx->setBranch<float>("Mll_higgs", (lep0 + lep1).mass());
-        tx->setBranch<float>("DPhill_higgs", abs(ROOT::Math::VectorUtil::DeltaPhi(lep0, lep1)));
+        tx->setBranch<float>("DPhill_higgs", fabs(ROOT::Math::VectorUtil::DeltaPhi(lep0, lep1)));
         tx->setBranch<float>("MT_higgs", mT(lep0 + lep1, neu0 + neu1));
     }
 
@@ -3174,6 +3876,220 @@ bool babyMaker_v2::studyWWW()
 }
 
 //##############################################################################################################
+bool babyMaker_v2::studyWHWWW()
+{
+    ProcessGenParticles();
+
+    if (!isVH()) return false;
+
+    if (isWHWWW()) tx->setBranch<int>("iswhwww", 1);
+
+    const vector<int>& genPart_idx = coreGenPart.genPart_idx;
+    const vector<int>& genPart_pdgId = coreGenPart.genPart_pdgId;
+    const vector<int>& genPart_status = coreGenPart.genPart_status;
+    const vector<int>& genPart_motherId = coreGenPart.genPart_motherId;
+    const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
+    const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
+
+    // Find Higgs and the 2 decay 4 vector
+    vector<int> higgs_idx;
+    vector<LV> higgs_p4;
+    vector<int> higgsdecay_idx;
+    vector<LV> higgsdecay_p4;
+    vector<int> higgsdecay_id;
+    vector<int> higgsdecay_isstar;
+    // WW decay
+    bool isWW = false;
+    vector<int> lepton_idx;
+    vector<int> lepton_id;
+    vector<int> lepton_mid;
+    vector<int> lepton_isstar;
+    vector<LV> lepton_p4;
+    vector<int> neutrino_idx;
+    vector<int> neutrino_id;
+    vector<LV> neutrino_p4;
+    vector<int> quark_idx;
+    vector<int> quark_id;
+    vector<int> quark_mid;
+    vector<int> quark_isstar;
+    vector<LV> quark_p4;
+    vector<int> lepton_from_tau_idx;
+    vector<int> lepton_from_tau_id;
+    vector<LV> lepton_from_tau_p4;
+    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+    {
+        int idx = genPart_idx[i];
+        int pdgId = genPart_pdgId[i];
+        int status = genPart_status[i];
+        int motherId = genPart_motherId[i];
+        int grandmaId = genPart_grandmaId[i];
+        LV p4 = genPart_p4[i];
+        if (abs(pdgId) == 25)
+        {
+            higgs_idx.push_back(idx);
+            higgs_p4.push_back(p4);
+        }
+        if (motherId == 25 && pdgId != 25)
+        {
+            higgsdecay_idx.push_back(idx);
+            higgsdecay_p4.push_back(p4);
+            higgsdecay_id.push_back(pdgId);
+            higgsdecay_isstar.push_back(p4.mass() < 63.);
+            if (abs(pdgId) == 24) isWW = true;
+        }
+        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && ((status == 23 || status == 1) || (abs(pdgId) == 15 && status == 2)) && abs(motherId) == 24 && abs(grandmaId) == 25)
+        {
+            lepton_idx.push_back(idx);
+            lepton_id.push_back(pdgId);
+            lepton_mid.push_back(motherId);
+            lepton_p4.push_back(p4);
+        }
+        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && (status == 23 || status == 1) && abs(motherId) == 24 && abs(grandmaId) == 25)
+        {
+            neutrino_idx.push_back(idx);
+            neutrino_id.push_back(pdgId);
+            neutrino_p4.push_back(p4);
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4))
+        {
+//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 11 && abs(pdgId) <= 16))
+        {
+//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+        }
+        if ((abs(pdgId) >= 1 && abs(pdgId) <= 5) && (status == 23 || status == 1) && abs(motherId) == 24) // up to pdgid = 5 because W "can" decay to bc
+        {
+            quark_idx.push_back(idx);
+            quark_id.push_back(pdgId);
+            quark_mid.push_back(motherId);
+            quark_p4.push_back(p4);
+        }
+    }
+
+
+    if (isWW)
+    {
+//        if (lepton_idx.size() + neutrino_idx.size() + quark_idx.size() != 4)
+//        {
+//            std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+//            std::cout <<  " lepton_idx.size(): " << lepton_idx.size() <<  " quark_idx.size(): " << quark_idx.size() <<  std::endl;
+//            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+//            {
+//                int idx = genPart_idx[i];
+//                int pdgId = genPart_pdgId[i];
+//                int status = genPart_status[i];
+//                int motherId = genPart_motherId[i];
+//                int grandmaId = genPart_grandmaId[i];
+//                LV p4 = genPart_p4[i];
+////                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//                if (abs(motherId) == 15 && abs(grandmaId) == 24)
+//                {
+////                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//                }
+//            }
+//        }
+        bool hastau = false;
+        for (auto& id : lepton_id)
+        {
+            if (abs(id) == 15)
+            {
+                hastau = true;
+            }
+        }
+        if (hastau)
+        {
+            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+            {
+                int idx = genPart_idx[i];
+                int pdgId = genPart_pdgId[i];
+                int status = genPart_status[i];
+                int motherId = genPart_motherId[i];
+                int grandmaId = genPart_grandmaId[i];
+                LV p4 = genPart_p4[i];
+                //                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                if (abs(motherId) == 15)
+                {
+//                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+                }
+            }
+        }
+    }
+
+    // Save information for H
+    tx->setBranch<LV>("higgs_p4", higgs_p4[0]);
+
+    // Save information for H->XX
+    tx->setBranch<int>("higgsdecay", abs(higgsdecay_id[0]));
+    tx->setBranch<vector<LV>>("decay_p4", higgsdecay_p4);
+    tx->setBranch<vector<int>>("decay_id", higgsdecay_id);
+    tx->setBranch<vector<int>>("decay_isstar", higgsdecay_isstar);
+    tx->sortVecBranchesByPt("decay_p4", {}, {"decay_id", "decay_isstar"}, {});
+
+    // Compute and fill the boosted variables as well as toe rotation
+    // This also returns the reference vector
+    float deta0, dphi0;
+    float deta500, dphi500;
+    float deta1000, dphi1000;
+    float deta1500, dphi1500;
+    std::tie(deta0, dphi0) = FillReBoostedVariables("decay"  , 0  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta500, dphi500) = FillReBoostedVariables("decay"  , 500  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta1000, dphi1000) = FillReBoostedVariables("decay"  , 1000 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+    std::tie(deta1500, dphi1500) = FillReBoostedVariables("decay"  , 1500 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+
+    // If not WW stop here and move on
+    if (abs(higgsdecay_id[0]) != 24) return true;
+
+    // First save the information about the leptonic/hadronic channel information
+    tx->setBranch<int>("nlep", lepton_id.size());
+    tx->setBranch<int>("nquark", quark_id.size());
+
+    // Determining which lepton or quarks had the mother of off-shell W
+    int wstar_id = 0;
+    for (unsigned i = 0; i < higgsdecay_id.size(); ++i)
+    {
+        if (higgsdecay_p4[i].mass() < 63.) // Perhaps you "could" have 62.5 and 62.5 ..? probably very unlikely
+        {
+            wstar_id = higgsdecay_id[i];
+            break;
+        }
+    }
+
+    // Finding off-shell failed. Sanity check.
+    if (wstar_id == 0)
+    {
+        std::cout << "Failed to find off-shell W" << std::endl;
+        FATALERROR(__FUNCTION__);
+    }
+
+    // Compute whether specific quark or lepton had a off-shell mother or not
+    for (auto& id : lepton_mid) lepton_isstar.push_back(id == wstar_id);
+    for (auto& id : quark_mid ) quark_isstar .push_back(id == wstar_id);
+
+    // Save lepton and quark information
+    tx->setBranch<vector<LV>>("lepton_p4", lepton_p4);
+    tx->setBranch<vector<int>>("lepton_id", lepton_id);
+    tx->setBranch<vector<int>>("lepton_isstar", lepton_isstar);
+    tx->sortVecBranchesByPt("lepton_p4", {}, {"lepton_id", "lepton_isstar"}, {});
+    tx->setBranch<vector<LV>>("quark_p4", quark_p4);
+    tx->setBranch<vector<int>>("quark_id", quark_id);
+    tx->setBranch<vector<int>>("quark_isstar", quark_isstar);
+    tx->sortVecBranchesByPt("quark_p4", {}, {"quark_id", "quark_isstar"}, {});
+
+    // Now start boosting things to normalize to certain set higgs pt
+    FillReBoostedVariables("lepton" , 0    , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta0   , dphi0   );
+    FillReBoostedVariables("lepton" , 500  , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta500 , dphi500 );
+    FillReBoostedVariables("lepton" , 1000 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1000, dphi1000);
+    FillReBoostedVariables("lepton" , 1500 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1500, dphi1500);
+    FillReBoostedVariables("quark"  , 0    , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta0   , dphi0    );
+    FillReBoostedVariables("quark"  , 500  , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta500 , dphi500  );
+    FillReBoostedVariables("quark"  , 1000 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1000, dphi1000 );
+    FillReBoostedVariables("quark"  , 1500 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1500, dphi1500 );
+
+
+}
+
+//##############################################################################################################
 void babyMaker_v2::setWHSMSMassAndWeights()
 {
     using namespace tas;
@@ -3181,7 +4097,7 @@ void babyMaker_v2::setWHSMSMassAndWeights()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    if (filename.find("whsusy-2l") == string::npos)
+    if (!nicename().BeginsWith("whsusy-2l"))
     {
         for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
             if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
@@ -3232,7 +4148,7 @@ void babyMaker_v2::setWHSMSMassAndWeights()
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 9, genweights()[9]);
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 10, SMSpdf_weight_up);
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 11, SMSpdf_weight_down);
-        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation. 
+        h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 12, genweights()[110]); // α_s variation.
         h_nevents_SMS -> Fill(mass_chargino, mass_lsp, 13, genweights()[111]); // α_s variation.
     }
 }
@@ -3245,7 +4161,7 @@ void babyMaker_v2::setWHSMSMass()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    if (filename.find("whsusy-2l") == string::npos)
+    if (!nicename().BeginsWith("whsusy-2l"))
     {
         for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
             if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
@@ -3360,320 +4276,24 @@ int babyMaker_v2::gentype_v2()
 }
 
 //##############################################################################################################
-void babyMaker_v2::setFilename(TString fname)
-{
-    // 2016
-    if (fname.Contains("DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "dy_m1050_mgmlm";
-    if (fname.Contains("DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "dy_m50_mgmlm_ht100_ext1";
-    if (fname.Contains("DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "dy_m50_mgmlm_ht1200_nonext";
-    if (fname.Contains("DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "dy_m50_mgmlm_ht200_ext1";
-    if (fname.Contains("DYJetsToLL_M-50_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "dy_m50_mgmlm_ht2500_nonext";
-    if (fname.Contains("DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "dy_m50_mgmlm_ht400_ext1";
-    if (fname.Contains("DYJetsToLL_M-50_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2"))
-        filename = "dy_m50_mgmlm_ht600_nonext";
-    if (fname.Contains("DYJetsToLL_M-50_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "dy_m50_mgmlm_ht800_nonext";
-    if (fname.Contains("DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v2"))
-        filename = "dy_m50_mgmlm_ext1";
-    if (fname.Contains("EWKWMinus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "Wmjj_lnu_madgraph";
-    if (fname.Contains("EWKWPlus2Jets_WToLNu_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "Wpjj_lnu_madgraph";
-    if (fname.Contains("EWKZ2Jets_ZToLL_M-50_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "Zjj_m50_madgraph";
-    if (fname.Contains("ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "sts_4f_leptonic_amcnlo";
-    if (fname.Contains("ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "stt_antitop_incdec_powheg";
-    if (fname.Contains("ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "stt_top_incdec_powheg";
-    if (fname.Contains("ST_tW_antitop_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "sttw_antitop_nofullhaddecay_powheg";
-    if (fname.Contains("ST_tW_top_5f_NoFullyHadronicDecays_13TeV-powheg_TuneCUETP8M1_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "sttw_top_nofullhaddecay_powheg";
-    if (fname.Contains("ST_tWll_5f_LO_13TeV-MadGraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "sttwll_madgraph";
-    if (fname.Contains("TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ttg_incl_amcnlo";
-    if (fname.Contains("TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ttbar_incl_powheg";
-    if (fname.Contains("TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "ttbar_dilep_mgmlm_ext1";
-    if (fname.Contains("TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "ttbar_1ltop_mgmlm_ext1";
-    if (fname.Contains("TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "ttbar_1ltbr_mgmlm_ext1";
-    if (fname.Contains("VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "vh_nonbb_amcnlo";
-    if (fname.Contains("WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wgjets_incl_mgmlm";
-    if (fname.Contains("WGstarToLNuEE_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wgstar_lnee_012jets_madgraph";
-    if (fname.Contains("WGstarToLNuMuMu_012Jets_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wgstar_lnmm_012jets_madgraph";
-    if (fname.Contains("WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht100_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wjets_ht1200_mgmlm_nonext";
-    if (fname.Contains("WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht200_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht2500_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht400_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht600_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wjets_ht800_mgmlm_ext1";
-    if (fname.Contains("WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wjets_incl_mgmlm";
-    if (fname.Contains("WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "wwg_incl_amcnlo";
-    if (fname.Contains("WWTo2L2Nu_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ww_2l2nu_powheg";
-    if (fname.Contains("WWTo2L2Nu_DoubleScattering_13TeV-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ww_2l2nu_dbl_scat";
-    if (fname.Contains("WWToLNuQQ_13TeV-powheg_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ww_lnuqq_powheg";
-    if (fname.Contains("WWZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wwz_incl_amcnlo";
-    if (fname.Contains("WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wzg_incl_amcnlo";
-    if (fname.Contains("WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v3"))
-        filename = "wz_lnqq_amcnlo";
-    if (fname.Contains("WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wz_1l3n_amcnlo";
-    if (fname.Contains("WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wz_3lnu_powheg";
-    if (fname.Contains("WZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wzz_incl_amcnlo";
-    if (fname.Contains("WpWpJJ_EWK-QCD_TuneCUETP8M1_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "wpwpjj_ewk-qcd_madgraph";
-    if (fname.Contains("ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "zgamma_2lG_amc";
-    if (fname.Contains("ZZTo2L2Nu_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "zz_2l2n_powheg";
-    if (fname.Contains("ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "zz_2l2q_powheg";
-    if (fname.Contains("ZZTo2Q2Nu_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "zz_2q2n_amcnlo";
-    if (fname.Contains("ZZTo4L_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "zz_4l_powheg";
-    if (fname.Contains("ZZZ_TuneCUETP8M1_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "zzz_incl_amcnlo";
-    if (fname.Contains("tZq_ll_4f_13TeV-amcatnlo-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "tzq_ll_amcnlo";
-    if (fname.Contains("ttHToNonbb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "tth_nonbb_powheg";
-    if (fname.Contains("ttHTobb_M125_13TeV_powheg_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "tth_bb_powheg";
-    if (fname.Contains("ttWJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ttw_incl_mgmlm";
-    if (fname.Contains("ttZJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "ttz_incl_mgmlm";
-    if (fname.Contains("Run2016"))
-        filename = "data";
-    if (fname.Contains("QCD_Pt-15to20_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt15";
-    if (fname.Contains("QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt20";
-    if (fname.Contains("QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt30";
-    if (fname.Contains("QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt50";
-    if (fname.Contains("QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3"))
-        filename = "qcd_mu_pt80";
-    if (fname.Contains("QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt120";
-    if (fname.Contains("QCD_Pt-170to300_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_mu_pt170";
-    if (fname.Contains("QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1"))
-        filename = "qcd_mu_pt300";
-    if (fname.Contains("QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_mu_pt470";
-    if (fname.Contains("QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt600";
-    if (fname.Contains("QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_mu_pt800";
-    if (fname.Contains("QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3"))
-        filename = "qcd_mu_pt1000";
-    if (fname.Contains("QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_em_pt20";
-    if (fname.Contains("QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_em_pt30";
-    if (fname.Contains("QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_em_pt50";
-    if (fname.Contains("QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_em_pt80";
-    if (fname.Contains("QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1"))
-        filename = "qcd_em_pt120";
-    if (fname.Contains("QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_em_pt170";
-    if (fname.Contains("QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_em_pt300";
-    if (fname.Contains("QCD_Pt_15to20_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt15";
-    if (fname.Contains("QCD_Pt_20to30_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt20";
-    if (fname.Contains("QCD_Pt_30to80_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt30";
-    if (fname.Contains("QCD_Pt_80to170_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_backup_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt80";
-    if (fname.Contains("QCD_Pt_170to250_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt170";
-    if (fname.Contains("QCD_Pt_250toInf_bcToE_TuneCUETP8M1_13TeV_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1"))
-        filename = "qcd_bctoe_pt250";
-
-    // Signal sample 2016
-    if (fname.Contains("TEST-www_www-Private80X-v1"))
-        filename = "www_2l_mia";
-    if (fname.Contains("TEST-www_wwwext-Private80X-v1"))
-        filename = "www_2l_ext1_mia";
-    if (fname.Contains("PrivateWWW_www-cms4"))
-        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
-    if (fname.Contains("PrivateWWW_wwwext-cms4"))
-        filename = "www_2l_"; // the mia or ext1_mia is not needed. If you add this it actually screws it up
-
-    // BSM models 2016
-    if (fname.Contains("DoublyChargedHiggsGMmodel_HWW"))
-        filename = "hpmpm_hww";
-    if (fname.Contains("WprimeToWH"))
-        filename = "wprime";
-    if (fname.Contains("TChiHH"))
-        filename = "whsusy";
-    if (fname.Contains("TChiWH"))
-        filename = "whsusy";
-    if (fname.Contains("TChiWH_HToVVTauTau_HToBB")) // The dataset name is a misnomer. it's actually WH->W(VVtautau)->2lep filter
-        filename = "whsusy-2l";
-
-    // 2017
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "dy_m1050_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "dy_m50_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "dy_m50_madgraph_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ST_tW_antitop_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "sttw_incltop_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ST_tW_top_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "sttw_incltbr_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttg_1ltop_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8_RunIIFall17MiniAOD-PU2017_94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttg_1ltbr_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTHH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tthh_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttbar_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTJ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tttj_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTT_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_pilot_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tttt_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTTW_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tttw_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttbar_1l_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttwh_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttw_ln_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWW_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttww_incl_madgraph_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTWZ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttwz_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZH_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttzh_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttz_m10llnn_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZToLL_M-1to10_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttz_m1to10ll_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//TTZZ_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ttzz_incl_madgraph";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wjets_ln_madgraph_ext1";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "www_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WWZ_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wwz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WW_DoubleScattering_13TeV-pythia8_TuneCP5_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ww_dblsctincl_pythia";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "ww_incl_pythia";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZG_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wzg_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wz_3lnu_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wzz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "wz_incl_pythia";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ZZTo4L_13TeV_powheg_pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "zz_4l_powheg";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ZZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "zzz_incl_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//tZq_ll_4f_ckm_NLO_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tzq_ll_amcnlo";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_mc2017//ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13/"))
-        filename = "tth_nonbb_powheg";
-
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017B_ee";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017C_ee";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017D_ee";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017E_ee";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017F_ee";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017B_mm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017C_mm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017D_mm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017E_mm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017F_mm";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017B_em";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017C-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017C_em";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017D-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017D_em";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017E-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017E_em";
-    if (fname.Contains("/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017F-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/"))
-        filename = "data_Run2017F_em";
-
-}
-
-//##############################################################################################################
 bool babyMaker_v2::vetophotonprocess()
 {
     bool process = tx->getBranch<TString>("bkgtype").EqualTo("photonfakes");
     if (
-        (filename.find("wjets_") == 0
-       ||filename.find("dy_")    == 0
-       ||filename.find("ttbar_") == 0
-       ||filename.find("ww_")    == 0
-       ||filename.find("wz_")    == 0)
+        (nicename().BeginsWith("wjets_")
+       ||nicename().BeginsWith("dy_")
+       ||nicename().BeginsWith("ttbar_")
+       ||nicename().BeginsWith("ww_")
+       ||nicename().BeginsWith("wz_")   )
         &&(process)
        ) return true;
     if (
-        (filename.find("wgjets_") == 0
-       ||filename.find("wgstar_") == 0
-       ||filename.find("zgamma_") == 0
-       ||filename.find("ttg_")    == 0
-       ||filename.find("wwg_")    == 0
-       ||filename.find("wzg_")    == 0)
+        (nicename().BeginsWith("wgjets_")
+       ||nicename().BeginsWith("wgstar_")
+       ||nicename().BeginsWith("zgamma_")
+       ||nicename().BeginsWith("ttg_")
+       ||nicename().BeginsWith("wwg_")
+       ||nicename().BeginsWith("wzg_")   )
         &&(!process)
        )
         return true;
@@ -3684,9 +4304,9 @@ bool babyMaker_v2::vetophotonprocess()
 std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx(bool data, int lepton_id_version)
 {
     // Retrieve relevant variables
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
-    const vector<float>& lep_coneCorrPt = tx->getBranch<vector<float>>("lep_coneCorrPt");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
+    const vector<float>& lep_coneCorrPt = tx->getBranch<vector<float>>("lep_coneCorrPt", true);
 
     // If the lepton counts reveal that it is not even an event in the AR then return 0
     const int& nVlep = tx->getBranch<int>("nVlep");
@@ -3794,7 +4414,7 @@ std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx
 //        float errreco   = lepsf_EGammaReco_unc           (pt, eta);
 //        float errtight  = lepsf_EGammaTightID_unc        (pt, eta);
 //        float errWWW    = fabs(lepsf_EGammaTightPOG_EGammaVVV(pt, eta, lepton_id_version, 1) - sfWWW   ); // difference against syst = +1 is the error
-//        float errWWWIso = fabs(lepsf_EGammaVVV_Isolation     (pt, eta, lepton_id_version, 1) - sfWWWIso); // difference against syst = +1 is the error 
+//        float errWWWIso = fabs(lepsf_EGammaVVV_Isolation     (pt, eta, lepton_id_version, 1) - sfWWWIso); // difference against syst = +1 is the error
 //        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
 //        float fracerrreco   = sfreco   > 0 ? errreco   / sfreco   : 0;
 //        float fracerrtight  = sftight  > 0 ? errtight  / sftight  : 0;
@@ -3826,7 +4446,7 @@ std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx
 //        float errreco   = lepsf_MuReco_unc         (pt, eta);
 //        float errtight1 = lepsf_MuMediumID_BtoF_unc(pt, eta); // Additional 1%
 //        float errtight2 = lepsf_MuMediumID_GH_unc  (pt, eta); // Additional 1%
-//        float errWWW    = fabs(lepsf_MuMediumPOG_MuTightVVV(pt, eta, lepton_id_version, 1) - sfWWW); // difference against syst = +1 is the error 
+//        float errWWW    = fabs(lepsf_MuMediumPOG_MuTightVVV(pt, eta, lepton_id_version, 1) - sfWWW); // difference against syst = +1 is the error
 //        float errtight  = sqrt(pow(errtight1 * 0.549833, 2) + pow(errtight2 * 0.450167, 2));
 //        // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
 //        float fracerrreco  = sfreco  > 0 ? errreco  / sfreco : 0;
@@ -3843,9 +4463,9 @@ std::tuple<float, float, int> babyMaker_v2::getlepFakeRateandErrorandLooseLepIdx
 std::tuple<float, float> babyMaker_v2::getlepSFandError(int index, int lepton_id_version)
 {
     // Retrieve relevant variables
-    const vector<int>&   lep_pdgId = tx->getBranch<vector<int>>  ("lep_pdgId");
-    const vector<LV>&    lep_p4    = tx->getBranch<vector<LV>>   ("lep_p4");
-    const vector<float>& lep_etaSC = tx->getBranch<vector<float>>("lep_etaSC");
+    const vector<int>&   lep_pdgId = tx->getBranch<vector<int>>  ("lep_pdgId", true);
+    const vector<LV>&    lep_p4    = tx->getBranch<vector<LV>>   ("lep_p4", true);
+    const vector<float>& lep_etaSC = tx->getBranch<vector<float>>("lep_etaSC", true);
 
     // If the provided index is out of bound return null
     if (index < 0) return make_tuple(1., 0.);
@@ -3871,7 +4491,7 @@ std::tuple<float, float> babyMaker_v2::getlepSFandError(int index, int lepton_id
         float errreco   = lepsf_elec_reco(pt, eta, 1) - sfreco;
         float errpogid  = (lepton_id_version > 0 ? lepsf_elec_mva80 (pt, eta, 1) : lepsf_elec_mva90 (pt, eta, 1)) - sfpogid;
         float errWWW    = (lepton_id_version > 0 ? lepsf_elec_ss_id (pt, eta, 1) : lepsf_elec_3l_id (pt, eta, 1)) - sfWWW; // difference against syst = +1 is the error
-        float errWWWIso = (lepton_id_version > 0 ? lepsf_elec_ss_iso(pt, eta, 1) : lepsf_elec_3l_iso(pt, eta, 1)) - sfWWWIso; // difference against syst = +1 is the error 
+        float errWWWIso = (lepton_id_version > 0 ? lepsf_elec_ss_iso(pt, eta, 1) : lepsf_elec_3l_iso(pt, eta, 1)) - sfWWWIso; // difference against syst = +1 is the error
         // Following the formula from https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas, cause I always forget
         float fracerrreco   = sfreco   > 0 ? errreco   / sfreco   : 0;
         float fracerrpogid  = sfpogid  > 0 ? errpogid  / sfpogid  : 0;
@@ -3916,7 +4536,7 @@ std::tuple<float, float> babyMaker_v2::getlepSFandError(int index, int lepton_id
 std::tuple<float, float> babyMaker_v2::getlepSFWeightandError(int lepton_id_version)
 {
     // Retrieve relevant variables
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
 
     // Check the bounds
     if (lep_pdgId.size() == 0)
@@ -4073,7 +4693,7 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
 //        // And the fractino of period H is calculated from here: http://www.t2.ucsd.edu/tastwiki/bin/view/CMS/Run2_Data2016
 //        // 8.636 + 0.221 / 36.814 = 0.241
 //    }
-//    
+//
 //    // Return result
 //    return make_tuple(eff, err);
 }
@@ -4082,8 +4702,8 @@ std::tuple<float, float> babyMaker_v2::getTrigEffandError(int lepton_id_version)
 std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
 {
     // Retrieve relevant variables
-    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId", true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
 
     // If less than two leptons (should never happen anyways)
     // return dummy value
@@ -4268,7 +4888,7 @@ std::tuple<float, float> babyMaker_v2::getTrigSFandError(int lepton_id_version)
             // 8.636 + 0.221 / 36.814 = 0.241
         }
     }
-    
+
     // Return result
     return make_tuple(eff, err);
 }

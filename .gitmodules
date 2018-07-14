@@ -13,3 +13,6 @@
 	url = git@github.com:aminnj/ProjectMetis.git
 	ignore = dirty
 	branch = master
+[submodule "CORE"]
+	path = CORE
+	url = git@github.com:cmstas/CORE.git

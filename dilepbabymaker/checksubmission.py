@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, 'ProjectMetis/scripts')
 import dis_client
 
-version = "v1.2.3"
+version = sys.argv[1]
 
 logfiles = glob.glob("ProjectMetis/tasks/*{}/logs/std_logs/*.out".format(version))
 
@@ -56,7 +56,8 @@ for logfile in logfiles:
         # Get parent path
         for line in lines:
             if line.find("Add") != -1:
-                dirpath = os.path.dirname(line.split()[5])
+                print line
+                dirpath = os.path.dirname(line.split()[2])
                 break
 
         # Load Json
@@ -68,7 +69,7 @@ for logfile in logfiles:
         file_to_nevents_dict = {}
         for line in lines:
             if line.find("Add") != -1:
-                fullfilename = line.split()[5]
+                fullfilename = line.split()[2]
                 ifile = os.path.basename(fullfilename).split("_")[-1].split(".root")[0]
                 nevents_to_file_dict[str(data["ijob_to_nevents"]["{}".format(ifile)][0])] = fullfilename
                 file_to_nevents_dict[fullfilename] = str(data["ijob_to_nevents"]["{}".format(ifile)][0])

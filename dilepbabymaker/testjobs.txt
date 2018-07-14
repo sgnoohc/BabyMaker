@@ -1,0 +1,41 @@
+# Ntuple path                                                                                                                                                                                                                                            BabyMode     ShortName
+
+#
+# 2016 analysis
+#
+
+# Signal samples
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/PrivateWWW_www-cms4-Private80X-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root                                                                                                 0            2016_CMS4_WWWBaby_WWW
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/PrivateWWW_wwwext-cms4-Private80X-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root                                                                                              0            2016_CMS4_WWWBaby_WWWext
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/VHToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root   0            2016_CMS4_WWWBaby_VHToNonbb
+
+# Data 2016
+/hadoop/cms/store/group/snt/run2_data2016//DoubleEG_Run2016H-03Feb2017_ver2-v1_MINIAOD_CMS4_V00-00-02_data2016/merged_ntuple_1.root                                                                                                                      0            2016_CMS4_WWWBaby_DoubleEG_Run2016H_ver2
+/hadoop/cms/store/group/snt/run2_data2016//MuonEG_Run2016H-03Feb2017_ver2-v1_MINIAOD_CMS4_V00-00-02_data2016/merged_ntuple_1.root                                                                                                                        0            2016_CMS4_WWWBaby_MuonEG_Run2016H_ver2
+/hadoop/cms/store/group/snt/run2_data2016//DoubleMuon_Run2016H-03Feb2017_ver2-v1_MINIAOD_CMS4_V00-00-02_data2016/merged_ntuple_1.root                                                                                                                    0            2016_CMS4_WWWBaby_DoubleMuon_Run2016H_ver2
+
+# Key background samples
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root          0            2016_CMS4_WWWBaby_WZTo3LNu
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/ttWJets_13TeV_madgraphMLM_RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root                                       0            2016_CMS4_WWWBaby_ttWJets
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/WpWpJJ_EWK-QCD_TuneCUETP8M1_13TeV-madgraph-pythia8_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root  0            2016_CMS4_WWWBaby_WpWpJJ_EWK-QCD
+
+# BSM signals
+/hadoop/cms/store/user/namin/run2_moriond17_cms4/ProjectMetis/DoublyChargedHiggsGMmodel_HWW_M1000_13TeV-madgraph_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2_MINIAODSIM_CMS4_V00-00-02_2017Sep27/merged_ntuple_1.root  0            2016_CMS4_WWWBaby_DoublyChargedHiggsGMmodel_HWW_M1000
+
+#
+# 2017 analysis
+#
+
+# Signal samples
+/hadoop/cms/store/group/snt/run2_mc2017//WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root                                                          0            2017_CMS4_WWWBaby_WWW 
+
+# Data 2016
+/hadoop/cms/store/group/snt/run2_data2017//DoubleEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/merged_ntuple_1.root                                                                                                                                    0            2017_CMS4_WWWBaby_DoubleEG_Run2016B_ver1
+/hadoop/cms/store/group/snt/run2_data2017//MuonEG_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/merged_ntuple_1.root                                                                                                                                      0            2017_CMS4_WWWBaby_MuonEG_Run2016B_ver1
+/hadoop/cms/store/group/snt/run2_data2017//DoubleMuon_Run2017B-31Mar2018-v1_MINIAOD_CMS4_V09-04-12/merged_ntuple_1.root                                                                                                                                  0            2017_CMS4_WWWBaby_DoubleMuon_Run2016B_ver1
+
+# Key background samples
+/hadoop/cms/store/group/snt/run2_mc2017//WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root                                                                       0            2017_CMS4_WWWBaby_WZ
+/hadoop/cms/store/group/snt/run2_mc2017//TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root                                        0            2017_CMS4_WWWBaby_TTWJetsToLNu
+/hadoop/cms/store/group/snt/run2_mc2017//tZq_ll_4f_ckm_NLO_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root                                     0            2017_CMS4_WWWBaby_tZq_ll
+/hadoop/cms/store/group/snt/run2_mc2017//WpWpJJ_EWK-QCD_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13/merged_ntuple_1.root                                                  0            2017_CMS4_WWWBaby_WpWpJJ_EWK-QCD
