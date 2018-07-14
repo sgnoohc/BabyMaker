@@ -16,7 +16,7 @@ babyMaker_v2::~babyMaker_v2()
 }
 
 //##############################################################################################################
-void babyMaker_v2::ScanChain_v2(TChain* chain, std::string baby_name, int max_events, int index, bool verbose)
+void babyMaker_v2::ScanChain_v2(TChain* chain, int max_events, int index, bool verbose)
 {
 
     // Looper

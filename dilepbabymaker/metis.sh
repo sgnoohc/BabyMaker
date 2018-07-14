@@ -76,7 +76,7 @@ echo ">>> ls -l"
 ls -l
 echo ">>> export COREDIR=$PWD/CORE/"
 export COREDIR=$PWD/CORE/
-echo ">>> ./processBaby dummy ${INPUTFILENAMES} -1"
+echo ">>> ./processBaby ${INPUTFILENAMES} -1"
 INPUTFILES=$(echo ${INPUTFILENAMES} | tr ',' ' ')
 ISDATA=false
 if [[ ${INPUTFILENAMES} == *Run201* ]]; then
@@ -84,7 +84,7 @@ if [[ ${INPUTFILENAMES} == *Run201* ]]; then
 fi
 INDEX=1
 for file in $INPUTFILES; do
-    ./processBaby dummy "$file" -1 ${INDEX} &
+    ./processBaby "$file" -1 ${INDEX} &
     JOBS[${INDEX}]=$!
     FILES[${INDEX}]="$file"
     INDEX=$((INDEX + 1))
