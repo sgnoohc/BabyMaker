@@ -120,6 +120,7 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<unsigned long long>("evt");
     tx->createBranch<int>("isData");
     tx->createBranch<float>("evt_scale1fb");
+    tx->createBranch<float>("xsec_br");
     tx->createBranch<int>("evt_passgoodrunlist");
 
     tx->createBranch<int>("HLT_DoubleMu");
@@ -432,6 +433,8 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("weight_isr");
     tx->createBranch<float>("weight_isr_up");
     tx->createBranch<float>("weight_isr_down");
+
+    tx->createBranch<TString>("CMS4path");
 
     tx->clear();
 
