@@ -123,7 +123,12 @@ if [ "$ISDATA" = true ]; then
     fi
 else
     if [ ${NFAILED} -le 1 ]; then
-        hadd -f output.root ${GOODOUTPUTS}
+        if [ -z ${GOODOUTPUTS} ]; then
+            echo "[ERROR::HASBADJOB] This is a MC sample. But no inputs succeeded!"
+            exit
+        else
+            hadd -f output.root ${GOODOUTPUTS}
+        fi
     else
         echo "[ERROR::HASBADJOB] This is a MC sample. so it is less pertinent to have EVERY job succeed."
         echo "[ERROR::HASBADJOB] This set of job has ${NFAILED} failed job more than 1. So will not produce output.root nor copy it to hadoop."
