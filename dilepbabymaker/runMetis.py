@@ -46,6 +46,8 @@ job_tag = "WWW{}_v3.0.1".format(data_year) # First test of few samples of 2016 M
 
 job_tag = "TnP{}_v3.0.1".format(data_year) # Testing TnP
 
+job_tag = "WWW{}_v3.0.2".format(data_year) # First test of few samples of 2016 MC in order to validate the changes to accomodate 2017 are ok.
+
 ###################################################################################################################
 ###################################################################################################################
 # Below are the Metis submission code that users do not have to care about.

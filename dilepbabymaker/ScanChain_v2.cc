@@ -2179,7 +2179,7 @@ void babyMaker_v2::FillTrigger()
 {
     if (cms3.evt_isRealData())
     {
-        tx->setBranch<int>("HLT_DoubleMu", coreTrigger.HLT_DoubleMu);
+        tx->setBranch<int>("HLT_DoubleMu", coreSample.is2017(looper.getCurrentFileName()) ? coreTrigger.HLT_DoubleMu_2017 : coreTrigger.HLT_DoubleMu);
         tx->setBranch<int>("HLT_DoubleEl", coreTrigger.HLT_DoubleEl);
         tx->setBranch<int>("HLT_DoubleEl_DZ", coreTrigger.HLT_DoubleEl_DZ);
         tx->setBranch<int>("HLT_DoubleEl_DZ_2", coreTrigger.HLT_DoubleEl_DZ_2);
@@ -2229,7 +2229,7 @@ void babyMaker_v2::FillTrigger()
     {
         bool trig_ee = coreTrigger.HLT_DoubleEl || coreTrigger.HLT_DoubleEl_DZ;
         bool trig_em = coreTrigger.HLT_MuEG;
-        bool trig_mm = coreTrigger.HLT_DoubleMu;
+        bool trig_mm = coreSample.is2017(looper.getCurrentFileName()) ? coreTrigger.HLT_DoubleMu_2017 : coreTrigger.HLT_DoubleMu;
         bool is_pd_ee = SampleNiceName().BeginsWith("data_ee");
         bool is_pd_em = SampleNiceName().BeginsWith("data_em");
         bool is_pd_mm = SampleNiceName().BeginsWith("data_mm");
