@@ -83,16 +83,29 @@
 #include "coreutil/fatjet.h"
 #include "coreutil/sample.h"
 
-#define VVV_TIGHT_SS VVV_cutbased_tight_v4
-#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
-#define VVV_TIGHT_NOISO VVV_cutbased_tight_noiso_v4
+//// Version 4 (2016 final version analysis circa 2018 July)
+//#define VVV_TIGHT_SS VVV_cutbased_tight_v4
+//#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
+//#define VVV_TIGHT_NOISO VVV_cutbased_tight_noiso_v4
+//
+//#define VVV_FO_SS VVV_cutbased_fo_v4
+//#define VVV_FO_3L VVV_cutbased_3l_fo_v4
+//#define VVV_FO_NOISO VVV_cutbased_fo_noiso_v4
+//
+//#define VVV_VETO VVV_cutbased_veto_v4
+//#define VVV_VETO_NOISO VVV_cutbased_veto_noiso_v4
 
-#define VVV_FO_SS VVV_cutbased_fo_v4
-#define VVV_FO_3L VVV_cutbased_3l_fo_v4
-#define VVV_FO_NOISO VVV_cutbased_fo_noiso_v4
+// Version 5 (Leverage GlobalConfig class from CORE to set it on the fly)
+#define VVV_TIGHT_SS VVV_tight_v5
+#define VVV_TIGHT_3L VVV_3l_tight_v5
+#define VVV_TIGHT_NOISO VVV_tight_noiso_v5
 
-#define VVV_VETO VVV_cutbased_veto_v4
-#define VVV_VETO_NOISO VVV_cutbased_veto_noiso_v4
+#define VVV_FO_SS VVV_fo_v5
+#define VVV_FO_3L VVV_3l_fo_v5
+#define VVV_FO_NOISO VVV_fo_noiso_v5
+
+#define VVV_VETO VVV_veto_v5
+#define VVV_VETO_NOISO VVV_veto_noiso_v5
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
@@ -162,6 +175,9 @@ private:
     // BabyMode
     BabyMode babymode;
 
+    // Job
+    int job_index;
+
 public:
 
     babyMaker_v2();
@@ -169,28 +185,47 @@ public:
 
     int ProcessCMS4(TString filepaths, int max_events = -1, int index = 1, bool verbose = false);
 
-    void ScanChain_v2(TChain*, int max_events = -1, int index = 1, bool verbose = false);
+    void ScanChain_v2(bool verbose = false);
 
     void SetBabyMode(BabyMode bm) { babymode = bm; }
 
-    void CreateOutput(int index=1);
-    void CreateBSMSampleSpecificOutput();
+    void Init();
+
+    void Process();
+
+    void CreateOutput();
+    void AddOutput();
+    void AddBabyOutput();
+    void AddWWWBabyOutput();
+    void AddTnPBabyOutput();
+    void AddTruthStudyOutput();
+
+    void SetYear();
+
+    void SetLeptonID();
+    void SetWWWAnalysisLeptonID();
+    void SetTnPAnalysisLeptonID();
 
     void SaveOutput();
+    void SaveWWWBaby();
+    void SaveTnPBaby();
 
     void ConfigureGoodRunsList();
-
-    void SlaveBegin(int index=1);
 
     void ProcessTriggers();
     void ProcessGenParticles();
     void ProcessElectrons();
+    void ProcessNominalElectrons();
+    void ProcessTnPElectrons();
     void ProcessMuons();
+    void ProcessNominalMuons();
+    void ProcessTnPMuons();
     void ProcessJets();
     void ProcessFatJets();
     void ProcessMET();
     void ProcessTracks();
 
+    bool isPass();
     bool PassWWWPreselection();
     bool PassFRPreselection();
     bool PassOSPreselection();
@@ -204,13 +239,9 @@ public:
     void ProcessLeptons();
     void ProcessNonLeptonObjects();
 
-    void ProcessBaby(BabyMode);
-    void ProcessWWWBaby();
-    void ProcessFRBaby();
-    void ProcessOSBaby();
-    void ProcessTnPBaby();
-
-    void FillOutput();
+    void FillBaby();
+    void FillWWWBaby();
+    void FillTnPBaby();
 
     void FillTruthLevelStudyVariables();
     void FillEventInfo();
@@ -229,6 +260,14 @@ public:
     void FillSummaryVariables();
     void FillTTree();
 
+    void FillTnPMuons();
+    void FillTnPElectrons();
+
+    void FillMuonTrigger(int, int);
+    void FillMuonIDVariables(int, int);
+    void FillElectronTrigger(int, int);
+    void FillElectronIDVariables(int, int);
+
     bool isLeptonOverlappingWithJet(int ijet);
     bool isLeptonOverlappingWithJet_OldVersion(int ijet);
     bool isLeptonOverlappingWithTrack(int ijet);
@@ -236,11 +275,15 @@ public:
     static bool isLooseElectron(int);
     static bool isVetoMuon(int);
     static bool isVetoElectron(int);
+    static bool isProbeMuon(int);
+    static bool isProbeElectron(int);
+    static bool isTagMuon(int, int);
+    static bool isTagElectron(int, int);
     static bool isVetoMuonNoIso_OldVersion(int);
     static bool isVetoElectronNoIso_OldVersion(int);
 
     // Sample handling
-    TString nicename() { return coreSample.nicename(looper.getCurrentFileName()); }
+    TString SampleNiceName() { return coreSample.nicename(looper.getCurrentFileName()); }
 
     // Fill variables
     void FillJetVariables(int variation);
@@ -283,21 +326,21 @@ public:
 
     // Truth level studies
     // WWW signal sample
-    bool isSMWWW() { return nicename().BeginsWith("www_2l"); }
-    bool isVH()    { return nicename().BeginsWith("vh_nonbb"); }
+    bool isSMWWW() { return SampleNiceName().BeginsWith("www_2l"); }
+    bool isVH()    { return SampleNiceName().BeginsWith("vh_nonbb"); }
     bool isWHWWW() { return splitVH(); }
     bool isWWW() { return isSMWWW() || isWHWWW(); }
-    void AddWWWOutput();
+    void AddWWWSignalOutput();
     bool studyWWW();
     bool studyWHWWW();
 
     // Doubly Charged Higgs process related
-    bool isDoublyChargedHiggs() { return nicename().BeginsWith("hpmpm_hww"); }
+    bool isDoublyChargedHiggs() { return SampleNiceName().BeginsWith("hpmpm_hww"); }
     void AddDoublyChargedHiggsOutput();
     bool studyDoublyChargedHiggs();
 
     // Wprime process related
-    bool isWprime() { return nicename().BeginsWith("wprime"); }
+    bool isWprime() { return SampleNiceName().BeginsWith("wprime"); }
     void AddWprimeOutput();
     bool studyHiggsDecay();
     std::tuple<std::vector<LV>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, float, float> getReBoostedDRDEtaDPhi(int ptBoost, const LV& higgs_p4, const vector<LV>& higgsdecay_p4, float ref_deta=-999, float ref_dphi=-999);
@@ -306,8 +349,8 @@ public:
 
     // WH susy process related
     bool isFastSim() { return isWHSUSY(); }
-    bool isSMSFastSim() { return nicename().BeginsWith("whsusy"); }
-    bool isWHSUSY() { return nicename().BeginsWith("whsusy"); }
+    bool isSMSFastSim() { return SampleNiceName().BeginsWith("whsusy"); }
+    bool isWHSUSY() { return SampleNiceName().BeginsWith("whsusy"); }
     void AddWHsusyOutput();
     void setWHSMSMassAndWeights();
     void setWHSMSMass();

@@ -40,6 +40,7 @@ else
     IFILE=$4
     CMSSWVERSION=$5
     SCRAMARCH=$6
+    BABYMODE=$7
     if [ "x${_CONDOR_SLOT}" == "x" ]; then
         WORKDIR=/tmp/phchang_condor_local_${OUTPUTDIR//\//_}_${OUTPUTNAME}_${IFILE}
         mkdir -p ${WORKDIR}
@@ -58,7 +59,8 @@ else
     echo "IFILE         : $4"
     echo "CMSSWVERSION  : $5"
     echo "SCRAMARCH     : $6"
-    shift 6
+    echo "BABYMODE      : $7"
+    shift 7
     tar xvzf package.tar.gz
     if [ $? -eq 0 ]; then
         echo "Successfully untarred package."
@@ -84,7 +86,7 @@ if [[ ${INPUTFILENAMES} == *Run201* ]]; then
 fi
 INDEX=1
 for file in $INPUTFILES; do
-    ./processBaby "$file" -1 ${INDEX} &
+    ./processBaby "$file" -1 ${INDEX} ${BABYMODE} &
     JOBS[${INDEX}]=$!
     FILES[${INDEX}]="$file"
     INDEX=$((INDEX + 1))

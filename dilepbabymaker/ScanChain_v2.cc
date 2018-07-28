@@ -16,38 +16,47 @@ babyMaker_v2::~babyMaker_v2()
 }
 
 //##############################################################################################################
-int babyMaker_v2::ProcessCMS4(TString filepaths, int max_events, int index, bool verbose)
+int babyMaker_v2::ProcessCMS4(TString filepaths, int max_events, int idx, bool verbose)
 {
+    // Create TChain to process
     TChain* chain = RooUtil::FileUtil::createTChain("Events", filepaths);
-    ScanChain_v2(chain, max_events, index, verbose);
+
+    // Initialize Looper
+    looper.init(chain, &cms3, max_events);
+
+    // Initializer job index
+    job_index = idx;
+
+    // Run the loop
+    ScanChain_v2(verbose);
+
+    // Exit
     return 0;
 }
 
 //##############################################################################################################
-void babyMaker_v2::ScanChain_v2(TChain* chain, int max_events, int index, bool verbose)
+std::once_flag flag_init; // a flag for std::call_once
+void babyMaker_v2::ScanChain_v2(bool verbose)
 {
-
-    // Looper
-    looper.init(chain, &cms3, max_events);
-
     while (looper.nextEvent())
     {
         try
         {
             if (verbose)
-                cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << chain->GetEntries() << endl;
+                cout << "[verbose] Processed " << looper.getNEventsProcessed() << " out of " << looper.getTChain()->GetEntries() << endl;
 
             // Some of the sample specific things need to be set prior to processing the very first event
-            // Similar to "SlaveBegin()" concept in TSelector of ROOT
-            SlaveBegin(index);
+            // Those are called inside Init, they have explicit "call_once" feature
+            // The reason this is inside the loop is because it first need to access the file name before
+            std::call_once(flag_init, &babyMaker_v2::Init, this);
 
             // Now process the baby ntuples
-            ProcessBaby(babymode);
+            Process();
 
         }
         catch (const std::ios_base::failure& e)
         {
-            if (nicename().BeginsWith("data"))
+            if (SampleNiceName().BeginsWith("data"))
             {
                 std::cout << "Found bad event in data" << std::endl;
                 FATALERROR(__FUNCTION__);
@@ -65,28 +74,29 @@ void babyMaker_v2::ScanChain_v2(TChain* chain, int max_events, int index, bool v
 }
 
 //##############################################################################################################
-std::once_flag flag_output;
-std::once_flag flag_bsm_output;
-void babyMaker_v2::SlaveBegin(int index)
+void babyMaker_v2::Init()
 {
+    // Set year via "GlobalConfig gconf"
+    SetYear();
+
     // Provide which file it is and whether it is fast sim or not to JEC to determine which file to load
     coreJec.setJECFor(looper.getCurrentFileName(), isFastSim());
 
     // Output root file
-    std::call_once(flag_output, &babyMaker_v2::CreateOutput, this, index);
+    CreateOutput();
 
-    // BSM samples need some specifics things to be set prior to starting the processing
-    std::call_once(flag_bsm_output, &babyMaker_v2::CreateBSMSampleSpecificOutput, this);
+    // Signal or BSM samples need some specifics things to be set prior to starting the processing
+    AddOutput();
 
-    // For Gen-level weights the total weights need to be saved so must be called before skipping events
-    FillGenWeights();
+    // Set lepton ID configuration via "GlobalConfig gconf"
+    SetLeptonID();
 }
 
 
 //##############################################################################################################
-void babyMaker_v2::CreateOutput(int index)
+void babyMaker_v2::CreateOutput()
 {
-    ofile = new TFile(Form("output_%d.root", index), "recreate");
+    ofile = new TFile(Form("output_%d.root", job_index), "recreate");
     t = new TTree("t", "All events");
     tx = new RooUtil::TTreeX(t);
 
@@ -97,7 +107,86 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("evt_scale1fb");
     tx->createBranch<float>("xsec_br");
     tx->createBranch<int>("evt_passgoodrunlist");
+    tx->createBranch<TString>("CMS4path");
+    tx->createBranch<int>("CMS4index");
 
+    // Below are things related to event weights which must be done before skipping events
+    tx->createBranch<float>("weight_fr_r1_f1");
+    tx->createBranch<float>("weight_fr_r1_f2");
+    tx->createBranch<float>("weight_fr_r1_f0p5");
+    tx->createBranch<float>("weight_fr_r2_f1");
+    tx->createBranch<float>("weight_fr_r2_f2");
+    tx->createBranch<float>("weight_fr_r2_f0p5");
+    tx->createBranch<float>("weight_fr_r0p5_f1");
+    tx->createBranch<float>("weight_fr_r0p5_f2");
+    tx->createBranch<float>("weight_fr_r0p5_f0p5");
+    tx->createBranch<float>("weight_pdf_up");
+    tx->createBranch<float>("weight_pdf_down");
+    tx->createBranch<float>("weight_alphas_down");
+    tx->createBranch<float>("weight_alphas_up");
+    tx->createBranch<float>("weight_isr");
+    tx->createBranch<float>("weight_isr_up");
+    tx->createBranch<float>("weight_isr_down");
+
+    h_neventsinfile = new TH1F("h_neventsinfile", "", 15, 0, 15);
+    h_neventsinfile->SetBinContent(1, looper.getTChain()->GetEntries()); // this is the bin with value = 0
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddOutput()
+{
+
+    // The main branches are created
+    AddBabyOutput();
+
+
+    // Some BSM or SM signals related output (e.g. truth level study)
+    AddTruthStudyOutput();
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddBabyOutput()
+{
+    // Based on the baby mode now preselect and if it doesn't pass return
+    switch (babymode)
+    {
+        case kWWWBaby: AddWWWBabyOutput(); return; break;
+        case kFRBaby:  AddWWWBabyOutput(); return; break;
+        case kOSBaby:  AddWWWBabyOutput(); return; break;
+        case kTnPBaby: AddTnPBabyOutput(); return; break;
+        case kAllBaby: AddWWWBabyOutput(); return; break;
+        default: return;
+    }
+}
+
+
+//##############################################################################################################
+void babyMaker_v2::AddTruthStudyOutput()
+{
+    if (isDoublyChargedHiggs())
+    {
+        AddDoublyChargedHiggsOutput();
+    }
+
+    if (isWprime() || isVH())
+    {
+        AddWprimeOutput();
+    }
+
+    if (isWHSUSY())
+    {
+        AddWHsusyOutput();
+    }
+
+    if (isWWW() || isVH() || isWHSUSY())
+    {
+        AddWWWSignalOutput();
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::AddWWWBabyOutput()
+{
     tx->createBranch<int>("HLT_DoubleMu");
     tx->createBranch<int>("HLT_DoubleEl");
     tx->createBranch<int>("HLT_DoubleEl_DZ");
@@ -145,9 +234,6 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<vector<int>>("lep_pdgId");
     tx->createBranch<vector<float>>("lep_dxy");
     tx->createBranch<vector<float>>("lep_dz");
-    tx->createBranch<vector<float>>("lep_ptRatio");
-    //tx->createBranch<vector<float>>("lep_ptRatioEA");
-    tx->createBranch<vector<float>>("lep_ptRel");
     tx->createBranch<vector<float>>("lep_pterr");
     tx->createBranch<vector<float>>("lep_relIso03EAv2");
     tx->createBranch<vector<float>>("lep_relIso04EAv2");
@@ -397,30 +483,102 @@ void babyMaker_v2::CreateOutput(int index)
     tx->createBranch<float>("trigsf_up");
     tx->createBranch<float>("trigsf_dn");
 
-    tx->createBranch<float>("weight_fr_r1_f1");
-    tx->createBranch<float>("weight_fr_r1_f2");
-    tx->createBranch<float>("weight_fr_r1_f0p5");
-    tx->createBranch<float>("weight_fr_r2_f1");
-    tx->createBranch<float>("weight_fr_r2_f2");
-    tx->createBranch<float>("weight_fr_r2_f0p5");
-    tx->createBranch<float>("weight_fr_r0p5_f1");
-    tx->createBranch<float>("weight_fr_r0p5_f2");
-    tx->createBranch<float>("weight_fr_r0p5_f0p5");
-    tx->createBranch<float>("weight_pdf_up");
-    tx->createBranch<float>("weight_pdf_down");
-    tx->createBranch<float>("weight_alphas_down");
-    tx->createBranch<float>("weight_alphas_up");
-    tx->createBranch<float>("weight_isr");
-    tx->createBranch<float>("weight_isr_up");
-    tx->createBranch<float>("weight_isr_down");
+    tx->clear();
+}
 
-    tx->createBranch<TString>("CMS4path");
-    tx->createBranch<int>("CMS4index");
+//##############################################################################################################
+void babyMaker_v2::AddTnPBabyOutput()
+{
+
+    tx->createBranch<LV>("dilep_p4");
+    tx->createBranch<float>("dilep_mass");
+    tx->createBranch<LV>("p4");
+    tx->createBranch<bool>("conv_vtx_flag");
+    tx->createBranch<bool>("evt_isRealData");
+    tx->createBranch<bool>("isPF");
+
+    tx->createBranch<int>("id");
+
+    tx->createBranch<float>("AbsTrkIso");
+    tx->createBranch<float>("TrkAn04");
+    tx->createBranch<float>("RelIso03EA");
+    tx->createBranch<float>("RelIso03EAv2");
+    tx->createBranch<float>("RelIso03EAv2wlep");
+    tx->createBranch<float>("miniiso");
+    tx->createBranch<float>("miniisoDB");
+
+    tx->createBranch<float>("dZ");
+    tx->createBranch<float>("dxyPV");
+    tx->createBranch<float>("dxyPV_err");
+    tx->createBranch<float>("ip3d");
+    tx->createBranch<float>("ip3derr");
+
+    tx->createBranch<bool>("passes_HAD_veto_noiso_v3");
+    tx->createBranch<bool>("passes_HAD_veto_v3");
+    tx->createBranch<bool>("passes_SS_tight_noiso_v3");
+    tx->createBranch<bool>("passes_SS_tight_v3");
+    tx->createBranch<bool>("passes_VVV_tight");
+    tx->createBranch<bool>("passes_VVV_tight_noiso");
+    tx->createBranch<bool>("passes_VVV_3l_tight");
+    tx->createBranch<bool>("passes_VVV_3l_tight_noiso");
+    tx->createBranch<bool>("passes_POG_mediumID");
+    tx->createBranch<bool>("passes_POG_looseID");
+
+    tx->createBranch<LV>("mc_motherp4");
+    tx->createBranch<LV>("mc_p4");
+    tx->createBranch<int>("mc_motherid");
+    tx->createBranch<int>("motherID");
+
+    tx->createBranch<bool>("threeChargeAgree");
+    tx->createBranch<float>("dEtaIn");
+    tx->createBranch<float>("dPhiIn");
+    tx->createBranch<float>("eOverPIn");
+    tx->createBranch<float>("ecalEnergy");
+    tx->createBranch<float>("etaSC");
+    tx->createBranch<float>("etaSCwidth");
+    tx->createBranch<float>("phiSCwidth");
+    tx->createBranch<float>("hOverE");
+    tx->createBranch<float>("sigmaIEtaIEta_full5x5");
+    tx->createBranch<float>("mva");
+    tx->createBranch<float>("mva_25ns");
+
+    tx->createBranch<float>("ptErr");
+    tx->createBranch<float>("trk_pt");
+
+    tx->createBranch<int>("evt_event");
+    tx->createBranch<int>("evt_lumiBlock");
+    tx->createBranch<int>("evt_run");
+    tx->createBranch<int>("nvtx");
+
+    tx->createBranch<LV>("tag_p4");
+    tx->createBranch<float>("tag_RelIso03EA");
+    tx->createBranch<float>("tag_ecalEnergy");
+    tx->createBranch<float>("tag_mva_25ns");
+    tx->createBranch<int>("tag_mc_motherid");
+    tx->createBranch<int>("tag_charge");
+    tx->createBranch<int>("tag_HLT_Ele27_eta2p1_WPTight_Gsf");
+    tx->createBranch<int>("tag_HLT_Ele32_eta2p1_WPTight_Gsf");
+    tx->createBranch<int>("tag_HLT_Ele32_WPTight_Gsf");
+    tx->createBranch<int>("tag_HLT_Ele35_WPTight_Gsf");
+    tx->createBranch<int>("tag_HLT_IsoMu24");
+    tx->createBranch<int>("tag_HLT_IsoTkMu24");
+
+    tx->createBranch<int>("charge");
+    tx->createBranch<int>("ckf_charge");
+
+    tx->createBranch<int>("exp_innerlayers");
+    tx->createBranch<int>("gfit_validSTAHits");
+    tx->createBranch<int>("gsf_validHits");
+
+    tx->createBranch<int>("idx");
+    tx->createBranch<int>("jet_close_lep_idx");
+    tx->createBranch<int>("mc_id");
+    tx->createBranch<int>("pid_PFMuon");
+    tx->createBranch<int>("sccharge");
+    tx->createBranch<int>("validHits");
+    tx->createBranch<int>("validPixelHits");
 
     tx->clear();
-
-    h_neventsinfile = new TH1F("h_neventsinfile", "", 15, 0, 15);
-    h_neventsinfile->SetBinContent(1, looper.getTChain()->GetEntries()); // this is the bin with value = 0
 }
 
 //##############################################################################################################
@@ -437,6 +595,8 @@ void babyMaker_v2::AddDoublyChargedHiggsOutput()
     tx->createBranch<LV>("l1_p4");
     tx->createBranch<LV>("v0_p4");
     tx->createBranch<LV>("v1_p4");
+
+    tx->clear();
 }
 
 //##############################################################################################################
@@ -616,10 +776,12 @@ void babyMaker_v2::AddWprimeOutput()
     tx->createBranch<float>("boosted1500_lq1_dr");
     tx->createBranch<float>("boosted1500_qq_dr");
 
+    tx->clear();
+
 }
 
 //##############################################################################################################
-void babyMaker_v2::AddWWWOutput()
+void babyMaker_v2::AddWWWSignalOutput()
 {
     tx->createBranch<int>("iswhwww");
     tx->createBranch<int>("www_channel"); // 0 == all hadronic, 1 == 1lep , 2 == 2SS, 3 == 3lep, 4 == 2OS
@@ -656,6 +818,8 @@ void babyMaker_v2::AddWWWOutput()
     tx->createBranch<float>("Mll_higgs");
     tx->createBranch<float>("MT_higgs");
 
+    tx->clear();
+
 }
 
 //##############################################################################################################
@@ -673,10 +837,225 @@ void babyMaker_v2::AddWHsusyOutput()
     hxsec = (TH1D *) fxsec -> Get("h_xsec_c1n2");
     tx->createBranch<float>("chimass");
     tx->createBranch<float>("lspmass");
+
+    tx->clear();
+
+}
+
+//##############################################################################################################
+void babyMaker_v2::SetYear()
+{
+    TString filename = looper.getCurrentFileName();
+    if (
+            filename.Contains("Run2016")
+            || filename.Contains("Moriond17")
+            || filename.Contains("RunIISummer16")
+            || filename.Contains("run2_data2016")
+            || filename.Contains("run2_moriond17")
+       ) gconf.year = 2016;
+    if (
+            filename.Contains("Run2017")
+            || filename.Contains("RunIIFall17")
+            || filename.Contains("_mc2017_")
+            || filename.Contains("run2_mc2017")
+       ) gconf.year = 2017;
+    if (
+            filename.Contains("Run2018")
+            || filename.Contains("RunIISpring18")
+            || filename.Contains("RunIISummer18")
+            || filename.Contains("run2_mc2018")
+       ) gconf.year = 2018;
+}
+
+//##############################################################################################################
+void babyMaker_v2::SetLeptonID()
+{
+    // Set lepton ID based on baby mode
+    switch (babymode)
+    {
+        case kWWWBaby: SetWWWAnalysisLeptonID(); break;
+        case kFRBaby:  SetWWWAnalysisLeptonID(); break;
+        case kOSBaby:  SetWWWAnalysisLeptonID(); break;
+        case kTnPBaby: SetTnPAnalysisLeptonID(); break;
+        case kAllBaby: SetWWWAnalysisLeptonID(); break;
+        default: return;
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::SetWWWAnalysisLeptonID()
+{
+    if (gconf.year == 2016 || gconf.year == 2017)
+    {
+        gconf.ea_version = 2;
+
+        //-------------------
+        //
+        // WWW (VVV) Analysis
+        //
+        //-------------------
+
+        // Naming convention
+        // <lep>_<var>_<idlevel>
+
+        //_________________________________
+        // Isolation configuration
+        //
+
+        // Same-sign muons
+        gconf.mu_reliso_veto      = 0.4;
+        gconf.mu_reliso_fo        = 0.4;
+        gconf.mu_reliso_tight     = 0.03;
+        gconf.mu_addlep_veto      = false;
+        gconf.mu_addlep_fo        = true;
+        gconf.mu_addlep_tight     = true;
+        // Same-sign electrons
+        gconf.el_reliso_veto      = 0.4;
+        gconf.el_reliso_fo        = 0.4;
+        gconf.el_reliso_tight     = 0.03;
+        gconf.el_addlep_veto      = false;
+        gconf.el_addlep_fo        = true;
+        gconf.el_addlep_tight     = true;
+        // Three-lepton muons (Shares same veto as same-sign)
+        gconf.mu_reliso_3l_fo     = 0.4;
+        gconf.mu_reliso_3l_tight  = 0.07;
+        gconf.mu_addlep_3l_fo     = true;
+        gconf.mu_addlep_3l_tight  = true;
+        // Three-lepton electrons (Shares same veto as same-sign)
+        gconf.el_reliso_3l_fo     = 0.4;
+        gconf.el_reliso_3l_tight  = 0.05;
+        gconf.el_addlep_3l_fo     = true;
+        gconf.el_addlep_3l_tight  = true;
+
+        //_________________________________
+        // Electron MVA ID
+        //
+        //  ib = inner barrel (<= 0.8)
+        //  ob = outer barrel (<= 1.479)
+        //  ec = endcap       (>  1.479)
+        //
+
+        // Same-sign electrons
+        gconf.el_mva_ib_veto = 0.6;
+        gconf.el_mva_ob_veto = 0.6;
+        gconf.el_mva_ec_veto = 0.0;
+        gconf.el_mva_ib      = 0.941;
+        gconf.el_mva_ob      = 0.941;
+        gconf.el_mva_ec      = 0.925;
+        // Three-lepton electrons (Shares same veto as same-sign)
+        gconf.el_mva_ib_3l   = 0.92;
+        gconf.el_mva_ob_3l   = 0.92;
+        gconf.el_mva_ec_3l   = 0.88;
+        if (looper.getCurrentFileName().Contains("-17Jul2018-"))
+        {
+            gconf.cmssw_ver = 94;
+        }
+    }
+    else
+    {
+        std::cout << "year not recognized! gconf.year = " << gconf.year << std::endl;
+        FATALERROR(__FUNCTION__);
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::SetTnPAnalysisLeptonID()
+{
+    if (gconf.year == 2016 || gconf.year == 2017)
+    {
+        gconf.ea_version = 2;
+
+        //-------------------
+        //
+        // WWW (VVV) Analysis
+        //
+        //-------------------
+
+        // Naming convention
+        // <lep>_<var>_<idlevel>
+
+        //_________________________________
+        // Isolation configuration
+        //
+
+        // Same-sign muons
+        gconf.mu_reliso_veto      = 0.4;
+        gconf.mu_reliso_fo        = 0.4;
+        gconf.mu_reliso_tight     = 0.03;
+        gconf.mu_addlep_veto      = false;
+        gconf.mu_addlep_fo        = true;
+        gconf.mu_addlep_tight     = true;
+        // Same-sign electrons
+        gconf.el_reliso_veto      = 0.4;
+        gconf.el_reliso_fo        = 0.4;
+        gconf.el_reliso_tight     = 0.03;
+        gconf.el_addlep_veto      = false;
+        gconf.el_addlep_fo        = true;
+        gconf.el_addlep_tight     = true;
+        // Three-lepton muons (Shares same veto as same-sign)
+        gconf.mu_reliso_3l_fo     = 0.4;
+        gconf.mu_reliso_3l_tight  = 0.07;
+        gconf.mu_addlep_3l_fo     = true;
+        gconf.mu_addlep_3l_tight  = true;
+        // Three-lepton electrons (Shares same veto as same-sign)
+        gconf.el_reliso_3l_fo     = 0.4;
+        gconf.el_reliso_3l_tight  = 0.05;
+        gconf.el_addlep_3l_fo     = true;
+        gconf.el_addlep_3l_tight  = true;
+
+        //_________________________________
+        // Electron MVA ID
+        //
+        //  ib = inner barrel (<= 0.8)
+        //  ob = outer barrel (<= 1.479)
+        //  ec = endcap       (>  1.479)
+        //
+
+        // Same-sign electrons
+        gconf.el_mva_ib_veto = 0.6;
+        gconf.el_mva_ob_veto = 0.6;
+        gconf.el_mva_ec_veto = 0.0;
+        gconf.el_mva_ib      = 0.941;
+        gconf.el_mva_ob      = 0.941;
+        gconf.el_mva_ec      = 0.925;
+        // Three-lepton electrons (Shares same veto as same-sign)
+        gconf.el_mva_ib_3l   = 0.92;
+        gconf.el_mva_ob_3l   = 0.92;
+        gconf.el_mva_ec_3l   = 0.88;
+
+        if (looper.getCurrentFileName().Contains("-17Jul2018-"))
+        {
+            gconf.cmssw_ver = 94;
+        }
+
+    }
+    else
+    {
+        std::cout << "year not recognized! gconf.year = " << gconf.year << std::endl;
+        FATALERROR(__FUNCTION__);
+    }
 }
 
 //##############################################################################################################
 void babyMaker_v2::SaveOutput()
+{
+    // This is always saved
+    h_neventsinfile->Write();
+
+    // Based on the baby mode now preselect and if it doesn't pass return
+    switch (babymode)
+    {
+        case kWWWBaby: SaveWWWBaby(); break;
+        case kFRBaby:  SaveWWWBaby(); break;
+        case kOSBaby:  SaveWWWBaby(); break;
+        case kTnPBaby: SaveTnPBaby(); break;
+        case kAllBaby: SaveWWWBaby(); break;
+        default: return;
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::SaveWWWBaby()
 {
     ofile->cd();
 
@@ -718,8 +1097,6 @@ void babyMaker_v2::SaveOutput()
     t_prompt->Write();
     t_lostlep->Write();
 
-    h_neventsinfile->Write();
-
     if (isWHSUSY())
     {
         h_nevents_SMS->Write();
@@ -728,58 +1105,32 @@ void babyMaker_v2::SaveOutput()
 }
 
 //##############################################################################################################
-void babyMaker_v2::CreateBSMSampleSpecificOutput()
+void babyMaker_v2::SaveTnPBaby()
 {
-    if (isDoublyChargedHiggs())
-    {
-        AddDoublyChargedHiggsOutput();
-    }
-
-    if (isWprime() || isVH())
-    {
-        AddWprimeOutput();
-    }
-
-    if (isWHSUSY())
-    {
-        AddWHsusyOutput();
-    }
-
-    if (isWWW() || isVH() || isWHSUSY())
-    {
-        AddWWWOutput();
-    }
+    t->Write();
+    ofile->cd();
 }
 
+
 //##############################################################################################################
-void babyMaker_v2::ProcessBaby(BabyMode babymode)
+void babyMaker_v2::Process()
 {
+
+    // For Gen-level weights the total weights need to be saved so must be called before skipping events (i.e. before isPass() exists Process())
+    FillGenWeights();
+
     // Process leptons via CoreUtil
     ProcessLeptons();
 
-    // Based on the baby mode now preselect and if it doesn't pass return
-    switch (babymode)
-    {
-        case kWWWBaby: if (!PassWWWPreselection()) return; break;
-        case kFRBaby:  if (!PassFRPreselection ()) return; break;
-        case kOSBaby:  if (!PassOSPreselection ()) return; break;
-        case kTnPBaby: if (!PassTnPPreselection()) return; break;
-        case kAllBaby: /* no cut is applied accept all */  break;
-        default: return;
-    }
+    if (!isPass())
+        return;
 
     // Process other non-lepton objects via CoreUtil
     ProcessNonLeptonObjects();
 
-    // Now process the rest of the stuff
-    switch (babymode)
-    {
-        case kWWWBaby: ProcessWWWBaby(); break;
-        case kFRBaby:  ProcessFRBaby (); break;
-        case kOSBaby:  ProcessOSBaby (); break;
-        case kTnPBaby: ProcessTnPBaby(); break;
-        case kAllBaby: ProcessWWWBaby(); break;
-    }
+    // Fill the output ttree
+    FillBaby();
+
 }
 
 //##############################################################################################################
@@ -791,6 +1142,24 @@ void babyMaker_v2::ProcessLeptons()
     // Loop over muons
     ProcessMuons();
 
+}
+
+//##############################################################################################################
+bool babyMaker_v2::isPass()
+{
+    // Based on the baby mode now preselect and if it doesn't pass return
+    switch (babymode)
+    {
+        case kWWWBaby: if (!PassWWWPreselection()) return false; break;
+        case kFRBaby:  if (!PassFRPreselection ()) return false; break;
+        case kOSBaby:  if (!PassOSPreselection ()) return false; break;
+        case kTnPBaby: if (!PassTnPPreselection()) return false; break;
+        case kAllBaby: /* no cut is applied accept all */  break;
+        default: return false;
+    }
+
+    // If it passed then accept
+    return true;
 }
 
 //##############################################################################################################
@@ -815,33 +1184,85 @@ void babyMaker_v2::ProcessNonLeptonObjects()
     ProcessTracks();
 }
 
-
 //##############################################################################################################
-void babyMaker_v2::ProcessWWWBaby()
+void babyMaker_v2::FillBaby()
 {
-    // Fill baby ntuple
-    FillOutput();
+    // Now process the rest of the stuff
+    switch (babymode)
+    {
+        case kWWWBaby: FillWWWBaby(); break;
+        case kFRBaby:  FillWWWBaby(); break;
+        case kOSBaby:  FillWWWBaby(); break;
+        case kTnPBaby: FillTnPBaby(); break;
+        case kAllBaby: FillWWWBaby(); break;
+    }
 }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessFRBaby()
+void babyMaker_v2::FillWWWBaby()
 {
-    // Fill baby ntuple
-    FillOutput();
+
+    // Fill baby ntuple branches with event information (evt, lumi etc.)
+    // These are always created and filled
+    FillEventInfo();
+
+    // Truth level variables studies for WWW
+    FillTruthLevelStudyVariables();
+
+    // Fill baby ntuple branches corresponding to lepton indices
+    FillElectrons();
+
+    // Fill baby ntuple branches corresponding to lepton indices
+    FillMuons();
+
+    // Organize leptons by sorting by their pt
+    SortLeptonBranches();
+
+    // Fill baby ntuple branches for jets
+    FillJets();
+
+    // Fill baby ntuple branches for fat-jets
+    FillFatJets();
+
+    // Organize jets by sorting by their pt
+    SortJetBranches();
+
+    // Fill baby ntuple branches for MET
+    FillMET();
+
+    // Fill baby ntuple branches for track related variables (iso track veto)
+    FillTracks();
+
+    // Fill generatore level particles
+    FillGenParticles();
+
+    // Fill vertex info
+    FillVertexInfo();
+
+    // Fill MET filter info
+    FillMETFilter();
+
+    // Fill summary variables
+    FillSummaryVariables();
+
+    // Fill trigger bits (This comes after summary variables and leptons
+    FillTrigger();
+
+    // Fill Weights
+    FillWeights();
+
+    // Fill TTree (NOTE: also clears internal variables)
+    FillTTree();
 }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessOSBaby()
+void babyMaker_v2::FillTnPBaby()
 {
-    // Fill baby ntuple
-    FillOutput();
-}
+    // Fill Muons
+    FillTnPMuons();
 
-//##############################################################################################################
-void babyMaker_v2::ProcessTnPBaby()
-{
-    // Fill baby ntuple
-    FillOutput();
+    // Fill Electrons
+    FillTnPElectrons();
 }
 
 //##############################################################################################################
@@ -851,10 +1272,47 @@ void babyMaker_v2::ProcessTriggers() { coreTrigger.process(); }
 void babyMaker_v2::ProcessGenParticles() { coreGenPart.process(); }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessElectrons() { coreElectron.process(isVetoElectron); }
+void babyMaker_v2::ProcessElectrons()
+{
+    // Based on the baby mode Process different set of electrons
+    switch (babymode)
+    {
+        case kWWWBaby: ProcessNominalElectrons(); return; break;
+        case kFRBaby:  ProcessNominalElectrons(); return; break;
+        case kOSBaby:  ProcessNominalElectrons(); return; break;
+        case kTnPBaby: ProcessTnPElectrons();     return; break;
+        case kAllBaby: ProcessNominalElectrons(); return; break;
+        default: return;
+    }
+}
 
 //##############################################################################################################
-void babyMaker_v2::ProcessMuons() { coreMuon.process(isVetoMuon); }
+void babyMaker_v2::ProcessNominalElectrons() { coreElectron.process(isVetoElectron); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessTnPElectrons() { coreElectron.process(isProbeElectron, isTagElectron); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessMuons()
+{
+    // Based on the baby mode now preselect and if it doesn't pass return
+    switch (babymode)
+    {
+        case kWWWBaby: ProcessNominalMuons(); return; break;
+        case kFRBaby:  ProcessNominalMuons(); return; break;
+        case kOSBaby:  ProcessNominalMuons(); return; break;
+        case kTnPBaby: ProcessTnPMuons();     return; break;
+        case kAllBaby: ProcessNominalMuons(); return; break;
+        default: return;
+    }
+    coreMuon.process(isVetoMuon);
+}
+
+//##############################################################################################################
+void babyMaker_v2::ProcessNominalMuons() { coreMuon.process(isVetoMuon); }
+
+//##############################################################################################################
+void babyMaker_v2::ProcessTnPMuons() { coreMuon.process(isProbeMuon, isTagMuon); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessJets() { coreJet.process(coreJec); }
@@ -1033,7 +1491,7 @@ bool babyMaker_v2::PassPresel_v2()
     if (nveto == 1)
     {
         // Check if data,
-        bool isdata = nicename().BeginsWith("data");
+        bool isdata = SampleNiceName().BeginsWith("data");
         if (isdata)
         {
             // If data then check the triggers
@@ -1056,13 +1514,13 @@ bool babyMaker_v2::PassPresel_v2()
             // If it reaches this point, then it means that none of the trigger passed
             return false;
         }
-        bool isqcd   = nicename().BeginsWith("qcd_");
-        bool isttbar = nicename().BeginsWith("ttbar_");
-        bool isW     = nicename().BeginsWith("wjets_");
-        bool isZ     = nicename().BeginsWith("dy_");
-        bool isWW    = nicename().BeginsWith("ww_");
-        bool isWZ    = nicename().BeginsWith("wz_");
-        bool isZZ    = nicename().BeginsWith("zz_");
+        bool isqcd   = SampleNiceName().BeginsWith("qcd_");
+        bool isttbar = SampleNiceName().BeginsWith("ttbar_");
+        bool isW     = SampleNiceName().BeginsWith("wjets_");
+        bool isZ     = SampleNiceName().BeginsWith("dy_");
+        bool isWW    = SampleNiceName().BeginsWith("ww_");
+        bool isWZ    = SampleNiceName().BeginsWith("wz_");
+        bool isZZ    = SampleNiceName().BeginsWith("zz_");
         return isqcd || isttbar || isW || isZ || isWW || isWZ || isZZ;
     }
 
@@ -1173,7 +1631,7 @@ bool babyMaker_v2::PassFRPreselection()
     if (el_idx.size() + mu_idx.size() == 1)
     {
         // Check if data,
-        bool isdata = nicename().BeginsWith("data") == 0;
+        bool isdata = SampleNiceName().BeginsWith("data") == 0;
         if (isdata)
         {
             // If data then check the triggers
@@ -1196,13 +1654,13 @@ bool babyMaker_v2::PassFRPreselection()
             // If it reaches this point, then it means that none of the trigger passed
             return false;
         }
-        bool isqcd   = nicename().BeginsWith("qcd_");
-        bool isttbar = nicename().BeginsWith("ttbar_");
-        bool isW     = nicename().BeginsWith("wjets_");
-        bool isZ     = nicename().BeginsWith("dy_");
-        bool isWW    = nicename().BeginsWith("ww_");
-        bool isWZ    = nicename().BeginsWith("wz_");
-        bool isZZ    = nicename().BeginsWith("zz_");
+        bool isqcd   = SampleNiceName().BeginsWith("qcd_");
+        bool isttbar = SampleNiceName().BeginsWith("ttbar_");
+        bool isW     = SampleNiceName().BeginsWith("wjets_");
+        bool isZ     = SampleNiceName().BeginsWith("dy_");
+        bool isWW    = SampleNiceName().BeginsWith("ww_");
+        bool isWZ    = SampleNiceName().BeginsWith("wz_");
+        bool isZZ    = SampleNiceName().BeginsWith("zz_");
         return isqcd || isttbar || isW || isZ || isWW || isWZ || isZZ;
         return true;
     }
@@ -1245,63 +1703,7 @@ bool babyMaker_v2::PassOSPreselection()
 //##############################################################################################################
 bool babyMaker_v2::PassTnPPreselection()
 {
-    return PassPresel();
-}
-
-//##############################################################################################################
-void babyMaker_v2::FillOutput()
-{
-
-    // Truth level variables studies for WWW
-    FillTruthLevelStudyVariables();
-
-    // Fill baby ntuple branches with event information (evt, lumi etc.)
-    FillEventInfo();
-
-    // Fill baby ntuple branches corresponding to lepton indices
-    FillElectrons();
-
-    // Fill baby ntuple branches corresponding to lepton indices
-    FillMuons();
-
-    // Organize leptons by sorting by their pt
-    SortLeptonBranches();
-
-    // Fill baby ntuple branches for jets
-    FillJets();
-
-    // Fill baby ntuple branches for fat-jets
-    FillFatJets();
-
-    // Organize jets by sorting by their pt
-    SortJetBranches();
-
-    // Fill baby ntuple branches for MET
-    FillMET();
-
-    // Fill baby ntuple branches for track related variables (iso track veto)
-    FillTracks();
-
-    // Fill generatore level particles
-    FillGenParticles();
-
-    // Fill vertex info
-    FillVertexInfo();
-
-    // Fill MET filter info
-    FillMETFilter();
-
-    // Fill summary variables
-    FillSummaryVariables();
-
-    // Fill trigger bits (This comes after summary variables and leptons
-    FillTrigger();
-
-    // Fill Weights
-    FillWeights();
-
-    // Fill TTree (NOTE: also clears internal variables)
-    FillTTree();
+    return true;
 }
 
 //##############################################################################################################
@@ -1353,9 +1755,9 @@ void babyMaker_v2::FillEventInfo()
             xsec = coreDatasetInfo.getXsec();
 
         // CMS3 www_2l_mia has scale1fb = 1/91900 * 1000. or 1/164800 * 1000.
-        // CMS4 WWW samples are set to "nicename() == "www_2l_", so below snippet will be skipped
-        /* deprecated */ //if (nicename().BeginsWith("www_2l_mia_cms3")     ) scale1fb *= 0.053842752 * 1.14082 *  91900. / (91900. + 164800.);
-        /* deprecated */ //if (nicename().BeginsWith("www_2l_ext1_mia_cms3")) scale1fb *= 0.053842752 * 1.1402  * 164800. / (91900. + 164800.);
+        // CMS4 WWW samples are set to "SampleNiceName() == "www_2l_", so below snippet will be skipped
+        /* deprecated */ //if (SampleNiceName().BeginsWith("www_2l_mia_cms3")     ) scale1fb *= 0.053842752 * 1.14082 *  91900. / (91900. + 164800.);
+        /* deprecated */ //if (SampleNiceName().BeginsWith("www_2l_ext1_mia_cms3")) scale1fb *= 0.053842752 * 1.1402  * 164800. / (91900. + 164800.);
         //                                                                                ^^^^^^^^^^^   ^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^
         //                                                                                 sigma*BR     neg-wgt   tot-evt   tot-evt of both sample
         // sigma(pp -> WWW) = 216 fb (MadGraph5)
@@ -1368,8 +1770,8 @@ void babyMaker_v2::FillEventInfo()
         // But do this only for 2017 production.
         // This is because the 2016 production did not have this factor applied but rather applied at the looper level.
         // So for posterity (to produces same results with the tagged code) do not apply this for 2016
-        if (nicename().BeginsWith("www_2l_") && coreSample.is2017(looper.getCurrentFileName()))
-            scale1fb *= 1.035475; 
+        if (SampleNiceName().BeginsWith("www_2l_") && coreSample.is2017(looper.getCurrentFileName()))
+            scale1fb *= 1.035475;
 
         tx->setBranch<float>("evt_scale1fb", scale1fb);
         tx->setBranch<float>("xsec_br", xsec);
@@ -1384,16 +1786,6 @@ void babyMaker_v2::FillElectrons()
 {
     for (auto& idx : coreElectron.index)
     {
-        // Some variables that need to call another functions...
-        const LorentzVector& temp_jet_p4 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
-        //const LorentzVector& temp_jet_p4_v0 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */0);
-        //const LorentzVector& temp_jet_p4_v1 = closestJet(cms3.els_p4()[idx], 0.4, 3.0, /*whichCorr = */1);
-        int jetidx = closestJetIdx(cms3.els_p4()[idx], 0.4, 3.0);
-        float closeJetPt = temp_jet_p4.pt();
-        float ptratio = (closeJetPt > 0. ? cms3.els_p4()[idx].pt() / closeJetPt : 1.);
-        //float ptratioEA = (temp_jet_p4_v0.pt() > 0. ? cms3.els_p4()[idx].pt() / (temp_jet_p4_v0.pt() - (elEA03(idx, 2) * cms3.evt_fixgridfastjet_all_rho() * (cms3.pfjets_area()[jetidx] / 0.3 * 0.3 * TMath::Pi()))) : 1.);
-        //float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ?  0.84 / ptratio : 0.9 / ptratio;
-        //float conecorrptfactor = max(0., conecorrptfactorraw - 1.) + 1.; // To clip correcting once it passes tight isolation criteria
         float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ? eleRelIso03EA(idx, 2, true) - 0.03: eleRelIso03EA(idx, 2, true) - 0.05;
         float conecorrptfactor = max(0., (double) conecorrptfactorraw) + 1.; // To clip correcting once it passes tight isolation criteria
 
@@ -1429,9 +1821,6 @@ void babyMaker_v2::FillElectrons()
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.els_charge()[idx]*(-11));
         tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.els_dxyPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.els_dzPV()[idx]);
-        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , ptratio);
-        //tx->pushbackToBranch<float>         ("lep_ptRatioEA"                    , ptratioEA);
-        tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.els_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.els_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , eleRelIso03EA(idx, 2));
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2Lep"              , eleRelIso03EA(idx, 2, true));
@@ -1483,16 +1872,6 @@ void babyMaker_v2::FillMuons()
 {
     for (auto& idx : coreMuon.index)
     {
-        // Some variables that need to call another functions...
-        const LorentzVector& temp_jet_p4 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */2);
-        //const LorentzVector& temp_jet_p4_v0 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */0);
-        //const LorentzVector& temp_jet_p4_v1 = closestJet(cms3.mus_p4()[idx], 0.4, 3.0, /*whichCorr = */1);
-        int jetidx = closestJetIdx(cms3.mus_p4()[idx], 0.4, 3.0);
-        float closeJetPt = temp_jet_p4.pt();
-        float ptratio = (closeJetPt > 0. ? cms3.mus_p4()[idx].pt() / closeJetPt : 1.);
-        //float ptratioEA = (temp_jet_p4_v0.pt() > 0. ?  cms3.mus_p4()[idx].pt() / (temp_jet_p4_v0.pt() - (muEA03(idx, 2) * cms3.evt_fixgridfastjet_all_rho() * (cms3.pfjets_area()[jetidx] / 0.3 * 0.3 * TMath::Pi()))) : 1.);
-        //float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ?  0.84 / ptratio : 0.9 / ptratio;
-        //float conecorrptfactor = max(0., conecorrptfactorraw - 1.) + 1.; // To clip correcting once it passes tight isolation criteria
         float conecorrptfactorraw = coreElectron.index.size() + coreMuon.index.size() > 2 ? muRelIso03EA(idx, 2, true) - 0.03: muRelIso03EA(idx, 2, true) - 0.07;
         float conecorrptfactor = max(0., (double) conecorrptfactorraw) + 1.; // To clip correcting once it passes tight isolation criteria
 
@@ -1528,9 +1907,6 @@ void babyMaker_v2::FillMuons()
         tx->pushbackToBranch<int>           ("lep_pdgId"                        , cms3.mus_charge()[idx]*(-13));
         tx->pushbackToBranch<float>         ("lep_dxy"                          , cms3.mus_dxyPV()[idx]);
         tx->pushbackToBranch<float>         ("lep_dz"                           , cms3.mus_dzPV()[idx]);
-        tx->pushbackToBranch<float>         ("lep_ptRatio"                      , ptratio);
-        //tx->pushbackToBranch<float>         ("lep_ptRatioEA"                    , ptratioEA);
-        tx->pushbackToBranch<float>         ("lep_ptRel"                        , ptRel(cms3.mus_p4()[idx], temp_jet_p4, true));
         tx->pushbackToBranch<float>         ("lep_pterr"                        , cms3.mus_ptErr()[idx]);
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2"                 , muRelIso03EA(idx, 2));
         tx->pushbackToBranch<float>         ("lep_relIso03EAv2Lep"              , muRelIso03EA(idx, 2, true));
@@ -1604,9 +1980,6 @@ void babyMaker_v2::SortLeptonBranches()
             "lep_dz",
             "lep_ip3d",
             "lep_ip3derr",
-            "lep_ptRatio",
-            //"lep_ptRatioEA",
-            "lep_ptRel",
             "lep_pterr",
             "lep_relIso03EAv2",
             "lep_relIso03EAv2Lep",
@@ -1857,9 +2230,9 @@ void babyMaker_v2::FillTrigger()
         bool trig_ee = coreTrigger.HLT_DoubleEl || coreTrigger.HLT_DoubleEl_DZ;
         bool trig_em = coreTrigger.HLT_MuEG;
         bool trig_mm = coreTrigger.HLT_DoubleMu;
-        bool is_pd_ee = nicename().BeginsWith("data_ee");
-        bool is_pd_em = nicename().BeginsWith("data_em");
-        bool is_pd_mm = nicename().BeginsWith("data_mm");
+        bool is_pd_ee = SampleNiceName().BeginsWith("data_ee");
+        bool is_pd_em = SampleNiceName().BeginsWith("data_em");
+        bool is_pd_mm = SampleNiceName().BeginsWith("data_mm");
         bool pass_duplicate_ee_em_mm = false;
         bool pass_duplicate_mm_em_ee = false;
         if (is_pd_ee)
@@ -2126,6 +2499,205 @@ void babyMaker_v2::FillSummaryVariables()
 }
 
 //##############################################################################################################
+void babyMaker_v2::FillTnPMuons()
+{
+    for (unsigned int i = 0; i < coreMuon.index.size(); ++i)
+    {
+        int idx = coreMuon.index[i];
+        int tag_idx = coreMuon.index.size() == coreMuon.tagindex.size() ? coreMuon.tagindex[i] : -1;
+
+        if (tag_idx < 0)
+            continue;
+
+        // Get the tag p4
+        LV dilep_p4 = cms3.mus_p4()[idx] + cms3.mus_p4()[tag_idx];
+        float dilep_mass = dilep_p4.mass();
+
+        // Skip if off the Z peak
+        if (!( dilep_mass > 60 && dilep_mass < 120 ))
+            continue;
+
+        // Fill baby ntuple branches with event information (evt, lumi etc.)
+        // These are always created and filled
+        FillEventInfo();
+        FillMuonTrigger(idx, tag_idx);
+        FillMuonIDVariables(idx, tag_idx);
+        FillTTree();
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillMuonTrigger(int idx, int tag_idx)
+{
+    // Tag single muon trigger
+    tx->setBranch<int>("tag_HLT_IsoMu24", passHLTTriggerPattern("HLT_IsoMu24_v"));
+    tx->setBranch<int>("tag_HLT_IsoTkMu24", passHLTTriggerPattern("HLT_IsoTkMu24_v"));
+}
+
+//
+//##############################################################################################################
+void babyMaker_v2::FillMuonIDVariables(int idx, int tag_idx)
+{
+    LV dilep_p4 = tag_idx >= 0 ? cms3.mus_p4()[idx] + cms3.mus_p4()[tag_idx] : LV();
+    float dilep_mass = dilep_p4.mass();
+
+    tx->setBranch<LV>("dilep_p4", dilep_p4);
+    tx->setBranch<float>("dilep_mass", dilep_mass);
+    tx->setBranch<LV>("p4", cms3.mus_p4()[idx]);
+    tx->setBranch<LV>("tag_p4", tag_idx >= 0 ? cms3.mus_p4()[tag_idx] : LV());
+    tx->setBranch<int>("tag_charge", tag_idx >= 0 ? cms3.mus_charge()[tag_idx] : 0);
+    tx->setBranch<bool>("conv_vtx_flag", false);
+    tx->setBranch<bool>("evt_isRealData", cms3.evt_isRealData());
+    tx->setBranch<bool>("isPF", false);
+
+    tx->setBranch<int>("id", -13.0 * cms3.mus_charge()[idx]);
+
+    tx->setBranch<float>("RelIso03EA", muRelIso03EA(idx)); 
+    tx->setBranch<float>("RelIso03EAv2", muRelIso03EA(idx, 2)); 
+    tx->setBranch<float>("RelIso03EAv2wlep", muRelIso03EA(idx, 2, true)); 
+
+    tx->setBranch<float>("dxyPV", cms3.mus_dxyPV()[idx]);
+    tx->setBranch<float>("dZ", cms3.mus_dzPV()[idx]);
+    tx->setBranch<float>("ip3d", cms3.mus_ip3d()[idx]);
+    tx->setBranch<float>("ip3derr", cms3.mus_ip3derr()[idx]);
+
+    tx->setBranch<bool>("passes_VVV_tight", muonID(idx, VVV_tight_v5));
+    tx->setBranch<bool>("passes_VVV_tight_noiso", muonID(idx, VVV_tight_noiso_v5));
+    tx->setBranch<bool>("passes_VVV_3l_tight", muonID(idx, VVV_3l_tight_v5));
+    tx->setBranch<bool>("passes_VVV_3l_tight_noiso", muonID(idx, VVV_3l_tight_noiso_v5));
+    tx->setBranch<bool>("passes_POG_mediumID", isMediumMuonPOG(idx)); 
+    tx->setBranch<bool>("passes_POG_looseID", isLooseMuonPOG(idx)); 
+
+    if (!cms3.evt_isRealData())
+    {
+        tx->setBranch<LV>("mc_motherp4", cms3.mus_mc_motherp4()[idx]);
+        tx->setBranch<LV>("mc_p4", cms3.mus_mc_p4()[idx]);
+        tx->setBranch<int>("mc_motherid", cms3.mus_mc_motherid()[idx]);
+        tx->setBranch<int>("motherID", lepMotherID_v2(Lep(-13 * cms3.mus_charge()[idx], idx)).first);
+    }
+
+    tx->setBranch<float>("ptErr", cms3.mus_ptErr()[idx]); 
+    tx->setBranch<float>("trk_pt", cms3.mus_trk_p4()[idx].pt()); 
+
+    tx->setBranch<int>("evt_event", tx->getBranch<unsigned long long>("evt"));
+    tx->setBranch<int>("evt_lumiBlock", tx->getBranch<int>("lumi"));
+    tx->setBranch<int>("evt_run", tx->getBranch<int>("run"));
+
+    // Count number of good vertices.
+    int nvtx = 0;
+    for (unsigned int ivtx = 0; ivtx < cms3.evt_nvtxs(); ivtx++)
+    {
+        if (!isGoodVertex(ivtx)) { continue; }
+        nvtx++;
+    }
+    tx->setBranch<int>("nvtx", nvtx);
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillTnPElectrons()
+{
+    for (unsigned int i = 0; i < coreElectron.index.size(); ++i)
+    {
+        int idx = coreElectron.index[i];
+        int tag_idx = coreElectron.index.size() == coreElectron.tagindex.size() ? coreElectron.tagindex[i] : -1;
+
+        if (tag_idx < 0)
+            continue;
+
+        // Get the tag p4
+        LV dilep_p4 = cms3.els_p4()[idx] + cms3.els_p4()[tag_idx];
+        float dilep_mass = dilep_p4.mass();
+
+        // Skip if off the Z peak
+        if (!( dilep_mass > 60 && dilep_mass < 120 ))
+            continue;
+
+        // Fill baby ntuple branches with event information (evt, lumi etc.)
+        // These are always created and filled
+        FillEventInfo();
+        FillElectronTrigger(idx, tag_idx);
+        FillElectronIDVariables(idx, tag_idx);
+        FillTTree();
+    }
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillElectronTrigger(int idx, int tag_idx)
+{
+    // Set the branch of the tag electrons single lepton trigger bit
+    tx->setBranch<int>("tag_HLT_Ele27_eta2p1_WPTight_Gsf", passHLTTriggerPattern("HLT_Ele27_eta2p1_WPTight_Gsf_v"));
+    tx->setBranch<int>("tag_HLT_Ele32_eta2p1_WPTight_Gsf", passHLTTriggerPattern("HLT_Ele32_eta2p1_WPTight_Gsf_v"));
+    tx->setBranch<int>("tag_HLT_Ele32_WPTight_Gsf", passHLTTriggerPattern("HLT_Ele32_WPTight_Gsf_v"));
+    tx->setBranch<int>("tag_HLT_Ele35_WPTight_Gsf", passHLTTriggerPattern("HLT_Ele35_WPTight_Gsf_v"));
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillElectronIDVariables(int idx, int tag_idx)
+{
+    LV dilep_p4 = tag_idx >= 0 ? cms3.els_p4()[idx] + cms3.els_p4()[tag_idx] : LV();
+    float dilep_mass = dilep_p4.mass();
+
+    tx->setBranch<LV>("dilep_p4", dilep_p4);
+    tx->setBranch<float>("dilep_mass", dilep_mass);
+    tx->setBranch<LV>("p4", cms3.els_p4()[idx]);
+    tx->setBranch<LV>("tag_p4", tag_idx >= 0 ? cms3.els_p4()[tag_idx] : LV());
+    tx->setBranch<int>("tag_charge", tag_idx >= 0 ? cms3.els_charge()[tag_idx] : 0);
+    tx->setBranch<bool>("conv_vtx_flag", false);
+    tx->setBranch<bool>("evt_isRealData", cms3.evt_isRealData());
+    tx->setBranch<bool>("isPF", false);
+
+    tx->setBranch<int>("id", -11.0 * cms3.els_charge()[idx]);
+
+    tx->setBranch<float>("RelIso03EA", eleRelIso03EA(idx)); 
+    tx->setBranch<float>("RelIso03EAv2", eleRelIso03EA(idx, 2)); 
+    tx->setBranch<float>("RelIso03EAv2wlep", eleRelIso03EA(idx, 2, true)); 
+
+    tx->setBranch<float>("dxyPV", cms3.els_dxyPV()[idx]);
+    tx->setBranch<float>("dZ", cms3.els_dzPV()[idx]);
+    tx->setBranch<float>("ip3d", cms3.els_ip3d()[idx]);
+    tx->setBranch<float>("ip3derr", cms3.els_ip3derr()[idx]);
+
+    tx->setBranch<bool>("passes_VVV_tight", electronID(idx, VVV_tight_v5));
+    tx->setBranch<bool>("passes_VVV_tight_noiso", electronID(idx, VVV_tight_noiso_v5));
+    tx->setBranch<bool>("passes_VVV_3l_tight", electronID(idx, VVV_3l_tight_v5));
+    tx->setBranch<bool>("passes_VVV_3l_tight_noiso", electronID(idx, VVV_3l_tight_noiso_v5));
+    tx->setBranch<bool>("passes_POG_mediumID", isMediumElectronPOG(idx)); 
+    tx->setBranch<bool>("passes_POG_looseID", isLooseElectronPOG(idx)); 
+
+    if (!cms3.evt_isRealData())
+    {
+        tx->setBranch<LV>("mc_motherp4", cms3.els_mc_motherp4()[idx]);
+        tx->setBranch<LV>("mc_p4", cms3.els_mc_p4()[idx]);
+        tx->setBranch<int>("mc_motherid", cms3.els_mc_motherid()[idx]);
+        tx->setBranch<int>("motherID", lepMotherID_v2(Lep(-11 * cms3.els_charge()[idx], idx)).first);
+    }
+
+    tx->setBranch<bool>("threeChargeAgree", threeChargeAgree(idx));
+    tx->setBranch<float>("dEtaIn", cms3.els_dEtaIn()[idx]);
+    tx->setBranch<float>("dPhiIn", cms3.els_dPhiIn()[idx]);
+    tx->setBranch<float>("eOverPIn", cms3.els_eOverPIn()[idx]);
+    tx->setBranch<float>("ecalEnergy", cms3.els_ecalEnergy()[idx]);
+    tx->setBranch<float>("etaSC", cms3.els_etaSC()[idx]);
+    tx->setBranch<float>("hOverE", cms3.els_hOverE()[idx]);
+    tx->setBranch<float>("sigmaIEtaIEta_full5x5", cms3.els_sigmaIEtaIEta_full5x5()[idx]);
+    tx->setBranch<float>("mva", getMVAoutput(idx, true));
+    tx->setBranch<float>("mva_25ns", getMVAoutput(idx, true));
+
+    tx->setBranch<int>("evt_event", tx->getBranch<unsigned long long>("evt"));
+    tx->setBranch<int>("evt_lumiBlock", tx->getBranch<int>("lumi"));
+    tx->setBranch<int>("evt_run", tx->getBranch<int>("run"));
+
+    // Count number of good vertices.
+    int nvtx = 0;
+    for (unsigned int ivtx = 0; ivtx < cms3.evt_nvtxs(); ivtx++)
+    {
+        if (!isGoodVertex(ivtx)) { continue; }
+        nvtx++;
+    }
+    tx->setBranch<int>("nvtx", nvtx);
+}
+
+//##############################################################################################################
 void babyMaker_v2::FillTTree()
 {
     tx->fill();
@@ -2241,6 +2813,48 @@ bool babyMaker_v2::isVetoMuon(int idx)
 bool babyMaker_v2::isVetoElectron(int idx)
 {
     if (!( passElectronSelection_VVV(idx, VVV_VETO) )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used for probe in Tag-and-Probe method (i.e. no cuts whatsoever other than pt)
+bool babyMaker_v2::isProbeMuon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 10. )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used for probe in Tag-and-Probe method (i.e. no cuts whatsoever other than pt)
+bool babyMaker_v2::isProbeElectron(int idx)
+{
+    if (!( cms3.els_p4()[idx].pt() > 10. )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used for tag in Tag-and-Probe method (i.e. some tight requirement)
+bool babyMaker_v2::isTagMuon(int i, int j)
+{
+    // Tag muon selection
+    if (!( cms3.mus_p4()[j].pt()                                    >= 20.0  )) return false;
+    if (!( fabs(cms3.mus_p4()[j].eta())                             <=  2.4  )) return false;
+    if (!( fabs(cms3.mus_dxyPV()[j])                                <=  0.02 )) return false;
+    if (!( fabs(cms3.mus_dzPV()[j])                                 <=  0.05 )) return false;
+    if (!( fabs(cms3.mus_ip3d()[j] / cms3.mus_ip3derr()[j])         <=  4    )) return false;
+    if (!( isTightMuonPOG(j)                                                 )) return false;
+    if (!( muRelIso03EA(j)                                          <=  0.2  )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used for tag in Tag-and-Probe method (i.e. some tight requirement)
+bool babyMaker_v2::isTagElectron(int i, int j)
+{
+    if (!( cms3.els_p4()[j].pt()                                    >= 20.0  )) return false;
+    if (!( fabs(cms3.els_etaSC()[j])                                <=  2.5  )) return false;
+    if (!( isMediumElectronPOG(j)                                            )) return false;
+    if (!( fabs(cms3.els_ip3d()[j] / cms3.els_ip3derr()[j])         <=  4    )) return false;
     return true;
 }
 
@@ -3043,9 +3657,9 @@ TString babyMaker_v2::process()
 {
     if (cms3.evt_isRealData())                    return "Data";
     if (splitVH())                                return "WHtoWWW";
-    if (nicename().BeginsWith("www_2l_"))         return "WWW";
-    if (nicename().BeginsWith("www_incl_amcnlo")) return "WWWv2";
-    if (nicename().BeginsWith("data_"))           return "Data";
+    if (SampleNiceName().BeginsWith("www_2l_"))         return "WWW";
+    if (SampleNiceName().BeginsWith("www_incl_amcnlo")) return "WWWv2";
+    if (SampleNiceName().BeginsWith("data_"))           return "Data";
     if (tx->getBranch<int>("nVlep") == 2 && tx->getBranch<int>("nLlep") == 2)
     {
         if (tx->getBranch<int>("nLlep") < 2) return "not2l";
@@ -3072,7 +3686,7 @@ TString babyMaker_v2::process()
 //##############################################################################################################
 bool babyMaker_v2::splitVH()
 {
-    if (!nicename().BeginsWith("vh_nonbb_amcnlo")) return false; //file is certainly no WHtoWWW
+    if (!SampleNiceName().BeginsWith("vh_nonbb_amcnlo")) return false; //file is certainly no WHtoWWW
     bool isHtoWW = false;
     bool isWnotFromH = false;
     bool isZthere = false;
@@ -4097,7 +4711,7 @@ void babyMaker_v2::setWHSMSMassAndWeights()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    if (!nicename().BeginsWith("whsusy-2l"))
+    if (!SampleNiceName().BeginsWith("whsusy-2l"))
     {
         for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
             if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
@@ -4161,7 +4775,7 @@ void babyMaker_v2::setWHSMSMass()
     float mass_chargino;
     float mass_lsp;
     float mass_gluino;
-    if (!nicename().BeginsWith("whsusy-2l"))
+    if (!SampleNiceName().BeginsWith("whsusy-2l"))
     {
         for (unsigned int nsparm = 0; nsparm < sparm_names().size(); ++nsparm) {
             if (sparm_names().at(nsparm).Contains("mCh")) mass_chargino = sparm_values().at(nsparm);
@@ -4280,20 +4894,20 @@ bool babyMaker_v2::vetophotonprocess()
 {
     bool process = tx->getBranch<TString>("bkgtype").EqualTo("photonfakes");
     if (
-        (nicename().BeginsWith("wjets_")
-       ||nicename().BeginsWith("dy_")
-       ||nicename().BeginsWith("ttbar_")
-       ||nicename().BeginsWith("ww_")
-       ||nicename().BeginsWith("wz_")   )
+        (SampleNiceName().BeginsWith("wjets_")
+       ||SampleNiceName().BeginsWith("dy_")
+       ||SampleNiceName().BeginsWith("ttbar_")
+       ||SampleNiceName().BeginsWith("ww_")
+       ||SampleNiceName().BeginsWith("wz_")   )
         &&(process)
        ) return true;
     if (
-        (nicename().BeginsWith("wgjets_")
-       ||nicename().BeginsWith("wgstar_")
-       ||nicename().BeginsWith("zgamma_")
-       ||nicename().BeginsWith("ttg_")
-       ||nicename().BeginsWith("wwg_")
-       ||nicename().BeginsWith("wzg_")   )
+        (SampleNiceName().BeginsWith("wgjets_")
+       ||SampleNiceName().BeginsWith("wgstar_")
+       ||SampleNiceName().BeginsWith("zgamma_")
+       ||SampleNiceName().BeginsWith("ttg_")
+       ||SampleNiceName().BeginsWith("wwg_")
+       ||SampleNiceName().BeginsWith("wzg_")   )
         &&(!process)
        )
         return true;

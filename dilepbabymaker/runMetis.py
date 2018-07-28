@@ -41,10 +41,10 @@ job_tag = "WWW_v1.0.29" # There was a bug that got created due to veto leptons b
 job_tag = "WWW_v1.2.1" # CMS4 2016 data for comparison
 job_tag = "WWW_v1.2.2" # Fat jet included!
 job_tag = "WWW_v1.2.3" # Truth level information of the WWW samples
-
 job_tag = "WWW_v3.0.0" # First test of few samples of 2016 MC in order to validate the changes to accomodate 2017 are ok.
-
 job_tag = "WWW{}_v3.0.1".format(data_year) # First test of few samples of 2016 MC in order to validate the changes to accomodate 2017 are ok.
+
+job_tag = "TnP{}_v3.0.1".format(data_year) # Testing TnP
 
 ###################################################################################################################
 ###################################################################################################################
@@ -78,9 +78,12 @@ def main():
         samples_short_name = dataset.samples_short_name_2017
         dslocs = dataset.dslocscms4_2016
     elif data_year == "2017":
-        samples_to_run = dataset.samples_to_run_2017
         samples_short_name = dataset.samples_short_name_2017
         dslocs = dataset.dslocscms4_2017
+        if job_tag.find("WWW") != -1:
+            samples_to_run = dataset.samples_to_run_2017
+        elif job_tag.find("TnP") != -1:
+            samples_to_run = dataset.tnp_samples_to_run_2017
 
     # file/dir paths
     main_dir             = os.path.dirname(os.path.abspath(__file__))
@@ -91,7 +94,10 @@ def main():
     exec_path            = os.path.join(main_dir, "metis.sh")
     merge_exec_path      = os.path.join(main_dir, "merge.sh")
     hadoop_path          = "metis/wwwbaby/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
-    args                 = ""
+    if job_tag.find("WWW") != -1:
+        args = "0" # WWWBaby
+    elif job_tag.find("TnP") != -1:
+        args = "3" # TnPBaby
 
     # Create tarball
     os.chdir(main_dir)

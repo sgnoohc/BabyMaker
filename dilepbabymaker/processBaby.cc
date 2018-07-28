@@ -49,6 +49,7 @@ int main(int argc, char **argv)
     {
         case 0: looper->SetBabyMode(babyMaker_v2::kWWWBaby); break;
         case 1: looper->SetBabyMode(babyMaker_v2::kAllBaby); break;
+        case 3: looper->SetBabyMode(babyMaker_v2::kTnPBaby); break;
 
     }
     looper->ProcessCMS4(infile, max_events, index, verbose);
