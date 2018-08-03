@@ -83,6 +83,10 @@
 #include "coreutil/fatjet.h"
 #include "coreutil/sample.h"
 
+// Rochester correction
+#include "TRandom2.h"
+#include "roccor.2017.v0/RoccoR.h"
+
 //// Version 4 (2016 final version analysis circa 2018 July)
 //#define VVV_TIGHT_SS VVV_cutbased_tight_v4
 //#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
@@ -131,6 +135,7 @@ public:
         ,kOSBaby  = 2
         ,kTnPBaby = 3
         ,kAllBaby = 4
+        ,kPOGBaby = 5
     };
 
 private:
@@ -178,6 +183,10 @@ private:
     // Job
     int job_index;
 
+    // Rochester correction
+    RoccoR rc;
+    TRandom2 rnd;
+
 public:
 
     babyMaker_v2();
@@ -197,6 +206,7 @@ public:
     void AddOutput();
     void AddBabyOutput();
     void AddWWWBabyOutput();
+    void AddPOGBabyOutput();
     void AddTnPBabyOutput();
     void AddTruthStudyOutput();
 
@@ -204,11 +214,12 @@ public:
 
     void SetLeptonID();
     void SetWWWAnalysisLeptonID();
-    void SetTnPAnalysisLeptonID();
+    void SetPOGAnalysisLeptonID();
 
     void SaveOutput();
     void SaveWWWBaby();
     void SaveTnPBaby();
+    void SavePOGBaby();
 
     void ConfigureGoodRunsList();
 
@@ -216,9 +227,11 @@ public:
     void ProcessGenParticles();
     void ProcessElectrons();
     void ProcessNominalElectrons();
+    void ProcessPOGElectrons();
     void ProcessTnPElectrons();
     void ProcessMuons();
     void ProcessNominalMuons();
+    void ProcessPOGMuons();
     void ProcessTnPMuons();
     void ProcessJets();
     void ProcessFatJets();
@@ -230,6 +243,7 @@ public:
     bool PassFRPreselection();
     bool PassOSPreselection();
     bool PassTnPPreselection();
+    bool PassPOGPreselection();
 
     bool PassPresel();
     bool PassPresel_v1();
@@ -242,6 +256,7 @@ public:
     void FillBaby();
     void FillWWWBaby();
     void FillTnPBaby();
+    void FillPOGBaby();
 
     void FillTruthLevelStudyVariables();
     void FillEventInfo();
@@ -252,12 +267,15 @@ public:
     void FillMET();
     void FillTracks();
     void FillGenParticles();
+    void FillEMuLeptons();
+    void FillLbntLeptons();
     void SortLeptonBranches();
     void SortJetBranches();
     void FillTrigger();
     void FillVertexInfo();
     void FillMETFilter();
     void FillSummaryVariables();
+    void FillMuonSmearWeight();
     void FillTTree();
 
     void FillTnPMuons();
@@ -281,6 +299,16 @@ public:
     static bool isTagElectron(int, int);
     static bool isVetoMuonNoIso_OldVersion(int);
     static bool isVetoElectronNoIso_OldVersion(int);
+    static bool isPt10Electron(int);
+    static bool isPt20Electron(int);
+    static bool is2017POGVetoElectron(int);
+    static bool is2017POGLooseElectron(int);
+    static bool is2017POGMediumElectron(int);
+    static bool is2017POGTightElectron(int);
+    static bool is2017POGVetoMuon(int);
+    static bool is2017POGLooseMuon(int);
+    static bool is2017POGMediumMuon(int);
+    static bool is2017POGTightMuon(int);
 
     // Sample handling
     TString SampleNiceName() { return coreSample.nicename(looper.getCurrentFileName()); }

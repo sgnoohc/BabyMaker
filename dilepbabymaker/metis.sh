@@ -2,6 +2,9 @@
 
 PACKAGE=package.tar.gz
 
+# Echo exact command
+echo "$(basename $0) $*"
+
 
 ###################################################################################################
 # ProjectMetis/CondorTask specific (Setting up some common environment)

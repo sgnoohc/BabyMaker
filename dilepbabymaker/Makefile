@@ -24,7 +24,7 @@ PACKAGES = rooutil coreutil
 
 CC = g++
 CMSROOT = ./
-INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE
+INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE -I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/1.57.0-ikhhed/include/ 
 CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS) -fno-var-tracking
 ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA #-lEG -lGenVector
 COREDIR = ../CORE
@@ -47,7 +47,7 @@ CORESOURCES = $(wildcard ../CORE/*.cc)
 COREOBJECTS = $(CORESOURCES:.cc=.o) 
 CORELIB = libBabymakerCORE.so
 
-TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc) $(wildcard ../CORE/Tools/datasetinfo/*.cc)
+TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc) $(wildcard ../CORE/Tools/datasetinfo/*.cc) roccor.2017.v0/RoccoR.cc
 TOOLSOBJECTS = $(TOOLSSOURCES:.cc=.o) 
 TOOLSLIB = libBabymakerTools.so
 
@@ -171,6 +171,7 @@ clean:
 	*.o \
 	$(LIBS) \
 	$(EXE) \
+        roccor.2017.v0/*.o \
         ../CORE/*.o \
         ../CORE/*.d \
         ../CORE/*.so \

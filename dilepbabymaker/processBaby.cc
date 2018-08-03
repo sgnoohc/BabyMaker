@@ -48,8 +48,11 @@ int main(int argc, char **argv)
     switch (babymode)
     {
         case 0: looper->SetBabyMode(babyMaker_v2::kWWWBaby); break;
-        case 1: looper->SetBabyMode(babyMaker_v2::kAllBaby); break;
+        case 1: looper->SetBabyMode(babyMaker_v2::kFRBaby); break;
+        case 2: looper->SetBabyMode(babyMaker_v2::kOSBaby);  break;
         case 3: looper->SetBabyMode(babyMaker_v2::kTnPBaby); break;
+        case 4: looper->SetBabyMode(babyMaker_v2::kAllBaby); break;
+        case 5: looper->SetBabyMode(babyMaker_v2::kPOGBaby); break;
 
     }
     looper->ProcessCMS4(infile, max_events, index, verbose);

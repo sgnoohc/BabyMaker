@@ -46,7 +46,22 @@ job_tag = "WWW{}_v3.0.1".format(data_year) # First test of few samples of 2016 M
 
 job_tag = "TnP{}_v3.0.1".format(data_year) # Testing TnP
 
-job_tag = "WWW{}_v3.0.2".format(data_year) # First test of few samples of 2016 MC in order to validate the changes to accomodate 2017 are ok.
+job_tag = "WWW{}_v3.0.2".format(data_year) # Changed double muon trigger to Mass8 version (I assume it's a cut at mll > 8)
+job_tag = "POG{}_v3.0.2".format(data_year) # POG ID
+job_tag = "POG{}_v3.0.3".format(data_year) # POG ID
+job_tag = "POG{}_v3.0.4".format(data_year) # POG ID
+job_tag = "POG{}_v3.0.5".format(data_year) # POG ID with after debugging (Failed campaign)
+job_tag = "POG{}_v3.0.6".format(data_year) # POG ID with after debugging (Failed campaign)
+
+job_tag = "POG{}_v3.0.7".format(data_year) # POG ID with after debugging
+job_tag = "OS{}_v3.0.7".format(data_year) # 2016 optimized lepton ID with WWW ntuple including WWW
+job_tag = "TnP{}_v3.0.7".format(data_year) # Getting a TnP sample for measurement
+
+job_tag = "OS{}_v3.0.8".format(data_year) # 2017 MVA IDs are set to the POG provided ones
+job_tag = "FR{}_v3.0.8".format(data_year) # 2017 MVA IDs are set to the POG provided ones
+
+job_tag = "FR{}_v3.0.9".format(data_year) # 2017 MVA IDs are set to the POG provided ones
+job_tag = "TnP{}_v3.0.8".format(data_year) # 2017 MVA IDs are set to the POG provided ones
 
 ###################################################################################################################
 ###################################################################################################################
@@ -82,10 +97,12 @@ def main():
     elif data_year == "2017":
         samples_short_name = dataset.samples_short_name_2017
         dslocs = dataset.dslocscms4_2017
-        if job_tag.find("WWW") != -1:
-            samples_to_run = dataset.samples_to_run_2017
-        elif job_tag.find("TnP") != -1:
+        if job_tag.find("TnP") != -1:
             samples_to_run = dataset.tnp_samples_to_run_2017
+        elif job_tag.find("FR") != -1:
+            samples_to_run = dataset.fr_samples_to_run_2017
+        else:
+            samples_to_run = dataset.samples_to_run_2017
 
     # file/dir paths
     main_dir             = os.path.dirname(os.path.abspath(__file__))
@@ -98,12 +115,20 @@ def main():
     hadoop_path          = "metis/wwwbaby/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
     if job_tag.find("WWW") != -1:
         args = "0" # WWWBaby
+    elif job_tag.find("FR") != -1:
+        args = "1" # FRBaby
+    elif job_tag.find("OS") != -1:
+        args = "2" # OSBaby
     elif job_tag.find("TnP") != -1:
         args = "3" # TnPBaby
+    elif job_tag.find("All") != -1:
+        args = "4" # AllBaby
+    elif job_tag.find("POG") != -1:
+        args = "5" # POGBaby
 
     # Create tarball
     os.chdir(main_dir)
-    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C xsec_susy_13tev.root".format(tar_gz_path))
+    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C xsec_susy_13tev.root roccor.2017.v0/*.txt".format(tar_gz_path))
 
     # Change directory to metis
     os.chdir(metis_path)

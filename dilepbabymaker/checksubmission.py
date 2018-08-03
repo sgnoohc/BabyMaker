@@ -91,10 +91,10 @@ for logfile in logfiles:
                 if dataset_name not in skipped_fractions:
                     skipped_fractions[dataset_name] = 0
                 #print nevents_out
-                if os.path.normpath(loc) != os.path.normpath(dirpath):
-                    print loc
-                    print dirpath
-                    print "ERROR"
+                #if os.path.normpath(loc) != os.path.normpath(dirpath):
+                #    print loc
+                #    print dirpath
+                #    print "ERROR"
 
 
         # Query partially skipped files
