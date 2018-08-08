@@ -53,6 +53,7 @@ int main(int argc, char **argv)
         case 3: looper->SetBabyMode(babyMaker_v2::kTnPBaby); break;
         case 4: looper->SetBabyMode(babyMaker_v2::kAllBaby); break;
         case 5: looper->SetBabyMode(babyMaker_v2::kPOGBaby); break;
+        case 6: looper->SetBabyMode(babyMaker_v2::kHWWBaby); break;
 
     }
     looper->ProcessCMS4(infile, max_events, index, verbose);

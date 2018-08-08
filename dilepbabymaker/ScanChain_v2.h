@@ -83,10 +83,6 @@
 #include "coreutil/fatjet.h"
 #include "coreutil/sample.h"
 
-// Rochester correction
-#include "TRandom2.h"
-#include "roccor.2017.v0/RoccoR.h"
-
 //// Version 4 (2016 final version analysis circa 2018 July)
 //#define VVV_TIGHT_SS VVV_cutbased_tight_v4
 //#define VVV_TIGHT_3L VVV_cutbased_3l_tight_v4
@@ -136,6 +132,7 @@ public:
         ,kTnPBaby = 3
         ,kAllBaby = 4
         ,kPOGBaby = 5
+        ,kHWWBaby = 6
     };
 
 private:
@@ -183,10 +180,6 @@ private:
     // Job
     int job_index;
 
-    // Rochester correction
-    RoccoR rc;
-    TRandom2 rnd;
-
 public:
 
     babyMaker_v2();
@@ -209,17 +202,20 @@ public:
     void AddPOGBabyOutput();
     void AddTnPBabyOutput();
     void AddTruthStudyOutput();
+    void AddHWWBabyOutput();
 
     void SetYear();
 
     void SetLeptonID();
     void SetWWWAnalysisLeptonID();
     void SetPOGAnalysisLeptonID();
+    void SetHWWAnalysisLeptonID();
 
     void SaveOutput();
     void SaveWWWBaby();
     void SaveTnPBaby();
     void SavePOGBaby();
+    void SaveHWWBaby();
 
     void ConfigureGoodRunsList();
 
@@ -229,10 +225,12 @@ public:
     void ProcessNominalElectrons();
     void ProcessPOGElectrons();
     void ProcessTnPElectrons();
+    void ProcessHWWElectrons();
     void ProcessMuons();
     void ProcessNominalMuons();
     void ProcessPOGMuons();
     void ProcessTnPMuons();
+    void ProcessHWWMuons();
     void ProcessJets();
     void ProcessFatJets();
     void ProcessMET();
@@ -244,6 +242,7 @@ public:
     bool PassOSPreselection();
     bool PassTnPPreselection();
     bool PassPOGPreselection();
+    bool PassHWWPreselection();
 
     bool PassPresel();
     bool PassPresel_v1();
@@ -257,6 +256,7 @@ public:
     void FillWWWBaby();
     void FillTnPBaby();
     void FillPOGBaby();
+    void FillHWWBaby();
 
     void FillTruthLevelStudyVariables();
     void FillEventInfo();
@@ -268,10 +268,12 @@ public:
     void FillTracks();
     void FillGenParticles();
     void FillEMuLeptons();
+    void FillEMuLeptonsHWWAnalysis();
     void FillLbntLeptons();
     void SortLeptonBranches();
     void SortJetBranches();
     void FillTrigger();
+    void FillHWWAnalysisTrigger();
     void FillVertexInfo();
     void FillMETFilter();
     void FillSummaryVariables();
@@ -301,6 +303,14 @@ public:
     static bool isVetoElectronNoIso_OldVersion(int);
     static bool isPt10Electron(int);
     static bool isPt20Electron(int);
+    static bool isPOGVetoNoIsoElectron(int);
+    static bool isPOGLooseNoIsoElectron(int);
+    static bool isPOGMediumNoIsoElectron(int);
+    static bool isPOGTightNoIsoElectron(int);
+    static bool isPOGVetoNoIsoMuon(int);
+    static bool isPOGLooseNoIsoMuon(int);
+    static bool isPOGMediumNoIsoMuon(int);
+    static bool isPOGTightNoIsoMuon(int);
     static bool is2017POGVetoElectron(int);
     static bool is2017POGLooseElectron(int);
     static bool is2017POGMediumElectron(int);
@@ -356,6 +366,7 @@ public:
     // WWW signal sample
     bool isSMWWW() { return SampleNiceName().BeginsWith("www_2l"); }
     bool isVH()    { return SampleNiceName().BeginsWith("vh_nonbb"); }
+    bool isHWW()   { return SampleNiceName().BeginsWith("ggf_hww") || SampleNiceName().BeginsWith("vbf_hww"); }
     bool isWHWWW() { return splitVH(); }
     bool isWWW() { return isSMWWW() || isWHWWW(); }
     void AddWWWSignalOutput();
