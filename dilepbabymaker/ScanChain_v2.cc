@@ -24,6 +24,9 @@ int babyMaker_v2::ProcessCMS4(TString filepaths, int max_events, int idx, bool v
     // Initialize Looper
     looper.init(chain, &cms3, max_events);
 
+    // Initialize Looper
+    looper.setNbadEventThreshold(0);
+
     // Initializer job index
     job_index = idx;
 
