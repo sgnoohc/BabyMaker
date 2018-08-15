@@ -1610,6 +1610,11 @@ void babyMaker_v2::FillHWWBaby()
     // Fill trigger bits (This comes after summary variables and leptons
     FillHWWAnalysisTrigger();
 
+    // Fill Std Jet Variables
+    FillStdJetVariables(0);
+    FillStdJetVariables(1);
+    FillStdJetVariables(-1);
+
     // Fill TTree (NOTE: also clears internal variables)
     FillTTree();
 }
@@ -1647,7 +1652,8 @@ void babyMaker_v2::ProcessPOGElectrons() { coreElectron.process(is2017POGVetoEle
 void babyMaker_v2::ProcessTnPElectrons() { coreElectron.process(isProbeElectron, isTagElectron); }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessHWWElectrons() { coreElectron.process(isPOGVetoNoIsoElectron); }
+//void babyMaker_v2::ProcessHWWElectrons() { coreElectron.process(isPOGVetoNoIsoElectron); }
+void babyMaker_v2::ProcessHWWElectrons() { coreElectron.process(isPt10Electron); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessMuons()
@@ -1677,7 +1683,8 @@ void babyMaker_v2::ProcessPOGMuons() { coreMuon.process(is2017POGVetoMuon); }
 void babyMaker_v2::ProcessTnPMuons() { coreMuon.process(isProbeMuon, isTagMuon); }
 
 //##############################################################################################################
-void babyMaker_v2::ProcessHWWMuons() { coreMuon.process(isPOGVetoNoIsoMuon); }
+//void babyMaker_v2::ProcessHWWMuons() { coreMuon.process(isPOGVetoNoIsoMuon); }
+void babyMaker_v2::ProcessHWWMuons() { coreMuon.process(isPt10Muon); }
 
 //##############################################################################################################
 void babyMaker_v2::ProcessJets() { coreJet.process(coreJec); }
@@ -2107,24 +2114,54 @@ bool babyMaker_v2::PassPOGPreselection()
 //##############################################################################################################
 bool babyMaker_v2::PassHWWPreselection()
 {
+
+    return true;
+
+    // Pass based on Higgs pt
+    bool pass_gen_higgs_pt_cut = true;
+//    for (unsigned int i = 0; i < cms3.genps_p4().size(); ++i)
+//    {
+//        LV p4 = cms3.genps_p4()[i];
+//        int id = cms3.genps_id()[i];
+//        int status = cms3.genps_status()[i];
+//        if (id == 25 && status == 22 && p4.pt() < 300.)
+//        {
+//            pass_gen_higgs_pt_cut = false;
+//            break;
+//        }
+//    }
+
     // Select 2 SS lepton events or 3 or more lepton events
+    bool pass_lepton_cuts = false;
     vector<int> el_idx = coreElectron.index;
     vector<int> mu_idx = coreMuon.index;
 
     if (el_idx.size() + mu_idx.size() >= 1)
     {
         int nloose = 0;
-        for (auto& iel : coreElectron.index) if (isPOGLooseNoIsoElectron(iel)) nloose++;
-        for (auto& imu : coreMuon.index)     if (isPOGLooseNoIsoMuon(imu)) nloose++;
+        //for (auto& iel : coreElectron.index) if (isPOGVetoNoIsoElectron(iel)) nloose++;
+        //for (auto& imu : coreMuon.index)     if (isPOGVetoNoIsoMuon(imu)) nloose++;
+        for (auto& iel : coreElectron.index) if (isPt10Electron(iel)) nloose++;
+        for (auto& imu : coreMuon.index)     if (isPt10Muon(imu)) nloose++;
         if (nloose >= 1)
-            return true;
+            pass_lepton_cuts = true;
         else
-            return false;
+            pass_lepton_cuts = false;
     }
     else
     {
-        return false;
+        pass_lepton_cuts = false;
     }
+
+//    if (pass_gen_higgs_pt_cut)
+//        return true;
+//    else
+//        return false;
+
+    if (pass_lepton_cuts && pass_gen_higgs_pt_cut)
+        return true;
+    else
+        return false;
 }
 
 //##############################################################################################################
@@ -3092,15 +3129,15 @@ void babyMaker_v2::FillEMuLeptons()
 //##############################################################################################################
 void babyMaker_v2::FillEMuLeptonsHWWAnalysis()
 {
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4");
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", false);
+    if (lep_p4.size() < 1)
+        return;
+
     const vector<int>& lep_pdgId = tx->getBranch<vector<int>>("lep_pdgId");
     const vector<float>& lep_relIso04DB = tx->getBranch<vector<float>>("lep_relIso04DB");
     const vector<float>& lep_relIso03EA = tx->getBranch<vector<float>>("lep_relIso03EA");
     const vector<float>& lep_relIso03EALep = tx->getBranch<vector<float>>("lep_relIso03EALep");
     const vector<float>& lep_ip3d = tx->getBranch<vector<float>>("lep_ip3d");
-
-    if (lep_p4.size() < 1)
-        FATALERROR(__FUNCTION__);
 
     if (abs(lep_pdgId[0]) == 11)
     {
@@ -3436,8 +3473,8 @@ bool babyMaker_v2::isLeptonOverlappingWithJet(int ijet)
 {
     bool is_overlapping = false;
 
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
-    const vector<int>& lep_id = tx->getBranch<vector<int>>(gconf.wwwcfg["3llooseid"], true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", false);
+    const vector<int>& lep_id = tx->getBranch<vector<int>>(gconf.wwwcfg["3llooseid"], false);
 
     int idx = coreJet.index[ijet];
 
@@ -3493,8 +3530,8 @@ bool babyMaker_v2::isLeptonOverlappingWithTrack(int idx)
 {
     bool is_overlapping = false;
 
-    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", true);
-    const vector<int>& lep_id = tx->getBranch<vector<int>>(gconf.wwwcfg["vetoid"], true);
+    const vector<LV>& lep_p4 = tx->getBranch<vector<LV>>("lep_p4", false);
+    const vector<int>& lep_id = tx->getBranch<vector<int>>(gconf.wwwcfg["vetoid"], false);
 
     for (unsigned ilep = 0; ilep < lep_id.size(); ++ilep)
     {
@@ -3579,7 +3616,7 @@ bool babyMaker_v2::isVetoElectron(int idx)
 // Used to overlap remova against tracks
 bool babyMaker_v2::isPt10Electron(int idx)
 {
-    if (!( cms3.els_p4()[idx].pt() > 10.        )) return false;
+    if (!( cms3.els_p4()[idx].pt() > 5.         )) return false;
     if (!( fabs(cms3.els_p4()[idx].eta()) < 2.5 )) return false;
     return true;
 }
@@ -3590,6 +3627,24 @@ bool babyMaker_v2::isPt20Electron(int idx)
 {
     if (!( cms3.els_p4()[idx].pt() > 20.        )) return false;
     if (!( fabs(cms3.els_p4()[idx].eta()) < 2.5 )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
+bool babyMaker_v2::isPt10Muon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 5.         )) return false;
+    if (!( fabs(cms3.mus_p4()[idx].eta()) < 2.5 )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
+bool babyMaker_v2::isPt20Muon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 20.        )) return false;
+    if (!( fabs(cms3.mus_p4()[idx].eta()) < 2.5 )) return false;
     return true;
 }
 
@@ -3820,6 +3875,44 @@ int babyMaker_v2::nSFOS()
             if (pdgid0 == -pdgid1)
                 nSFOS++;
     return nSFOS/2; // Because the nested for loop double counts
+}
+
+//##############################################################################################################
+void babyMaker_v2::FillStdJetVariables(int variation)
+{
+    TString jets_csv     = variation == 0 ? "jets_csv"   : variation == 1 ? "jets_up_csv"   : "jets_dn_csv";
+    TString jets_p4      = variation == 0 ? "jets_p4"    : variation == 1 ? "jets_up_p4"    : "jets_dn_p4";
+    TString nj_bn        = variation == 0 ? "nj"         : variation == 1 ? "nj_up"         : "nj_dn";
+    TString nj30_bn      = variation == 0 ? "nj30"       : variation == 1 ? "nj30_up"       : "nj30_dn";
+    TString nb_bn        = variation == 0 ? "nb"         : variation == 1 ? "nb_up"         : "nb_dn";
+    int nj = 0;
+    int nj30 = 0;
+    int nb = 0;
+    for (unsigned int i = 0; i < tx->getBranch<vector<float>>(jets_csv, false).size(); ++i)
+    {
+        const LV& p4 = tx->getBranch<vector<LV>>(jets_p4, false)[i];
+        const float& csv= tx->getBranch<vector<float>>(jets_csv, false)[i];
+
+        // nb jets
+        if (!( p4.pt() > 20. ))
+            continue;
+        if (fabs(p4.eta()) < 2.4 && csv >= 0.5426)
+            nb++;
+
+        // njets across all eta
+        if (!( p4.pt() > 30. ))
+            continue;
+        if (fabs(p4.eta()) < 5.0)
+            nj++;
+
+        // njets for central for SS
+        if (fabs(p4.eta()) < 2.5)
+            nj30++;
+
+    }
+    tx->setBranch<int>(nj_bn, nj);
+    tx->setBranch<int>(nj30_bn, nj30);
+    tx->setBranch<int>(nb_bn, nb);
 }
 
 //##############################################################################################################
@@ -4815,143 +4908,112 @@ bool babyMaker_v2::studyHiggsDecay()
     const vector<int>& genPart_grandmaId = coreGenPart.genPart_grandmaId;
     const vector<LV>& genPart_p4 = coreGenPart.genPart_p4;
 
-    // Find Higgs and the 2 decay 4 vector
-    vector<int> higgs_idx;
+    std::vector<CoreUtil::genpart::Higgs> higgses = coreGenPart.reconstructHiggses();
+
+    // Sanity check
+    if (higgses.size() != 1)
+    {
+        std::cout <<  " higgses.size(): " << higgses.size() <<  std::endl;
+        coreGenPart.printAllParticles();
+    }
+
+    if (higgses[0].HiggsDaughters.size() != 2)
+    {
+        std::cout <<  " higgses[0].HiggsDaughters.size(): " << higgses[0].HiggsDaughters.size() <<  std::endl;
+        coreGenPart.printAllParticles();
+    }
+
+    if (higgses[0].HiggsGrandDaughters.size() != 4)
+    {
+        std::cout <<  " higgses[0].HiggsGrandDaughters.size(): " << higgses[0].HiggsGrandDaughters.size() <<  std::endl;
+        coreGenPart.printAllParticles();
+    }
+
     vector<LV> higgs_p4;
-    vector<int> higgsdecay_idx;
+
     vector<LV> higgsdecay_p4;
     vector<int> higgsdecay_id;
     vector<int> higgsdecay_isstar;
-    // WW decay
-    bool isWW = false;
-    vector<int> lepton_idx;
+
+    vector<LV> lepton_p4;
     vector<int> lepton_id;
     vector<int> lepton_mid;
     vector<int> lepton_isstar;
-    vector<LV> lepton_p4;
-    vector<int> neutrino_idx;
-    vector<int> neutrino_id;
-    vector<LV> neutrino_p4;
-    vector<int> quark_idx;
+
+    vector<LV> quark_p4;
     vector<int> quark_id;
     vector<int> quark_mid;
     vector<int> quark_isstar;
-    vector<LV> quark_p4;
-    vector<int> lepton_from_tau_idx;
-    vector<int> lepton_from_tau_id;
-    vector<LV> lepton_from_tau_p4;
-    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+
+    higgs_p4.push_back(higgses[0].p4);
+
+    for (unsigned int i = 0; i < higgses[0].HiggsDaughters.size(); ++i)
     {
-        int idx = genPart_idx[i];
-        int pdgId = genPart_pdgId[i];
-        int status = genPart_status[i];
-        int motherId = genPart_motherId[i];
-        int grandmaId = genPart_grandmaId[i];
-        LV p4 = genPart_p4[i];
-        if (abs(pdgId) == 25 && ((abs(motherId) == 9000002 && isWprime())||(status == 22 && (isVH()||isHWW()))))
+        higgsdecay_p4.push_back(higgses[0].HiggsDaughters[i].p4);
+        higgsdecay_id.push_back(higgses[0].HiggsDaughters[i].id);
+        higgsdecay_isstar.push_back(higgses[0].HiggsDaughters[i].isstar);
+    }
+
+    for (unsigned int i = 0; i < higgses[0].HiggsGrandDaughters.size(); ++i)
+    {
+        int absid = abs(higgses[0].HiggsGrandDaughters[i].id);
+        if (absid == 11 || absid == 13 || absid == 15)
         {
-            higgs_idx.push_back(idx);
-            higgs_p4.push_back(p4);
+            lepton_p4.push_back(higgses[0].HiggsGrandDaughters[i].p4);
+            lepton_id.push_back(higgses[0].HiggsGrandDaughters[i].id);
+            lepton_mid.push_back(higgses[0].HiggsGrandDaughters[i].motherid);
         }
-        if (motherId == 25 && pdgId != 25)
+        else if (absid >= 1 && absid <= 5)
         {
-            higgsdecay_idx.push_back(idx);
-            higgsdecay_p4.push_back(p4);
-            higgsdecay_id.push_back(pdgId);
-            higgsdecay_isstar.push_back(p4.mass() < 63.);
-            if (abs(pdgId) == 24) isWW = true;
-        }
-        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && ((status == 23 || status == 1) || (abs(pdgId) == 15 && status == 2)) && abs(motherId) == 24 && abs(grandmaId) == 25)
-        {
-            lepton_idx.push_back(idx);
-            lepton_id.push_back(pdgId);
-            lepton_mid.push_back(motherId);
-            lepton_p4.push_back(p4);
-        }
-        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && (status == 23 || status == 1) && abs(motherId) == 24 && abs(grandmaId) == 25)
-        {
-            neutrino_idx.push_back(idx);
-            neutrino_id.push_back(pdgId);
-            neutrino_p4.push_back(p4);
-        }
-        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4))
-        {
-//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) >= 11 && abs(pdgId) <= 16))
-        {
-//            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-        }
-        if ((abs(pdgId) >= 1 && abs(pdgId) <= 5) && (status == 23 || status == 1) && abs(motherId) == 24) // up to pdgid = 5 because W "can" decay to bc
-        {
-            if ( (abs(grandmaId) == 25 && (isVH() || isHWW())) || (isWprime()) )
-            {
-                quark_idx.push_back(idx);
-                quark_id.push_back(pdgId);
-                quark_mid.push_back(motherId);
-                quark_p4.push_back(p4);
-//                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-            }
+            quark_p4.push_back(higgses[0].HiggsGrandDaughters[i].p4);
+            quark_id.push_back(higgses[0].HiggsGrandDaughters[i].id);
+            quark_mid.push_back(higgses[0].HiggsGrandDaughters[i].motherid);
         }
     }
 
-//    std::cout <<  " higgs_idx.size(): " << higgs_idx.size() <<  " higgsdecay_idx.size(): " << higgsdecay_idx.size() <<  std::endl;
-//    for (auto& hd_id : higgsdecay_id)
-//        std::cout <<  " hd_id: " << hd_id <<  std::endl;
-//    for (auto& h_idx : higgs_idx)
-//        std::cout <<  " h_idx: " << h_idx <<  std::endl;
-//
-//    LV sumdecay = higgsdecay_p4[0] + higgsdecay_p4[1];
-//
-//    std::cout <<  " sumdecay.pt(): " << sumdecay.pt() <<  " sumdecay.eta(): " << sumdecay.eta() <<  " sumdecay.phi(): " << sumdecay.phi() <<  " sumdecay.energy(): " << sumdecay.energy() <<  " sumdecay.mass(): " << sumdecay.mass() <<  std::endl;
-//    std::cout <<  " higgs_p4[0].pt(): " << higgs_p4[0].pt() <<  " higgs_p4[0].eta(): " << higgs_p4[0].eta() <<  " higgs_p4[0].phi(): " << higgs_p4[0].phi() <<  " higgs_p4[0].energy(): " << higgs_p4[0].energy() <<  " higgs_p4[0].mass(): " << higgs_p4[0].mass() <<  std::endl;
-
-    if (isWW)
+    if (higgsdecay_id.size() != 2)
     {
-        if (lepton_idx.size() + neutrino_idx.size() + quark_idx.size() != 4)
-        {
-            std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
-            std::cout <<  " lepton_idx.size(): " << lepton_idx.size() <<  " quark_idx.size(): " << quark_idx.size() <<  std::endl;
-            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
-            {
-                int idx = genPart_idx[i];
-                int pdgId = genPart_pdgId[i];
-                int status = genPart_status[i];
-                int motherId = genPart_motherId[i];
-                int grandmaId = genPart_grandmaId[i];
-                LV p4 = genPart_p4[i];
-//                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-                if (abs(motherId) == 15 && abs(grandmaId) == 24)
-                {
-//                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-                }
-            }
-        }
-        bool hastau = false;
-        for (auto& id : lepton_id)
-        {
-            if (abs(id) == 15)
-            {
-                hastau = true;
-            }
-        }
-        if (hastau)
-        {
-            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
-            {
-                int idx = genPart_idx[i];
-                int pdgId = genPart_pdgId[i];
-                int status = genPart_status[i];
-                int motherId = genPart_motherId[i];
-                int grandmaId = genPart_grandmaId[i];
-                LV p4 = genPart_p4[i];
-                //                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-                if (abs(motherId) == 15)
-                {
-//                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
-                }
-            }
-        }
+        std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+        std::cout <<  " higgsdecay_id.size(): " << higgsdecay_id.size() <<  std::endl;
+        coreGenPart.printParticleOfInterest();
+        exit(255);
+    }
+
+    if (lepton_id.size() != 1)
+    {
+        std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+        std::cout <<  " lepton_id.size(): " << lepton_id.size() <<  " quark_id.size(): " << quark_id.size() <<  std::endl;
+        coreGenPart.printParticleOfInterest();
+        coreGenPart.printAllParticles();
+
+        // Sanity Check
+        higgses[0].HiggsGrandDaughters[0].print();
+        higgses[0].HiggsGrandDaughters[1].print();
+        higgses[0].HiggsGrandDaughters[2].print();
+        higgses[0].HiggsGrandDaughters[3].print();
+        higgses[0].HiggsDaughters[0].print();
+        higgses[0].HiggsDaughters[1].print();
+        higgses[0].print();
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[0].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[1].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[2].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[3].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[0].p4 + higgses[0].HiggsGrandDaughters[1].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsGrandDaughters[2].p4 + higgses[0].HiggsGrandDaughters[3].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsDaughters[0].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsDaughters[1].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].HiggsDaughters[0].p4 + higgses[0].HiggsDaughters[1].p4);
+        CoreUtil::genpart::printLorentzVector(higgses[0].p4);
+
+        exit(255);
+    }
+
+    if (quark_id.size() != 2)
+    {
+        std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+        std::cout <<  " lepton_id.size(): " << lepton_id.size() <<  " quark_id.size(): " << quark_id.size() <<  std::endl;
+        coreGenPart.printParticleOfInterest();
+        exit(255);
     }
 
     // Save information for H
@@ -5033,8 +5095,236 @@ bool babyMaker_v2::studyHiggsDecay()
     FillDecayProductsDRVariables(1000);
     FillDecayProductsDRVariables(1500);
 
-
     return true;
+
+//    //=========================================
+//    //=========================================
+//    //=========================================
+//    //=========================================
+//    //=========================================
+//
+//    // Find Higgs and the 2 decay 4 vector
+//    vector<int> higgs_idx;
+//    vector<LV> higgs_p4;
+//    vector<int> higgsdecay_idx;
+//    vector<LV> higgsdecay_p4;
+//    vector<int> higgsdecay_id;
+//    vector<int> higgsdecay_isstar;
+//    // WW decay
+//    bool isWW = false;
+//    vector<int> lepton_idx;
+//    vector<int> lepton_id;
+//    vector<int> lepton_mid;
+//    vector<int> lepton_isstar;
+//    vector<LV> lepton_p4;
+//    vector<int> neutrino_idx;
+//    vector<int> neutrino_id;
+//    vector<LV> neutrino_p4;
+//    vector<int> quark_idx;
+//    vector<int> quark_id;
+//    vector<int> quark_mid;
+//    vector<int> quark_isstar;
+//    vector<LV> quark_p4;
+//    vector<int> lepton_from_tau_idx;
+//    vector<int> lepton_from_tau_id;
+//    vector<LV> lepton_from_tau_p4;
+//    for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+//    {
+//        int idx = genPart_idx[i];
+//        int pdgId = genPart_pdgId[i];
+//        int status = genPart_status[i];
+//        int motherId = genPart_motherId[i];
+//        int grandmaId = genPart_grandmaId[i];
+//        LV p4 = genPart_p4[i];
+//        if (abs(pdgId) == 25 && ((abs(motherId) == 9000002 && isWprime())||(status == 22 && (isVH()||isHWW()))))
+//        {
+//            higgs_idx.push_back(idx);
+//            higgs_p4.push_back(p4);
+//        }
+//        if (motherId == 25 && pdgId != 25)
+//        {
+//            higgsdecay_idx.push_back(idx);
+//            higgsdecay_p4.push_back(p4);
+//            higgsdecay_id.push_back(pdgId);
+//            higgsdecay_isstar.push_back(p4.mass() < 63.);
+//            if (abs(pdgId) == 24) isWW = true;
+//        }
+//        if ((abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) && ((status == 23 || status == 1) || (abs(pdgId) == 15 && status == 2)) && abs(motherId) == 24 && abs(grandmaId) == 25)
+//        {
+//            lepton_idx.push_back(idx);
+//            lepton_id.push_back(pdgId);
+//            lepton_mid.push_back(motherId);
+//            lepton_p4.push_back(p4);
+//        }
+//        if ((abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) && (status == 23 || status == 1) && abs(motherId) == 24 && abs(grandmaId) == 25)
+//        {
+//            neutrino_idx.push_back(idx);
+//            neutrino_id.push_back(pdgId);
+//            neutrino_p4.push_back(p4);
+//        }
+//        if ((abs(pdgId) >= 1 && abs(pdgId) <= 4))
+//        {
+////            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//        }
+//        if ((abs(pdgId) >= 11 && abs(pdgId) <= 16))
+//        {
+////            std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//        }
+//        if ((abs(pdgId) >= 1 && abs(pdgId) <= 5) && (status == 23 || status == 1) && abs(motherId) == 24) // up to pdgid = 5 because W "can" decay to bc
+//        {
+//            if ( (abs(grandmaId) == 25 && (isVH() || isHWW())) || (isWprime()) )
+//            {
+//                quark_idx.push_back(idx);
+//                quark_id.push_back(pdgId);
+//                quark_mid.push_back(motherId);
+//                quark_p4.push_back(p4);
+////                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//            }
+//        }
+//    }
+//
+////    std::cout <<  " higgs_idx.size(): " << higgs_idx.size() <<  " higgsdecay_idx.size(): " << higgsdecay_idx.size() <<  std::endl;
+////    for (auto& hd_id : higgsdecay_id)
+////        std::cout <<  " hd_id: " << hd_id <<  std::endl;
+////    for (auto& h_idx : higgs_idx)
+////        std::cout <<  " h_idx: " << h_idx <<  std::endl;
+////
+////    LV sumdecay = higgsdecay_p4[0] + higgsdecay_p4[1];
+////
+////    std::cout <<  " sumdecay.pt(): " << sumdecay.pt() <<  " sumdecay.eta(): " << sumdecay.eta() <<  " sumdecay.phi(): " << sumdecay.phi() <<  " sumdecay.energy(): " << sumdecay.energy() <<  " sumdecay.mass(): " << sumdecay.mass() <<  std::endl;
+////    std::cout <<  " higgs_p4[0].pt(): " << higgs_p4[0].pt() <<  " higgs_p4[0].eta(): " << higgs_p4[0].eta() <<  " higgs_p4[0].phi(): " << higgs_p4[0].phi() <<  " higgs_p4[0].energy(): " << higgs_p4[0].energy() <<  " higgs_p4[0].mass(): " << higgs_p4[0].mass() <<  std::endl;
+//
+//    if (isWW)
+//    {
+//        if (lepton_idx.size() + neutrino_idx.size() + quark_idx.size() != 4)
+//        {
+//            std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
+//            std::cout <<  " lepton_idx.size(): " << lepton_idx.size() <<  " quark_idx.size(): " << quark_idx.size() <<  std::endl;
+//            coreGenPart.printParticleOfInterest();
+////            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+////            {
+////                int idx = genPart_idx[i];
+////                int pdgId = genPart_pdgId[i];
+////                int status = genPart_status[i];
+////                int motherId = genPart_motherId[i];
+////                int grandmaId = genPart_grandmaId[i];
+////                LV p4 = genPart_p4[i];
+////                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+////                if (abs(motherId) == 15 && abs(grandmaId) == 24)
+////                {
+////                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+////                }
+////            }
+//            exit(255);
+//        }
+//        bool hastau = false;
+//        for (auto& id : lepton_id)
+//        {
+//            if (abs(id) == 15)
+//            {
+//                hastau = true;
+//            }
+//        }
+//        if (hastau)
+//        {
+//            for (unsigned int i = 0; i < genPart_pdgId.size(); ++i)
+//            {
+//                int idx = genPart_idx[i];
+//                int pdgId = genPart_pdgId[i];
+//                int status = genPart_status[i];
+//                int motherId = genPart_motherId[i];
+//                int grandmaId = genPart_grandmaId[i];
+//                LV p4 = genPart_p4[i];
+//                //                std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//                if (abs(motherId) == 15)
+//                {
+////                    std::cout <<  " pdgId: " << pdgId <<  " motherId: " << motherId <<  " grandmaId: " << grandmaId <<  " status: " << status <<  " p4.pt(): " << p4.pt() <<  " p4.eta(): " << p4.eta() <<  " p4.phi(): " << p4.phi() <<  std::endl;
+//                }
+//            }
+//        }
+//    }
+//
+//    // Save information for H
+//    tx->setBranch<LV>("higgs_p4", higgs_p4[0]);
+//
+//    // Save information for H->XX
+//    tx->setBranch<int>("higgsdecay", abs(higgsdecay_id[0]));
+//    tx->setBranch<vector<LV>>("decay_p4", higgsdecay_p4);
+//    tx->setBranch<vector<int>>("decay_id", higgsdecay_id);
+//    tx->setBranch<vector<int>>("decay_isstar", higgsdecay_isstar);
+//    tx->sortVecBranchesByPt("decay_p4", {}, {"decay_id", "decay_isstar"}, {});
+//
+//    // Compute and fill the boosted variables as well as toe rotation
+//    // This also returns the reference vector
+//    float deta0, dphi0;
+//    float deta250, dphi250;
+//    float deta500, dphi500;
+//    float deta1000, dphi1000;
+//    float deta1500, dphi1500;
+//    std::tie(deta0, dphi0) = FillReBoostedVariables("decay"  , 0  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+//    std::tie(deta250, dphi250) = FillReBoostedVariables("decay"  , 250  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+//    std::tie(deta500, dphi500) = FillReBoostedVariables("decay"  , 500  , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+//    std::tie(deta1000, dphi1000) = FillReBoostedVariables("decay"  , 1000 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+//    std::tie(deta1500, dphi1500) = FillReBoostedVariables("decay"  , 1500 , higgs_p4[0] , higgsdecay_p4 , higgsdecay_id , higgsdecay_isstar );
+//
+//    // If not WW stop here and move on
+//    if (abs(higgsdecay_id[0]) != 24) return true;
+//
+//    // First save the information about the leptonic/hadronic channel information
+//    tx->setBranch<int>("nlep", lepton_id.size());
+//    tx->setBranch<int>("nquark", quark_id.size());
+//
+//    // Determining which lepton or quarks had the mother of off-shell W
+//    int wstar_id = 0;
+//    for (unsigned i = 0; i < higgsdecay_id.size(); ++i)
+//    {
+//        if (higgsdecay_p4[i].mass() < 63.) // Perhaps you "could" have 62.5 and 62.5 ..? probably very unlikely
+//        {
+//            wstar_id = higgsdecay_id[i];
+//            break;
+//        }
+//    }
+//
+//    // Finding off-shell failed. Sanity check.
+//    if (wstar_id == 0)
+//    {
+//        std::cout << "Failed to find off-shell W" << std::endl;
+//        FATALERROR(__FUNCTION__);
+//    }
+//
+//    // Compute whether specific quark or lepton had a off-shell mother or not
+//    for (auto& id : lepton_mid) lepton_isstar.push_back(id == wstar_id);
+//    for (auto& id : quark_mid ) quark_isstar .push_back(id == wstar_id);
+//
+//    // Save lepton and quark information
+//    tx->setBranch<vector<LV>>("lepton_p4", lepton_p4);
+//    tx->setBranch<vector<int>>("lepton_id", lepton_id);
+//    tx->setBranch<vector<int>>("lepton_isstar", lepton_isstar);
+//    tx->sortVecBranchesByPt("lepton_p4", {}, {"lepton_id", "lepton_isstar"}, {});
+//    tx->setBranch<vector<LV>>("quark_p4", quark_p4);
+//    tx->setBranch<vector<int>>("quark_id", quark_id);
+//    tx->setBranch<vector<int>>("quark_isstar", quark_isstar);
+//    tx->sortVecBranchesByPt("quark_p4", {}, {"quark_id", "quark_isstar"}, {});
+//
+//    // Now start boosting things to normalize to certain set higgs pt
+//    FillReBoostedVariables("lepton" , 0    , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta0   , dphi0   );
+//    FillReBoostedVariables("lepton" , 250  , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta250 , dphi250 );
+//    FillReBoostedVariables("lepton" , 500  , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta500 , dphi500 );
+//    FillReBoostedVariables("lepton" , 1000 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1000, dphi1000);
+//    FillReBoostedVariables("lepton" , 1500 , higgs_p4[0] , lepton_p4     , lepton_id     , lepton_isstar    , deta1500, dphi1500);
+//    FillReBoostedVariables("quark"  , 0    , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta0   , dphi0    );
+//    FillReBoostedVariables("quark"  , 250  , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta250 , dphi250  );
+//    FillReBoostedVariables("quark"  , 500  , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta500 , dphi500  );
+//    FillReBoostedVariables("quark"  , 1000 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1000, dphi1000 );
+//    FillReBoostedVariables("quark"  , 1500 , higgs_p4[0] , quark_p4      , quark_id      , quark_isstar     , deta1500, dphi1500 );
+//
+//    FillDecayProductsDRVariables(250);
+//    FillDecayProductsDRVariables(500);
+//    FillDecayProductsDRVariables(1000);
+//    FillDecayProductsDRVariables(1500);
+//
+//
+//    return true;
 }
 
 //##############################################################################################################

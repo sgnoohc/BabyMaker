@@ -303,6 +303,8 @@ public:
     static bool isVetoElectronNoIso_OldVersion(int);
     static bool isPt10Electron(int);
     static bool isPt20Electron(int);
+    static bool isPt10Muon(int);
+    static bool isPt20Muon(int);
     static bool isPOGVetoNoIsoElectron(int);
     static bool isPOGLooseNoIsoElectron(int);
     static bool isPOGMediumNoIsoElectron(int);
@@ -325,6 +327,7 @@ public:
 
     // Fill variables
     void FillJetVariables(int variation);
+    void FillStdJetVariables(int variation);
     void FillLeptonVariables();
     void FillSSLeptonVariables(int, int);
     void Fill3LLeptonVariables();
@@ -366,7 +369,7 @@ public:
     // WWW signal sample
     bool isSMWWW() { return SampleNiceName().BeginsWith("www_2l"); }
     bool isVH()    { return SampleNiceName().BeginsWith("vh_nonbb"); }
-    bool isHWW()   { return SampleNiceName().BeginsWith("ggf_hww") || SampleNiceName().BeginsWith("vbf_hww"); }
+    bool isHWW()   { return SampleNiceName().Contains("_hww"); }
     bool isWHWWW() { return splitVH(); }
     bool isWWW() { return isSMWWW() || isWHWWW(); }
     void AddWWWSignalOutput();
