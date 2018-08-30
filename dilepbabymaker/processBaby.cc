@@ -3,7 +3,7 @@
 #include "TSystem.h"
 #include "TString.h"
 
-#include "ScanChain_v2.h"
+#include "babyMaker.h"
 
 #include "hadoopmap.h"
 
@@ -44,17 +44,10 @@ int main(int argc, char **argv)
     //
     // Run
     //
-    babyMaker_v2 *looper = new babyMaker_v2();
+    babyMaker *looper = new babyMaker();
     switch (babymode)
     {
-        case 0: looper->SetBabyMode(babyMaker_v2::kWWWBaby); break;
-        case 1: looper->SetBabyMode(babyMaker_v2::kFRBaby); break;
-        case 2: looper->SetBabyMode(babyMaker_v2::kOSBaby);  break;
-        case 3: looper->SetBabyMode(babyMaker_v2::kTnPBaby); break;
-        case 4: looper->SetBabyMode(babyMaker_v2::kAllBaby); break;
-        case 5: looper->SetBabyMode(babyMaker_v2::kPOGBaby); break;
-        case 6: looper->SetBabyMode(babyMaker_v2::kHWWBaby); break;
-
+        case 0: looper->SetBabyMode(babyMaker::kHWWBaby); break;
     }
     looper->ProcessCMS4(infile, max_events, index, verbose);
     delete looper;

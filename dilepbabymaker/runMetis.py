@@ -8,6 +8,13 @@ data_year = "2017"
 data_year = "2016"
 
 job_tag = "HWW{}_v1.1.0".format(data_year) # 2017 MVA IDs are set to the POG provided ones
+job_tag = "HWW{}_v1.1.2".format(data_year) # Failed production
+job_tag = "HWW{}_v1.1.4".format(data_year) # No selection (failed production)
+job_tag = "HWW{}_v1.1.5".format(data_year) # Apply nlep >= 1 and nak8 >= 1 (cvmfs disaster)
+job_tag = "HWW{}_v1.2.1".format(data_year) # Apply nlep >= 1 and nak8 >= 1
+job_tag = "HWW{}_v1.3.1".format(data_year) # Added a few variable realted to other side of the isolation
+job_tag = "HWW{}_v1.4.1".format(data_year) # Trigger included
+job_tag = "HWW{}_v1.5.1".format(data_year) # Fat-jet Trigger included
 
 ###################################################################################################################
 ###################################################################################################################
@@ -105,7 +112,7 @@ def main():
                     tarfile              = tar_gz_path,
                     special_dir          = hadoop_path,
                     output_name          = "output.root",
-                    files_per_output     = 4,
+                    files_per_output     = 1,
                     condor_submit_params = {"sites" : "T2_US_UCSD"},
                     open_dataset         = False,
                     flush                = True,
