@@ -191,8 +191,8 @@ private:
 
     // Sample handling
     TString SampleNiceName() { return coreSample.nicename(looper.getCurrentFileName()); }
-    bool isHWWlvjj(){ return SampleNiceName().Contains("_hwwlvjj"); }
-    bool isHbb()   { return SampleNiceName().Contains("_hbb"); }
+    bool isHWWlvjj(){ return looper.getCurrentFileName().Contains("HToWWToLNuQQ"); }
+    bool isHbb() { return looper.getCurrentFileName().Contains("GluGluHToBB"); }
     bool isFastSim() { return false; }
 
     //

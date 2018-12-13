@@ -57,7 +57,7 @@ void babyMaker::ScanChain(bool verbose)
         }
         catch (const std::ios_base::failure& e)
         {
-            if (SampleNiceName().BeginsWith("data"))
+            if (coreSample.is2016Data(looper.getCurrentFileName()) || coreSample.is2017Data(looper.getCurrentFileName()))
             {
                 std::cout << "Found bad event in data" << std::endl;
                 FATALERROR(__FUNCTION__);

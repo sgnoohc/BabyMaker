@@ -56,21 +56,9 @@ import dataset
 def main():
 
     if data_year == "2016":
-        samples_to_run = dataset.samples_to_run_2016
+        samples_to_run = dataset.hww_samples_to_run_2016
         samples_short_name = dataset.samples_short_name_2016
-        dslocs = dataset.dslocscms4_2016
-        if job_tag.find("HWW") != -1:
-            samples_to_run = dataset.hww_samples_to_run_2016
-            dslocs = dataset.dslocscms4_2016_allpf
-    elif data_year == "2017":
-        samples_short_name = dataset.samples_short_name_2017
-        dslocs = dataset.dslocscms4_2017
-        if job_tag.find("TnP") != -1:
-            samples_to_run = dataset.tnp_samples_to_run_2017
-        elif job_tag.find("FR") != -1:
-            samples_to_run = dataset.fr_samples_to_run_2017
-        else:
-            samples_to_run = dataset.samples_to_run_2017
+        dslocs = dataset.dslocscms4_2016_allpf
 
     # file/dir paths
     main_dir             = os.path.dirname(os.path.abspath(__file__))
@@ -81,20 +69,8 @@ def main():
     exec_path            = os.path.join(main_dir, "metis.sh")
     merge_exec_path      = os.path.join(main_dir, "merge.sh")
     hadoop_path          = "metis/baby/{}".format(job_tag) # The output goes to /hadoop/cms/store/user/$USER/"hadoop_path"
-    if job_tag.find("WWW") != -1:
-        args = "0" # WWWBaby
-    elif job_tag.find("FR") != -1:
-        args = "1" # FRBaby
-    elif job_tag.find("OS") != -1:
-        args = "2" # OSBaby
-    elif job_tag.find("TnP") != -1:
-        args = "3" # TnPBaby
-    elif job_tag.find("All") != -1:
-        args = "4" # AllBaby
-    elif job_tag.find("POG") != -1:
-        args = "5" # POGBaby
-    elif job_tag.find("HWW") != -1:
-        args = "6" # HWWBaby
+    if job_tag.find("HWW") != -1:
+        args = "0" # HWWBaby
 
     # Create tarball
     os.chdir(main_dir)
@@ -110,7 +86,6 @@ def main():
 
         all_tasks_complete = True
 
-        #for sample in sorted(samples):
         for sample in samples_to_run:
 
             loc = dslocs[sample]
@@ -132,40 +107,14 @@ def main():
                     #no_load_from_backup  = True,
                     )
 
-#            merge_sample_name = "/MERGE_"+sample[1:]
-#            merge_task = CondorTask(
-#                    sample                 = DirectorySample(dataset=merge_sample_name, location=maker_task.get_outputdir()),
-#                    # open_dataset         = True, flush = True,
-#                    executable             = merge_exec_path,
-#                    tarfile                = tar_gz_path,
-#                    files_per_output       = 100000,
-#                    output_dir             = maker_task.get_outputdir() + "/merged",
-#                    output_name            = samples_short_name[sample] + ".root",
-#                    condor_submit_params   = {"sites":"T2_US_UCSD"},
-#                    output_is_tree         = True,
-#                    # check_expectedevents = True,
-#                    tag                    = job_tag,
-#                    cmssw_version          = "CMSSW_9_2_0",
-#                    scram_arch             = "slc6_amd64_gcc530",
-#                    #no_load_from_backup    = True,
-#                    )
-
             # process the job (either submits, checks for resubmit, or finishes etc.)
             maker_task.process()
 
-#            if maker_task.complete():
-#                merge_task.reset_io_mapping()
-#                merge_task.update_mapping()
-#                merge_task.process()
-
             # save some information for the dashboard
             total_summary[maker_task.get_sample().get_datasetname()] = maker_task.get_task_summary()
-#            total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
 
             # Aggregate whether all tasks are complete
-#            all_tasks_complete = all_tasks_complete and maker_task.complete() and merge_task.complete()
             all_tasks_complete = all_tasks_complete and maker_task.complete()
-
 
         # parse the total summary and write out the dashboard
         StatsParser(data=total_summary, webdir=metis_dashboard_path).do()
