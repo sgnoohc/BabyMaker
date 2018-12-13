@@ -27,6 +27,7 @@ job_tag = "HWW{}_v1.12.1".format(data_year) # Fixed 04DB bug and added custom is
 job_tag = "HWW{}_v1.13.1".format(data_year) # Fixed 04DB bug and added custom isolation variables
 job_tag = "HWW{}_v1.14.1".format(data_year) # Failed
 job_tag = "HWW{}_v1.15.1".format(data_year) # Added few more reco variables
+job_tag = "HWW{}_v1.16.1".format(data_year) # Revisiting
 
 ###################################################################################################################
 ###################################################################################################################

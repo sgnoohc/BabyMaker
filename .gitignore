@@ -36,3 +36,7 @@ Loopers/qscripts/cutflows*
 Loopers/qscripts/*.txt
 
 dilepbabymaker/localfiles/
+dilepbabymaker/testjobs/
+dilepbabymaker/.*
+dilepbabymaker/*.pyc
+dilepbabymaker/CORE
