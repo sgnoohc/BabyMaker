@@ -64,6 +64,7 @@ else
     echo "SCRAMARCH     : $6"
     echo "BABYMODE      : $7"
     shift 7
+    md5sum package.tar.gz
     tar xvzf package.tar.gz
     if [ $? -eq 0 ]; then
         echo "Successfully untarred package."

@@ -235,6 +235,10 @@ private:
     void AddRecoWhadOutput();
     void FillRecoWhad();
 
+    // --- Reconstructing Wlep vector ---
+    void AddRecoWlepOutput();
+    void FillRecoWlep();
+
     // --- Reconstructing lepton vector ---
     void AddRecoLeptonOutput();
     void FillRecoLepton();
@@ -255,9 +259,17 @@ private:
     void AddDeepIsoVariablesOutput();
     void FillDeepIsoVariables();
 
+    // --- Isolated Lepton Trigger Processor Unit ---
+    void AddIsolatedSingleLeptonTriggerOutput();
+    void FillIsolatedSingleLeptonTrigger();
+
     // --- High Pt Single Lepton Trigger Processor Unit ---
     void AddHighPtSingleLeptonTriggerOutput();
     void FillHighPtSingleLeptonTrigger();
+
+    // --- Overlap removed B-veto variables ---
+    void AddOverlapRemovedBvetoOutput();
+    void FillOverlapRemovedBveto();
 
     // --- Higgs Truth Study Processor Unit ---
     void AddHiggsTruthStudyOutput();

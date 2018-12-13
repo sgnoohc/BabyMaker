@@ -71,6 +71,11 @@ void babyMaker::ScanChain(bool verbose)
 
     looper.printStatus();
 
+    if (looper.getNEventsProcessed() == 0)
+    {
+        CreateOutput();
+    }
+
     SaveOutput();
 }
 
@@ -170,6 +175,8 @@ void babyMaker::AddHWWBabyOutput()
 
     AddRecoWhadOutput();
 
+    AddRecoWlepOutput();
+
     AddRecoLeadJetOutput();
 
     AddRecoVariablesOutput();
@@ -180,7 +187,11 @@ void babyMaker::AddHWWBabyOutput()
 
     AddDeepIsoVariablesOutput();
 
+    AddIsolatedSingleLeptonTriggerOutput();
+
     AddHighPtSingleLeptonTriggerOutput();
+
+    AddOverlapRemovedBvetoOutput();
 
     tx->clear();
 }
@@ -219,6 +230,23 @@ void babyMaker::AddEventInfoOutput()
 }
 
 //##############################################################################################################
+void babyMaker::AddIsolatedSingleLeptonTriggerOutput()
+{
+    // Triggers
+
+    // Electron
+    tx->createBranch<int>("HLT_Ele27_WPLoose_Gsf");
+    tx->createBranch<int>("HLT_Ele30_WPLoose_Gsf");
+    tx->createBranch<int>("HLT_Ele45_WPLoose_Gsf");
+    tx->createBranch<int>("HLT_Ele105_CaloIdVT_GsfTrkIdT");
+    tx->createBranch<int>("HLT_Ele115_CaloIdVT_GsfTrkIdT");
+
+    // Muon
+    tx->createBranch<int>("HLT_IsoTkMu24");
+    tx->createBranch<int>("HLT_IsoMu24");
+}
+
+//##############################################################################################################
 void babyMaker::AddHighPtSingleLeptonTriggerOutput()
 {
     // Triggers
@@ -250,6 +278,22 @@ void babyMaker::AddLeptonOutput()
     tx->createBranch<vector<float>>("lep_miniIsoEA");
     tx->createBranch<vector<float>>("lep_relIso03EA");
     tx->createBranch<vector<float>>("lep_relIso04DB");
+    tx->createBranch<vector<float>>("lep_customrelIso005EA");
+    tx->createBranch<vector<float>>("lep_customrelIso01EA");
+    tx->createBranch<vector<float>>("lep_customrelIso015EA");
+    tx->createBranch<vector<float>>("lep_customrelIso02EA");
+    tx->createBranch<vector<float>>("lep_customrelIso025EA");
+    tx->createBranch<vector<float>>("lep_customrelIso03EA");
+    tx->createBranch<vector<float>>("lep_customrelIso035EA");
+    tx->createBranch<vector<float>>("lep_customrelIso04EA");
+    tx->createBranch<vector<float>>("lep_customrelIso045EA");
+    tx->createBranch<vector<float>>("lep_customrelIso05EA");
+    tx->createBranch<vector<float>>("lep_customrelIso055EA");
+    tx->createBranch<vector<float>>("lep_customrelIso06EA");
+    tx->createBranch<vector<float>>("lep_customrelIso065EA");
+    tx->createBranch<vector<float>>("lep_customrelIso07EA");
+    tx->createBranch<vector<float>>("lep_customrelIso075EA");
+    tx->createBranch<vector<float>>("lep_customrelIso08EA");
     tx->createBranch<int>("nrecolep");
 
     tx->createFlatBranch(
@@ -291,6 +335,11 @@ void babyMaker::AddJetOutput()
     tx->createBranch<int>("nb40med");
     tx->createBranch<int>("nb40tight");
     tx->createBranch<float>("ht");
+    tx->createBranch<float>("ht40");
+    tx->createBranch<float>("ht50");
+    tx->createBranch<float>("mh");
+    tx->createBranch<float>("mh40");
+    tx->createBranch<float>("mh50");
     tx->createBranch<vector<LV>>("alljets_p4");
     tx->createBranch<vector<float>>("alljets_pt");
     tx->createBranch<vector<float>>("alljets_eta");
@@ -381,6 +430,29 @@ void babyMaker::AddJetOutput()
     tx->createBranch<float>("weight_btagsf_heavy_UP");
     tx->createBranch<float>("weight_btagsf_light_DN");
     tx->createBranch<float>("weight_btagsf_light_UP");
+}
+
+//##############################################################################################################
+void babyMaker::AddOverlapRemovedBvetoOutput()
+{
+    tx->createBranch<int>("nbOR");
+    tx->createBranch<int>("nbORmed");
+    tx->createBranch<int>("nbORtight");
+    tx->createBranch<int>("nbOR30");
+    tx->createBranch<int>("nbOR30med");
+    tx->createBranch<int>("nbOR30tight");
+    tx->createBranch<int>("nbOR40");
+    tx->createBranch<int>("nbOR40med");
+    tx->createBranch<int>("nbOR40tight");
+    tx->createBranch<int>("nbOR50");
+    tx->createBranch<int>("nbOR50med");
+    tx->createBranch<int>("nbOR50tight");
+    tx->createBranch<float>("htOR");
+    tx->createBranch<float>("htOR40");
+    tx->createBranch<float>("htOR50");
+    tx->createBranch<float>("mhOR");
+    tx->createBranch<float>("mhOR40");
+    tx->createBranch<float>("mhOR50");
 }
 
 //##############################################################################################################
@@ -513,6 +585,18 @@ void babyMaker::AddRecoWhadOutput()
     tx->createBranch<float>("recowhad_puppi_mass");
     tx->createBranch<float>("recowhad_puppi_nJettinessTau1");
     tx->createBranch<float>("recowhad_puppi_nJettinessTau2");
+    tx->createBranch<float>("recowhad_softdropPuppiSubjet1");
+    tx->createBranch<float>("recowhad_softdropPuppiSubjet2");
+}
+
+//##############################################################################################################
+void babyMaker::AddRecoWlepOutput()
+{
+    tx->createBranch<LV>("recowlep_p4");
+    tx->createBranch<float>("recowlep_pt");
+    tx->createBranch<float>("recowlep_eta");
+    tx->createBranch<float>("recowlep_phi");
+    tx->createBranch<float>("recowlep_mass");
 }
 
 //##############################################################################################################
@@ -560,6 +644,16 @@ void babyMaker::AddRecoVariablesOutput()
     tx->createBranch<float>("recoleadjet_recolepton_dr");
     tx->createBranch<float>("recoleadjet_met_dphi");
     tx->createBranch<float>("recoleadjet_recowhad_dr");
+    tx->createBranch<LV>("recowhad_minus_recolepton_p4");
+    tx->createBranch<float>("recowhad_minus_recolepton_pt");
+    tx->createBranch<float>("recowhad_minus_recolepton_eta");
+    tx->createBranch<float>("recowhad_minus_recolepton_phi");
+    tx->createBranch<float>("recowhad_minus_recolepton_mass");
+    tx->createBranch<LV>("recowhad_minus_recolepton_positive_p4");
+    tx->createBranch<float>("recowhad_minus_recolepton_positive_pt");
+    tx->createBranch<float>("recowhad_minus_recolepton_positive_eta");
+    tx->createBranch<float>("recowhad_minus_recolepton_positive_phi");
+    tx->createBranch<float>("recowhad_minus_recolepton_positive_mass");
 }
 
 //##############################################################################################################
@@ -954,10 +1048,10 @@ bool babyMaker::PassSelection()
 //##############################################################################################################
 bool babyMaker::PassHWWPreselection()
 {
-    if (isHWWlvjj())
-    {
-        return true;
-    }
+//    if (isHWWlvjj())
+//    {
+//        return true;
+//    }
     int n_reconstructed_leptons = coreElectron.index.size() + coreMuon.index.size();
     int n_ak8 = 0;
     for (unsigned ijet = 0; ijet < coreFatJet.index.size(); ++ijet)
@@ -1088,6 +1182,15 @@ void babyMaker::FillHWWBaby()
     // Fill high pt lepton triggers
     FillHighPtSingleLeptonTrigger();
 
+    // Fill high pt lepton triggers
+    FillIsolatedSingleLeptonTrigger();
+
+    // Fill high pt lepton triggers
+    FillOverlapRemovedBveto();
+
+    // Fill reconstructed whad variable
+    FillRecoWlep();
+
     // Fill TTree (NOTE: also clears internal variables)
     FillTTree();
 }
@@ -1122,6 +1225,8 @@ void babyMaker::FillEventInfo()
 //##############################################################################################################
 void babyMaker::FillLepton()
 {
+    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
+    // Lepton absolute isolations
     for (auto& idx : coreElectron.index)
     {
         tx->pushbackToBranch<LV>   ("lep_p4"  , cms3.els_p4()[idx]);
@@ -1133,6 +1238,22 @@ void babyMaker::FillLepton()
         tx->pushbackToBranch<float>("lep_miniIsoEA" , elMiniRelIsoCMS3_EA(idx, 2));
         tx->pushbackToBranch<float>("lep_relIso03EA" , eleRelIso03EA(idx, 2));
         tx->pushbackToBranch<float>("lep_relIso04DB" , -999);
+        tx->pushbackToBranch<float>("lep_customrelIso005EA" , elRelIsoCustomCone(idx , 0.05 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso01EA"  , elRelIsoCustomCone(idx , 0.1  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso015EA" , elRelIsoCustomCone(idx , 0.15 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso02EA"  , elRelIsoCustomCone(idx , 0.2  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso025EA" , elRelIsoCustomCone(idx , 0.25 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso03EA"  , elRelIsoCustomCone(idx , 0.3  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso035EA" , elRelIsoCustomCone(idx , 0.35 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso04EA"  , elRelIsoCustomCone(idx , 0.4  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso045EA" , elRelIsoCustomCone(idx , 0.45 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso05EA"  , elRelIsoCustomCone(idx , 0.5  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso055EA" , elRelIsoCustomCone(idx , 0.55 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso06EA"  , elRelIsoCustomCone(idx , 0.6  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso065EA" , elRelIsoCustomCone(idx , 0.65 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso07EA"  , elRelIsoCustomCone(idx , 0.7  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso075EA" , elRelIsoCustomCone(idx , 0.75 , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso08EA"  , elRelIsoCustomCone(idx , 0.8  , false , 0.0 , false , true , -1 , 2 , true));
     }
 
     for (auto& idx : coreMuon.index)
@@ -1146,8 +1267,25 @@ void babyMaker::FillLepton()
         tx->pushbackToBranch<float>("lep_miniIsoEA" , muMiniRelIsoCMS3_EA(idx, 2));
         tx->pushbackToBranch<float>("lep_relIso03EA" , muRelIso03EA(idx, 2));
         tx->pushbackToBranch<float>("lep_relIso04DB" , muRelIso04DB(idx));
+        tx->pushbackToBranch<float>("lep_customrelIso005EA" , muRelIsoCustomCone(idx , 0.05 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso01EA"  , muRelIsoCustomCone(idx , 0.1  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso015EA" , muRelIsoCustomCone(idx , 0.15 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso02EA"  , muRelIsoCustomCone(idx , 0.2  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso025EA" , muRelIsoCustomCone(idx , 0.25 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso03EA"  , muRelIsoCustomCone(idx , 0.3  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso035EA" , muRelIsoCustomCone(idx , 0.35 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso04EA"  , muRelIsoCustomCone(idx , 0.4  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso045EA" , muRelIsoCustomCone(idx , 0.45 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso05EA"  , muRelIsoCustomCone(idx , 0.5  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso055EA" , muRelIsoCustomCone(idx , 0.55 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso06EA"  , muRelIsoCustomCone(idx , 0.6  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso065EA" , muRelIsoCustomCone(idx , 0.65 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso07EA"  , muRelIsoCustomCone(idx , 0.7  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso075EA" , muRelIsoCustomCone(idx , 0.75 , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_customrelIso08EA"  , muRelIsoCustomCone(idx , 0.8  , false , 0.5 , false , true , -1 , 2 , true));
     }
     tx->setBranch<int>("nrecolep", coreElectron.index.size() + coreMuon.index.size());
+    std::cout.clear();
 
     tx->sortVecBranchesByPt("lep_p4",
             {
@@ -1156,6 +1294,23 @@ void babyMaker::FillLepton()
             "lep_phi",
             "lep_miniIsoEA",
             "lep_relIso03EA",
+            "lep_relIso04DB",
+            "lep_customrelIso005EA",
+            "lep_customrelIso01EA",
+            "lep_customrelIso015EA",
+            "lep_customrelIso02EA",
+            "lep_customrelIso025EA",
+            "lep_customrelIso03EA",
+            "lep_customrelIso035EA",
+            "lep_customrelIso04EA",
+            "lep_customrelIso045EA",
+            "lep_customrelIso05EA",
+            "lep_customrelIso055EA",
+            "lep_customrelIso06EA",
+            "lep_customrelIso065EA",
+            "lep_customrelIso07EA",
+            "lep_customrelIso075EA",
+            "lep_customrelIso08EA",
             },
             {
             "lep_id",
@@ -1204,6 +1359,12 @@ void babyMaker::FillJet()
     int nb30 = 0;
     int nb30med = 0;
     int nb30tight = 0;
+    float ht = 0;
+    float ht40 = 0;
+    float ht50 = 0;
+    LV v_mh;
+    LV v_mh40;
+    LV v_mh50;
 
     for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
     {
@@ -1236,7 +1397,21 @@ void babyMaker::FillJet()
             else
                 coreBtagSFFastSim.accumulateSF(idx, jet.pt(), jet.eta());
             if (fabs(jet.eta()) < 2.4)
+            {
                 nj++;
+                ht += jet.pt();
+                v_mh += jet;
+                if (jet.pt() > 40.)
+                {
+                    ht40 += jet.pt();
+                    v_mh40 += jet;
+                }
+                if (jet.pt() > 50.)
+                {
+                    ht50 += jet.pt();
+                    v_mh50 += jet;
+                }
+            }
             if (fabs(jet.eta()) < 2.4 && jet.pt() > 50)
                 nj50++;
         }
@@ -1327,6 +1502,12 @@ void babyMaker::FillJet()
     tx->setBranch<int>("nb50tight", nb50tight);
     tx->setBranch<int>("nj", nj);
     tx->setBranch<int>("nj50", nj50);
+    tx->setBranch<float>("ht", ht);
+    tx->setBranch<float>("ht40", ht40);
+    tx->setBranch<float>("ht50", ht50);
+    tx->setBranch<float>("mh", v_mh.mass());
+    tx->setBranch<float>("mh40", v_mh40.mass());
+    tx->setBranch<float>("mh50", v_mh50.mass());
 
     int nak8jets = 0;
     for (unsigned ijet = 0; ijet < coreFatJet.index.size(); ++ijet)
@@ -1981,17 +2162,17 @@ void babyMaker::FillDeepIsoVariables()
 void babyMaker::FillHighPtSingleLeptonTrigger()
 {
     // Triggers
-    int HLT_Ele40_WPTight_Gsf = passHLTTriggerPattern("HLT_Ele40_WPTight_Gsf");
-    int HLT_Mu50 = passHLTTriggerPattern("HLT_Mu50");
-    int HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 = passHLTTriggerPattern("HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165");
-    int HLT_TkMu50 = passHLTTriggerPattern("HLT_TkMu50");
-    int HLT_AK8PFHT700_TrimR0p1PT0p03Mass50 = passHLTTriggerPattern("HLT_AK8PFHT700_TrimR0p1PT0p03Mass50");
-    int HLT_AK8PFJet360_TrimMass30 = passHLTTriggerPattern("HLT_AK8PFJet360_TrimMass30");
-    int HLT_PFHT800 = passHLTTriggerPattern("HLT_PFHT800");
-    int HLT_PFHT900 = passHLTTriggerPattern("HLT_PFHT900");
-    int HLT_PFHT650_WideJetMJJ900DEtaJJ1p5 = passHLTTriggerPattern("HLT_PFHT650_WideJetMJJ900DEtaJJ1p5");
-    int HLT_PFHT650_WideJetMJJ950DEtaJJ1p5 = passHLTTriggerPattern("HLT_PFHT650_WideJetMJJ950DEtaJJ1p5");
-    int HLT_AK8PFDiJet280_200_TrimMass30_CSVM_0p20 = passHLTTriggerPattern("HLT_AK8PFDiJet280_200_TrimMass30_CSVM_0p20");
+    int HLT_Ele40_WPTight_Gsf = passHLTTriggerPattern("HLT_Ele40_WPTight_Gsf_v");
+    int HLT_Mu50 = passHLTTriggerPattern("HLT_Mu50_v");
+    int HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165 = passHLTTriggerPattern("HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165_v");
+    int HLT_TkMu50 = passHLTTriggerPattern("HLT_TkMu50_v");
+    int HLT_AK8PFHT700_TrimR0p1PT0p03Mass50 = passHLTTriggerPattern("HLT_AK8PFHT700_TrimR0p1PT0p03Mass50_v");
+    int HLT_AK8PFJet360_TrimMass30 = passHLTTriggerPattern("HLT_AK8PFJet360_TrimMass30_v");
+    int HLT_PFHT800 = passHLTTriggerPattern("HLT_PFHT800_v");
+    int HLT_PFHT900 = passHLTTriggerPattern("HLT_PFHT900_v");
+    int HLT_PFHT650_WideJetMJJ900DEtaJJ1p5 = passHLTTriggerPattern("HLT_PFHT650_WideJetMJJ900DEtaJJ1p5_v");
+    int HLT_PFHT650_WideJetMJJ950DEtaJJ1p5 = passHLTTriggerPattern("HLT_PFHT650_WideJetMJJ950DEtaJJ1p5_v");
+    int HLT_AK8PFDiJet280_200_TrimMass30_CSVM_0p20 = passHLTTriggerPattern("HLT_AK8PFDiJet280_200_TrimMass30_CSVM_0p20_v");
 
     tx->setBranch<int>("HLT_SingleEl40", HLT_Ele40_WPTight_Gsf);
     tx->setBranch<int>("HLT_SingleMu50", HLT_Mu50);
@@ -2009,6 +2190,163 @@ void babyMaker::FillHighPtSingleLeptonTrigger()
     int pass_duplicate_sm_se = 0;
     tx->setBranch<int>("pass_duplicate_se_sm", pass_duplicate_se_sm);
     tx->setBranch<int>("pass_duplicate_sm_se", pass_duplicate_sm_se);
+}
+
+//##############################################################################################################
+void babyMaker::FillIsolatedSingleLeptonTrigger()
+{
+    tx->setBranch<int>("HLT_Ele27_WPLoose_Gsf", passHLTTriggerPattern("HLT_Ele27_WPLoose_Gsf_v"));
+    tx->setBranch<int>("HLT_Ele30_WPLoose_Gsf", passHLTTriggerPattern("HLT_Ele30_WPLoose_Gsf_v"));
+    tx->setBranch<int>("HLT_Ele45_WPLoose_Gsf", passHLTTriggerPattern("HLT_Ele45_WPLoose_Gsf_v"));
+    tx->setBranch<int>("HLT_Ele105_CaloIdVT_GsfTrkIdT", passHLTTriggerPattern("HLT_Ele105_CaloIdVT_GsfTrkIdT_v"));
+    tx->setBranch<int>("HLT_Ele115_CaloIdVT_GsfTrkIdT", passHLTTriggerPattern("HLT_Ele115_CaloIdVT_GsfTrkIdT_v"));
+
+    // Muon
+    tx->setBranch<int>("HLT_IsoTkMu24", passHLTTriggerPattern("HLT_IsoTkMu24_v"));
+    tx->setBranch<int>("HLT_IsoMu24", passHLTTriggerPattern("HLT_IsoMu24_v"));
+}
+
+//##############################################################################################################
+void babyMaker::FillOverlapRemovedBveto()
+{
+
+    const LV& recowhad_p4 = tx->getBranch<LV>("recowhad_p4", false);
+    const float& recowhad_pt = tx->getBranch<float>("recowhad_pt", false);
+
+    const LV& recolepton_p4 = tx->getBranch<LV>("recolepton_p4", false);
+    const float& recolepton_pt = tx->getBranch<float>("recolepton_pt", false);
+
+    if (recowhad_pt > 0 && recolepton_pt > 0)
+    {
+
+        int nbOR = 0;
+        int nbORmed = 0;
+        int nbORtight = 0;
+        int nbOR50 = 0;
+        int nbOR50med = 0;
+        int nbOR50tight = 0;
+        int nbOR40 = 0;
+        int nbOR40med = 0;
+        int nbOR40tight = 0;
+        int nbOR30 = 0;
+        int nbOR30med = 0;
+        int nbOR30tight = 0;
+        float htOR = 0;
+        float htOR40 = 0;
+        float htOR50 = 0;
+        LV v_mhOR;
+        LV v_mhOR40;
+        LV v_mhOR50;
+        bool overlapping_lepton_found = false;
+
+        for (unsigned ijet = 0; ijet < coreJet.index.size(); ++ijet)
+        {
+            int idx = coreJet.index[ijet];
+            float corr = coreJet.corrs[ijet];
+            float shift = coreJet.shifts[ijet];
+            float current_csv_val = cms3.getbtagvalue("pfCombinedInclusiveSecondaryVertexV2BJetTags", idx);
+            LorentzVector jet = cms3.pfjets_p4()[idx] * cms3.pfjets_undoJEC()[idx] * corr;
+
+            // Check whether this jet overlaps with any of the leptons
+            if (isLeptonOverlappingWithJet(ijet))
+                continue;
+
+            if (RooUtil::Calc::DeltaR(recowhad_p4, jet) > 0.8)
+            {
+                // nbOR jets
+                if (jet.pt() > 20.)
+                {
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.5426)
+                        nbOR++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.8484)
+                        nbORmed++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.9535)
+                        nbORtight++;
+                }
+
+                // nbOR jets
+                if (jet.pt() > 30.)
+                {
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.5426)
+                        nbOR30++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.8484)
+                        nbOR30med++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.9535)
+                        nbOR30tight++;
+                }
+
+                // nbOR jets
+                if (jet.pt() > 40.)
+                {
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.5426)
+                        nbOR40++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.8484)
+                        nbOR40med++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.9535)
+                        nbOR40tight++;
+                }
+
+                // nbOR jets
+                if (jet.pt() > 50.)
+                {
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.5426)
+                        nbOR50++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.8484)
+                        nbOR50med++;
+                    if (fabs(jet.eta()) < 2.4 && current_csv_val >= 0.9535)
+                        nbOR50tight++;
+                }
+            }
+
+            if (jet.pt() > 30 && fabs(jet.eta()) < 2.4)
+            {
+                htOR += jet.pt();
+                v_mhOR += jet;
+            }
+            if (jet.pt() > 40 && fabs(jet.eta()) < 2.4)
+            {
+                htOR40 += jet.pt();
+                v_mhOR40 += jet;
+            }
+            if (jet.pt() > 50 && fabs(jet.eta()) < 2.4)
+            {
+                htOR50 += jet.pt();
+                v_mhOR50 += jet;
+            }
+
+            if (RooUtil::Calc::DeltaR(recolepton_p4, jet) < 0.3)
+            {
+                overlapping_lepton_found = true;
+            }
+
+        }
+
+        if (overlapping_lepton_found)
+        {
+            htOR -= recolepton_pt;
+            htOR40 -= recolepton_pt;
+            htOR50 -= recolepton_pt;
+        }
+
+        tx->setBranch<int>("nbOR", nbOR);
+        tx->setBranch<int>("nbORmed", nbORmed);
+        tx->setBranch<int>("nbORtight", nbORtight);
+        tx->setBranch<int>("nbOR30", nbOR30);
+        tx->setBranch<int>("nbOR30med", nbOR30med);
+        tx->setBranch<int>("nbOR30tight", nbOR30tight);
+        tx->setBranch<int>("nbOR40", nbOR40);
+        tx->setBranch<int>("nbOR40med", nbOR40med);
+        tx->setBranch<int>("nbOR40tight", nbOR40tight);
+        tx->setBranch<int>("nbOR50", nbOR50);
+        tx->setBranch<int>("nbOR50med", nbOR50med);
+        tx->setBranch<int>("nbOR50tight", nbOR50tight);
+        tx->setBranch<float>("htOR", htOR);
+        tx->setBranch<float>("htOR40", htOR40);
+        tx->setBranch<float>("htOR50", htOR50);
+        tx->setBranch<float>("mhOR", v_mhOR.mass());
+        tx->setBranch<float>("mhOR40", v_mhOR40.mass());
+        tx->setBranch<float>("mhOR50", v_mhOR50.mass());
+    }
 }
 
 //##############################################################################################################
@@ -2144,6 +2482,8 @@ void babyMaker::FillRecoWhad()
         tx->setBranch<float>("recowhad_puppi_mass", tx->getBranch<vector<float>>("ak8jets_puppi_mass")[fatjetidx]);
         tx->setBranch<float>("recowhad_puppi_nJettinessTau1", tx->getBranch<vector<float>>("ak8jets_puppi_nJettinessTau1")[fatjetidx]);
         tx->setBranch<float>("recowhad_puppi_nJettinessTau2", tx->getBranch<vector<float>>("ak8jets_puppi_nJettinessTau2")[fatjetidx]);
+        tx->setBranch<float>("recowhad_softdropPuppiSubjet1", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1")[fatjetidx]);
+        tx->setBranch<float>("recowhad_softdropPuppiSubjet2", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2")[fatjetidx]);
     }
 }
 
@@ -2196,7 +2536,7 @@ void babyMaker::FillRecoLepton()
         const float& recoisrmegajet_pt = tx->getBranch<float>("recoisrmegajet_pt", false);
         if (recoisrmegajet_pt > 0)
         {
-            float ratio = p4.pt() + met_pt / recoisrmegajet_pt;
+            float ratio = (p4.pt() + met_pt) / recoisrmegajet_pt;
             int recoiswleplead = ratio > 0.5;
             tx->setBranch<int>("recoiswleplead", recoiswleplead);
         }
@@ -2302,10 +2642,47 @@ void babyMaker::FillRecoVariables()
     const LV& recowhad_p4 = tx->getBranch<LV>("recowhad_p4", false);
     const float& recolepton_pt = tx->getBranch<float>("recolepton_pt", false);
     const float& recowhad_pt = tx->getBranch<float>("recowhad_pt", false);
+    const float& recowhad_mass = tx->getBranch<float>("recowhad_mass", false);
     if (recowhad_pt > 0 && recolepton_pt > 0)
     {
         float dr = RooUtil::Calc::DeltaR(recolepton_p4, recowhad_p4);
         tx->setBranch<float>("recolepton_recowhad_dr", dr);
+
+        LV recowhad_minus_recolepton_p4 = recowhad_p4 - recolepton_p4;
+        tx->setBranch<LV>("recowhad_minus_recolepton_p4", recowhad_minus_recolepton_p4);
+        tx->setBranch<float>("recowhad_minus_recolepton_pt", recowhad_minus_recolepton_p4.pt());
+        tx->setBranch<float>("recowhad_minus_recolepton_eta", recowhad_minus_recolepton_p4.eta());
+        tx->setBranch<float>("recowhad_minus_recolepton_phi", recowhad_minus_recolepton_p4.phi());
+        tx->setBranch<float>("recowhad_minus_recolepton_mass", recowhad_minus_recolepton_p4.mass());
+
+        LV recowhad_minus_recolepton_positive_p4 = recowhad_minus_recolepton_p4.mass() > 0 ? recowhad_minus_recolepton_p4 : recowhad_p4;
+        float recowhad_minus_recolepton_positive_mass = recowhad_minus_recolepton_positive_p4.mass() > 0 ? recowhad_minus_recolepton_positive_p4.mass() : recowhad_mass;
+        tx->setBranch<LV>("recowhad_minus_recolepton_positive_p4", recowhad_minus_recolepton_positive_p4);
+        tx->setBranch<float>("recowhad_minus_recolepton_positive_pt", recowhad_minus_recolepton_positive_p4.pt());
+        tx->setBranch<float>("recowhad_minus_recolepton_positive_eta", recowhad_minus_recolepton_positive_p4.eta());
+        tx->setBranch<float>("recowhad_minus_recolepton_positive_phi", recowhad_minus_recolepton_positive_p4.phi());
+        tx->setBranch<float>("recowhad_minus_recolepton_positive_mass", recowhad_minus_recolepton_positive_mass);
+    }
+}
+
+//##############################################################################################################
+void babyMaker::FillRecoWlep()
+{
+    const LV& recolepton_p4 = tx->getBranch<LV>("recolepton_p4", false);
+    const float& recolepton_pt = tx->getBranch<float>("recolepton_pt", false);
+    const float& met_phi = tx->getBranch<float>("met_phi", false);
+    const float& met_pt = tx->getBranch<float>("met_pt", false);
+    if (recolepton_pt > 0)
+    {
+        TLorentzVector met_tlv;
+        met_tlv.SetPtEtaPhiM(met_pt, 0, met_phi, 0);
+        LV met = RooUtil::Calc::getLV(met_tlv);
+        const LV recowlep_p4 = recolepton_p4 + met;
+        tx->setBranch<LV>("recowlep_p4", recowlep_p4);
+        tx->setBranch<float>("recowlep_pt", recowlep_p4.pt());
+        tx->setBranch<float>("recowlep_eta", recowlep_p4.eta());
+        tx->setBranch<float>("recowlep_phi", recowlep_p4.phi());
+        tx->setBranch<float>("recowlep_mass", recowlep_p4.mass());
     }
 }
 
@@ -2441,6 +2818,9 @@ bool babyMaker::FillTruthLevelStudyVariables_HWWlvjj()
     {
         std::cout <<  " looper.getCurrentEventIndex(): " << looper.getCurrentEventIndex() <<  std::endl;
         std::cout <<  " lepton_id.size(): " << lepton_id.size() <<  " quark_id.size(): " << quark_id.size() <<  std::endl;
+        for (unsigned int ii = 0; ii < lepton_id.size(); ++ ii)
+            std::cout <<  " lepton_id[ii]: " << lepton_id[ii] <<  " lepton_p4[ii].pt(): " << lepton_p4[ii].pt() <<  std::endl;
+
         coreGenPart.printParticleOfInterest();
         coreGenPart.printAllParticles();
 

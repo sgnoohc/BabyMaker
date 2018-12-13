@@ -15,6 +15,18 @@ job_tag = "HWW{}_v1.2.1".format(data_year) # Apply nlep >= 1 and nak8 >= 1
 job_tag = "HWW{}_v1.3.1".format(data_year) # Added a few variable realted to other side of the isolation
 job_tag = "HWW{}_v1.4.1".format(data_year) # Trigger included
 job_tag = "HWW{}_v1.5.1".format(data_year) # Fat-jet Trigger included
+job_tag = "HWW{}_v1.6.1".format(data_year) # B-veto OR removed version + recowhad minus recolepton + 2 more subvariable
+job_tag = "HWW{}_v1.7.1".format(data_year) # HT added
+job_tag = "HWW{}_v1.8.1".format(data_year) # HT-ORed added
+job_tag = "HWW{}_v1.9.1".format(data_year) # Single lepton trigger
+job_tag = "HWW{}_v1.10.1".format(data_year) # mh variable added
+job_tag = "HWW{}_v1.10.2".format(data_year) # Just for signal sample with 2M events
+job_tag = "HWW{}_v1.10.3".format(data_year) # Just for signal sample with 3163153 events
+job_tag = "HWW{}_v1.11.1".format(data_year) # All PF candidates included for both signal and background
+job_tag = "HWW{}_v1.12.1".format(data_year) # Fixed 04DB bug and added custom isolation variables
+job_tag = "HWW{}_v1.13.1".format(data_year) # Fixed 04DB bug and added custom isolation variables
+job_tag = "HWW{}_v1.14.1".format(data_year) # Failed
+job_tag = "HWW{}_v1.15.1".format(data_year) # Added few more reco variables
 
 ###################################################################################################################
 ###################################################################################################################
@@ -49,6 +61,7 @@ def main():
         dslocs = dataset.dslocscms4_2016
         if job_tag.find("HWW") != -1:
             samples_to_run = dataset.hww_samples_to_run_2016
+            dslocs = dataset.dslocscms4_2016_allpf
     elif data_year == "2017":
         samples_short_name = dataset.samples_short_name_2017
         dslocs = dataset.dslocscms4_2017
@@ -85,7 +98,7 @@ def main():
 
     # Create tarball
     os.chdir(main_dir)
-    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C xsec_susy_13tev.root roccor.2017.v0/*.txt".format(tar_gz_path))
+    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
 
     # Change directory to metis
     os.chdir(metis_path)
@@ -158,7 +171,7 @@ def main():
         StatsParser(data=total_summary, webdir=metis_dashboard_path).do()
 
         # Print msummary table so I don't have to load up website
-        os.system("msummary -p MAKER | tee summary.txt")
+        os.system("msummary -r -p MAKER | tee summary.txt")
         os.system("chmod -R 755 {}".format(metis_dashboard_path))
 
         # If all done exit the loop
