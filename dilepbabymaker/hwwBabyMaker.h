@@ -44,6 +44,16 @@ class hwwBabyMaker: public babyMaker
                 virtual void FillOutput();
         };
 
+        // Trigger module
+        class TriggerModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                TriggerModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+        };
+
 };
 
 #endif
