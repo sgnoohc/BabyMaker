@@ -3,7 +3,7 @@
 #include "TSystem.h"
 #include "TString.h"
 
-#include "babyMaker.h"
+#include "hwwBabyMaker.h"
 
 #include "hadoopmap.h"
 
@@ -16,14 +16,13 @@ int main(int argc, char **argv)
     //
     if (argc < 3)
     {
-        std::cout << "USAGE: processBaby <filename> [<max_num_events>] [index] [BabyMode] [type anything to make it verbose]" << std::endl;
+        std::cout << "USAGE: processBaby <filename> [<max_num_events>] [index] [type anything to make it verbose]" << std::endl;
         return 1;
     }
 
     TString infile(argv[1]);
     int max_events = -1;
     int index = 1;
-    int babymode = 0;
     bool verbose = false;
 
     if (argc >= 3)
@@ -33,9 +32,6 @@ int main(int argc, char **argv)
         index = atoi(argv[3]);
 
     if (argc >= 5)
-        babymode = atoi(argv[4]);
-
-    if (argc >= 6)
         verbose = true;
 
     std::cout << "set max number of events to: " << max_events << std::endl;
@@ -44,12 +40,7 @@ int main(int argc, char **argv)
     //
     // Run
     //
-    babyMaker *looper = new babyMaker();
-    switch (babymode)
-    {
-        case 0: looper->SetBabyMode(babyMaker::kHWWBaby); break;
-    }
+    hwwBabyMaker *looper = new hwwBabyMaker();
     looper->ProcessCMS4(infile, max_events, index, verbose);
-    delete looper;
     return 0;
 }

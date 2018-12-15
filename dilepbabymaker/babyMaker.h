@@ -63,6 +63,7 @@
 #include "rooutil/printutil.h"
 #include "rooutil/fileutil.h"
 #include "rooutil/calc.h"
+#include "rooutil/module.h"
 
 // CoreUtil
 #include "coreutil/jec.h"
@@ -97,13 +98,6 @@ class babyMaker
 
 public:
 
-    enum BabyMode
-    {
-         kHWWBaby = 0
-    };
-
-private:
-
     CoreUtil::jec coreJec;
     CoreUtil::grl coreGRL;
     CoreUtil::btag coreBtagSF;
@@ -128,45 +122,32 @@ private:
 
     std::string filename;
 
-    // BabyMode
-    BabyMode babymode;
-
     // Job
     int job_index;
 
-public:
-
     babyMaker();
-    ~babyMaker();
+    virtual ~babyMaker();
 
-    void SetBabyMode(BabyMode bm) { babymode = bm; }
     int ProcessCMS4(TString filepaths, int max_events = -1, int index = 1, bool verbose = false);
 
-private:
     void ScanChain(bool verbose = false);
     void Init();
     void SetYear();
     void CreateOutput();
-    void AddOutput();
-    void AddBabyOutput();
-    void AddHWWBabyOutput();
+    virtual void AddOutput();
     void SetLeptonID();
-    void SetHWWAnalysisLeptonID();
 
     void Process();
     void FillGenWeights();
     void FillGenWeightsNominal();
     void ProcessLeptons();
-    void ProcessElectrons();
-    void ProcessHWWElectrons();
-    void ProcessMuons();
-    void ProcessHWWMuons();
+    virtual void ProcessElectrons();
+    virtual void ProcessMuons();
 
-    bool PassSelection();
-    bool PassHWWPreselection();
+    virtual bool PassSelection();
 
-    void ProcessObjectsPrePassSelection();
-    void ProcessObjectsPostPassSelection();
+    virtual void ProcessObjectsPrePassSelection();
+    virtual void ProcessObjectsPostPassSelection();
     void ProcessTriggers();
     void ProcessGenParticles();
     void ProcessJets();
@@ -174,111 +155,22 @@ private:
     void ProcessMET();
     void ProcessTracks();
 
-    void FillBaby();
-    void FillHWWBaby();
-    void FillTTree();
+    virtual void FillOutput();
+    virtual void FillEventInfo();
 
     void SaveOutput();
-    void SaveHWWBaby();
 
     // Tools
-    static bool isPt10Electron(int);
-    static bool isPt10Muon(int);
-    static int passCount(const vector<int>& vec);
     static void sortVecP4(std::vector<LV>& p4s);
     void FATALERROR(const char* funcname="");
-    bool isLeptonOverlappingWithJet(int ijet);
 
     // Sample handling
     TString SampleNiceName() { return coreSample.nicename(looper.getCurrentFileName()); }
-    bool isHWWlvjj(){ return looper.getCurrentFileName().Contains("HToWWToLNuQQ"); }
-    bool isHbb() { return looper.getCurrentFileName().Contains("GluGluHToBB"); }
-    bool isFastSim() { return false; }
 
     //
     // Processor units
     //
 
-    // --- Event Info Processor Unit ---
-    void AddEventInfoOutput();
-    void FillEventInfo();
-
-    // --- Lepton Processor Unit ---
-    void AddLeptonOutput();
-    void FillLepton();
-
-    // --- Jet Processor Unit ---
-    void AddJetOutput();
-    void FillJet();
-
-    // --- MET Processor Unit ---
-    void AddMETOutput();
-    void FillMET();
-
-    // --- Gen to Reco Processor Unit ---
-    void AddGenVariablesOutput();
-    void FillGenVariables();
-
-    // --- Gen to Reco Processor Unit ---
-    void AddGenRecoMatchingOutput();
-    void FillGenRecoMatching();
-
-    // --- Higgs Mass Reco Processor Unit ---
-    void AddHiggsMassRecoOutput();
-    void FillHiggsMassReco();
-
-    // --- Reconstructing ISR vector ---
-    void AddRecoISROutput();
-    void FillRecoISR();
-
-    // --- Reconstructing Whad vector ---
-    void AddRecoWhadOutput();
-    void FillRecoWhad();
-
-    // --- Reconstructing Wlep vector ---
-    void AddRecoWlepOutput();
-    void FillRecoWlep();
-
-    // --- Reconstructing lepton vector ---
-    void AddRecoLeptonOutput();
-    void FillRecoLepton();
-
-    // --- Reconstructing leading AK4 jet ---
-    void AddRecoLeadJetOutput();
-    void FillRecoLeadJet();
-
-    // --- Combination variables ---
-    void AddRecoVariablesOutput();
-    void FillRecoVariables();
-
-    // --- Eta-Phi plane PF deposits variables ---
-    void AddEtaPhiPlaneVariablesOutput();
-    void FillEtaPhiPlaneVariables();
-
-    // --- DeepIso inputs
-    void AddDeepIsoVariablesOutput();
-    void FillDeepIsoVariables();
-
-    // --- Isolated Lepton Trigger Processor Unit ---
-    void AddIsolatedSingleLeptonTriggerOutput();
-    void FillIsolatedSingleLeptonTrigger();
-
-    // --- High Pt Single Lepton Trigger Processor Unit ---
-    void AddHighPtSingleLeptonTriggerOutput();
-    void FillHighPtSingleLeptonTrigger();
-
-    // --- Overlap removed B-veto variables ---
-    void AddOverlapRemovedBvetoOutput();
-    void FillOverlapRemovedBveto();
-
-    // --- Higgs Truth Study Processor Unit ---
-    void AddHiggsTruthStudyOutput();
-    void FillTruthLevelStudyVariables();
-    bool FillTruthLevelStudyVariables_HWWlvjj();
-    bool FillTruthLevelStudyVariables_Hbb();
-    std::tuple<std::vector<LV>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, std::vector<float>, float, float> getReBoostedDRDEtaDPhi(int ptBoost, const LV& higgs_p4, const vector<LV>& higgsdecay_p4, float ref_deta=-999, float ref_dphi=-999);
-    std::tuple<float, float> FillReBoostedVariables(TString bname, int ptBoost, const LV& higgs_p4, const vector<LV>& decay_p4, const vector<int>& decay_id, const vector<int>& decay_isstar, float ref_deta=-999, float ref_dphi=-999);
-    void FillDecayProductsDRVariables(int pt);
 };
 
 

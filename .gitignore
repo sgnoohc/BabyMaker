@@ -39,4 +39,6 @@ dilepbabymaker/localfiles/
 dilepbabymaker/testjobs/
 dilepbabymaker/.*
 dilepbabymaker/*.pyc
+dilepbabymaker/*.cc_
+dilepbabymaker/*.h_
 dilepbabymaker/CORE
