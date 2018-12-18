@@ -185,9 +185,6 @@ void babyMaker::CreateOutput()
     tx->createBranch<float>("weight_pdf_down");
     tx->createBranch<float>("weight_alphas_down");
     tx->createBranch<float>("weight_alphas_up");
-    tx->createBranch<float>("weight_isr");
-    tx->createBranch<float>("weight_isr_up");
-    tx->createBranch<float>("weight_isr_down");
 
 }
 

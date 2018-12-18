@@ -11,8 +11,6 @@ class hwwBabyMaker: public babyMaker
 
         RooUtil::Processor* processor;
 
-        virtual void ProcessObjectsPrePassSelection();
-        virtual void ProcessObjectsPostPassSelection();
         virtual void ProcessElectrons();
         virtual void ProcessMuons();
         virtual bool PassSelection();
@@ -24,6 +22,7 @@ class hwwBabyMaker: public babyMaker
         static bool isPt10Muon(int idx);
         bool isLeptonOverlappingWithJet(int ijet);
 
+        //__________________________________________________________________
         // Lepton module
         class LeptonModule: public RooUtil::Module
         {
@@ -34,6 +33,7 @@ class hwwBabyMaker: public babyMaker
                 virtual void FillOutput();
         };
 
+        //__________________________________________________________________
         // FatJet module
         class FatJetModule: public RooUtil::Module
         {
@@ -44,6 +44,7 @@ class hwwBabyMaker: public babyMaker
                 virtual void FillOutput();
         };
 
+        //__________________________________________________________________
         // Trigger module
         class TriggerModule: public RooUtil::Module
         {
@@ -52,6 +53,76 @@ class hwwBabyMaker: public babyMaker
                 TriggerModule(hwwBabyMaker* parent) { babymaker = parent; }
                 virtual void AddOutput();
                 virtual void FillOutput();
+        };
+
+        //__________________________________________________________________
+        // Jet module
+        class JetModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                JetModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+        };
+
+        //__________________________________________________________________
+        // MET module
+        class METModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                METModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+        };
+
+        //__________________________________________________________________
+        // HWWlvjj Truth Module
+        class HWWlvjjTruthModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                HWWlvjjTruthModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+        };
+
+        //__________________________________________________________________
+        // Higgs Reconstruction Module
+        class HiggsRecoModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                HiggsRecoModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+                std::tuple<LV, int> SelectLepton(LV ref, float dphithresh=TMath::Pi()/2.);
+                std::tuple<LV, int> SelectFatJet(LV ref, float dphithresh=TMath::Pi()/2.);
+        };
+
+        //__________________________________________________________________
+        // Recoil module
+        class RecoilModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                TString suffix;
+                TString jettype;
+                float threshold;
+                TString bname;
+                RecoilModule(hwwBabyMaker* parent, TString sfx="", TString jt="jets_p4", float thr=(TMath::Pi() * 2./4.))
+                {
+                    babymaker = parent;
+                    suffix = sfx;
+                    jettype = jt;
+                    threshold = thr;
+                    bname = TString::Format("Recoil%s_p4", suffix.Data());
+                }
+                virtual void AddOutput();
+                virtual void FillOutput();
+                void FillOutput_v1();
+                void FillOutput_v2();
         };
 
 };

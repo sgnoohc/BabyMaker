@@ -29,6 +29,8 @@ job_tag = "HWW{}_v1.14.1".format(data_year) # Failed
 job_tag = "HWW{}_v1.15.1".format(data_year) # Added few more reco variables
 job_tag = "HWW{}_v1.16.1".format(data_year) # Revisiting
 
+job_tag = "HWW{}_v2.0.0".format(data_year) # trying 94x
+
 ###################################################################################################################
 ###################################################################################################################
 # Below are the Metis submission code that users do not have to care about.

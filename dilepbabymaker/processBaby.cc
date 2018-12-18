@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     //
     // Parse options
     //
-    if (argc < 3)
+    if (argc < 2)
     {
         std::cout << "USAGE: processBaby <filename> [<max_num_events>] [index] [type anything to make it verbose]" << std::endl;
         return 1;
@@ -42,5 +42,6 @@ int main(int argc, char **argv)
     //
     hwwBabyMaker *looper = new hwwBabyMaker();
     looper->ProcessCMS4(infile, max_events, index, verbose);
+    delete looper;
     return 0;
 }
