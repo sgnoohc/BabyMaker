@@ -44,6 +44,7 @@ bool hwwBabyMaker::PassSelection()
         return true;
     else
         return false;
+
 }
 
 //##############################################################################################################
@@ -59,7 +60,7 @@ void hwwBabyMaker::AddOutput()
     processor->AddModule(new JetModule(this));
     processor->AddModule(new METModule(this));
     processor->AddModule(new TriggerModule(this));
-    if (looper.getCurrentFileName().Contains("HToWWToLNuQQ"))
+    if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
         processor->AddModule(new HWWlvjjTruthModule(this));
     processor->AddModule(new HiggsRecoModule(this));
     processor->AddModule(new RecoilModule(this));
@@ -453,13 +454,13 @@ void hwwBabyMaker::JetModule::AddOutput()
     tx->createBranch<int>("nb");
     tx->createBranch<int>("nbmed");
     tx->createBranch<int>("nbtight");
-    tx->createBranch<vector<LV>>("jets_p4", true);
-    tx->createBranch<vector<LV>>("alljets_p4", true);
+    tx->createBranch<vector<LV>>("jets_p4");
+    tx->createBranch<vector<LV>>("alljets_p4");
+    tx->createBranch<vector<int>>("jets_idx");
+    tx->createBranch<vector<int>>("alljets_idx");
 
     // Following will not be written out
     bool writeToTree = false;
-//    tx->createBranch<vector<LV>>("jets_p4", writeToTree);
-//    tx->createBranch<vector<LV>>("alljets_p4", writeToTree);
     tx->createBranch<vector<float>>("jets_pt", writeToTree);
     tx->createBranch<vector<float>>("jets_eta", writeToTree);
     tx->createBranch<vector<float>>("jets_phi", writeToTree);
@@ -488,10 +489,12 @@ void hwwBabyMaker::JetModule::FillOutput()
 
         // All jets
         tx->pushbackToBranch<LV>("alljets_p4", jet);
+        tx->pushbackToBranch<int>("alljets_idx", idx);
 
         if (jet.pt() > 30)
         {
             tx->pushbackToBranch<LV>("jets_p4", jet);
+            tx->pushbackToBranch<int>("jets_idx", idx);
             tx->pushbackToBranch<float>("jets_pt", jet.pt());
             tx->pushbackToBranch<float>("jets_eta", jet.eta());
             tx->pushbackToBranch<float>("jets_phi", jet.phi());
@@ -588,6 +591,18 @@ void hwwBabyMaker::METModule::FillOutput()
 
 void hwwBabyMaker::HWWlvjjTruthModule::AddOutput()
 {
+//    if (babymaker->looper.getCurrentFileName().Contains("HToWWToLNuQQ"))
+//    {
+//        AddOutput_ggHToWWToLNuQQ();
+//    }
+//    else if(babymaker->looper.getCurrentFileName().Contains("VHToNonbb"))
+//    {
+        AddOutput_HWW();
+//    }
+}
+
+void hwwBabyMaker::HWWlvjjTruthModule::AddOutput_ggHToWWToLNuQQ()
+{
 
     // Some intermediate variables that do not need to be written out to tree
     bool writeToTree = false;
@@ -613,6 +628,7 @@ void hwwBabyMaker::HWWlvjjTruthModule::AddOutput()
     tx->createBranch<vector<int>>("quark_isstar", writeToTree);
 
     tx->createBranch<LV>("gen_isr_p4");
+    tx->createBranch<int>("gen_isr_id");
     tx->createBranch<LV>("gen_higgs_p4");
     tx->createBranch<LV>("gen_whad_p4");
     tx->createBranch<LV>("gen_wlep_p4");
@@ -623,6 +639,8 @@ void hwwBabyMaker::HWWlvjjTruthModule::AddOutput()
     tx->createBranch<int>("gen_channel");
     tx->createBranch<LV>("gen_wlep_rest_p4");
     tx->createBranch<LV>("gen_whad_rest_p4");
+    tx->createBranch<LV>("gen_Vq0_p4");
+    tx->createBranch<LV>("gen_Vq1_p4");
 
     tx->createBranch<float>("lqq_max_dr");
     tx->createBranch<float>("lq0_dr");
@@ -642,7 +660,183 @@ void hwwBabyMaker::HWWlvjjTruthModule::AddOutput()
 
 }
 
+void hwwBabyMaker::HWWlvjjTruthModule::AddOutput_HWW()
+{
+
+    tx->createBranch<LV>("gen_recoil_p4"); // This is the p4 of the associated W/Z
+    tx->createBranch<int>("gen_recoil_id"); // This is the id of the associated W/Z
+    tx->createBranch<LV>("gen_higgs_p4");
+    tx->createBranch<LV>("gen_whad_p4");
+    tx->createBranch<LV>("gen_wlep_p4");
+    tx->createBranch<LV>("gen_q0_p4");
+    tx->createBranch<LV>("gen_q1_p4");
+    tx->createBranch<LV>("gen_lep_p4");
+    tx->createBranch<LV>("gen_neu_p4");
+    tx->createBranch<int>("gen_channel");
+    tx->createBranch<LV>("gen_wlep_rest_p4");
+    tx->createBranch<LV>("gen_whad_rest_p4");
+    tx->createBranch<LV>("gen_Vq0_p4");
+    tx->createBranch<LV>("gen_Vq1_p4");
+    tx->createBranch<int>("gen_Vq0_id");
+    tx->createBranch<int>("gen_Vq1_id");
+    tx->createBranch<int>("gen_q0_id");
+    tx->createBranch<int>("gen_q1_id");
+    tx->createBranch<int>("gen_lep_id");
+    tx->createBranch<int>("gen_neu_id");
+
+}
+
 void hwwBabyMaker::HWWlvjjTruthModule::FillOutput()
+{
+//    if (babymaker->looper.getCurrentFileName().Contains("HToWWToLNuQQ"))
+//    {
+//        FillOutput_ggHToWWToLNuQQ();
+//    }
+//    else if(babymaker->looper.getCurrentFileName().Contains("VHToNonbb"))
+//    {
+        FillOutput_HWW();
+//    }
+}
+
+void hwwBabyMaker::HWWlvjjTruthModule::FillOutput_HWW()
+{
+
+    // Find the ISR particle if it exists and set the ISR variables
+    bool recoil_set = false;
+    int recoil_idx = -1;
+    for (unsigned int i = 0; i < cms3.genps_p4().size(); ++i)
+    {
+
+        // If the recoil is based on a vector boson
+        if ((abs(cms3.genps_id()[i]) == 24 or abs(cms3.genps_id()[i]) == 23) and cms3.genps_id_simplemother()[i] != 25 and cms3.genps_status()[i] == 22)
+        {
+            tx->setBranch<LV>("gen_recoil_p4", cms3.genps_p4()[i]);
+            tx->setBranch<int>("gen_recoil_id", cms3.genps_id()[i]);
+            recoil_set = true;
+            recoil_idx = i;
+            break;
+        }
+
+        // If the recoil is based on jet
+        if (cms3.genps_id_simplemother()[i] == 21 and cms3.genps_id_simplegrandma()[i] == 2212 and cms3.genps_status()[i] == 23)
+        {
+            tx->setBranch<LV>("gen_recoil_p4", cms3.genps_p4()[i]);
+            tx->setBranch<int>("gen_recoil_id", cms3.genps_id()[i]);
+            recoil_set = true;
+            recoil_idx = i;
+            break;
+        }
+    }
+
+    if (recoil_idx >= 0 and (abs(tx->getBranch<int>("gen_recoil_id")) == 24 or abs(tx->getBranch<int>("gen_recoil_id")) == 23))
+    {
+
+        int gen_recoil_id = abs(tx->getBranch<int>("gen_recoil_id"));
+
+        int ichild = -1;
+        int jchild = -1;
+        if (gen_recoil_id == 23) babymaker->coreGenPart.matchDecay(recoil_idx, ichild, jchild, gen_recoil_id, babymaker->coreGenPart.isPairHadronicZDecay);
+        if (gen_recoil_id == 24) babymaker->coreGenPart.matchDecay(recoil_idx, ichild, jchild, gen_recoil_id, babymaker->coreGenPart.isPairHadronicWDecay);
+
+        if (ichild >= 0)
+        {
+            LV VqA_p4 = cms3.genps_p4()[ichild];
+            LV VqB_p4 = cms3.genps_p4()[jchild];
+            int VqA_id = cms3.genps_id()[ichild];
+            int VqB_id = cms3.genps_id()[jchild];
+
+            LV Vq0_p4 = VqA_p4.pt() > VqB_p4.pt() ? VqA_p4 : VqB_p4;
+            LV Vq1_p4 = VqA_p4.pt() > VqB_p4.pt() ? VqB_p4 : VqA_p4;
+            int Vq0_id = VqA_p4.pt() > VqB_p4.pt() ? VqA_id : VqB_id;
+            int Vq1_id = VqA_p4.pt() > VqB_p4.pt() ? VqB_id : VqA_id;
+
+            tx->setBranch<LV>("gen_Vq0_p4", Vq0_p4);
+            tx->setBranch<LV>("gen_Vq1_p4", Vq1_p4);
+            tx->setBranch<int>("gen_Vq0_id", Vq0_id);
+            tx->setBranch<int>("gen_Vq1_id", Vq1_id);
+
+        }
+
+    }
+
+    // From CoreUtil the HWW decay tree is identified
+    std::vector<CoreUtil::genpart::Higgs> higgses = babymaker->coreGenPart.reconstructHWW();
+
+    // But still perform a sanity check that the recovered HWW decay tree makes sense
+    // Sanity check
+    if (higgses.size() != 1)
+    {
+        std::cout <<  " higgses.size(): " << higgses.size() <<  std::endl;
+        babymaker->coreGenPart.printAllParticles();
+        exit(255);
+    }
+
+    if (higgses[0].HiggsDaughters.size() != 2)
+    {
+        std::cout <<  " higgses[0].HiggsDaughters.size(): " << higgses[0].HiggsDaughters.size() <<  std::endl;
+        babymaker->coreGenPart.printAllParticles();
+        exit(255);
+    }
+
+    if (higgses[0].HiggsGrandDaughters.size() != 4)
+    {
+        std::cout <<  " higgses[0].HiggsGrandDaughters.size(): " << higgses[0].HiggsGrandDaughters.size() <<  std::endl;
+        babymaker->coreGenPart.printAllParticles();
+        exit(255);
+    }
+
+    // Now check whether it is H->WW->lvjj decay channels
+
+    // If not WW then return
+    if (abs(higgses[0].HiggsDaughters[0].id) != 24 or abs(higgses[0].HiggsDaughters[0].id) != 24)
+        return;
+
+    // If WW->4q or WW->lvlv then return
+    if (
+        (abs(higgses[0].HiggsGrandDaughters[0].id) >= 11 and abs(higgses[0].HiggsGrandDaughters[0].id) <= 16 and abs(higgses[0].HiggsGrandDaughters[2].id) >= 11 and abs(higgses[0].HiggsGrandDaughters[2].id) <= 16)
+        or
+        (abs(higgses[0].HiggsGrandDaughters[0].id) >=  1 and abs(higgses[0].HiggsGrandDaughters[0].id) <=  6 and abs(higgses[0].HiggsGrandDaughters[2].id) >=  1 and abs(higgses[0].HiggsGrandDaughters[2].id) <=  6)
+       )
+        return;
+
+    bool is_first_set_whad = abs(higgses[0].HiggsGrandDaughters[0].id) >= 1 and abs(higgses[0].HiggsGrandDaughters[0].id) <= 6;
+    int whad_idx = is_first_set_whad ? 0 : 1;
+    int wlep_idx = is_first_set_whad ? 1 : 0;
+    int qA_idx = is_first_set_whad ? 0 : 2;
+    int qB_idx = is_first_set_whad ? 1 : 3;
+    int q0_idx = higgses[0].HiggsGrandDaughters[qA_idx].p4.pt() > higgses[0].HiggsGrandDaughters[qB_idx].p4.pt() ? qA_idx : qB_idx;
+    int q1_idx = higgses[0].HiggsGrandDaughters[qA_idx].p4.pt() > higgses[0].HiggsGrandDaughters[qB_idx].p4.pt() ? qB_idx : qA_idx;
+    bool is_first_lepton_charged = is_first_set_whad ? abs(higgses[0].HiggsGrandDaughters[2].id) % 2 == 1 : abs(higgses[0].HiggsGrandDaughters[0].id) % 2 == 1;
+    int lep_idx = is_first_set_whad ? (is_first_lepton_charged ? 2 : 3) : (is_first_lepton_charged ? 0 : 1);
+    int neu_idx = is_first_set_whad ? (is_first_lepton_charged ? 3 : 2) : (is_first_lepton_charged ? 1 : 0);
+
+    LV whad_p4 = higgses[0].HiggsDaughters[whad_idx].p4;
+    LV wlep_p4 = higgses[0].HiggsDaughters[wlep_idx].p4;
+    LV q0_p4   = higgses[0].HiggsGrandDaughters[q0_idx].p4;
+    LV q1_p4   = higgses[0].HiggsGrandDaughters[q1_idx].p4;
+    LV lep_p4  = higgses[0].HiggsGrandDaughters[lep_idx].p4;
+    LV neu_p4  = higgses[0].HiggsGrandDaughters[neu_idx].p4;
+
+    tx->setBranch<LV>("gen_higgs_p4", higgses[0].p4);
+    tx->setBranch<LV>("gen_whad_p4", higgses[0].HiggsDaughters[whad_idx].p4);
+    tx->setBranch<LV>("gen_wlep_p4", higgses[0].HiggsDaughters[wlep_idx].p4);
+    tx->setBranch<LV>("gen_q0_p4", higgses[0].HiggsGrandDaughters[q0_idx].p4);
+    tx->setBranch<LV>("gen_q1_p4", higgses[0].HiggsGrandDaughters[q1_idx].p4);
+    tx->setBranch<LV>("gen_lep_p4", higgses[0].HiggsGrandDaughters[lep_idx].p4);
+    tx->setBranch<LV>("gen_neu_p4", higgses[0].HiggsGrandDaughters[neu_idx].p4);
+//    tx->setBranch<int>("gen_channel");
+//    tx->setBranch<LV>("gen_wlep_rest_p4");
+//    tx->setBranch<LV>("gen_whad_rest_p4");
+//    tx->setBranch<LV>("gen_Vq0_p4");
+//    tx->setBranch<LV>("gen_Vq1_p4");
+    tx->setBranch<int>("gen_q0_id", higgses[0].HiggsGrandDaughters[q0_idx].id);
+    tx->setBranch<int>("gen_q1_id", higgses[0].HiggsGrandDaughters[q1_idx].id);
+    tx->setBranch<int>("gen_lep_id", higgses[0].HiggsGrandDaughters[lep_idx].id);
+    tx->setBranch<int>("gen_neu_id", higgses[0].HiggsGrandDaughters[neu_idx].id);
+
+}
+
+void hwwBabyMaker::HWWlvjjTruthModule::FillOutput_ggHToWWToLNuQQ()
 {
 
     // Find the ISR particle if it exists and set the ISR variables
@@ -654,6 +848,7 @@ void hwwBabyMaker::HWWlvjjTruthModule::FillOutput()
             tx->setBranch<float>("isr_pt", cms3.genps_p4()[i].pt());
             tx->setBranch<float>("isr_eta", cms3.genps_p4()[i].eta());
             tx->setBranch<float>("isr_phi", cms3.genps_p4()[i].phi());
+            tx->setBranch<int>("gen_isr_id", cms3.genps_id()[i]);
             break;
         }
     }
@@ -1122,7 +1317,7 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
         float dr = 999;
 
         // Retrieving list of all ak4 jets
-        const vector<LV>& alljets_p4 = tx->getBranch<vector<LV>>("alljets_p4", true);
+        const vector<LV>& alljets_p4 = tx->getBranch<vector<LV>>("alljets_p4", false);
 
         // Loop over jets
         for (unsigned int ii = 0; ii < alljets_p4.size(); ++ii)
@@ -1226,7 +1421,7 @@ std::tuple<LV, int> hwwBabyMaker::HiggsRecoModule::SelectFatJet(LV ref, float dp
     //
 
     // Retrieve the ak8jets
-    const vector<LV>& ak8jets_p4 = tx->getBranch<vector<LV>>("ak8jets_p4", true);
+    const vector<LV>& ak8jets_p4 = tx->getBranch<vector<LV>>("ak8jets_p4", false);
 
     // The chosen J
     LV J;
@@ -1329,8 +1524,107 @@ std::tuple<LV, int> hwwBabyMaker::HiggsRecoModule::SelectLepton(LV ref, float dp
 
 void hwwBabyMaker::RecoilModule::AddOutput()
 {
+    AddOutput_v2();
+}
 
+void hwwBabyMaker::RecoilModule::AddOutput_v1()
+{
     tx->createBranch<LV>(bname);
+}
+
+void hwwBabyMaker::RecoilModule::AddOutput_v2()
+{
+
+    tx->createBranch<LV>(bname_prefix + "_p4");
+    tx->createBranch<LV>(bname_prefix + "_leadak4_p4");
+    tx->createBranch<int>(bname_prefix + "_leadak4_npfcands");
+    tx->createBranch<int>(bname_prefix + "_leadak4_chargedHadronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_chargedMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_electronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_muonMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_neutralHadronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_neutralMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_photonMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_totalMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_chargedHadronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_chargedMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_electronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_muonMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_neutralHadronMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_neutralMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_photonMultiplicity");
+    tx->createBranch<int>(bname_prefix + "_leadak4_puppi_totalMultiplicity");
+
+//    pfjets_bDiscriminatorNames
+//    pfjets_puppi_bDiscriminatorNames
+//    pfjets_mc_p4
+//    pfjets_p4
+//    pfjets_puppi_p4
+//    pfjets_pfcandmup4
+//    pfjets_puppi_pfcandmup4
+//    pfjets_mc3dr
+//    pfjets_mcdr
+//    pfjets_area
+//    pfjets_axis1
+//    pfjets_axis2
+//    pfjets_chargedEmE
+//    pfjets_chargedHadronE
+//    pfjets_electronE
+//    pfjets_hfEmE
+//    pfjets_hfHadronE
+//    pfjets_muonE
+//    pfjets_neutralEmE
+//    pfjets_neutralHadronE
+//    pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag
+//    pfjets_pfDeepCSVJetTagsprobbPlusprobbb
+//    pfjets_photonE
+//    pfjets_pileupJetId
+//    pfjets_ptDistribution
+//    pfjets_undoJEC
+//    pfjets_puppi_area
+//    pfjets_puppi_axis1
+//    pfjets_puppi_axis2
+//    pfjets_puppi_chargedEmE
+//    pfjets_puppi_chargedHadronE
+//    pfjets_puppi_electronE
+//    pfjets_puppi_hfEmE
+//    pfjets_puppi_hfHadronE
+//    pfjets_puppi_muonE
+//    pfjets_puppi_neutralEmE
+//    pfjets_puppi_neutralHadronE
+//    pfjets_puppi_pfCombinedInclusiveSecondaryVertexV2BJetTag
+//    pfjets_puppi_pfDeepCSVJetTagsprobbPlusprobbb
+//    pfjets_puppi_photonE
+//    pfjets_puppi_pileupJetId
+//    pfjets_puppi_ptDistribution
+//    pfjets_puppi_undoJEC
+//    pfjets_bDiscriminators
+//    pfjets_puppi_bDiscriminators
+//    pfjets_mc3_id
+//    pfjets_mc3idx
+//    pfjets_mc_motherid
+//    pfjets_chargedHadronMultiplicity
+//    pfjets_chargedMultiplicity
+//    pfjets_electronMultiplicity
+//    pfjets_hadronFlavour
+//    pfjets_muonMultiplicity
+//    pfjets_neutralHadronMultiplicity
+//    pfjets_neutralMultiplicity
+//    pfjets_npfcands
+//    pfjets_partonFlavour
+//    pfjets_photonMultiplicity
+//    pfjets_totalMultiplicity
+//    pfjets_puppi_chargedHadronMultiplicity
+//    pfjets_puppi_chargedMultiplicity
+//    pfjets_puppi_electronMultiplicity
+//    pfjets_puppi_hadronFlavour
+//    pfjets_puppi_muonMultiplicity
+//    pfjets_puppi_neutralHadronMultiplicity
+//    pfjets_puppi_neutralMultiplicity
+//    pfjets_puppi_npfcands
+//    pfjets_puppi_partonFlavour
+//    pfjets_puppi_photonMultiplicity
+//    pfjets_puppi_totalMultiplicity
 
 }
 
@@ -1339,6 +1633,7 @@ void hwwBabyMaker::RecoilModule::FillOutput()
     FillOutput_v2();
 }
 
+// Deprecated WON'T WORK!
 void hwwBabyMaker::RecoilModule::FillOutput_v1()
 {
 
@@ -1354,7 +1649,7 @@ void hwwBabyMaker::RecoilModule::FillOutput_v1()
     //
 
     // Retrieve the jets
-    const vector<LV> jets_p4 = tx->getBranch<vector<LV>>("jets_p4", true);
+    const vector<LV> jets_p4 = tx->getBranch<vector<LV>>("jets_p4", false);
 
     // The reconstructed higgs recoil vector
     LV Recoil;
@@ -1402,14 +1697,20 @@ void hwwBabyMaker::RecoilModule::FillOutput_v2()
     //
 
     // Retrieve the jets
-    const vector<LV> jets_p4 = tx->getBranch<vector<LV>>(jettype, true);
+    const vector<LV> jets_p4 = tx->getBranch<vector<LV>>(jettype, false);
+    const vector<int> jets_idx = tx->getBranch<vector<int>>(jettype.ReplaceAll("p4", "idx"), false);
 
     // The reconstructed higgs recoil vector
     LV Recoil;
+    LV leadjet_p4;
+    int leadjet_idx = -1;
 
     // Loop over and find the ak8 jet closest to MET
-    for (auto& p4 : jets_p4)
+    for (unsigned int ij = 0; ij < jets_p4.size(); ++ij)
     {
+
+        LV p4 = jets_p4[ij];
+        int idx = jets_idx[ij];
 
         // Compute the Delta Phi between ak8 jets and MET
         float tmpdphi = RooUtil::Calc::DeltaPhi(p4, Jmet);
@@ -1421,15 +1722,40 @@ void hwwBabyMaker::RecoilModule::FillOutput_v2()
             // Set the ak8 jets p4
             Recoil += p4;
 
+            // Set the lead ak4 jet idx
+            if (p4.pt() > leadjet_p4.pt())
+            {
+                leadjet_p4 = p4;
+                leadjet_idx = idx;
+            }
+
         }
 
     }
 
     // Found?
-    if (Recoil.pt() > 0)
+    if (Recoil.pt() > 0 and leadjet_idx >= 0)
     {
 
-        tx->setBranch<LV>(bname, Recoil);
+        tx->setBranch<LV>(bname_prefix + "_p4", Recoil);
+        tx->setBranch<LV>(bname_prefix + "_leadak4_p4", leadjet_p4);
+        tx->setBranch<int>(bname_prefix + "_leadak4_npfcands", cms3.pfjets_npfcands()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_chargedHadronMultiplicity", cms3.pfjets_chargedHadronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_chargedMultiplicity", cms3.pfjets_chargedMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_electronMultiplicity", cms3.pfjets_electronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_muonMultiplicity", cms3.pfjets_muonMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_neutralHadronMultiplicity", cms3.pfjets_neutralHadronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_neutralMultiplicity", cms3.pfjets_neutralMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_photonMultiplicity", cms3.pfjets_photonMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_totalMultiplicity", cms3.pfjets_totalMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedHadronMultiplicity", cms3.pfjets_puppi_chargedHadronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedMultiplicity", cms3.pfjets_puppi_chargedMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_electronMultiplicity", cms3.pfjets_puppi_electronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_muonMultiplicity", cms3.pfjets_puppi_muonMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralHadronMultiplicity", cms3.pfjets_puppi_neutralHadronMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralMultiplicity", cms3.pfjets_puppi_neutralMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_photonMultiplicity", cms3.pfjets_puppi_photonMultiplicity()[leadjet_idx]);
+        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_totalMultiplicity", cms3.pfjets_puppi_totalMultiplicity()[leadjet_idx]);
 
     }
 

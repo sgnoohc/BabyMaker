@@ -97,12 +97,12 @@ declare -a INPUTS
 declare -a SHORTNAMES
 run_test_job()
 {
-    ./processBaby "$1" $NEVENTS ${INDEX} ${2} > testjobs/${3}.log 2>&1 &
-    e_msg     "    ./processBaby "$1" $NEVENTS ${INDEX} ${2} > testjobs/${3}.log 2>&1 &"
+    ./processBaby "$1" $NEVENTS ${INDEX}  > testjobs/${2}.log 2>&1 &
+    e_msg     "    ./processBaby "$1" $NEVENTS ${INDEX}  > testjobs/${2}.log 2>&1 &"
     JOBS[${INDEX}]=$!;
     INPUTS[${INDEX}]="$1";
-    BABYMODE[${INDEX}]="$2";
-    SHORTNAMES[${INDEX}]="$3";
+#    BABYMODE[${INDEX}]="$2";
+    SHORTNAMES[${INDEX}]="$2";
     e_warning "    Test job #"$INDEX" pid="${JOBS[${INDEX}]}" submitted "$1
     INDEX=$((INDEX + 1))
 }

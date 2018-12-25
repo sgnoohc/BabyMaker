@@ -86,6 +86,10 @@ class hwwBabyMaker: public babyMaker
                 HWWlvjjTruthModule(hwwBabyMaker* parent) { babymaker = parent; }
                 virtual void AddOutput();
                 virtual void FillOutput();
+                void AddOutput_ggHToWWToLNuQQ();
+                void AddOutput_HWW();
+                void FillOutput_ggHToWWToLNuQQ();
+                void FillOutput_HWW();
         };
 
         //__________________________________________________________________
@@ -111,16 +115,20 @@ class hwwBabyMaker: public babyMaker
                 TString jettype;
                 float threshold;
                 TString bname;
+                TString bname_prefix;
                 RecoilModule(hwwBabyMaker* parent, TString sfx="", TString jt="jets_p4", float thr=(TMath::Pi() * 2./4.))
                 {
                     babymaker = parent;
                     suffix = sfx;
                     jettype = jt;
                     threshold = thr;
+                    bname_prefix = TString::Format("Recoil%s", suffix.Data());
                     bname = TString::Format("Recoil%s_p4", suffix.Data());
                 }
                 virtual void AddOutput();
                 virtual void FillOutput();
+                void AddOutput_v1();
+                void AddOutput_v2();
                 void FillOutput_v1();
                 void FillOutput_v2();
         };

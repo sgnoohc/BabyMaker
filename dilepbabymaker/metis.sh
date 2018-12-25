@@ -90,7 +90,7 @@ if [[ ${INPUTFILENAMES} == *Run201* ]]; then
 fi
 INDEX=1
 for file in $INPUTFILES; do
-    ./processBaby "$file" -1 ${INDEX} ${BABYMODE} &
+    ./processBaby "$file" -1 ${INDEX} &
     JOBS[${INDEX}]=$!
     FILES[${INDEX}]="$file"
     INDEX=$((INDEX + 1))
