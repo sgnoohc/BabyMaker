@@ -23,7 +23,7 @@ int babyMaker::ProcessCMS4(TString filepaths, int max_events, int idx, bool verb
 
     // Initialize Looper
     looper.init(chain, &cms3, max_events);
-    looper.setNbadEventThreshold(0); // If there are any bad events throw std::ios_base::failure exception.
+//    looper.setNbadEventThreshold(0); // If there are any bad events throw std::ios_base::failure exception.
 
     // Initializer job index
     job_index = idx;
@@ -70,6 +70,9 @@ void babyMaker::ScanChain(bool verbose)
 
             // Now process the baby ntuples
             Process();
+
+            // Fill the gen level weights (calling after Process() in order to account for skipped events)
+            FillGenWeights();
 
         }
         catch (const std::ios_base::failure& e)
@@ -202,9 +205,6 @@ void babyMaker::SetLeptonID()
 void babyMaker::Process()
 {
 
-    // For Gen-level weights the total weights need to be saved so must be called before skipping events (i.e. before PassSelection() exists Process())
-    FillGenWeights();
-
     // Process objects needed to determine preselection
     ProcessObjectsPrePassSelection();
 
@@ -278,6 +278,7 @@ void babyMaker::FillGenWeightsNominal()
         h_neventsinfile->Fill(11, tx->getBranch<float>("weight_pdf_down"));
         h_neventsinfile->Fill(12, tx->getBranch<float>("weight_alphas_down"));
         h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
+        h_neventsinfile->Fill(14, (cms3.genps_weight() > 0) - (cms3.genps_weight() < 0)); // event count
     }
 }
 

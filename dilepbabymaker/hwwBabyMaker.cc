@@ -20,6 +20,7 @@ void hwwBabyMaker::ProcessMuons()
 // Goal is to pass events with at least one fat jet and one lepton
 bool hwwBabyMaker::PassSelection()
 {
+    return true;
 
     // lepton counter
     int n_reconstructed_leptons = coreElectron.index.size() + coreMuon.index.size();
@@ -60,12 +61,14 @@ void hwwBabyMaker::AddOutput()
     processor->AddModule(new JetModule(this));
     processor->AddModule(new METModule(this));
     processor->AddModule(new TriggerModule(this));
-    if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
-        processor->AddModule(new HWWlvjjTruthModule(this));
-    processor->AddModule(new HiggsRecoModule(this));
-    processor->AddModule(new RecoilModule(this));
-    processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
-    processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
+    // if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
+    //     processor->AddModule(new HWWlvjjTruthModule(this));
+    // processor->AddModule(new HiggsRecoModule(this));
+    // processor->AddModule(new RecoilModule(this));
+    // processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
+    // processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
+    // processor->AddModule(new GenPartModule(this));
+    // processor->AddModule(new EventModule(this));
 
     // Now create the outputs to the ttree
     processor->AddOutputs();
@@ -251,6 +254,14 @@ void hwwBabyMaker::FatJetModule::AddOutput()
     tx->createBranch<vector<float>>("ak8jets_nJettinessTau1", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_nJettinessTau2", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_nJettinessTau3", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_pt", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_eta", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_phi", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_mass", writeToTree); // p4.m()
+    // tx->createBranch<vector<float>>("ak8jets_puppi_softdropMass", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_nJettinessTau1", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_nJettinessTau2", writeToTree);
+    // tx->createBranch<vector<float>>("ak8jets_puppi_nJettinessTau3", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_h4q", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_hbb", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_qcd", writeToTree);
@@ -258,6 +269,12 @@ void hwwBabyMaker::FatJetModule::AddOutput()
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_w", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_z", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_deep_rawdisc_zbb", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_h4q", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_hbb", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_top", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_w", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_z", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_deep_bindisc_zbb", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_pt", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_eta", writeToTree);
     tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_phi", writeToTree);
@@ -270,6 +287,8 @@ void hwwBabyMaker::FatJetModule::AddOutput()
     tx->createBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_energy", writeToTree);
     tx->createBranch<vector<int>>("ak8jets_npfcands", writeToTree);
     tx->createBranch<vector<int>>("ak8jets_partonFlavour", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_csv", writeToTree);
+    tx->createBranch<vector<float>>("ak8jets_dbl", writeToTree);
 
 }
 
@@ -293,29 +312,51 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             tx->pushbackToBranch<float>("ak8jets_phi", fatjet.phi());
             tx->pushbackToBranch<float>("ak8jets_mass", fatjet.mass());
             tx->pushbackToBranch<float>("ak8jets_energy", fatjet.energy());
-            tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+            tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]);
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_nJettinessTau3", cms3.ak8jets_nJettinessTau3()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_h4q", cms3.ak8jets_deep_rawdisc_h4q()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_hbb", cms3.ak8jets_deep_rawdisc_hbb()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_qcd", cms3.ak8jets_deep_rawdisc_qcd()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_top", cms3.ak8jets_deep_rawdisc_top()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_w", cms3.ak8jets_deep_rawdisc_w()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_z", cms3.ak8jets_deep_rawdisc_z()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_zbb", cms3.ak8jets_deep_rawdisc_zbb()[idx]);
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_pt", cms3.ak8jets_softdropPuppiSubjet1()[idx].pt());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_eta", cms3.ak8jets_softdropPuppiSubjet1()[idx].eta());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_phi", cms3.ak8jets_softdropPuppiSubjet1()[idx].phi());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_mass", cms3.ak8jets_softdropPuppiSubjet1()[idx].mass());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_energy", cms3.ak8jets_softdropPuppiSubjet1()[idx].energy());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_pt", cms3.ak8jets_softdropPuppiSubjet2()[idx].pt());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_eta", cms3.ak8jets_softdropPuppiSubjet2()[idx].eta());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_phi", cms3.ak8jets_softdropPuppiSubjet2()[idx].phi());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_mass", cms3.ak8jets_softdropPuppiSubjet2()[idx].mass());
-            tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_energy", cms3.ak8jets_softdropPuppiSubjet2()[idx].energy());
-            tx->pushbackToBranch<int>("ak8jets_npfcands", cms3.ak8jets_npfcands()[idx]);
-            tx->pushbackToBranch<int>("ak8jets_partonFlavour", cms3.ak8jets_partonFlavour()[idx]);
+            // if (babymaker->looper.doesBranchExist("ak8jets_puppi_pt"))
+            // {
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_pt", fatjet.pt());
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_eta", fatjet.eta());
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_phi", fatjet.phi());
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_mass", fatjet.mass());
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau1", cms3.ak8jets_puppi_nJettinessTau1()[idx]);
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau2", cms3.ak8jets_puppi_nJettinessTau2()[idx]);
+            //     tx->pushbackToBranch<float>("ak8jets_puppi_nJettinessTau3", cms3.ak8jets_puppi_nJettinessTau3()[idx]);
+            // }
+            if (babymaker->looper.doesBranchExist("ak8jets_deep_rawdisc_h4q"))
+            {
+                tx->pushbackToBranch<float>("ak8jets_nJettinessTau3", cms3.ak8jets_nJettinessTau3()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_h4q", cms3.ak8jets_deep_rawdisc_h4q()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_hbb", cms3.ak8jets_deep_rawdisc_hbb()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_qcd", cms3.ak8jets_deep_rawdisc_qcd()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_top", cms3.ak8jets_deep_rawdisc_top()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_w", cms3.ak8jets_deep_rawdisc_w()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_z", cms3.ak8jets_deep_rawdisc_z()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_zbb", cms3.ak8jets_deep_rawdisc_zbb()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_h4q", cms3.ak8jets_deep_bindisc_h4q()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_hbb", cms3.ak8jets_deep_bindisc_hbb()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_top", cms3.ak8jets_deep_bindisc_top()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_w", cms3.ak8jets_deep_bindisc_w()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_z", cms3.ak8jets_deep_bindisc_z()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_zbb", cms3.ak8jets_deep_bindisc_zbb()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_pt", cms3.ak8jets_softdropPuppiSubjet1()[idx].pt());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_eta", cms3.ak8jets_softdropPuppiSubjet1()[idx].eta());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_phi", cms3.ak8jets_softdropPuppiSubjet1()[idx].phi());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_mass", cms3.ak8jets_softdropPuppiSubjet1()[idx].mass());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_energy", cms3.ak8jets_softdropPuppiSubjet1()[idx].energy());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_pt", cms3.ak8jets_softdropPuppiSubjet2()[idx].pt());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_eta", cms3.ak8jets_softdropPuppiSubjet2()[idx].eta());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_phi", cms3.ak8jets_softdropPuppiSubjet2()[idx].phi());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_mass", cms3.ak8jets_softdropPuppiSubjet2()[idx].mass());
+                tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet2_energy", cms3.ak8jets_softdropPuppiSubjet2()[idx].energy());
+                tx->pushbackToBranch<int>("ak8jets_npfcands", cms3.ak8jets_npfcands()[idx]);
+                tx->pushbackToBranch<int>("ak8jets_partonFlavour", cms3.ak8jets_partonFlavour()[idx]);
+                tx->pushbackToBranch<float>("ak8jets_csv", cms3.ak8jets_bDiscriminators()[idx][0]);
+                tx->pushbackToBranch<float>("ak8jets_dbl", cms3.ak8jets_bDiscriminators()[idx][1]);
+            }
         }
     }
     tx->setBranch<int>("nak8jets", nak8jets);
@@ -332,6 +373,14 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             "ak8jets_nJettinessTau1",
             "ak8jets_nJettinessTau2",
             "ak8jets_nJettinessTau3",
+            // "ak8jets_puppi_pt",
+            // "ak8jets_puppi_eta",
+            // "ak8jets_puppi_phi",
+            // "ak8jets_puppi_mass",
+            // "ak8jets_puppi_softdropMass",
+            // "ak8jets_puppi_nJettinessTau1",
+            // "ak8jets_puppi_nJettinessTau2",
+            // "ak8jets_puppi_nJettinessTau3",
             "ak8jets_deep_rawdisc_h4q",
             "ak8jets_deep_rawdisc_hbb",
             "ak8jets_deep_rawdisc_qcd",
@@ -339,6 +388,12 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             "ak8jets_deep_rawdisc_w",
             "ak8jets_deep_rawdisc_z",
             "ak8jets_deep_rawdisc_zbb",
+            "ak8jets_deep_bindisc_h4q",
+            "ak8jets_deep_bindisc_hbb",
+            "ak8jets_deep_bindisc_top",
+            "ak8jets_deep_bindisc_w",
+            "ak8jets_deep_bindisc_z",
+            "ak8jets_deep_bindisc_zbb",
             "ak8jets_softdropPuppiSubjet1_pt",
             "ak8jets_softdropPuppiSubjet1_eta",
             "ak8jets_softdropPuppiSubjet1_phi",
@@ -349,6 +404,8 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             "ak8jets_softdropPuppiSubjet2_phi",
             "ak8jets_softdropPuppiSubjet2_mass",
             "ak8jets_softdropPuppiSubjet2_energy",
+            "ak8jets_csv",
+            "ak8jets_dbl",
             },
             {
             "ak8jets_npfcands",
@@ -1169,7 +1226,13 @@ void hwwBabyMaker::HiggsRecoModule::AddOutput()
 
     tx->createBranch<int>("is_whad_lead");
 
-    tx->createBranch<LV>("v_p4");
+    tx->createBranch<LV>("neu_p4");
+    tx->createBranch<LV>("neu_p4_sol1");
+    tx->createBranch<LV>("neu_p4_sol2");
+    tx->createBranch<LV>("neu_p4_invsol1");
+    tx->createBranch<LV>("neu_p4_invsol2");
+
+    tx->createBranch<LV>("V_p4");
 
     // Selected ak8jets associated information
     tx->createBranch<float>("J_area");
@@ -1185,6 +1248,12 @@ void hwwBabyMaker::HiggsRecoModule::AddOutput()
     tx->createBranch<float>("J_deep_rawdisc_w");
     tx->createBranch<float>("J_deep_rawdisc_z");
     tx->createBranch<float>("J_deep_rawdisc_zbb");
+    tx->createBranch<float>("J_deep_bindisc_h4q");
+    tx->createBranch<float>("J_deep_bindisc_hbb");
+    tx->createBranch<float>("J_deep_bindisc_top");
+    tx->createBranch<float>("J_deep_bindisc_w");
+    tx->createBranch<float>("J_deep_bindisc_z");
+    tx->createBranch<float>("J_deep_bindisc_zbb");
     tx->createBranch<float>("J_softdropPuppiSubjet1_pt");
     tx->createBranch<float>("J_softdropPuppiSubjet1_eta");
     tx->createBranch<float>("J_softdropPuppiSubjet1_phi");
@@ -1219,6 +1288,122 @@ void hwwBabyMaker::HiggsRecoModule::AddOutput()
     tx->createBranch<float>("L_subjet1_deg");
     tx->createBranch<float>("L_subjet2_deg");
 
+    // Selected ak8jets associated information
+    tx->createBranch<float>("V_area");
+    tx->createBranch<float>("V_mass");
+    tx->createBranch<float>("V_softdropMass");
+    tx->createBranch<float>("V_nJettinessTau1");
+    tx->createBranch<float>("V_nJettinessTau2");
+    tx->createBranch<float>("V_nJettinessTau3");
+    tx->createBranch<float>("V_deep_rawdisc_h4q");
+    tx->createBranch<float>("V_deep_rawdisc_hbb");
+    tx->createBranch<float>("V_deep_rawdisc_qcd");
+    tx->createBranch<float>("V_deep_rawdisc_top");
+    tx->createBranch<float>("V_deep_rawdisc_w");
+    tx->createBranch<float>("V_deep_rawdisc_z");
+    tx->createBranch<float>("V_deep_rawdisc_zbb");
+    tx->createBranch<float>("V_deep_bindisc_h4q");
+    tx->createBranch<float>("V_deep_bindisc_hbb");
+    tx->createBranch<float>("V_deep_bindisc_top");
+    tx->createBranch<float>("V_deep_bindisc_w");
+    tx->createBranch<float>("V_deep_bindisc_z");
+    tx->createBranch<float>("V_deep_bindisc_zbb");
+    tx->createBranch<float>("V_softdropPuppiSubjet1_pt");
+    tx->createBranch<float>("V_softdropPuppiSubjet1_eta");
+    tx->createBranch<float>("V_softdropPuppiSubjet1_phi");
+    tx->createBranch<float>("V_softdropPuppiSubjet1_mass");
+    tx->createBranch<float>("V_softdropPuppiSubjet1_energy");
+    tx->createBranch<float>("V_softdropPuppiSubjet2_pt");
+    tx->createBranch<float>("V_softdropPuppiSubjet2_eta");
+    tx->createBranch<float>("V_softdropPuppiSubjet2_phi");
+    tx->createBranch<float>("V_softdropPuppiSubjet2_mass");
+    tx->createBranch<float>("V_softdropPuppiSubjet2_energy");
+    tx->createBranch<int>("V_npfcands");
+    tx->createBranch<int>("V_partonFlavour");
+
+    AddOutput_Htag();
+}
+
+void hwwBabyMaker::HiggsRecoModule::AddOutput_Htag()
+{
+
+    // Higgs HWWlvjj tagger machine learning inputs
+    // PF candidates within R=1.0 centered around the J vector
+    tx->createBranch<LV>("Htag_J_p4");
+    tx->createBranch<float>("Htag_J_pt");
+    tx->createBranch<float>("Htag_J_eta");
+    tx->createBranch<float>("Htag_J_phi");
+    tx->createBranch<float>("Htag_J_mass");
+    tx->createBranch<float>("Htag_J_softdropMass");
+    tx->createBranch<LV>("Htag_L_p4");
+    tx->createBranch<float>("Htag_L_pt");
+    tx->createBranch<float>("Htag_L_eta");
+    tx->createBranch<float>("Htag_L_phi");
+    tx->createBranch<float>("Htag_L_dr");
+    tx->createBranch<float>("Htag_L_alpha");
+    tx->createBranch<vector<LV>>("Htag_pf_p4");
+    tx->createBranch<vector<float>>("Htag_pf_pt");
+    tx->createBranch<vector<float>>("Htag_pf_eta");
+    tx->createBranch<vector<float>>("Htag_pf_phi");
+    tx->createBranch<vector<int>>("Htag_pf_id");
+    tx->createBranch<vector<float>>("Htag_pf_dr");
+    tx->createBranch<vector<float>>("Htag_pf_alpha");
+    tx->createBranch<vector<float>>("Htag_pf_puppi_wgt");
+    tx->createBranch<vector<float>>("Htag_pf_ptfrac");
+    tx->createBranch<vector<float>>("Htag_pf_ptrel");
+    tx->createBranch<vector<LV>>("Htag_pf_nolep_p4");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_pt");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_eta");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_phi");
+    tx->createBranch<vector<int>>("Htag_pf_nolep_id");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_dr");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_alpha");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_puppi_wgt");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_ptfrac");
+    tx->createBranch<vector<float>>("Htag_pf_nolep_ptrel");
+    tx->createBranch<vector<LV>>("Htag_ak4_p4");
+    tx->createBranch<vector<float>>("Htag_ak4_pt");
+    tx->createBranch<vector<float>>("Htag_ak4_eta");
+    tx->createBranch<vector<float>>("Htag_ak4_phi");
+    tx->createBranch<vector<float>>("Htag_ak4_dr");
+    tx->createBranch<vector<float>>("Htag_ak4_alpha");
+    tx->createBranch<vector<float>>("Htag_ak4_L_dr");
+    tx->createBranch<vector<float>>("Htag_ak4_L_dpt");
+    tx->createBranch<vector<int>>("Htag_fromPV");
+    tx->createBranch<vector<int>>("Htag_pv_quality");
+    tx->createBranch<int>("Htag_leppffound");
+    tx->createBranch<LV>("Htag_subjet1_p4");
+    tx->createBranch<float>("Htag_subjet1_pt");
+    tx->createBranch<float>("Htag_subjet1_eta");
+    tx->createBranch<float>("Htag_subjet1_phi");
+    tx->createBranch<float>("Htag_subjet1_dr");
+    tx->createBranch<float>("Htag_subjet1_alpha");
+    tx->createBranch<LV>("Htag_subjet2_p4");
+    tx->createBranch<float>("Htag_subjet2_pt");
+    tx->createBranch<float>("Htag_subjet2_eta");
+    tx->createBranch<float>("Htag_subjet2_phi");
+    tx->createBranch<float>("Htag_subjet2_dr");
+    tx->createBranch<float>("Htag_subjet2_alpha");
+
+    // Truth to reco matching study
+    if (babymaker->looper.getCurrentFileName().Contains("HToWWToLNuQQ") or babymaker->looper.getCurrentFileName().Contains("VHToNonbb"))
+    {
+        tx->createBranch<float>("Htag_gen_higgs_dr");
+        tx->createBranch<float>("Htag_gen_higgs_alpha");
+        tx->createBranch<float>("Htag_gen_whad_dr");
+        tx->createBranch<float>("Htag_gen_whad_alpha");
+        tx->createBranch<float>("Htag_gen_wlep_dr");
+        tx->createBranch<float>("Htag_gen_wlep_alpha");
+        tx->createBranch<float>("Htag_gen_q0_dr");
+        tx->createBranch<float>("Htag_gen_q0_alpha");
+        tx->createBranch<float>("Htag_gen_q1_dr");
+        tx->createBranch<float>("Htag_gen_q1_alpha");
+        tx->createBranch<float>("Htag_gen_lep_dr");
+        tx->createBranch<float>("Htag_gen_lep_alpha");
+        tx->createBranch<float>("Htag_gen_neu_dr");
+        tx->createBranch<float>("Htag_gen_neu_alpha");
+    }
+
 }
 
 void hwwBabyMaker::HiggsRecoModule::FillOutput()
@@ -1232,8 +1417,11 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
     int iL = -1;
     LV J;
     int iJ = -1;
+    LV V;
+    int iV = -1;
     std::tie(L, iL) = SelectLepton(met);
-    std::tie(J, iJ) = SelectFatJet(L + met);
+    std::tie(J, iJ) = SelectFatJet(met);
+    std::tie(V, iV) = SelectVbosonJet(J);
 
     // Found?
     if (iJ >= 0)
@@ -1283,31 +1471,37 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
     if (iJ >= 0)
     {
         // Selected ak8jets associated information
-        tx->setBranch<float>("J_area", tx->getBranch<vector<float>>("ak8jets_area")[iJ]);
-        tx->setBranch<float>("J_mass", tx->getBranch<vector<float>>("ak8jets_mass")[iJ]);
-        tx->setBranch<float>("J_softdropMass", tx->getBranch<vector<float>>("ak8jets_softdropMass")[iJ]);
-        tx->setBranch<float>("J_nJettinessTau1", tx->getBranch<vector<float>>("ak8jets_nJettinessTau1")[iJ]);
-        tx->setBranch<float>("J_nJettinessTau2", tx->getBranch<vector<float>>("ak8jets_nJettinessTau2")[iJ]);
-        tx->setBranch<float>("J_nJettinessTau3", tx->getBranch<vector<float>>("ak8jets_nJettinessTau3")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_h4q", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_h4q")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_hbb", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_hbb")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_qcd", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_qcd")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_top", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_top")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_w", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_w")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_z", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_z")[iJ]);
-        tx->setBranch<float>("J_deep_rawdisc_zbb", tx->getBranch<vector<float>>("ak8jets_deep_rawdisc_zbb")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet1_pt", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_pt")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet1_eta", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_eta")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet1_phi", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_phi")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet1_mass", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_mass")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet1_energy", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet1_energy")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet2_pt", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_pt")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet2_eta", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_eta")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet2_phi", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_phi")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet2_mass", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_mass")[iJ]);
-        tx->setBranch<float>("J_softdropPuppiSubjet2_energy", tx->getBranch<vector<float>>("ak8jets_softdropPuppiSubjet2_energy")[iJ]);
-        tx->setBranch<int>("J_npfcands", tx->getBranch<vector<int>>("ak8jets_npfcands")[iJ]);
-        tx->setBranch<int>("J_partonFlavour", tx->getBranch<vector<int>>("ak8jets_partonFlavour")[iJ]);
+        if (tx->getBranchLazy<vector<float>>("ak8jets_area"                        ).size() > 0) tx->setBranch<float>("J_area"                        , tx->getBranchLazy<vector<float>>("ak8jets_area"                        )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_mass"                        ).size() > 0) tx->setBranch<float>("J_mass"                        , tx->getBranchLazy<vector<float>>("ak8jets_mass"                        )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                ).size() > 0) tx->setBranch<float>("J_softdropMass"                , tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau1"              ).size() > 0) tx->setBranch<float>("J_nJettinessTau1"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau1"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau2"              ).size() > 0) tx->setBranch<float>("J_nJettinessTau2"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau2"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau3"              ).size() > 0) tx->setBranch<float>("J_nJettinessTau3"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau3"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_h4q"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_h4q"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_hbb"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_hbb"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_qcd"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_qcd"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_qcd"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_top"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_top"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_pt"     , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_eta"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_phi"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_mass"   ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_mass"   , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_mass"   )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_energy" ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_energy" , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_energy" )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_pt"     ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet2_pt"     , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_pt"     )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_eta"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet2_eta"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_eta"    )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_phi"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet2_phi"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_phi"    )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_mass"   ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet2_mass"   , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_mass"   )[iJ]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_energy" ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet2_energy" , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_energy" )[iJ]) ;
+        if (tx->getBranchLazy<vector<int>>("ak8jets_npfcands"                      ).size() > 0) tx->setBranch<int>("J_npfcands"                      , tx->getBranchLazy<vector<int>>("ak8jets_npfcands"                      )[iJ]) ;
+        if (tx->getBranchLazy<vector<int>>("ak8jets_partonFlavour"                 ).size() > 0) tx->setBranch<int>("J_partonFlavour"                 , tx->getBranchLazy<vector<int>>("ak8jets_partonFlavour"                 )[iJ]) ;
 
         // Aggregating nearby ak4 jets (R = 1.2) also select the nearest one
 
@@ -1364,14 +1558,14 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
 
     if (iJ >= 0 and iL >= 0)
     {
-        float subjet1_pt     = tx->getBranch<float>("J_softdropPuppiSubjet1_pt");
-        float subjet1_eta    = tx->getBranch<float>("J_softdropPuppiSubjet1_eta");
-        float subjet1_phi    = tx->getBranch<float>("J_softdropPuppiSubjet1_phi");
-        float subjet1_mass   = tx->getBranch<float>("J_softdropPuppiSubjet1_mass");
-        float subjet2_pt     = tx->getBranch<float>("J_softdropPuppiSubjet2_pt");
-        float subjet2_eta    = tx->getBranch<float>("J_softdropPuppiSubjet2_eta");
-        float subjet2_phi    = tx->getBranch<float>("J_softdropPuppiSubjet2_phi");
-        float subjet2_mass   = tx->getBranch<float>("J_softdropPuppiSubjet2_mass");
+        float subjet1_pt     = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_pt");
+        float subjet1_eta    = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_eta");
+        float subjet1_phi    = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_phi");
+        float subjet1_mass   = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_mass");
+        float subjet2_pt     = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_pt");
+        float subjet2_eta    = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_eta");
+        float subjet2_phi    = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_phi");
+        float subjet2_mass   = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_mass");
         LV subjet1, subjet2;
         subjet1 = RooUtil::Calc::getLV(subjet1_pt, subjet1_eta, subjet1_phi, subjet1_mass);
         subjet2 = RooUtil::Calc::getLV(subjet2_pt, subjet2_eta, subjet2_phi, subjet2_mass);
@@ -1386,10 +1580,19 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
 
         float mw = tx->getBranch<int>("is_whad_lead", true) ? 35 : 80;
 
-        LV vp4 = RooUtil::Calc::getNeutrinoP4(L, tx->getBranch<float>("met_pt", true), tx->getBranch<float>("met_phi", true), mw);
+        LV vp4_sol1    = RooUtil::Calc::getNeutrinoP4(L, tx->getBranch<float>("met_pt", true), tx->getBranch<float>("met_phi", true), mw);
+        LV vp4_sol2    = RooUtil::Calc::getNeutrinoP4(L, tx->getBranch<float>("met_pt", true), tx->getBranch<float>("met_phi", true), mw, true);
+        LV vp4_invsol1 = RooUtil::Calc::getNeutrinoP4(L, tx->getBranch<float>("met_pt", true), tx->getBranch<float>("met_phi", true), mw, false, true);
+        LV vp4_invsol2 = RooUtil::Calc::getNeutrinoP4(L, tx->getBranch<float>("met_pt", true), tx->getBranch<float>("met_phi", true), mw, true, true);
 
-        tx->setBranch<LV>("v_p4", vp4);
-//
+        LV vp4 = fabs(vp4_sol1.eta()) < fabs(vp4_sol2.eta()) ? vp4_sol1 : vp4_sol2;
+
+        tx->setBranch<LV>("neu_p4", vp4);
+        tx->setBranch<LV>("neu_p4_sol1", vp4_sol1);
+        tx->setBranch<LV>("neu_p4_sol2", vp4_sol2);
+        tx->setBranch<LV>("neu_p4_invsol1", vp4_invsol1);
+        tx->setBranch<LV>("neu_p4_invsol2", vp4_invsol2);
+
 //        float det = RooUtil::Calc::getNeutrinoPzDet(p4, met_pt, met_phi, mw);
 //        tx->setBranch<float>("reconeutrino_det", det);
 //        tx->setBranch<LV>("reconeutrino_p4", vp4);
@@ -1409,6 +1612,200 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
 //        tx->setBranch<float>("reconeutrinoinv_eta", vp4inv.eta());
 //        tx->setBranch<float>("reconeutrinoinv_phi", vp4inv.phi());
 //        tx->setBranch<float>("reconeutrinoinv_met_dphi", TVector2::Phi_mpi_pi(met_phi - vp4inv.phi()));
+
+        FillOutput_Htag();
+
+    }
+
+    if (iV >= 0)
+    {
+        // Selected ak8jets associated information
+        tx->setBranch<LV>("V_p4", V);
+        if (tx->getBranchLazy<vector<float>>("ak8jets_area"                        ).size() > 0) tx->setBranch<float>("V_area"                        , tx->getBranchLazy<vector<float>>("ak8jets_area"                        )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_mass"                        ).size() > 0) tx->setBranch<float>("V_mass"                        , tx->getBranchLazy<vector<float>>("ak8jets_mass"                        )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                ).size() > 0) tx->setBranch<float>("V_softdropMass"                , tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau1"              ).size() > 0) tx->setBranch<float>("V_nJettinessTau1"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau1"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau2"              ).size() > 0) tx->setBranch<float>("V_nJettinessTau2"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau2"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau3"              ).size() > 0) tx->setBranch<float>("V_nJettinessTau3"              , tx->getBranchLazy<vector<float>>("ak8jets_nJettinessTau3"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_h4q"            ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_h4q"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_hbb"            ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_hbb"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_qcd"            ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_qcd"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_qcd"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_top"            ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_top"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            ).size() > 0) tx->setBranch<float>("V_deep_rawdisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            ).size() > 0) tx->setBranch<float>("V_deep_bindisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            ).size() > 0) tx->setBranch<float>("V_deep_bindisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            ).size() > 0) tx->setBranch<float>("V_deep_bindisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              ).size() > 0) tx->setBranch<float>("V_deep_bindisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              ).size() > 0) tx->setBranch<float>("V_deep_bindisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            ).size() > 0) tx->setBranch<float>("V_deep_bindisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet1_pt"     , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet1_eta"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet1_phi"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_mass"   ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet1_mass"   , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_mass"   )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_energy" ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet1_energy" , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_energy" )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_pt"     ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet2_pt"     , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_pt"     )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_eta"    ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet2_eta"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_eta"    )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_phi"    ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet2_phi"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_phi"    )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_mass"   ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet2_mass"   , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_mass"   )[iV]) ;
+        if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_energy" ).size() > 0) tx->setBranch<float>("V_softdropPuppiSubjet2_energy" , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet2_energy" )[iV]) ;
+        if (tx->getBranchLazy<vector<int>>("ak8jets_npfcands"                      ).size() > 0) tx->setBranch<int>("V_npfcands"                      , tx->getBranchLazy<vector<int>>("ak8jets_npfcands"                      )[iV]) ;
+        if (tx->getBranchLazy<vector<int>>("ak8jets_partonFlavour"                 ).size() > 0) tx->setBranch<int>("V_partonFlavour"                 , tx->getBranchLazy<vector<int>>("ak8jets_partonFlavour"                 )[iV]) ;
+    }
+
+
+}
+
+void hwwBabyMaker::HiggsRecoModule::FillOutput_Htag()
+{
+
+    const LV& J_p4 = tx->getBranchLazy<LV>("J_p4");
+    const LV& L_p4 = tx->getBranchLazy<LV>("L_p4");
+    const int& L_id = tx->getBranchLazy<int>("L_id");
+    const float& J_mass = tx->getBranchLazy<float>("J_mass");
+    const float& J_softdropMass = tx->getBranchLazy<float>("J_softdropMass");
+
+    // Higgs HWWlvjj tagger machine learning inputs
+    // PF candidates within R=1.0 centered around the J vector
+    tx->setBranch<LV>("Htag_J_p4", J_p4);
+    tx->setBranch<float>("Htag_J_pt", J_p4.pt());
+    tx->setBranch<float>("Htag_J_eta", J_p4.eta());
+    tx->setBranch<float>("Htag_J_phi", J_p4.phi());
+    tx->setBranch<float>("Htag_J_mass", J_mass);
+    tx->setBranch<float>("Htag_J_softdropMass", J_softdropMass);
+    tx->setBranch<LV>("Htag_L_p4", L_p4);
+    tx->setBranch<float>("Htag_L_pt", L_p4.pt());
+    tx->setBranch<float>("Htag_L_eta", L_p4.eta());
+    tx->setBranch<float>("Htag_L_phi", L_p4.phi());
+    tx->setBranch<float>("Htag_L_dr", RooUtil::Calc::DeltaR(J_p4, L_p4));
+    tx->setBranch<float>("Htag_L_alpha", RooUtil::Calc::alpha(J_p4, L_p4));
+
+    bool lepfound = false;
+    for (unsigned int ipf = 0; ipf < cms3.pfcands_p4().size(); ++ipf)
+    {
+
+        const LV& pf_p4 = cms3.pfcands_p4()[ipf];
+
+        if (RooUtil::Calc::DeltaR(pf_p4, J_p4) < 2.0)
+        {
+
+            if (RooUtil::Calc::DeltaR(pf_p4, L_p4) < 0.05 and cms3.pfcands_particleId()[ipf] == L_id)
+            {
+                lepfound = true;
+                continue;
+            }
+
+            if (not (RooUtil::Calc::DeltaR(pf_p4, L_p4) < 0.05 and cms3.pfcands_particleId()[ipf] == L_id))
+            {
+                tx->pushbackToBranch<LV>("Htag_pf_nolep_p4", pf_p4);
+                tx->pushbackToBranch<float>("Htag_pf_nolep_pt", pf_p4.pt());
+                tx->pushbackToBranch<float>("Htag_pf_nolep_eta", pf_p4.eta());
+                tx->pushbackToBranch<float>("Htag_pf_nolep_phi", pf_p4.phi());
+                tx->pushbackToBranch<int>("Htag_pf_nolep_id", cms3.pfcands_particleId()[ipf]);
+                tx->pushbackToBranch<float>("Htag_pf_nolep_dr", RooUtil::Calc::DeltaR(J_p4, pf_p4));
+                tx->pushbackToBranch<float>("Htag_pf_nolep_alpha", RooUtil::Calc::alpha(J_p4, pf_p4));
+                tx->pushbackToBranch<float>("Htag_pf_nolep_puppi_wgt", cms3.pfcands_puppiWeight()[ipf]);
+                tx->pushbackToBranch<float>("Htag_pf_nolep_ptfrac", pf_p4.pt() / J_p4.pt());
+                tx->pushbackToBranch<float>("Htag_pf_nolep_ptrel", RooUtil::Calc::pPRel(pf_p4, J_p4));
+            }
+
+            tx->pushbackToBranch<LV>("Htag_pf_p4", pf_p4);
+            tx->pushbackToBranch<float>("Htag_pf_pt", pf_p4.pt());
+            tx->pushbackToBranch<float>("Htag_pf_eta", pf_p4.eta());
+            tx->pushbackToBranch<float>("Htag_pf_phi", pf_p4.phi());
+            tx->pushbackToBranch<int>("Htag_pf_id", cms3.pfcands_particleId()[ipf]);
+            tx->pushbackToBranch<float>("Htag_pf_dr", RooUtil::Calc::DeltaR(J_p4, pf_p4));
+            tx->pushbackToBranch<float>("Htag_pf_alpha", RooUtil::Calc::alpha(J_p4, pf_p4));
+            tx->pushbackToBranch<float>("Htag_pf_puppi_wgt", cms3.pfcands_puppiWeight()[ipf]);
+            tx->pushbackToBranch<float>("Htag_pf_ptfrac", pf_p4.pt() / J_p4.pt());
+            tx->pushbackToBranch<float>("Htag_pf_ptrel", RooUtil::Calc::pPRel(pf_p4, J_p4));
+
+            tx->pushbackToBranch<int>("Htag_fromPV", cms3.pfcands_fromPV()[ipf]);
+            tx->pushbackToBranch<int>("Htag_pv_quality", cms3.pfcands_pvAssociationQuality()[ipf]);
+
+        }
+
+    }
+
+    tx->setBranch<int>("Htag_leppffound", lepfound);
+
+    for (unsigned int ipf = 0; ipf < cms3.pfjets_p4().size(); ++ipf)
+    {
+
+        const LV& ak4_p4 = cms3.pfjets_p4()[ipf];
+
+        if (RooUtil::Calc::DeltaR(ak4_p4, L_p4) < 0.4)
+        {
+            continue;
+        }
+
+        if (RooUtil::Calc::DeltaR(ak4_p4, J_p4) < 2.0)
+        {
+
+            tx->pushbackToBranch<LV>("Htag_ak4_p4", ak4_p4);
+            tx->pushbackToBranch<float>("Htag_ak4_pt", ak4_p4.pt());
+            tx->pushbackToBranch<float>("Htag_ak4_eta", ak4_p4.eta());
+            tx->pushbackToBranch<float>("Htag_ak4_phi", ak4_p4.phi());
+            tx->pushbackToBranch<float>("Htag_ak4_dr", RooUtil::Calc::DeltaR(J_p4, ak4_p4));
+            tx->pushbackToBranch<float>("Htag_ak4_alpha", RooUtil::Calc::alpha(J_p4, ak4_p4));
+            tx->pushbackToBranch<float>("Htag_ak4_L_dr", RooUtil::Calc::DeltaR(L_p4, ak4_p4));
+            tx->pushbackToBranch<float>("Htag_ak4_L_dpt", L_p4.pt() - ak4_p4.pt());
+
+        }
+
+    }
+
+    const float& subjet1_pt = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_pt");
+    const float& subjet2_pt = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_pt");
+
+    if (subjet1_pt > 0 and subjet2_pt > 0)
+    {
+        const float& subjet1_eta = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_eta");
+        const float& subjet1_phi = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_phi");
+        const float& subjet1_mass = tx->getBranchLazy<float>("J_softdropPuppiSubjet1_mass");
+        const float& subjet2_eta = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_eta");
+        const float& subjet2_phi = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_phi");
+        const float& subjet2_mass = tx->getBranchLazy<float>("J_softdropPuppiSubjet2_mass");
+
+        LV subjet1_p4 = RooUtil::Calc::getLV(subjet1_pt, subjet1_eta, subjet1_phi, subjet1_mass);
+        LV subjet2_p4 = RooUtil::Calc::getLV(subjet2_pt, subjet2_eta, subjet2_phi, subjet2_mass);
+
+        tx->setBranch<LV>("Htag_subjet1_p4", subjet1_p4);
+        tx->setBranch<float>("Htag_subjet1_pt", subjet1_p4.pt());
+        tx->setBranch<float>("Htag_subjet1_eta", subjet1_p4.pt());
+        tx->setBranch<float>("Htag_subjet1_phi", subjet1_p4.pt());
+        tx->setBranch<float>("Htag_subjet1_dr", RooUtil::Calc::DeltaR(J_p4, subjet1_p4));
+        tx->setBranch<float>("Htag_subjet1_alpha", RooUtil::Calc::alpha(J_p4, subjet1_p4));
+        tx->setBranch<LV>("Htag_subjet2_p4", subjet2_p4);
+        tx->setBranch<float>("Htag_subjet2_pt", subjet2_p4.pt());
+        tx->setBranch<float>("Htag_subjet2_eta", subjet2_p4.pt());
+        tx->setBranch<float>("Htag_subjet2_phi", subjet2_p4.pt());
+        tx->setBranch<float>("Htag_subjet2_dr", RooUtil::Calc::DeltaR(J_p4, subjet2_p4));
+        tx->setBranch<float>("Htag_subjet2_alpha", RooUtil::Calc::alpha(J_p4, subjet2_p4));
+    }
+
+    // Truth to reco matching study
+    if (babymaker->looper.getCurrentFileName().Contains("HToWWToLNuQQ") or babymaker->looper.getCurrentFileName().Contains("VHToNonbb"))
+    {
+        const LV& gen_higgs_p4 = tx->getBranchLazy<LV>("gen_higgs_p4");
+        if (gen_higgs_p4.pt() > 0)
+        {
+            tx->setBranch<float>("Htag_gen_higgs_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_higgs_p4")));
+            tx->setBranch<float>("Htag_gen_higgs_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_higgs_p4")));
+            tx->setBranch<float>("Htag_gen_whad_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_whad_p4")));
+            tx->setBranch<float>("Htag_gen_whad_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_whad_p4")));
+            tx->setBranch<float>("Htag_gen_wlep_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_wlep_p4")));
+            tx->setBranch<float>("Htag_gen_wlep_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_wlep_p4")));
+            tx->setBranch<float>("Htag_gen_q0_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_q0_p4")));
+            tx->setBranch<float>("Htag_gen_q0_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_q0_p4")));
+            tx->setBranch<float>("Htag_gen_q1_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_q1_p4")));
+            tx->setBranch<float>("Htag_gen_q1_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_q1_p4")));
+            tx->setBranch<float>("Htag_gen_lep_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_lep_p4")));
+            tx->setBranch<float>("Htag_gen_lep_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_lep_p4")));
+            tx->setBranch<float>("Htag_gen_neu_dr", RooUtil::Calc::DeltaR(J_p4, tx->getBranch<LV>("gen_neu_p4")));
+            tx->setBranch<float>("Htag_gen_neu_alpha", RooUtil::Calc::alpha(J_p4, tx->getBranch<LV>("gen_neu_p4")));
+        }
     }
 
 }
@@ -1513,6 +1910,46 @@ std::tuple<LV, int> hwwBabyMaker::HiggsRecoModule::SelectLepton(LV ref, float dp
     }
 
     return std::make_tuple(L, iL);
+
+}
+
+std::tuple<LV, int> hwwBabyMaker::HiggsRecoModule::SelectVbosonJet(LV ref, float dphithresh)
+{
+
+    //
+    // Choose the leading fat-jet as V boson jet
+    //
+
+    // Retrieve the ak8jets
+    const vector<LV>& ak8jets_p4 = tx->getBranch<vector<LV>>("ak8jets_p4", false);
+
+    // The chosen V
+    LV V;
+    int iV = -1; // index of the chosen V
+
+    // Loop over and find the ak8 jet closest to MET
+    for (unsigned int ii = 0; ii < ak8jets_p4.size(); ++ii)
+    {
+
+        // Retrieve the ak8jet
+        const LV& p4 = ak8jets_p4[ii];
+
+        // Compute the Delta Phi between ak8 jets and the reference
+        float tmpdphi = RooUtil::Calc::DeltaPhi(p4, ref);
+
+        // If the delta phi is less than 90 degrees and is leading jet in the hemisphere where MET is pointing
+        if (fabs(tmpdphi) > dphithresh and p4.pt() > V.pt())
+        {
+
+            // Set the ak8 jets p4 and the index
+            V = p4;
+            iV = ii;
+
+        }
+
+    }
+
+    return std::make_tuple(V, iV);
 
 }
 
@@ -1697,29 +2134,29 @@ void hwwBabyMaker::RecoilModule::FillOutput_v2()
     //
 
     // Retrieve the jets
-    const vector<LV> jets_p4 = tx->getBranch<vector<LV>>(jettype, false);
-    const vector<int> jets_idx = tx->getBranch<vector<int>>(jettype.ReplaceAll("p4", "idx"), false);
+    const vector<LV> jets_p4 = tx->getBranchLazy<vector<LV>>(TString(jettype)); // NOTE Need to set TString() in order not to mess with the jettype variable
+    const vector<int> jets_idx = tx->getBranchLazy<vector<int>>(TString(jettype).ReplaceAll("p4", "idx")); // NOTE Need to set TString() in order not to mess with the jettype variable
 
     // The reconstructed higgs recoil vector
     LV Recoil;
     LV leadjet_p4;
     int leadjet_idx = -1;
 
-    // Loop over and find the ak8 jet closest to MET
+    // Loop over and find the ak4 jet closest to MET
     for (unsigned int ij = 0; ij < jets_p4.size(); ++ij)
     {
 
         LV p4 = jets_p4[ij];
         int idx = jets_idx[ij];
 
-        // Compute the Delta Phi between ak8 jets and MET
+        // Compute the Delta Phi between ak4 jets and MET
         float tmpdphi = RooUtil::Calc::DeltaPhi(p4, Jmet);
 
         // If the delta phi is larger than 90 degrees
         if (fabs(tmpdphi) > threshold)
         {
 
-            // Set the ak8 jets p4
+            // Set the ak4 jets p4
             Recoil += p4;
 
             // Set the lead ak4 jet idx
@@ -1739,24 +2176,66 @@ void hwwBabyMaker::RecoilModule::FillOutput_v2()
 
         tx->setBranch<LV>(bname_prefix + "_p4", Recoil);
         tx->setBranch<LV>(bname_prefix + "_leadak4_p4", leadjet_p4);
-        tx->setBranch<int>(bname_prefix + "_leadak4_npfcands", cms3.pfjets_npfcands()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_chargedHadronMultiplicity", cms3.pfjets_chargedHadronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_chargedMultiplicity", cms3.pfjets_chargedMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_electronMultiplicity", cms3.pfjets_electronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_muonMultiplicity", cms3.pfjets_muonMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_neutralHadronMultiplicity", cms3.pfjets_neutralHadronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_neutralMultiplicity", cms3.pfjets_neutralMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_photonMultiplicity", cms3.pfjets_photonMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_totalMultiplicity", cms3.pfjets_totalMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedHadronMultiplicity", cms3.pfjets_puppi_chargedHadronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedMultiplicity", cms3.pfjets_puppi_chargedMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_electronMultiplicity", cms3.pfjets_puppi_electronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_muonMultiplicity", cms3.pfjets_puppi_muonMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralHadronMultiplicity", cms3.pfjets_puppi_neutralHadronMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralMultiplicity", cms3.pfjets_puppi_neutralMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_photonMultiplicity", cms3.pfjets_puppi_photonMultiplicity()[leadjet_idx]);
-        tx->setBranch<int>(bname_prefix + "_leadak4_puppi_totalMultiplicity", cms3.pfjets_puppi_totalMultiplicity()[leadjet_idx]);
+        if (babymaker->looper.doesBranchExist("pfjets_totalMultiplicity"))
+        {
+            tx->setBranch<int>(bname_prefix + "_leadak4_npfcands", cms3.pfjets_npfcands()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_chargedHadronMultiplicity", cms3.pfjets_chargedHadronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_chargedMultiplicity", cms3.pfjets_chargedMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_electronMultiplicity", cms3.pfjets_electronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_muonMultiplicity", cms3.pfjets_muonMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_neutralHadronMultiplicity", cms3.pfjets_neutralHadronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_neutralMultiplicity", cms3.pfjets_neutralMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_photonMultiplicity", cms3.pfjets_photonMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_totalMultiplicity", cms3.pfjets_totalMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedHadronMultiplicity", cms3.pfjets_puppi_chargedHadronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_chargedMultiplicity", cms3.pfjets_puppi_chargedMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_electronMultiplicity", cms3.pfjets_puppi_electronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_muonMultiplicity", cms3.pfjets_puppi_muonMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralHadronMultiplicity", cms3.pfjets_puppi_neutralHadronMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_neutralMultiplicity", cms3.pfjets_puppi_neutralMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_photonMultiplicity", cms3.pfjets_puppi_photonMultiplicity()[leadjet_idx]);
+            tx->setBranch<int>(bname_prefix + "_leadak4_puppi_totalMultiplicity", cms3.pfjets_puppi_totalMultiplicity()[leadjet_idx]);
+        }
 
     }
 
+}
+
+//==============================================================================================================
+//
+// GenPart Module
+//
+//==============================================================================================================
+
+void hwwBabyMaker::GenPartModule::AddOutput()
+{
+    tx->createBranch<float>("gen_ht");
+}
+
+void hwwBabyMaker::GenPartModule::FillOutput()
+{
+    tx->setBranch<float>("gen_ht", babymaker->coreGenPart.gen_ht);
+}
+
+//==============================================================================================================
+//
+// Event Module
+//
+//==============================================================================================================
+
+void hwwBabyMaker::EventModule::AddOutput()
+{
+    tx->createBranch<float>("nvtx");
+}
+
+void hwwBabyMaker::EventModule::FillOutput()
+{
+    // Count number of good vertices.
+    int nvtx = 0;
+    for (unsigned int ivtx = 0; ivtx < cms3.evt_nvtxs(); ivtx++)
+    {
+        if (!isGoodVertex(ivtx)) { continue; }
+        nvtx++;
+    }
+    tx->setBranch<float>("nvtx", nvtx);
 }

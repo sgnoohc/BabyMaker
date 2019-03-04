@@ -31,6 +31,13 @@ job_tag = "HWW{}_v1.16.1".format(data_year) # Revisiting
 
 job_tag = "HWW{}_v2.0.0".format(data_year) # trying 94x
 job_tag = "HWW{}_v2.0.1".format(data_year) # adding some multiplicity variable for lead oppo-hemi jets for qg tagging possibility
+job_tag = "HWW{}_v2.0.2".format(data_year) # The Recoil_p4's had a bug. Also let's start with 80x
+job_tag = "HWW{}_v2.0.3".format(data_year) # gen_ht is added
+job_tag = "HWW{}_v2.0.4".format(data_year) # using 94x
+job_tag = "HWW{}_v3.0.0".format(data_year) # using 80x After the Jan 8 Shutdown
+job_tag = "HWW{}_v4.0.0".format(data_year) # Adding Htag_* branches that has the input variables for DNN training. (Some expert variables could be computer later)
+job_tag = "HWW{}_v5.0.0".format(data_year) # pf candidate removal for electron case don't seem to work very well... so decided to just add everything into the pf candidate list
+job_tag = "HWW{}_v5.0.1".format(data_year) # Added 4 vp4 solutions
 
 ###################################################################################################################
 ###################################################################################################################
@@ -78,7 +85,7 @@ def main():
 
     # Create tarball
     os.chdir(main_dir)
-    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C".format(tar_gz_path))
+    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C rooutil/hadd.py".format(tar_gz_path))
 
     # Change directory to metis
     os.chdir(metis_path)
@@ -116,6 +123,33 @@ def main():
 
             # save some information for the dashboard
             total_summary[maker_task.get_sample().get_datasetname()] = maker_task.get_task_summary()
+
+            # define the task
+            merge_sample_name = "/MERGE_"+sample[1:]
+            merge_task = CondorTask(
+                    sample               = DirectorySample(dataset=merge_sample_name, location=maker_task.get_outputdir()),
+                    tag                  = job_tag,
+                    executable           = merge_exec_path,
+                    tarfile              = tar_gz_path,
+                    files_per_output     = 100,
+                    output_dir           = maker_task.get_outputdir() + "/merged",
+                    output_name          = samples_short_name[sample] + ".root",
+                    condor_submit_params = {"sites" : "T2_US_UCSD"},
+                    open_dataset         = False,
+                    flush                = True,
+                    output_is_tree       = True,
+                    cmssw_version        = "CMSSW_9_2_0",
+                    scram_arch           = "slc6_amd64_gcc530",
+                    #no_load_from_backup  = True,
+                    )
+
+            # if maker_task.complete():
+
+            #     # process the job (either submits, checks for resubmit, or finishes etc.)
+            #     merge_task.process()
+
+            #     # save some information for the dashboard
+            #     total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
 
             # Aggregate whether all tasks are complete
             all_tasks_complete = all_tasks_complete and maker_task.complete()

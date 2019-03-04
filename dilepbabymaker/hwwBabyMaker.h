@@ -100,9 +100,12 @@ class hwwBabyMaker: public babyMaker
                 hwwBabyMaker* babymaker;
                 HiggsRecoModule(hwwBabyMaker* parent) { babymaker = parent; }
                 virtual void AddOutput();
+                virtual void AddOutput_Htag();
                 virtual void FillOutput();
+                virtual void FillOutput_Htag();
                 std::tuple<LV, int> SelectLepton(LV ref, float dphithresh=TMath::Pi()/2.);
                 std::tuple<LV, int> SelectFatJet(LV ref, float dphithresh=TMath::Pi()/2.);
+                std::tuple<LV, int> SelectVbosonJet(LV ref, float dphithresh=0.1);
         };
 
         //__________________________________________________________________
@@ -131,6 +134,28 @@ class hwwBabyMaker: public babyMaker
                 void AddOutput_v2();
                 void FillOutput_v1();
                 void FillOutput_v2();
+        };
+
+        //__________________________________________________________________
+        // GenPart
+        class GenPartModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                GenPartModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
+        };
+
+        //__________________________________________________________________
+        // Event
+        class EventModule: public RooUtil::Module
+        {
+            public:
+                hwwBabyMaker* babymaker;
+                EventModule(hwwBabyMaker* parent) { babymaker = parent; }
+                virtual void AddOutput();
+                virtual void FillOutput();
         };
 
 };
