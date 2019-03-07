@@ -38,6 +38,8 @@ job_tag = "HWW{}_v3.0.0".format(data_year) # using 80x After the Jan 8 Shutdown
 job_tag = "HWW{}_v4.0.0".format(data_year) # Adding Htag_* branches that has the input variables for DNN training. (Some expert variables could be computer later)
 job_tag = "HWW{}_v5.0.0".format(data_year) # pf candidate removal for electron case don't seem to work very well... so decided to just add everything into the pf candidate list
 job_tag = "HWW{}_v5.0.1".format(data_year) # Added 4 vp4 solutions
+job_tag = "HWW{}_v5.0.2".format(data_year) # Added PF puppi JECs and QCD samples and etc. Added miniIso on el/mu
+job_tag = "HWW{}_v5.0.3".format(data_year) # Defined the lepton IDs a bit more constructively (not sure how much effect it'd have :( )
 
 ###################################################################################################################
 ###################################################################################################################

@@ -99,6 +99,7 @@ class babyMaker
 public:
 
     CoreUtil::jec coreJec;
+    CoreUtil::jec coreFatJec;
     CoreUtil::grl coreGRL;
     CoreUtil::btag coreBtagSF;
     CoreUtil::btag coreBtagSFFastSim;

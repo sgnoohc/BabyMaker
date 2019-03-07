@@ -120,6 +120,9 @@ void babyMaker::Init()
     // Provide which file it is and whether it is fast sim or not to JEC to determine which file to load
     coreJec.setJECFor(looper.getCurrentFileName(), false);
 
+    // Provide which file it is and whether it is fast sim or not to JEC to determine which file to load
+    coreFatJec.setFatJECFor(looper.getCurrentFileName());
+
     // Signal or BSM samples need some specifics things to be set prior to starting the processing
     AddOutput();
 
@@ -237,6 +240,11 @@ void babyMaker::FillGenWeightsNominal()
 {
     float sum_of_pdf_weights = 0;
     float average_of_pdf_weights = 0;
+
+    // Things that don't depend on PDF
+    h_neventsinfile->Fill(0., 1.); // event count
+    h_neventsinfile->Fill(14, (cms3.genps_weight() > 0) - (cms3.genps_weight() < 0)); // event count
+
     //error on pdf replicas
     if (cms3.genweights().size() > 110)
     {
@@ -264,7 +272,6 @@ void babyMaker::FillGenWeightsNominal()
         tx->setBranch<float>("weight_pdf_down", (average_of_pdf_weights - sqrt(sum_of_pdf_weights / 99)));
         tx->setBranch<float>("weight_alphas_down", cms3.genweights()[109]);
         tx->setBranch<float>("weight_alphas_up", cms3.genweights()[110]);
-        h_neventsinfile->Fill(0., 1.); // event count
         h_neventsinfile->Fill(1, tx->getBranch<float>("weight_fr_r1_f1"));
         h_neventsinfile->Fill(2, tx->getBranch<float>("weight_fr_r1_f2"));
         h_neventsinfile->Fill(3, tx->getBranch<float>("weight_fr_r1_f0p5"));
@@ -278,7 +285,6 @@ void babyMaker::FillGenWeightsNominal()
         h_neventsinfile->Fill(11, tx->getBranch<float>("weight_pdf_down"));
         h_neventsinfile->Fill(12, tx->getBranch<float>("weight_alphas_down"));
         h_neventsinfile->Fill(13, tx->getBranch<float>("weight_alphas_up"));
-        h_neventsinfile->Fill(14, (cms3.genps_weight() > 0) - (cms3.genps_weight() < 0)); // event count
     }
 }
 
@@ -348,7 +354,7 @@ void babyMaker::ProcessGenParticles() { coreGenPart.process(); }
 void babyMaker::ProcessJets() { coreJet.process(coreJec); }
 
 //##############################################################################################################
-void babyMaker::ProcessFatJets() { coreFatJet.process(coreJec); }
+void babyMaker::ProcessFatJets() { coreFatJet.process(coreFatJec); }
 
 //##############################################################################################################
 void babyMaker::ProcessMET() { coreMET.process(coreJec); }

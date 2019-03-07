@@ -18,6 +18,8 @@ class hwwBabyMaker: public babyMaker
         virtual void AddOutput();
         virtual void FillOutput();
 
+        static bool isPt20Electron(int idx);
+        static bool isPt20Muon(int idx);
         static bool isPt10Electron(int idx);
         static bool isPt10Muon(int idx);
         bool isLeptonOverlappingWithJet(int ijet);

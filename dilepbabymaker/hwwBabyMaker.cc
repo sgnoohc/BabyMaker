@@ -7,21 +7,19 @@ hwwBabyMaker::~hwwBabyMaker() {}
 //##############################################################################################################
 void hwwBabyMaker::ProcessElectrons()
 {
-    coreElectron.process(isPt10Electron);
+    coreElectron.process(isPt20Electron);
 }
 
 //##############################################################################################################
 void hwwBabyMaker::ProcessMuons()
 {
-    coreMuon.process(isPt10Muon);
+    coreMuon.process(isPt20Muon);
 }
 
 //##############################################################################################################
 // Goal is to pass events with at least one fat jet and one lepton
 bool hwwBabyMaker::PassSelection()
 {
-    return true;
-
     // lepton counter
     int n_reconstructed_leptons = coreElectron.index.size() + coreMuon.index.size();
 
@@ -61,14 +59,14 @@ void hwwBabyMaker::AddOutput()
     processor->AddModule(new JetModule(this));
     processor->AddModule(new METModule(this));
     processor->AddModule(new TriggerModule(this));
-    // if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
-    //     processor->AddModule(new HWWlvjjTruthModule(this));
-    // processor->AddModule(new HiggsRecoModule(this));
-    // processor->AddModule(new RecoilModule(this));
-    // processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
-    // processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
-    // processor->AddModule(new GenPartModule(this));
-    // processor->AddModule(new EventModule(this));
+    if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
+        processor->AddModule(new HWWlvjjTruthModule(this));
+    processor->AddModule(new HiggsRecoModule(this));
+    processor->AddModule(new RecoilModule(this));
+    processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
+    processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
+    processor->AddModule(new GenPartModule(this));
+    processor->AddModule(new EventModule(this));
 
     // Now create the outputs to the ttree
     processor->AddOutputs();
@@ -83,13 +81,32 @@ void hwwBabyMaker::FillOutput()
 
 //##############################################################################################################
 // Used to overlap remova against tracks
+bool hwwBabyMaker::isPt20Electron(int idx)
+{
+    if (!( cms3.els_p4()[idx].pt() > 20.          )) return false;
+    if (!( isPt10Electron(idx)                    )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
+bool hwwBabyMaker::isPt20Muon(int idx)
+{
+    if (!( cms3.mus_p4()[idx].pt() > 20.        )) return false;
+    if (!( isPt10Muon(idx)                      )) return false;
+    return true;
+}
+
+//##############################################################################################################
+// Used to overlap remova against tracks
 bool hwwBabyMaker::isPt10Electron(int idx)
 {
     if (!( cms3.els_p4()[idx].pt() > 10.          )) return false;
     if (!( isVetoElectronPOGspring16noIso_v1(idx) )) return false;
     if (!( fabs(cms3.els_p4()[idx].eta()) < 2.5   )) return false;
-//    if (!( eleRelIso03EA(idx, 2) > 0.1            )) return false;
-//    if (!( elMiniRelIsoCMS3_EA(idx, 2) < 0.1      )) return false;
+    if (!( elMiniRelIsoCMS3_EA(idx, 2) < 0.2      )) return false;
+    if (!( fabs(cms3.els_dzPV()[idx]) < 0.1       )) return false;
+    if (!( fabs(cms3.els_dxyPV()[idx]) < 0.05     )) return false;
     return true;
 }
 
@@ -100,8 +117,9 @@ bool hwwBabyMaker::isPt10Muon(int idx)
     if (!( cms3.mus_p4()[idx].pt() > 10.        )) return false;
     if (!( isLooseMuonPOG(idx)                  )) return false;
     if (!( fabs(cms3.mus_p4()[idx].eta()) < 2.5 )) return false;
-//    if (!( muRelIso03EA(idx, 2) > 0.1           )) return false;
-//    if (!( muMiniRelIsoCMS3_EA(idx, 2) < 0.1    )) return false;
+    if (!( muMiniRelIsoCMS3_EA(idx, 2) < 0.2    )) return false;
+    if (!( fabs(cms3.mus_dzPV()[idx]) < 0.1     )) return false;
+    if (!( fabs(cms3.mus_dxyPV()[idx]) < 0.05   )) return false;
     return true;
 }
 
@@ -157,9 +175,10 @@ void hwwBabyMaker::LeptonModule::AddOutput()
     // And none of the following will be written to the TTree (hence the second argument being set to false)
     // This is so that we save sapce, there will be a separate branch that actually selects the ak8jets of interest
     // and save the necessary information.
-    bool writeToTree = false;
+    bool writeToTree = true;
     tx->createBranch<vector<int>>("lep_id", writeToTree);
     tx->createBranch<vector<int>>("lep_idx", writeToTree);
+    tx->createBranch<vector<int>>("lep_isTightPOG", writeToTree);
     tx->createBranch<vector<float>>("lep_pt", writeToTree);
     tx->createBranch<vector<float>>("lep_eta", writeToTree);
     tx->createBranch<vector<float>>("lep_phi", writeToTree);
@@ -168,6 +187,10 @@ void hwwBabyMaker::LeptonModule::AddOutput()
     tx->createBranch<vector<float>>("lep_relIso04DB", writeToTree);
     tx->createBranch<vector<float>>("lep_customrelIso005EA", writeToTree);
     tx->createBranch<vector<float>>("lep_customrelIso01EA", writeToTree);
+    tx->createBranch<vector<float>>("lep_ip3d", writeToTree);
+    tx->createBranch<vector<float>>("lep_ip3derr", writeToTree);
+    tx->createBranch<vector<float>>("lep_dxy", writeToTree);
+    tx->createBranch<vector<float>>("lep_dz", writeToTree);
 }
 
 //##############################################################################################################
@@ -180,6 +203,7 @@ void hwwBabyMaker::LeptonModule::FillOutput()
         tx->pushbackToBranch<LV>   ("lep_p4"  , cms3.els_p4()[idx]);
         tx->pushbackToBranch<int>  ("lep_id"  , cms3.els_charge()[idx]*(-11));
         tx->pushbackToBranch<int>  ("lep_idx" , idx);
+        tx->pushbackToBranch<int>  ("lep_isTightPOG", isTightElectronPOGspring16noIso_v1(idx));
         tx->pushbackToBranch<float>("lep_pt"  , cms3.els_p4()[idx].pt());
         tx->pushbackToBranch<float>("lep_eta" , cms3.els_p4()[idx].eta());
         tx->pushbackToBranch<float>("lep_phi" , cms3.els_p4()[idx].phi());
@@ -188,6 +212,10 @@ void hwwBabyMaker::LeptonModule::FillOutput()
         tx->pushbackToBranch<float>("lep_relIso04DB" , -999);
         tx->pushbackToBranch<float>("lep_customrelIso005EA" , elRelIsoCustomCone(idx , 0.1  , false , 0.0 , false , true , -1 , 2 , true));
         tx->pushbackToBranch<float>("lep_customrelIso01EA"  , elRelIsoCustomCone(idx , 0.1  , false , 0.0 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_ip3d"  , cms3.els_ip3d()[idx]);
+        tx->pushbackToBranch<float>("lep_ip3derr"  , cms3.els_ip3derr()[idx]);
+        tx->pushbackToBranch<float>("lep_dxy"  , cms3.els_dxyPV()[idx]);
+        tx->pushbackToBranch<float>("lep_dz"  , cms3.els_dzPV()[idx]);
     }
 
     for (auto& idx : babymaker->coreMuon.index)
@@ -195,6 +223,7 @@ void hwwBabyMaker::LeptonModule::FillOutput()
         tx->pushbackToBranch<LV>   ("lep_p4"  , cms3.mus_p4()[idx]);
         tx->pushbackToBranch<int>  ("lep_id"  , cms3.mus_charge()[idx]*(-13));
         tx->pushbackToBranch<int>  ("lep_idx" , idx);
+        tx->pushbackToBranch<int>  ("lep_isTightPOG", isMediumMuonPOG(idx));
         tx->pushbackToBranch<float>("lep_pt"  , cms3.mus_p4()[idx].pt());
         tx->pushbackToBranch<float>("lep_eta" , cms3.mus_p4()[idx].eta());
         tx->pushbackToBranch<float>("lep_phi" , cms3.mus_p4()[idx].phi());
@@ -203,6 +232,10 @@ void hwwBabyMaker::LeptonModule::FillOutput()
         tx->pushbackToBranch<float>("lep_relIso04DB" , muRelIso04DB(idx));
         tx->pushbackToBranch<float>("lep_customrelIso005EA" , muRelIsoCustomCone(idx , 0.1  , false , 0.5 , false , true , -1 , 2 , true));
         tx->pushbackToBranch<float>("lep_customrelIso01EA"  , muRelIsoCustomCone(idx , 0.1  , false , 0.5 , false , true , -1 , 2 , true));
+        tx->pushbackToBranch<float>("lep_ip3d"  , cms3.mus_ip3d()[idx]);
+        tx->pushbackToBranch<float>("lep_ip3derr"  , cms3.mus_ip3derr()[idx]);
+        tx->pushbackToBranch<float>("lep_dxy"  , cms3.mus_dxyPV()[idx]);
+        tx->pushbackToBranch<float>("lep_dz"  , cms3.mus_dzPV()[idx]);
     }
     tx->setBranch<int>("nrecolep", babymaker->coreElectron.index.size() + babymaker->coreMuon.index.size());
     std::cout.clear();
@@ -217,10 +250,15 @@ void hwwBabyMaker::LeptonModule::FillOutput()
             "lep_relIso04DB",
             "lep_customrelIso005EA",
             "lep_customrelIso01EA",
+            "lep_ip3d",
+            "lep_ip3derr",
+            "lep_dxy",
+            "lep_dz",
             },
             {
             "lep_id",
             "lep_idx",
+            "lep_isTightPOG",
             },
             {});
 
@@ -238,6 +276,7 @@ void hwwBabyMaker::FatJetModule::AddOutput()
 
     tx->createBranch<int>("nak8jets");
     tx->createBranch<vector<LV>>("ak8jets_p4");
+    tx->createBranch<vector<float>>("ak8jets_undoJEC");
 
     // Everything is using PUPPI as default
     // And none of the following will be written to the TTree (hence the second argument being set to false)
@@ -306,6 +345,7 @@ void hwwBabyMaker::FatJetModule::FillOutput()
         {
             nak8jets++;
             tx->pushbackToBranch<LV>("ak8jets_p4", fatjet);
+            tx->pushbackToBranch<float>("ak8jets_undoJEC", 1 / corr);
             tx->pushbackToBranch<float>("ak8jets_area", cms3.ak8jets_area()[idx]);
             tx->pushbackToBranch<float>("ak8jets_pt", fatjet.pt());
             tx->pushbackToBranch<float>("ak8jets_eta", fatjet.eta());
@@ -336,12 +376,12 @@ void hwwBabyMaker::FatJetModule::FillOutput()
                 tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_w", cms3.ak8jets_deep_rawdisc_w()[idx]);
                 tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_z", cms3.ak8jets_deep_rawdisc_z()[idx]);
                 tx->pushbackToBranch<float>("ak8jets_deep_rawdisc_zbb", cms3.ak8jets_deep_rawdisc_zbb()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_h4q", cms3.ak8jets_deep_bindisc_h4q()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_hbb", cms3.ak8jets_deep_bindisc_hbb()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_top", cms3.ak8jets_deep_bindisc_top()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_w", cms3.ak8jets_deep_bindisc_w()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_z", cms3.ak8jets_deep_bindisc_z()[idx]);
-                tx->pushbackToBranch<float>("ak8jets_deep_bindisc_zbb", cms3.ak8jets_deep_bindisc_zbb()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_h4q", cms3.ak8jets_deep_bindisc_h4q()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_hbb", cms3.ak8jets_deep_bindisc_hbb()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_top", cms3.ak8jets_deep_bindisc_top()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_w", cms3.ak8jets_deep_bindisc_w()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_z", cms3.ak8jets_deep_bindisc_z()[idx]);
+                // tx->pushbackToBranch<float>("ak8jets_deep_bindisc_zbb", cms3.ak8jets_deep_bindisc_zbb()[idx]);
                 tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_pt", cms3.ak8jets_softdropPuppiSubjet1()[idx].pt());
                 tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_eta", cms3.ak8jets_softdropPuppiSubjet1()[idx].eta());
                 tx->pushbackToBranch<float>("ak8jets_softdropPuppiSubjet1_phi", cms3.ak8jets_softdropPuppiSubjet1()[idx].phi());
@@ -363,6 +403,7 @@ void hwwBabyMaker::FatJetModule::FillOutput()
 
     tx->sortVecBranchesByPt("ak8jets_p4",
             {
+            "ak8jets_undoJEC",
             "ak8jets_area",
             "ak8jets_pt",
             "ak8jets_eta",
@@ -388,12 +429,12 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             "ak8jets_deep_rawdisc_w",
             "ak8jets_deep_rawdisc_z",
             "ak8jets_deep_rawdisc_zbb",
-            "ak8jets_deep_bindisc_h4q",
-            "ak8jets_deep_bindisc_hbb",
-            "ak8jets_deep_bindisc_top",
-            "ak8jets_deep_bindisc_w",
-            "ak8jets_deep_bindisc_z",
-            "ak8jets_deep_bindisc_zbb",
+            // "ak8jets_deep_bindisc_h4q",
+            // "ak8jets_deep_bindisc_hbb",
+            // "ak8jets_deep_bindisc_top",
+            // "ak8jets_deep_bindisc_w",
+            // "ak8jets_deep_bindisc_z",
+            // "ak8jets_deep_bindisc_zbb",
             "ak8jets_softdropPuppiSubjet1_pt",
             "ak8jets_softdropPuppiSubjet1_eta",
             "ak8jets_softdropPuppiSubjet1_phi",
@@ -1235,6 +1276,7 @@ void hwwBabyMaker::HiggsRecoModule::AddOutput()
     tx->createBranch<LV>("V_p4");
 
     // Selected ak8jets associated information
+    tx->createBranch<float>("J_undoJEC");
     tx->createBranch<float>("J_area");
     tx->createBranch<float>("J_mass");
     tx->createBranch<float>("J_softdropMass");
@@ -1270,11 +1312,16 @@ void hwwBabyMaker::HiggsRecoModule::AddOutput()
     // Selected lepton associated information
     tx->createBranch<int>("L_id");
     tx->createBranch<int>("L_idx");
+    tx->createBranch<int>("L_isTightPOG");
     tx->createBranch<float>("L_miniIsoEA");
     tx->createBranch<float>("L_relIso03EA");
     tx->createBranch<float>("L_relIso04DB");
     tx->createBranch<float>("L_customrelIso005EA");
     tx->createBranch<float>("L_customrelIso01EA");
+    tx->createBranch<float>("L_ip3d");
+    tx->createBranch<float>("L_ip3derr");
+    tx->createBranch<float>("L_dxy");
+    tx->createBranch<float>("L_dz");
 
     // ak4jets nearby fatjet
     tx->createBranch<LV>("J_nearest_ak4jet_p4", false);
@@ -1420,7 +1467,8 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
     LV V;
     int iV = -1;
     std::tie(L, iL) = SelectLepton(met);
-    std::tie(J, iJ) = SelectFatJet(met);
+    // std::tie(J, iJ) = SelectFatJet(met);
+    std::tie(J, iJ) = SelectFatJet(L + met);
     std::tie(V, iV) = SelectVbosonJet(J);
 
     // Found?
@@ -1471,6 +1519,7 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
     if (iJ >= 0)
     {
         // Selected ak8jets associated information
+        if (tx->getBranchLazy<vector<float>>("ak8jets_undoJEC"                     ).size() > 0) tx->setBranch<float>("J_undoJEC"                     , tx->getBranchLazy<vector<float>>("ak8jets_undoJEC"                     )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_area"                        ).size() > 0) tx->setBranch<float>("J_area"                        , tx->getBranchLazy<vector<float>>("ak8jets_area"                        )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_mass"                        ).size() > 0) tx->setBranch<float>("J_mass"                        , tx->getBranchLazy<vector<float>>("ak8jets_mass"                        )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                ).size() > 0) tx->setBranch<float>("J_softdropMass"                , tx->getBranchLazy<vector<float>>("ak8jets_softdropMass"                )[iJ]) ;
@@ -1484,12 +1533,12 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
         if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_w"              )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_z"              )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            ).size() > 0) tx->setBranch<float>("J_deep_rawdisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_rawdisc_zbb"            )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              )[iJ]) ;
-        if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_h4q"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_h4q"            )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_hbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_hbb"            )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_top"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_top"            )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_w"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_w"              )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              ).size() > 0) tx->setBranch<float>("J_deep_bindisc_z"              , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_z"              )[iJ]) ;
+        // if (tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            ).size() > 0) tx->setBranch<float>("J_deep_bindisc_zbb"            , tx->getBranchLazy<vector<float>>("ak8jets_deep_bindisc_zbb"            )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_pt"     , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_pt"     )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_eta"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_eta"    )[iJ]) ;
         if (tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    ).size() > 0) tx->setBranch<float>("J_softdropPuppiSubjet1_phi"    , tx->getBranchLazy<vector<float>>("ak8jets_softdropPuppiSubjet1_phi"    )[iJ]) ;
@@ -1549,11 +1598,16 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput()
         // Selected lepton associated information
         tx->setBranch<int>("L_id", tx->getBranch<vector<int>>("lep_id")[iL]);
         tx->setBranch<int>("L_idx", tx->getBranch<vector<int>>("lep_idx")[iL]);
+        tx->setBranch<int>("L_isTightPOG", tx->getBranch<vector<int>>("lep_isTightPOG")[iL]);
         tx->setBranch<float>("L_miniIsoEA", tx->getBranch<vector<float>>("lep_miniIsoEA")[iL]);
         tx->setBranch<float>("L_relIso03EA", tx->getBranch<vector<float>>("lep_relIso03EA")[iL]);
         tx->setBranch<float>("L_relIso04DB", tx->getBranch<vector<float>>("lep_relIso04DB")[iL]);
         tx->setBranch<float>("L_customrelIso005EA", tx->getBranch<vector<float>>("lep_customrelIso005EA")[iL]);
         tx->setBranch<float>("L_customrelIso01EA", tx->getBranch<vector<float>>("lep_customrelIso01EA")[iL]);
+        tx->setBranch<float>("L_ip3d", tx->getBranch<vector<float>>("lep_ip3d")[iL]);
+        tx->setBranch<float>("L_ip3derr", tx->getBranch<vector<float>>("lep_ip3derr")[iL]);
+        tx->setBranch<float>("L_dxy", tx->getBranch<vector<float>>("lep_dxy")[iL]);
+        tx->setBranch<float>("L_dz", tx->getBranch<vector<float>>("lep_dz")[iL]);
     }
 
     if (iJ >= 0 and iL >= 0)
@@ -1693,7 +1747,7 @@ void hwwBabyMaker::HiggsRecoModule::FillOutput_Htag()
             if (RooUtil::Calc::DeltaR(pf_p4, L_p4) < 0.05 and cms3.pfcands_particleId()[ipf] == L_id)
             {
                 lepfound = true;
-                continue;
+                // continue;
             }
 
             if (not (RooUtil::Calc::DeltaR(pf_p4, L_p4) < 0.05 and cms3.pfcands_particleId()[ipf] == L_id))

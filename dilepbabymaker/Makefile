@@ -48,7 +48,7 @@ COREOBJECTS = $(CORESOURCES:.cc=.o)
 CORELIB = libBabymakerCORE.so
 
 TOOLSSOURCES = $(wildcard ../CORE/Tools/*.cc) $(wildcard ../CORE/Tools/MT2/*.cc) $(wildcard ../CORE/Tools/btagsf/*.cc) $(wildcard ../CORE/Tools/datasetinfo/*.cc)
-TOOLSOBJECTS = $(TOOLSSOURCES:.cc=.o) 
+TOOLSOBJECTS = $(TOOLSSOURCES:.cc=.o) CORE/Tools/JetResolution/JetResolution.o
 TOOLSLIB = libBabymakerTools.so
 
 # #FWLIB = libMiniFWLite.so
