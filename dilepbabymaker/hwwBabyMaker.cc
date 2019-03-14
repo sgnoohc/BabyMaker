@@ -55,18 +55,18 @@ void hwwBabyMaker::AddOutput()
 
     // Add the lepton module which handles what variables to write, and how.
     processor->AddModule(new LeptonModule(this));
-    processor->AddModule(new FatJetModule(this));
-    processor->AddModule(new JetModule(this));
-    processor->AddModule(new METModule(this));
-    processor->AddModule(new TriggerModule(this));
-    if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
-        processor->AddModule(new HWWlvjjTruthModule(this));
-    processor->AddModule(new HiggsRecoModule(this));
-    processor->AddModule(new RecoilModule(this));
-    processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
-    processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
-    processor->AddModule(new GenPartModule(this));
-    processor->AddModule(new EventModule(this));
+    // processor->AddModule(new FatJetModule(this));
+    // processor->AddModule(new JetModule(this));
+    // processor->AddModule(new METModule(this));
+    // processor->AddModule(new TriggerModule(this));
+    // if (looper.getCurrentFileName().Contains("HToWWToLNuQQ") or looper.getCurrentFileName().Contains("VHToNonbb"))
+    //     processor->AddModule(new HWWlvjjTruthModule(this));
+    // processor->AddModule(new HiggsRecoModule(this));
+    // processor->AddModule(new RecoilModule(this));
+    // processor->AddModule(new RecoilModule(this, "_allj_1_4", "alljets_p4", TMath::Pi() * 1. / 4.));
+    // processor->AddModule(new RecoilModule(this, "_j_3_4", "jets_p4", TMath::Pi() * 3. / 4.));
+    // processor->AddModule(new GenPartModule(this));
+    // processor->AddModule(new EventModule(this));
 
     // Now create the outputs to the ttree
     processor->AddOutputs();
@@ -160,109 +160,8 @@ bool hwwBabyMaker::isLeptonOverlappingWithJet(int ijet)
     return false;
 }
 
-//==============================================================================================================
-//
-// Lepton Module
-//
-//==============================================================================================================
+#include "modules/LeptonModule.cc"
 
-//##############################################################################################################
-void hwwBabyMaker::LeptonModule::AddOutput()
-{
-    tx->createBranch<int>("nrecolep");
-    tx->createBranch<vector<LV>>("lep_p4");
-
-    // And none of the following will be written to the TTree (hence the second argument being set to false)
-    // This is so that we save sapce, there will be a separate branch that actually selects the ak8jets of interest
-    // and save the necessary information.
-    bool writeToTree = true;
-    tx->createBranch<vector<int>>("lep_id", writeToTree);
-    tx->createBranch<vector<int>>("lep_idx", writeToTree);
-    tx->createBranch<vector<int>>("lep_isTightPOG", writeToTree);
-    tx->createBranch<vector<float>>("lep_pt", writeToTree);
-    tx->createBranch<vector<float>>("lep_eta", writeToTree);
-    tx->createBranch<vector<float>>("lep_phi", writeToTree);
-    tx->createBranch<vector<float>>("lep_miniIsoEA", writeToTree);
-    tx->createBranch<vector<float>>("lep_relIso03EA", writeToTree);
-    tx->createBranch<vector<float>>("lep_relIso04DB", writeToTree);
-    tx->createBranch<vector<float>>("lep_customrelIso005EA", writeToTree);
-    tx->createBranch<vector<float>>("lep_customrelIso01EA", writeToTree);
-    tx->createBranch<vector<float>>("lep_ip3d", writeToTree);
-    tx->createBranch<vector<float>>("lep_ip3derr", writeToTree);
-    tx->createBranch<vector<float>>("lep_dxy", writeToTree);
-    tx->createBranch<vector<float>>("lep_dz", writeToTree);
-}
-
-//##############################################################################################################
-void hwwBabyMaker::LeptonModule::FillOutput()
-{
-    std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates
-    // Lepton absolute isolations
-    for (auto& idx : babymaker->coreElectron.index)
-    {
-        tx->pushbackToBranch<LV>   ("lep_p4"  , cms3.els_p4()[idx]);
-        tx->pushbackToBranch<int>  ("lep_id"  , cms3.els_charge()[idx]*(-11));
-        tx->pushbackToBranch<int>  ("lep_idx" , idx);
-        tx->pushbackToBranch<int>  ("lep_isTightPOG", isTightElectronPOGspring16noIso_v1(idx));
-        tx->pushbackToBranch<float>("lep_pt"  , cms3.els_p4()[idx].pt());
-        tx->pushbackToBranch<float>("lep_eta" , cms3.els_p4()[idx].eta());
-        tx->pushbackToBranch<float>("lep_phi" , cms3.els_p4()[idx].phi());
-        tx->pushbackToBranch<float>("lep_miniIsoEA" , elMiniRelIsoCMS3_EA(idx, 2));
-        tx->pushbackToBranch<float>("lep_relIso03EA" , eleRelIso03EA(idx, 2));
-        tx->pushbackToBranch<float>("lep_relIso04DB" , -999);
-        tx->pushbackToBranch<float>("lep_customrelIso005EA" , elRelIsoCustomCone(idx , 0.1  , false , 0.0 , false , true , -1 , 2 , true));
-        tx->pushbackToBranch<float>("lep_customrelIso01EA"  , elRelIsoCustomCone(idx , 0.1  , false , 0.0 , false , true , -1 , 2 , true));
-        tx->pushbackToBranch<float>("lep_ip3d"  , cms3.els_ip3d()[idx]);
-        tx->pushbackToBranch<float>("lep_ip3derr"  , cms3.els_ip3derr()[idx]);
-        tx->pushbackToBranch<float>("lep_dxy"  , cms3.els_dxyPV()[idx]);
-        tx->pushbackToBranch<float>("lep_dz"  , cms3.els_dzPV()[idx]);
-    }
-
-    for (auto& idx : babymaker->coreMuon.index)
-    {
-        tx->pushbackToBranch<LV>   ("lep_p4"  , cms3.mus_p4()[idx]);
-        tx->pushbackToBranch<int>  ("lep_id"  , cms3.mus_charge()[idx]*(-13));
-        tx->pushbackToBranch<int>  ("lep_idx" , idx);
-        tx->pushbackToBranch<int>  ("lep_isTightPOG", isMediumMuonPOG(idx));
-        tx->pushbackToBranch<float>("lep_pt"  , cms3.mus_p4()[idx].pt());
-        tx->pushbackToBranch<float>("lep_eta" , cms3.mus_p4()[idx].eta());
-        tx->pushbackToBranch<float>("lep_phi" , cms3.mus_p4()[idx].phi());
-        tx->pushbackToBranch<float>("lep_miniIsoEA" , muMiniRelIsoCMS3_EA(idx, 2));
-        tx->pushbackToBranch<float>("lep_relIso03EA" , muRelIso03EA(idx, 2));
-        tx->pushbackToBranch<float>("lep_relIso04DB" , muRelIso04DB(idx));
-        tx->pushbackToBranch<float>("lep_customrelIso005EA" , muRelIsoCustomCone(idx , 0.1  , false , 0.5 , false , true , -1 , 2 , true));
-        tx->pushbackToBranch<float>("lep_customrelIso01EA"  , muRelIsoCustomCone(idx , 0.1  , false , 0.5 , false , true , -1 , 2 , true));
-        tx->pushbackToBranch<float>("lep_ip3d"  , cms3.mus_ip3d()[idx]);
-        tx->pushbackToBranch<float>("lep_ip3derr"  , cms3.mus_ip3derr()[idx]);
-        tx->pushbackToBranch<float>("lep_dxy"  , cms3.mus_dxyPV()[idx]);
-        tx->pushbackToBranch<float>("lep_dz"  , cms3.mus_dzPV()[idx]);
-    }
-    tx->setBranch<int>("nrecolep", babymaker->coreElectron.index.size() + babymaker->coreMuon.index.size());
-    std::cout.clear();
-
-    tx->sortVecBranchesByPt("lep_p4",
-            {
-            "lep_pt",
-            "lep_eta",
-            "lep_phi",
-            "lep_miniIsoEA",
-            "lep_relIso03EA",
-            "lep_relIso04DB",
-            "lep_customrelIso005EA",
-            "lep_customrelIso01EA",
-            "lep_ip3d",
-            "lep_ip3derr",
-            "lep_dxy",
-            "lep_dz",
-            },
-            {
-            "lep_id",
-            "lep_idx",
-            "lep_isTightPOG",
-            },
-            {});
-
-}
 
 
 //==============================================================================================================
