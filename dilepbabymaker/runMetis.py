@@ -117,6 +117,7 @@ def main():
                     condor_submit_params = {"sites" : "T2_US_UCSD"},
                     open_dataset         = False,
                     flush                = True,
+                    #min_completion_fraction = 0.5,
                     #no_load_from_backup  = True,
                     )
 

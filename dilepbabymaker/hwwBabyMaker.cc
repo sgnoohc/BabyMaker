@@ -38,8 +38,8 @@ bool hwwBabyMaker::PassSelection()
         }
     }
 
-    // Pass with at least one fat jet and at least one lepton
-    if (n_ak8 >= 1 && n_reconstructed_leptons >= 1)
+    // Pass with at least one fat jet and only one lepton
+    if (n_ak8 >= 1 && n_reconstructed_leptons == 1)
         return true;
     else
         return false;
@@ -352,7 +352,10 @@ void hwwBabyMaker::FatJetModule::FillOutput()
             tx->pushbackToBranch<float>("ak8jets_phi", fatjet.phi());
             tx->pushbackToBranch<float>("ak8jets_mass", fatjet.mass());
             tx->pushbackToBranch<float>("ak8jets_energy", fatjet.energy());
-            tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
+            if (babymaker->looper.getCurrentFileName().Contains("Summer16MiniAODv3"))
+                tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_puppi_softdropMass()[idx]);
+            else
+                tx->pushbackToBranch<float>("ak8jets_softdropMass", cms3.ak8jets_softdropMass()[idx]);
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau1", cms3.ak8jets_nJettinessTau1()[idx]);
             tx->pushbackToBranch<float>("ak8jets_nJettinessTau2", cms3.ak8jets_nJettinessTau2()[idx]);
             // if (babymaker->looper.doesBranchExist("ak8jets_puppi_pt"))
