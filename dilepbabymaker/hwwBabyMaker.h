@@ -2,6 +2,9 @@
 #define hwwBabyMaker_h
 
 #include "babyMaker.h"
+#include "fastjet/ClusterSequence.hh"
+#include "fastjet/contrib/SoftDrop.hh"
+#include "fastjet/contrib/Nsubjettiness.hh"
 
 class hwwBabyMaker: public babyMaker
 {
@@ -11,9 +14,43 @@ class hwwBabyMaker: public babyMaker
 
         RooUtil::Processor* processor;
 
+        virtual void ProcessObjectsPrePassSelection();
         virtual void ProcessElectrons();
         virtual void ProcessMuons();
         virtual bool PassSelection();
+
+        void ReClusterFatJets();
+
+        class ReCluster
+        {
+            public:
+                LV J_p4;
+                LV J_SD_p4;
+                LV q0_p4;
+                LV q1_p4;
+                fastjet::PseudoJet J_pj;
+                fastjet::PseudoJet J_SD_pj;
+                fastjet::PseudoJet q0_pj;
+                fastjet::PseudoJet q1_pj;
+                float tau1;
+                float tau2;
+                float tau3;
+                float tau31;
+                float tau32;
+                float tau21;
+                float SD_tau1;
+                float SD_tau2;
+                float SD_tau3;
+                float SD_tau31;
+                float SD_tau32;
+                float SD_tau21;
+                bool found_jet;
+                void ReClusterFatJets(LV&);
+                static LV getLV(fastjet::PseudoJet&);
+
+        };
+
+        ReCluster recl;
 
         virtual void AddOutput();
         virtual void FillOutput();

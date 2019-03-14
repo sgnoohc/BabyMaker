@@ -24,9 +24,10 @@ PACKAGES = rooutil coreutil
 
 CC = g++
 CMSROOT = ./
-INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE -I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/1.57.0-ikhhed/include/ 
+INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE -I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/1.57.0-ikhhed/include/ $(shell fastjet/fastjet-install/bin/fastjet-config --cxxflags --plugins)
 CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS) -fno-var-tracking
-ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA #-lEG -lGenVector
+FASTJETCFG = $(shell fastjet/fastjet-install/bin/fastjet-config --libs --plugins) -lNsubjettiness -lRecursiveTools
+ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA $(FASTJETCFG) #-lEG -lGenVector
 COREDIR = ../CORE
 
 EXTRA=$(wildcard modules/*.cc) 
