@@ -8,6 +8,7 @@
 //##############################################################################################################
 void hwwBabyMaker::LeptonModule::AddOutput()
 {
+
     tx->createBranch<LV>("L_p4");
     tx->createBranch<float>("L_pt");
     tx->createBranch<float>("L_eta");
@@ -41,6 +42,7 @@ void hwwBabyMaker::LeptonModule::AddOutput()
     tx->createBranch<float>("L_ip3derr", writeToTree);
     tx->createBranch<float>("L_dxy", writeToTree);
     tx->createBranch<float>("L_dz", writeToTree);
+
 }
 
 //##############################################################################################################
@@ -53,6 +55,11 @@ void hwwBabyMaker::LeptonModule::FillOutput()
     for (auto& idx : babymaker->coreElectron.index)
     {
         tx->setBranch<LV>   ("L_p4"  , cms3.els_p4()[idx]);
+        tx->setBranch<float>("L_pt"  , cms3.els_p4()[idx].pt());
+        tx->setBranch<float>("L_eta" , cms3.els_p4()[idx].eta());
+        tx->setBranch<float>("L_phi" , cms3.els_p4()[idx].phi());
+        tx->setBranch<float>("L_mass", cms3.els_p4()[idx].mass());
+        tx->setBranch<float>("L_energy", cms3.els_p4()[idx].energy());
         tx->setBranch<int>  ("L_id"  , cms3.els_charge()[idx]*(-11));
         tx->setBranch<int>  ("L_idx" , idx);
         tx->setBranch<int>  ("L_isTightPOG", isTightElectronPOGspring16noIso_v1(idx));
@@ -81,6 +88,11 @@ void hwwBabyMaker::LeptonModule::FillOutput()
     for (auto& idx : babymaker->coreMuon.index)
     {
         tx->setBranch<LV>   ("L_p4"  , cms3.mus_p4()[idx]);
+        tx->setBranch<float>("L_pt"  , cms3.mus_p4()[idx].pt());
+        tx->setBranch<float>("L_eta" , cms3.mus_p4()[idx].eta());
+        tx->setBranch<float>("L_phi" , cms3.mus_p4()[idx].phi());
+        tx->setBranch<float>("L_mass", cms3.mus_p4()[idx].mass());
+        tx->setBranch<float>("L_energy", cms3.mus_p4()[idx].energy());
         tx->setBranch<int>  ("L_id"  , cms3.mus_charge()[idx]*(-13));
         tx->setBranch<int>  ("L_idx" , idx);
         tx->setBranch<int>  ("L_isTightPOG", isMediumMuonPOG(idx));

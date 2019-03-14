@@ -29,6 +29,8 @@ CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS) -fno-
 ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA #-lEG -lGenVector
 COREDIR = ../CORE
 
+EXTRA=$(wildcard modules/*.cc) 
+
 DICTINCLUDE = $(ROOTSYS)/include/Math/QuantFuncMathCore.h $(ROOTSYS)/include/TLorentzVector.h $(ROOTSYS)/include/Math/Vector4D.h
 
 LINKER = g++
@@ -138,6 +140,10 @@ $(EXE): $(PACKAGES) $(LIBS)
 	$(QUIET) echo "Building $@"; \
 	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))"; \
 	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./  $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))
+
+hwwBabyMaker.o: hwwBabyMaker.cc hwwBabyMaker.h $(EXTRA)
+	$(QUIET) echo "Compiling $<"; \
+	$(CC) $(CFLAGS) $< -c -o $@
 
 %.o: 	%.cc %.h
 	$(QUIET) echo "Compiling $<"; \
