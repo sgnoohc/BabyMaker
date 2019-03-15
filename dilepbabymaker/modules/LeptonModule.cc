@@ -1,3 +1,4 @@
+#include "LeptonModule.h"
 
 //==============================================================================================================
 //
@@ -6,7 +7,7 @@
 //==============================================================================================================
 
 //##############################################################################################################
-void hwwBabyMaker::LeptonModule::AddOutput()
+void hwwModule::LeptonModule::AddOutput()
 {
 
     tx->createBranch<LV>("L_p4");
@@ -46,7 +47,7 @@ void hwwBabyMaker::LeptonModule::AddOutput()
 }
 
 //##############################################################################################################
-void hwwBabyMaker::LeptonModule::FillOutput()
+void hwwModule::LeptonModule::FillOutput()
 {
 
     std::cout.setstate(std::ios_base::failbit); // To suppress warning about CMS4 not having PF candidates

@@ -24,7 +24,7 @@ PACKAGES = rooutil coreutil
 
 CC = g++
 CMSROOT = ./
-INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE -I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/1.57.0-ikhhed/include/ $(shell fastjet/fastjet-install/bin/fastjet-config --cxxflags --plugins)
+INCLUDE = $(shell root-config --cflags) -I$(CMSROOT) -I$(CMSROOT)../CORE -I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/1.57.0-ikhhed/include/ $(shell fastjet/fastjet-install/bin/fastjet-config --cxxflags --plugins) -Imodules
 CFLAGS = -Wall -Wno-unused-function -g -O2 -fPIC $(INCLUDE) $(EXTRACFLAGS) -fno-var-tracking
 FASTJETCFG = $(shell fastjet/fastjet-install/bin/fastjet-config --libs --plugins) -lNsubjettiness -lRecursiveTools
 ROOTLIBS = $(shell root-config --ldflags --cflags --libs) -lTMVA $(FASTJETCFG) #-lEG -lGenVector
@@ -42,7 +42,7 @@ LINKERFLAGS = $(shell root-config --ldflags --libs) -lEG -lGenVector -lTMVA -O2
 
 DIR = ./
 
-SOURCES = $(wildcard *.cc)
+SOURCES = $(wildcard *.cc) $(EXTRA)
 OBJECTS = $(SOURCES:.cc=.o)
 LIB = libScanChain.so
 
@@ -142,9 +142,9 @@ $(EXE): $(PACKAGES) $(LIBS)
 	echo "$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./ $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))"; \
 	$(CC) -o $@ $(LIBS) $(ROOTLIBS) -Wl,-rpath,./  $(addprefix -L,$(PACKAGES)) $(addprefix -l,$(PACKAGES))
 
-hwwBabyMaker.o: hwwBabyMaker.cc hwwBabyMaker.h $(EXTRA)
-	$(QUIET) echo "Compiling $<"; \
-	$(CC) $(CFLAGS) $< -c -o $@
+# hwwBabyMaker.o: hwwBabyMaker.cc hwwBabyMaker.h $(EXTRA)
+# 	$(QUIET) echo "Compiling $<"; \
+# 	$(CC) $(CFLAGS) $< -c -o $@
 
 %.o: 	%.cc %.h
 	$(QUIET) echo "Compiling $<"; \
@@ -175,7 +175,7 @@ b: build
 clean:
 	rm -f \
 	LinkDef_out* \
-	*.o \
+	rm $(OBJECTS) \
 	$(LIBS) \
 	$(EXE) \
         ../CORE/*.o \

@@ -1,3 +1,4 @@
+#include "FatJetModule.h"
 
 //==============================================================================================================
 //
@@ -5,7 +6,7 @@
 //
 //==============================================================================================================
 
-void hwwBabyMaker::FatJetModule::AddOutput()
+void hwwModule::FatJetModule::AddOutput()
 {
 
     tx->createBranch<LV>("J_p4");
@@ -50,7 +51,7 @@ void hwwBabyMaker::FatJetModule::AddOutput()
 
 }
 
-void hwwBabyMaker::FatJetModule::FillOutput()
+void hwwModule::FatJetModule::FillOutput()
 {
 
     tx->setBranch<LV>("J_p4", babymaker->recl.J_p4);
