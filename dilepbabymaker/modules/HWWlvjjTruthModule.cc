@@ -18,9 +18,9 @@ void hwwModule::HWWlvjjTruthModule::AddOutput()
     tx->createBranch<LV>("gen_q1_p4");
     tx->createBranch<LV>("gen_lep_p4");
     tx->createBranch<LV>("gen_neu_p4");
-    tx->createBranch<int>("gen_channel");
-    tx->createBranch<LV>("gen_wlep_rest_p4");
-    tx->createBranch<LV>("gen_whad_rest_p4");
+    // tx->createBranch<int>("gen_channel");
+    // tx->createBranch<LV>("gen_wlep_rest_p4");
+    // tx->createBranch<LV>("gen_whad_rest_p4");
     tx->createBranch<LV>("gen_Vq0_p4");
     tx->createBranch<LV>("gen_Vq1_p4");
     tx->createBranch<int>("gen_Vq0_id");
@@ -34,6 +34,13 @@ void hwwModule::HWWlvjjTruthModule::AddOutput()
 
 void hwwModule::HWWlvjjTruthModule::FillOutput()
 {
+
+    // If the sample is not Higgs then skip because there is no point of doing this
+    if (not babymaker->looper.getCurrentFileName().Contains("HToWWToLNuQQ") and
+        not babymaker->looper.getCurrentFileName().Contains("VHToNonbb"))
+    {
+        return;
+    }
 
     // Find the ISR particle if it exists and set the ISR variables
     bool recoil_set = false;
@@ -158,11 +165,11 @@ void hwwModule::HWWlvjjTruthModule::FillOutput()
     tx->setBranch<LV>("gen_q1_p4", higgses[0].HiggsGrandDaughters[q1_idx].p4);
     tx->setBranch<LV>("gen_lep_p4", higgses[0].HiggsGrandDaughters[lep_idx].p4);
     tx->setBranch<LV>("gen_neu_p4", higgses[0].HiggsGrandDaughters[neu_idx].p4);
-//    tx->setBranch<int>("gen_channel");
-//    tx->setBranch<LV>("gen_wlep_rest_p4");
-//    tx->setBranch<LV>("gen_whad_rest_p4");
-//    tx->setBranch<LV>("gen_Vq0_p4");
-//    tx->setBranch<LV>("gen_Vq1_p4");
+    // tx->setBranch<int>("gen_channel");
+    // tx->setBranch<LV>("gen_wlep_rest_p4");
+    // tx->setBranch<LV>("gen_whad_rest_p4");
+    // tx->setBranch<LV>("gen_Vq0_p4");
+    // tx->setBranch<LV>("gen_Vq1_p4");
     tx->setBranch<int>("gen_q0_id", higgses[0].HiggsGrandDaughters[q0_idx].id);
     tx->setBranch<int>("gen_q1_id", higgses[0].HiggsGrandDaughters[q1_idx].id);
     tx->setBranch<int>("gen_lep_id", higgses[0].HiggsGrandDaughters[lep_idx].id);

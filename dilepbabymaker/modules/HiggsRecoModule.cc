@@ -77,10 +77,19 @@ void hwwModule::HiggsRecoModule::AddOutput()
     tx->createBranch<float>("LHRatio_SD");
 
     tx->createBranch<LV>("neu_p4");
-    tx->createBranch<LV>("neu_p4_sol1");
-    tx->createBranch<LV>("neu_p4_sol2");
-    tx->createBranch<LV>("neu_p4_invsol1");
-    tx->createBranch<LV>("neu_p4_invsol2");
+    tx->createBranch<LV>("neu_p4_h");
+
+    tx->createBranch<LV>("Wlep_p4");
+    tx->createBranch<LV>("Wlep_h_p4");
+    tx->createBranch<LV>("H_p4");
+    tx->createBranch<LV>("H_mh_p4");
+    tx->createBranch<float>("det");
+    tx->createBranch<float>("detW");
+
+    tx->createBranch<float>("mH");
+    tx->createBranch<float>("mD");
+    tx->createBranch<float>("mD_SD");
+    tx->createBranch<float>("mD_Wlep");
 
 }
 
@@ -170,5 +179,57 @@ void hwwModule::HiggsRecoModule::FillOutput()
 
     tx->setBranch<float>("LHRatio", LX_p4.pt() / LXJ_p4.pt() - J_p4.pt() / LXJ_p4.pt());
     tx->setBranch<float>("LHRatio_SD", LX_p4.pt() / LXJ_SD_p4.pt() - J_SD_p4.pt() / LXJ_SD_p4.pt());
+
+    float mw = 0;
+    if (tx->getBranch<float>("LHRatio_SD") < 0)
+        mw = 40;
+    else
+        mw = 80.385;
+
+    LV vp4 = RooUtil::Calc::getNeutrinoP4(L_p4, X_p4.pt(), X_p4.phi(), mw);
+
+    tx->setBranch<LV>("neu_p4", vp4);
+
+    LV vp4_h = RooUtil::Calc::getNeutrinoP4(LJ_SD_p4, X_p4.pt(), X_p4.phi(), 125.00);
+    float det = RooUtil::Calc::getNeutrinoPzDet(LJ_SD_p4, X_p4.pt(), X_p4.phi(), 125.00);
+    float detW = RooUtil::Calc::getNeutrinoPzDet(L_p4, X_p4.pt(), X_p4.phi(), mw);
+
+    tx->setBranch<LV>("neu_p4_h", vp4_h);
+
+    tx->setBranch<float>("det", det);
+    tx->setBranch<float>("detW", detW);
+
+    LV Wlep_p4 = vp4 + L_p4;
+
+    // if (fabs(Wlep_p4.mass() - mw) > 10. and detW > 0)
+    //     RooUtil::Calc::getNeutrinoP4(L_p4, X_p4.pt(), X_p4.phi(), mw, false, false, true); // turn on debug
+
+    tx->setBranch<LV>("Wlep_p4", Wlep_p4);
+
+    LV Wlep_h_p4 = vp4_h + L_p4;
+
+    tx->setBranch<LV>("Wlep_h_p4", Wlep_h_p4);
+
+    LV H_mh_p4 = vp4_h + LJ_SD_p4;
+
+    tx->setBranch<LV>("H_mh_p4", H_mh_p4); // for sanity check purpose
+
+    LV H_p4 = J_SD_p4 + Wlep_p4;
+
+    tx->setBranch<LV>("H_p4", H_p4);
+
+    tx->setBranch<float>("mH", H_p4.mass());
+
+    float mD_SD = RooUtil::Calc::DeltaR(Wlep_h_p4, J_SD_p4) * LXJ_SD_p4.pt() / 2.;
+
+    tx->setBranch<float>("mD_SD", mD_SD);
+
+    float mD = RooUtil::Calc::DeltaR(Wlep_h_p4, J_p4) * LXJ_p4.pt() / 2.;
+
+    tx->setBranch<float>("mD", mD);
+
+    float mD_Wlep = RooUtil::Calc::DeltaR(Wlep_p4, J_p4) * LXJ_p4.pt() / 2.;
+
+    tx->setBranch<float>("mD_Wlep", mD_Wlep);
 
 }

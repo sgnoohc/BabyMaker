@@ -41,6 +41,8 @@ job_tag = "HWW{}_v5.0.1".format(data_year) # Added 4 vp4 solutions
 job_tag = "HWW{}_v5.0.2".format(data_year) # Added PF puppi JECs and QCD samples and etc. Added miniIso on el/mu
 job_tag = "HWW{}_v5.0.3".format(data_year) # Defined the lepton IDs a bit more constructively (not sure how much effect it'd have :( )
 
+job_tag = "HWW{}_v6.0.0".format(data_year) # Completely redefined how baby is defined (reclustering etc. are included)
+
 ###################################################################################################################
 ###################################################################################################################
 # Below are the Metis submission code that users do not have to care about.
@@ -87,7 +89,7 @@ def main():
 
     # Create tarball
     os.chdir(main_dir)
-    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C rooutil/hadd.py".format(tar_gz_path))
+    os.system("tar -chzf {} localsetup.sh processBaby *.so *.pcm rooutil/lib*.so coreutil/data coreutil/lib*.so *.txt btagsf MVAinput jetCorrections leptonSFs puWeight2016.root pileup_jul21_nominalUpDown.root ../CORE/Tools/ mergeHadoopFiles.C rooutil/hadd.py fastjet/fastjet-install/lib".format(tar_gz_path))
 
     # Change directory to metis
     os.chdir(metis_path)
@@ -134,7 +136,7 @@ def main():
                     tag                  = job_tag,
                     executable           = merge_exec_path,
                     tarfile              = tar_gz_path,
-                    files_per_output     = 100,
+                    files_per_output     = 100000,
                     output_dir           = maker_task.get_outputdir() + "/merged",
                     output_name          = samples_short_name[sample] + ".root",
                     condor_submit_params = {"sites" : "T2_US_UCSD"},
@@ -146,13 +148,13 @@ def main():
                     #no_load_from_backup  = True,
                     )
 
-            # if maker_task.complete():
+            if maker_task.complete():
 
-            #     # process the job (either submits, checks for resubmit, or finishes etc.)
-            #     merge_task.process()
+                # process the job (either submits, checks for resubmit, or finishes etc.)
+                merge_task.process()
 
-            #     # save some information for the dashboard
-            #     total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
+                # save some information for the dashboard
+                total_summary[merge_task.get_sample().get_datasetname()] = merge_task.get_task_summary()
 
             # Aggregate whether all tasks are complete
             all_tasks_complete = all_tasks_complete and maker_task.complete()
@@ -161,7 +163,7 @@ def main():
         StatsParser(data=total_summary, webdir=metis_dashboard_path).do()
 
         # Print msummary table so I don't have to load up website
-        os.system("msummary -r -p MAKER | tee summary.txt")
+        os.system("msummary -r | tee summary.txt")
         os.system("chmod -R 755 {}".format(metis_dashboard_path))
 
         # If all done exit the loop

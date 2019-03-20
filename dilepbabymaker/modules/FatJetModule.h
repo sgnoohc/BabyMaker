@@ -15,6 +15,7 @@ namespace hwwModule
             FatJetModule(hwwBabyMaker* parent) { babymaker = parent; }
             virtual void AddOutput();
             virtual void FillOutput();
+            void SetVBosonJet(int ijet);
     };
 }
 

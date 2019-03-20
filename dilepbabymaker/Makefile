@@ -186,7 +186,9 @@ clean:
         ../CORE/Tools/*.so \
         ../CORE/Tools/MT2/*.o \
 		../CORE/Tools/MT2/*.d \
-        ../CORE/Tools/MT2/*.so 
+        ../CORE/Tools/MT2/*.so \
+	rooutil/*.o \
+	rooutil/*.so
 
 localclean:
 	rm -f \

@@ -43,6 +43,7 @@ void hwwModule::LeptonModule::AddOutput()
     tx->createBranch<float>("L_ip3derr", writeToTree);
     tx->createBranch<float>("L_dxy", writeToTree);
     tx->createBranch<float>("L_dz", writeToTree);
+    tx->createBranch<int>("L_isFromW", writeToTree);
 
 }
 
@@ -83,6 +84,7 @@ void hwwModule::LeptonModule::FillOutput()
         tx->setBranch<float>("L_ip3derr"  , cms3.els_ip3derr()[idx]);
         tx->setBranch<float>("L_dxy"  , cms3.els_dxyPV()[idx]);
         tx->setBranch<float>("L_dz"  , cms3.els_dzPV()[idx]);
+        tx->setBranch<int>("L_isFromW"  , isFromW(11, idx));
     }
 
     // I expect either one electron or one muon so it's ok to loop over
@@ -116,6 +118,7 @@ void hwwModule::LeptonModule::FillOutput()
         tx->setBranch<float>("L_ip3derr"  , cms3.mus_ip3derr()[idx]);
         tx->setBranch<float>("L_dxy"  , cms3.mus_dxyPV()[idx]);
         tx->setBranch<float>("L_dz"  , cms3.mus_dzPV()[idx]);
+        tx->setBranch<int>("L_isFromW"  , isFromW(13, idx));
     }
 
     std::cout.clear();

@@ -80,6 +80,8 @@ echo ">>> source localsetup.sh"
 source localsetup.sh
 echo ">>> ls -l"
 ls -l
+echo ">>> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/fastjet/fastjet-install/lib"
+export LD_LIBRARY_PATH=$PWD/fastjet/fastjet-install/lib:$LD_LIBRARY_PATH
 echo ">>> export COREDIR=$PWD/CORE/"
 export COREDIR=$PWD/CORE/
 echo ">>> ./processBaby ${INPUTFILENAMES} -1"

@@ -16,41 +16,57 @@ void hwwModule::JetModule::AddOutput()
     // The definition of away and same and "in" are defined by the "LXJ" and "J" vectors
     // The "away" are the other side of the hemisphere defined by the direction of "LXJ" in r-phi coordinate
     // The "same" are the same side of the hemisphere defined by the directino of "LXJ" in r-phi coordinate
-    // The "in" are the R < 0.8 of the "J" vectors (this may be defined slightly differently, but let's go with this for now)
+    // The "in" are the R < 1.2 of the "J" vectors (this may be defined slightly differently, but let's go with this for now)
+    // The "annuli" are the 1.2 < R < 2.0 of the "J" vectors
 
+    tx->createBranch<vector<float>>("j_dphis");
+    tx->createBranch<vector<float>>("j_drs");
+    tx->createBranch<vector<float>>("j_SD_dphis");
+    tx->createBranch<vector<float>>("j_SD_drs");
+    tx->createBranch<vector<float>>("j_pts");
     tx->createBranch<int>("nj");
     tx->createBranch<int>("nj_in");
+    tx->createBranch<int>("nj_annuli");
     tx->createBranch<int>("nj_same");
     tx->createBranch<int>("nj_away");
     tx->createBranch<int>("nj_SD_in");
+    tx->createBranch<int>("nj_SD_annuli");
     tx->createBranch<int>("nj_SD_same");
     tx->createBranch<int>("nj_SD_away");
     tx->createBranch<int>("nb");
     tx->createBranch<int>("nb_in");
+    tx->createBranch<int>("nb_annuli");
     tx->createBranch<int>("nb_same");
     tx->createBranch<int>("nb_away");
     tx->createBranch<int>("nb_SD_in");
+    tx->createBranch<int>("nb_SD_annuli");
     tx->createBranch<int>("nb_SD_same");
     tx->createBranch<int>("nb_SD_away");
     tx->createBranch<int>("nbmed");
     tx->createBranch<int>("nbmed_in");
+    tx->createBranch<int>("nbmed_annuli");
     tx->createBranch<int>("nbmed_same");
     tx->createBranch<int>("nbmed_away");
     tx->createBranch<int>("nbmed_SD_in");
+    tx->createBranch<int>("nbmed_SD_annuli");
     tx->createBranch<int>("nbmed_SD_same");
     tx->createBranch<int>("nbmed_SD_away");
     tx->createBranch<int>("nbtight");
     tx->createBranch<int>("nbtight_in");
+    tx->createBranch<int>("nbtight_annuli");
     tx->createBranch<int>("nbtight_same");
     tx->createBranch<int>("nbtight_away");
     tx->createBranch<int>("nbtight_SD_in");
+    tx->createBranch<int>("nbtight_SD_annuli");
     tx->createBranch<int>("nbtight_SD_same");
     tx->createBranch<int>("nbtight_SD_away");
     tx->createBranch<float>("ht");
     tx->createBranch<float>("ht_in");
+    tx->createBranch<float>("ht_annuli");
     tx->createBranch<float>("ht_same");
     tx->createBranch<float>("ht_away");
     tx->createBranch<float>("ht_SD_in");
+    tx->createBranch<float>("ht_SD_annuli");
     tx->createBranch<float>("ht_SD_same");
     tx->createBranch<float>("ht_SD_away");
 
@@ -88,7 +104,8 @@ void hwwModule::JetModule::FillOutput()
     // The definition of away and same and "in" are defined by the "LXJ" and "J" vectors
     // The "away" are the other side of the hemisphere defined by the direction of "LXJ" in r-phi coordinate
     // The "same" are the same side of the hemisphere defined by the directino of "LXJ" in r-phi coordinate
-    // The "in" are the R < 0.8 of the "J" vectors (this may be defined slightly differently, but let's go with this for now)
+    // The "in" are the R < 1.2 of the "J" vectors (this may be defined slightly differently, but let's go with this for now)
+    // The "annuli" are the 1.2 < R < 2.0 of the "J" vectors
 
 
     // ----
@@ -96,37 +113,47 @@ void hwwModule::JetModule::FillOutput()
 
     int nj = 0;
     int nj_in = 0;
+    int nj_annuli = 0;
     int nj_same = 0;
     int nj_away = 0;
     int nj_SD_in = 0;
+    int nj_SD_annuli = 0;
     int nj_SD_same = 0;
     int nj_SD_away = 0;
     int nb = 0;
     int nb_in = 0;
+    int nb_annuli = 0;
     int nb_same = 0;
     int nb_away = 0;
     int nb_SD_in = 0;
+    int nb_SD_annuli = 0;
     int nb_SD_same = 0;
     int nb_SD_away = 0;
     int nbmed = 0;
     int nbmed_in = 0;
+    int nbmed_annuli = 0;
     int nbmed_same = 0;
     int nbmed_away = 0;
     int nbmed_SD_in = 0;
+    int nbmed_SD_annuli = 0;
     int nbmed_SD_same = 0;
     int nbmed_SD_away = 0;
     int nbtight = 0;
     int nbtight_in = 0;
+    int nbtight_annuli = 0;
     int nbtight_same = 0;
     int nbtight_away = 0;
     int nbtight_SD_in = 0;
+    int nbtight_SD_annuli = 0;
     int nbtight_SD_same = 0;
     int nbtight_SD_away = 0;
     float ht = 0;
     float ht_in = 0;
+    float ht_annuli = 0;
     float ht_same = 0;
     float ht_away = 0;
     float ht_SD_in = 0;
+    float ht_SD_annuli = 0;
     float ht_SD_same = 0;
     float ht_SD_away = 0;
 
@@ -160,6 +187,12 @@ void hwwModule::JetModule::FillOutput()
         if (jet.pt() > 30)
         {
 
+            tx->pushbackToBranch<float>("j_dphis", dphi);
+            tx->pushbackToBranch<float>("j_drs", dr_J);
+            tx->pushbackToBranch<float>("j_SD_dphis", dphi_SD);
+            tx->pushbackToBranch<float>("j_SD_drs", dr_SD_J);
+            tx->pushbackToBranch<float>("j_pts", pt);
+
             // Increase the counter for the number of jets
             nj++;
             ht += pt;
@@ -174,7 +207,12 @@ void hwwModule::JetModule::FillOutput()
                 nj_in++;
                 ht_in += pt;
             }
-            else if (fabs(dphi) < TMath::Pi()/2. and dr_J > 0.8)
+            else if (fabs(dphi) < TMath::Pi()/2. and dr_J < 1.2)
+            {
+                nj_annuli++;
+                ht_annuli += pt;
+            }
+            else if (fabs(dphi) < TMath::Pi()/2. and dr_J > 1.2)
             {
                 nj_same++;
                 ht_same += pt;
@@ -190,7 +228,12 @@ void hwwModule::JetModule::FillOutput()
                 nj_SD_in++;
                 ht_SD_in += pt;
             }
-            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J > 0.8)
+            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J < 1.2)
+            {
+                nj_SD_annuli++;
+                ht_SD_annuli += pt;
+            }
+            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J > 1.2)
             {
                 nj_SD_same++;
                 ht_SD_same += pt;
@@ -229,7 +272,13 @@ void hwwModule::JetModule::FillOutput()
                 if (current_csv_val >= bjet_CSV_MED) nbmed_in++;
                 if (current_csv_val >= bjet_CSV_TIGHT) nbtight_in++;
             }
-            else if (fabs(dphi) < TMath::Pi()/2. and dr_J > 0.8)
+            else if (fabs(dphi) < TMath::Pi()/2. and dr_J < 1.2)
+            {
+                if (current_csv_val >= bjet_CSV_LOOSE) nb_annuli++;
+                if (current_csv_val >= bjet_CSV_MED) nbmed_annuli++;
+                if (current_csv_val >= bjet_CSV_TIGHT) nbtight_annuli++;
+            }
+            else if (fabs(dphi) < TMath::Pi()/2. and dr_J > 1.2)
             {
                 if (current_csv_val >= bjet_CSV_LOOSE) nb_same++;
                 if (current_csv_val >= bjet_CSV_MED) nbmed_same++;
@@ -248,7 +297,13 @@ void hwwModule::JetModule::FillOutput()
                 if (current_csv_val >= bjet_CSV_MED) nbmed_SD_in++;
                 if (current_csv_val >= bjet_CSV_TIGHT) nbtight_SD_in++;
             }
-            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J > 0.8)
+            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J < 1.2)
+            {
+                if (current_csv_val >= bjet_CSV_LOOSE) nb_SD_annuli++;
+                if (current_csv_val >= bjet_CSV_MED) nbmed_SD_annuli++;
+                if (current_csv_val >= bjet_CSV_TIGHT) nbtight_SD_annuli++;
+            }
+            else if (fabs(dphi_SD) < TMath::Pi()/2. and dr_SD_J > 1.2)
             {
                 if (current_csv_val >= bjet_CSV_LOOSE) nb_SD_same++;
                 if (current_csv_val >= bjet_CSV_MED) nbmed_SD_same++;
@@ -287,37 +342,47 @@ void hwwModule::JetModule::FillOutput()
 
     tx->setBranch<int>("nj", nj);
     tx->setBranch<int>("nj_in", nj_in);
+    tx->setBranch<int>("nj_annuli", nj_annuli);
     tx->setBranch<int>("nj_same", nj_same);
     tx->setBranch<int>("nj_away", nj_away);
     tx->setBranch<int>("nj_SD_in", nj_SD_in);
+    tx->setBranch<int>("nj_SD_annuli", nj_SD_annuli);
     tx->setBranch<int>("nj_SD_same", nj_SD_same);
     tx->setBranch<int>("nj_SD_away", nj_SD_away);
     tx->setBranch<int>("nb", nb);
     tx->setBranch<int>("nb_in", nb_in);
+    tx->setBranch<int>("nb_annuli", nb_annuli);
     tx->setBranch<int>("nb_same", nb_same);
     tx->setBranch<int>("nb_away", nb_away);
     tx->setBranch<int>("nb_SD_in", nb_SD_in);
+    tx->setBranch<int>("nb_SD_annuli", nb_SD_annuli);
     tx->setBranch<int>("nb_SD_same", nb_SD_same);
     tx->setBranch<int>("nb_SD_away", nb_SD_away);
     tx->setBranch<int>("nbmed", nbmed);
     tx->setBranch<int>("nbmed_in", nbmed_in);
+    tx->setBranch<int>("nbmed_annuli", nbmed_annuli);
     tx->setBranch<int>("nbmed_same", nbmed_same);
     tx->setBranch<int>("nbmed_away", nbmed_away);
     tx->setBranch<int>("nbmed_SD_in", nbmed_SD_in);
+    tx->setBranch<int>("nbmed_SD_annuli", nbmed_SD_annuli);
     tx->setBranch<int>("nbmed_SD_same", nbmed_SD_same);
     tx->setBranch<int>("nbmed_SD_away", nbmed_SD_away);
     tx->setBranch<int>("nbtight", nbtight);
     tx->setBranch<int>("nbtight_in", nbtight_in);
+    tx->setBranch<int>("nbtight_annuli", nbtight_annuli);
     tx->setBranch<int>("nbtight_same", nbtight_same);
     tx->setBranch<int>("nbtight_away", nbtight_away);
     tx->setBranch<int>("nbtight_SD_in", nbtight_SD_in);
+    tx->setBranch<int>("nbtight_SD_annuli", nbtight_SD_annuli);
     tx->setBranch<int>("nbtight_SD_same", nbtight_SD_same);
     tx->setBranch<int>("nbtight_SD_away", nbtight_SD_away);
     tx->setBranch<float>("ht", ht);
     tx->setBranch<float>("ht_in", ht_in);
+    tx->setBranch<float>("ht_annuli", ht_annuli);
     tx->setBranch<float>("ht_same", ht_same);
     tx->setBranch<float>("ht_away", ht_away);
     tx->setBranch<float>("ht_SD_in", ht_SD_in);
+    tx->setBranch<float>("ht_SD_annuli", ht_SD_annuli);
     tx->setBranch<float>("ht_SD_same", ht_SD_same);
     tx->setBranch<float>("ht_SD_away", ht_SD_away);
     tx->setBranch<LV>("R_p4", R_p4);
